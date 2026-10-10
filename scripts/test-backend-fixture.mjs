@@ -1,0 +1,29 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync,readdirSync,existsSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import ts from 'typescript';
+import {demoRestaurant} from '../lib/domain.ts';
+const root=fileURLToPath(new URL('..',import.meta.url)),nativeRequire=createRequire(import.meta.url),site='https://pedido.example',csrf='ac'.repeat(32);
+const png=Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=','base64'));
+export function fixture(){
+ const db=new DatabaseSync(':memory:');db.exec('PRAGMA foreign_keys=ON');for(const name of readdirSync(path.join(root,'drizzle')).filter(n=>n.endsWith('.sql')).sort())db.exec(readFileSync(path.join(root,'drizzle',name),'utf8'));
+ const objects=new Map(),state={user:{userId:'owner-a',displayName:'Dono A',email:'owner@example.test',fullName:null},request:null};
+ function prepare(query){const statement=db.prepare(query);let values=[];const bound={bind(...args){values=args;return bound;},execute(){let results=[],changes=0;if(statement.columns().length){results=statement.all(...values);changes=Number(db.prepare('select changes() as n').get().n);}else changes=Number(statement.run(...values).changes);return {success:true,results,meta:{changes,duration:0}};},async all(){return bound.execute();},async run(){return bound.execute();},async first(column){const rows=bound.execute().results;return column?rows[0]?.[column]??null:rows[0]??null;},async raw(){return bound.execute().results.map(r=>Object.values(r));}};return bound;}
+ const env={AUTH_SESSION_KEY:'ab'.repeat(32),DB:{prepare,async batch(statements){db.exec('BEGIN');try{const results=statements.map(s=>s.execute());db.exec('COMMIT');return results;}catch(e){db.exec('ROLLBACK');throw e;}}},BUCKET:{async put(key,bytes,options){objects.set(key,{bytes:new Uint8Array(bytes),options});},async delete(key){objects.delete(key);},async get(key){const value=objects.get(key);return value?{body:value.bytes}:null;}}};
+ const cache=new Map();function load(relative){let filename=relative.startsWith(root)?relative:path.join(root,relative);if(!path.extname(filename)){if(existsSync(filename+'.ts'))filename+='.ts';else filename=path.join(filename,'index.ts');}if(cache.has(filename))return cache.get(filename).exports;const module={exports:{}};cache.set(filename,module);const code=ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText;
+  const req=name=>name==='cloudflare:workers'?{env}:name==='next/headers'?{headers:async()=>state.request.headers}:name==='next/navigation'?{redirect:()=>{throw Error('redirect');}}:name==='@/app/chatgpt-auth'?{getChatGPTUser:async()=>state.user}:name.startsWith('@/')?load(name.slice(2)):name.startsWith('.')?load(path.resolve(path.dirname(filename),name)):nativeRequire(name);
+  new Function('require','module','exports',code)(req,module,module.exports);return module.exports;}
+ const data={...demoRestaurant(),whatsapp:'(11) 99999-9999',pix:{enabled:true,type:'email',key:'pizza@example.test',recipient:'Pizzaria de teste'}};
+ for(const [id,owner,slug] of [['shop-a','owner-a','pizzaria-a'],['shop-b','owner-b','pizzaria-b']])db.prepare('INSERT INTO restaurants (id,owner_id,slug,name,data,published_data,published,created_at,updated_at) VALUES (?,?,?,?,?,?,1,?,?)').run(id,owner,slug,'Pizzaria de teste',JSON.stringify(data),JSON.stringify(data),new Date().toISOString(),new Date().toISOString());
+ const routes={images:load('app/api/restaurants/[id]/ai/images/route.ts'),imageClaim:load('app/api/ai/images/claim/route.ts'),create:load('app/api/menu/[slug]/order/route.ts'),customer:load('app/api/orders/[id]/route.ts'),upload:load('app/api/orders/[id]/receipt/route.ts'),admin:load('app/api/restaurants/[id]/orders/route.ts'),proof:load('app/api/restaurants/[id]/orders/[orderId]/receipt/[receiptId]/route.ts'),auth:load('app/api/auth/[action]/route.ts'),account:load('app/api/account/route.ts'),restaurants:load('app/api/restaurants/route.ts'),restaurant:load('app/api/restaurants/[id]/route.ts'),publish:load('app/api/restaurants/[id]/publish/route.ts'),media:load('app/api/restaurants/[id]/media/route.ts'),platform:load('app/api/platform/check/route.ts')};
+ async function call(route,method,params={},body,headers={}){const h={Origin:site,'Cookie':'__Host-pedido-csrf='+csrf,'x-pedido-csrf':csrf,...headers};if(body!==undefined&&!ArrayBuffer.isView(body)&&!(body instanceof FormData))h['Content-Type']='application/json';const request=new Request(site+'/api/test',{method,headers:h,body:body===undefined?undefined:ArrayBuffer.isView(body)||body instanceof FormData?body:JSON.stringify(body)});state.request=request;return routes[route][method](request,{params:Promise.resolve(params)});}
+ const input=(patch={})=>({requestId:crypto.randomUUID(),trackingToken:'ef'.repeat(32),customer:'Cliente de teste',phone:'(11) 99999-9999',address:'Rua de teste, 100, Centro',method:'delivery',payment:'Pix',note:'',coupon:'',items:[{productIds:['margherita'],size:'g',quantity:1,note:''}],...patch});
+ async function create(inputValue=input()){const response=await call('create','POST',{slug:'pizzaria-a'},inputValue);assert.equal(response.status,201,await response.clone().text());return {response,order:await response.json(),input:inputValue};}
+ return {db,env,objects,state,data,call,input,create,close:()=>db.close()};
+}
+
+export {site,csrf,png};
+

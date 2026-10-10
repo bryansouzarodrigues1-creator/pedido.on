@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "exported_at": "2026-10-10T21:56:05.313348+00:00",
+  "repository": "https://github.com/bryansouzarodrigues1-creator/pedido.on",
+  "github_parent_commit": "6c224f9808a25746205009b7711e58f683aac011",
+  "sources": {
+    "application": {
+      "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+      "version": 15,
+      "commit_sha": "ad29ba952a723145ff6a317f7fc7e20531222f1d",
+      "tracked_files": 230,
+      "url": "https://forno-cardapios.waves4845.chatgpt.site",
+      "handover_adaptations": [
+        ".env.example",
+        ".gitignore",
+        "ATIVACAO.md",
+        "EMAIL_SUPABASE.md",
+        "FLUXO_PEDIDOS.md",
+        "README.md",
+        "package.json",
+        "tsconfig.json"
+      ]
+    },
+    "image_service": {
+      "project_id": "c1919edd-8b5e-40f8-b646-9ccd9c69e01f",
+      "commit_sha": "4578d1cc508cfc850946fcf882bab3032288ab18",
+      "source_files": 80,
+      "directory": "services/image-service",
+      "url": "https://pedido-on-imagens.lovable.app",
+      "handover_adaptations": [
+        "README.md"
+      ],
+      "binary_asset_note": "public/favicon.ico copied without transformation from the published service; 20373 bytes"
+    }
+  },
+  "verification": {
+    "application_tests": {
+      "passed": 74,
+      "failed": 0,
+      "external_providers": "mocked"
+    },
+    "application_typecheck": "passed",
+    "application_build": "passed",
+    "image_service_tests": {
+      "previous_lovable_build_passed": 14,
+      "rerun_during_export": false,
+      "external_providers": "mocked"
+    },
+    "real_image_generation": "not run during export; owner authorization required"
+  },
+  "excluded": [
+    "deployment credentials and environment secrets",
+    "user/customer data and production database contents",
+    "uploaded receipts and runtime media",
+    "node_modules, build output, caches and local tool state"
+  ],
+  "integrity": {
+    "inventory": "docs/source-files.json",
+    "inventory_excludes_itself": true,
+    "hashes": [
+      "sha256",
+      "git_blob_sha1"
+    ]
+  }
+}

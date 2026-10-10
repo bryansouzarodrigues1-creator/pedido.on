@@ -1,0 +1,2 @@
+import {ArrowLeft,Flame} from "lucide-react";
+export default function NotFound(){return <main className="not-found"><span className="brand-icon"><Flame/></span><span className="eyebrow">PEDIDO.ON · CARDÁPIOS DIGITAIS</span><h1>Esse endereço ainda<br/>não está on.</h1><p>O endereço não foi encontrado ou o cardápio ainda não foi publicado pela pizzaria.</p><a className="btn primary" href="/"><ArrowLeft size={18}/> Ir para o início</a></main>;}
