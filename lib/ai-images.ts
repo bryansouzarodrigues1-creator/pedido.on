@@ -33,9 +33,9 @@ export async function generateImage(ownerId:string,restaurantId:string,name:stri
  let phase="connect";
  try{
   const response=await requestAiProvider(config.endpoint,{jobId:id,token},90000);
-  if(!response.ok)console.error("[pedido.on] ai-images provider response",{status:response.status});
+  if(!response.ok)console.error("[pedido.on] ai-images provider response",{status:response.status,phase:"provider_post",contentType:response.headers.get("content-type"),requestId:response.headers.get("cf-ray")||response.headers.get("x-request-id")});
   if(response.status===402){await env.DB!.prepare("UPDATE image_jobs SET state='cancelled',updated_at=? WHERE id=? AND state IN ('queued','claimed')").bind(new Date().toISOString(),id).run();throw new HttpError(503,"O serviço de IA está sem saldo disponível. Sua tentativa foi devolvida. Você pode usar os modelos prontos.");}
-  if(!response.ok)throw new HttpError(503,"A IA não concluiu a imagem. Confira seu limite antes de tentar novamente.");
+  if(!response.ok)throw new HttpError(503,response.status===401?"A autorização da geração falhou entre os serviços.":response.status===404?"O serviço de imagens não foi encontrado.":response.status===429?"O serviço de imagens está temporariamente limitado.":response.status>=500?"O gerador respondeu com erro. Confira a conexão e tente mais tarde.":"A IA não concluiu a imagem. Confira seu limite antes de tentar novamente.");
   phase="read";
   const bytes=await readBytes(new Request("https://image.invalid",{method:"POST",body:response.body,headers:{"content-length":response.headers.get("content-length")||""},duplex:"half"} as RequestInit),imageLimits.maxBytes),format=imageFormat(bytes,response.headers.get("content-type")||"");
   const state=await env.DB!.prepare("SELECT state FROM image_jobs WHERE id=?").bind(id).first<{state:string}>();if(state?.state!=="claimed")throw new HttpError(502,"A geração não foi autorizada pelo pedido.on.");
