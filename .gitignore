@@ -38,6 +38,10 @@ yarn-error.log*
 next-env.d.ts
 /dist/
 /.wrangler/
+/.netlify/
+/deploy/netlify/.netlify/
+/deploy/netlify/node_modules/
+/deploy/netlify/public/
 # Checkout-local execution profile and tool state; never publish them.
 /.sites-runtime/
 /.agents/

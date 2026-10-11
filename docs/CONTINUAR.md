@@ -18,8 +18,9 @@ Cadastro inicial sem seleção de quatro layouts; uma ação principal para adic
 
 | Verificação | Resultado |
 | --- | --- |
-| Aplicativo | 93 testes, typecheck e build passaram |
+| Repositório atual | 103 testes, typecheck, build Sites, preparação Netlify e empacotamento das duas funções passaram; Netlify ainda não implantada |
 | Workers | Envio e não encaminhamento de tokens em redirects, com serviço simulado |
+| Gateway no build local | Saúde, configuração de acesso, calculadora anônima, início e imagem estática 200; origem pública e cookie CSRF preservados, com D1/R2 de teste |
 | Serviço Lovable | 7 testes de protocolo, 14 existentes, typecheck e build passaram |
 | Gateway real | Um texto 200/JSON/577 bytes; uma imagem 200/JPEG/179.881 bytes; claim simulado somente no teste interno |
 | Produção v17 | `/` e `/calculadora` anônimos 200, sem login; saúde de texto/imagem habilitada e conectada |
@@ -29,6 +30,10 @@ Cadastro inicial sem seleção de quatro layouts; uma ação principal para adic
 Lovable informou **4,0 créditos de construção** nesta correção (3,1 diagnóstico/testes; 0,9 conferência final), além do consumo separado das duas chamadas reais, cujo custo unitário não foi informado. Sem compra de saldo, aumento de cotas ou Max.
 
 ## Próximos testes úteis
+
+**Próxima etapa solicitada: Netlify.** O repositório agora contém `netlify.toml`, o gateway em `deploy/netlify/` e a normalização assinada em `build/sites-worker.ts`. Ler [NETLIFY.md](NETLIFY.md) antes de implantar. A preparação está no código; a produção Sites permanece v17 e ainda não recebeu a ponte nem suas duas variáveis. Não considerar o domínio Netlify ativo a partir do build local.
+
+Netlify será o endereço público; aplicativo, D1/R2, Supabase e Lovable permanecem nas hospedagens atuais. Configurar somente o domínio HTTPS exato e uma chave nova de ponte; preservar `AUTH_SESSION_KEY`. Deploy previews não são autorizados automaticamente. Verificar os redirecionamentos Supabase e as lojas de proprietários ChatGPT antes da transição. Calculadora continua pública; seu histórico local não se transfere entre domínios.
 
 1. Conferir os quatro destinos do painel no celular e a rolagem das janelas de produto.
 2. Rever uma imagem existente antes de pedir outra. Para uma geração paga nova, considerar a autorização e o orçamento da sessão; não repetir chamadas para investigar conexão.
@@ -40,6 +45,6 @@ Lovable informou **4,0 créditos de construção** nesta correção (3,1 diagnó
 
 Ler `AGENTS.md`, `README.md`, `STUDIO.md` e `CALCULADORA.md`. Preservar Supabase, chave interna de sessão, bindings DB/BUCKET, migrações e `PEDIDO_AUTH_TEST_EMAILS`. Não exportar segredos, dumps, dados pessoais ou comprovantes.
 
-Executar `pnpm test`, `pnpm typecheck` e build. Publicar pelo fluxo oficial Sites, no mesmo projeto/audiência. GitHub não faz deploy automático; não conectar a raiz do monorepositório à Lovable. O serviço fica separado em `services/image-service`.
+Executar `pnpm test`, `pnpm typecheck`, `pnpm build:netlify`, `pnpm check:netlify` e build do aplicativo. A etapa Netlify exige publicar previamente a ponte pelo fluxo oficial Sites, no mesmo projeto/audiência. Não houve publicação nessa preparação. GitHub não faz deploy automático Sites; não conectar a raiz do monorepositório à Lovable. O serviço fica separado em `services/image-service`.
 
 Stripe e importação OpenAI continuam desativados. Não comprar saldo, aumentar limites ou usar Max sem instrução do dono. Não inventar revisão em navegador ou geração completa a partir de consulta de saúde.

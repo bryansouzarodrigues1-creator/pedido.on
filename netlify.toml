@@ -1,0 +1,20 @@
+# Netlify is the public gateway; the existing application keeps D1/R2 bindings.
+# Runtime variables must be configured in Netlify UI, never in this file.
+[build]
+  base = "deploy/netlify"
+  command = "node ../../scripts/prepare-netlify.mjs"
+  publish = "public"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[dev]
+  framework = "#static"
+  publish = "public"
+
+[context.deploy-preview]
+  command = "node ../../scripts/prepare-netlify.mjs"

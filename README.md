@@ -59,11 +59,24 @@ pnpm start
 
 `start` executa o Worker local. Sites preserva o projeto de `.openai/hosting.json`. GitHub não publica automaticamente o aplicativo, nem conecta este monorepositório à Lovable.
 
+## Entrada Netlify preparada
+
+`netlify.toml` e `deploy/netlify/` preparam a Netlify como endereço público, conectada por assinatura ao aplicativo atual. Dados D1/R2, contas Supabase e serviço Lovable continuam nas hospedagens atuais. Não houve implantação Netlify nem mudança no site publicado.
+
+```sh
+pnpm build:netlify
+pnpm check:netlify
+# Depois de implantar, sem gerar IA:
+pnpm check:netlify --live https://seu-endereco.netlify.app
+```
+
+O [guia Netlify](docs/NETLIFY.md) descreve os três valores do gateway, a publicação prévia da ponte no servidor, os redirecionamentos do Supabase e os testes do novo domínio. A base de build Netlify é `deploy/netlify`; o build da raiz continua sendo o Worker Sites. A preparação não migra banco nem desliga o endereço atual.
+
 ## IA e validação
 
 Cotas mantidas: imagens **3 por proprietário/mês e 2/dia na plataforma**; sugestões **20 por proprietário/mês e 20/dia na plataforma**. Cada geração nova consome saldo de IA. Não existe repetição paga automática; consultar o mesmo pedido reutiliza o resultado. Estilos prontos não usam modelos.
 
-- **93 testes do aplicativo passaram**, incluindo os testes novos no runtime Workers e falhas de conexão antes/depois do claim. Typecheck e build passaram.
+- **103 testes do repositório passaram**, incluindo 10 verificações da entrada Netlify, runtime Workers, proteção de cookies/origem e falhas de IA antes/depois do claim. Typecheck, build Sites, build da entrada Netlify e empacotamento das duas funções passaram. A Netlify ainda não foi implantada.
 - Serviço: 7 testes de protocolo e 14 testes existentes passaram, assim como typecheck e build.
 - Um teste real de texto e um de imagem passaram pelo gateway. Texto: 200, JSON, 577 bytes; imagem: 200, JPEG, 179.881 bytes. Apenas o claim do aplicativo foi simulado nesse teste interno; a proteção de produção continua obrigatória.
 - Após publicar v17, consultas externas confirmaram `/` e `/calculadora` anônimos com 200, sem redirecionamento para login; `/api/platform?check=ai` retornou texto e imagens habilitados/conectados. Esse endpoint só consulta saúde, não gera conteúdo.
@@ -74,6 +87,7 @@ Nesta correção, Lovable informou **4,0 créditos de construção** (3,1 para d
 ## Guias
 
 - [Continuidade e validações pendentes](docs/CONTINUAR.md)
+- [Preparação e implantação futura na Netlify](docs/NETLIFY.md)
 - [Configuração atual da IA](docs/ATIVAR_ESTUDIO.md)
 - [Criação com IA e proteção dos dados](STUDIO.md)
 - [Calculadora pública](CALCULADORA.md)
