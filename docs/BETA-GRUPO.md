@@ -4,8 +4,8 @@
 
 - **Pizzaiolos** criam conta, recebem um convite e terão período gratuito de **7 dias, sem cartão**. Ainda não cobrar ou iniciar renovação sem autorização e testes.
 - **Clientes da pizzaria** fazem pedidos sem login. O rastreamento usa token privado do pedido, salvo no armazenamento do próprio navegador; nada de identificar aparelhos com fingerprint. Troca de celular, navegação anônima ou limpeza dos dados exigem recuperar o link privado.
-- O envio de e-mails será com **Resend + Supabase Auth**: confirmação e recuperação por SMTP do projeto Supabase existente. Não mover contas ou senhas.
-- **Sem CAPTCHA na fase do grupo**. Preservar limite de tentativas de login/cadastro já existente, validação de convite e confirmação de e-mail. Se houver abuso, ativar desafio adaptativo posteriormente.
+- O envio de e-mails será com **Resend + Supabase Auth**: recuperação de senha por SMTP do projeto Supabase existente. Não mover contas ou senhas.
+- **Sem CAPTCHA na fase do grupo**. Preservar limite de tentativas de login/cadastro já existente, validação de convite e cadastro direto sem confirmação de e-mail. Se houver abuso, ativar desafio adaptativo posteriormente.
 - Manter visual compacto/característico de pizzaria e o painel **Pedidos, Cardápio, Pizzaria, Criar com IA**.
 
 ## Fase 1: código preparado nesta branch, não publicado
@@ -14,7 +14,7 @@
 
 Em `lib/platform.ts`, `PEDIDO_AUTH_MODE=invite` habilita somente o cadastro por convite, condicionado a `PEDIDO_AUTH_INVITE_CODE` no servidor (16 a 128 caracteres, sem espaços). A variável NUNCA deve ir ao GitHub, ao browser ou aos logs. Cadastrados antigos continuam podendo entrar com o e-mail existente. Modo `prototype` existente é preservado até ativação planejada.
 
-A página de registro solicita o convite. A API verifica o código após rate limit, e o modo convite rejeita o cadastro se o Supabase não estiver com **confirmação de e-mail ligada**. Assim, usar Resend SMTP antes de alterar as variáveis. Configurar **site URL** e os redirecionamentos de `/confirmar-email` e `/redefinir-senha` no Supabase. Testar confirmação real em e-mail externo e recuperação no mesmo navegador.
+A página de registro solicita o convite. A API verifica o código após rate limit, e o modo convite rejeita o cadastro se o Supabase não estiver com **cadastro direto sem confirmação de e-mail ligada**. O cadastro direto não depende de SMTP. A recuperação de senha deve ser testada separadamente. Configurar **site URL** e os redirecionamentos de `/confirmar-email` e `/redefinir-senha` no Supabase. Testar confirmação real em e-mail externo e recuperação no mesmo navegador.
 
 ### Resend: bloqueio externo pendente
 
@@ -64,3 +64,6 @@ Cota de teste da branch: **12 imagens por proprietário/mês, máximo global 4 n
 - Todas as mudanças estão em `feature/group-onboarding-and-order-recovery`. O site publicado e a `main` continuam intocados.
 - Primeiro revisar CI e diff; depois configurar domínio Resend, Supabase e convite; finalmente publicar com rollout para o grupo, um teste real de criação/recuperação e somente uma geração de IA autorizada.
 - Manter programa de clientes beta restrito até existir pagamento Asaas aprovado e políticas de suporte.
+
+## Correção solicitada em 11/10 — cadastro sem confirmação
+No modo invite, Supabase precisa ter `mailer_autoconfirm=true` (Confirm email desativado). Não envie e-mail no cadastro. Resend fica apenas para recuperação de senha; sem domínio verificado, usar temporariamente somente envio de teste disponibilizado pelo provedor, respeitando limites, e não fingir produção. O beta não exige domínio próprio comprado agora.
