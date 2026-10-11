@@ -21,7 +21,7 @@ Há dois bloqueios no serviço:
 
 ## Correção preparada
 
-Somente os dois handlers do serviço, suas verificações e esta documentação foram ajustados. Tokens continuam de uso único, protocolos e modelos fixos, prazos e ausência de repetição automática preservados. Nenhuma chave, conta, sessão, dado de negócio, preço ou Pix foi modificado.
+Os dois handlers do serviço, suas verificações e a documentação foram ajustados. A proposta de aumento da cota na PR #2 dependia de autorização de custo, conforme `BETA-GRUPO.md`; `imageLimits` volta aos limites já publicados, **3 por proprietário/mês e 2 por dia na plataforma**, antes de preparar a atualização Sites. Tokens continuam de uso único, protocolos e modelos fixos, prazos e ausência de repetição automática preservados. Nenhuma chave, conta, sessão, dado de negócio, preço ou Pix foi modificado.
 
 Os novos testes da raiz executam os handlers no **workerd real local**, com callback e modelo **simulados**. Cobrem texto e bytes de imagem, apenas um envio por etapa, rejeição de redirects no callback e no gateway, capacidade vencida/repetida e ausência de repetição em 402/429/5xx. Não constituem prova de geração paga ou de uma sessão real de produção.
 

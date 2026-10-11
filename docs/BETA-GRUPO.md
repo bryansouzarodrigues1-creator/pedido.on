@@ -34,7 +34,7 @@ O retorno `enabled:true/connected:true` da saúde comprova apenas GET. A imagem 
 
 Escopo atual do estúdio: tema, cor, frase, texto da loja, até dois textos de produtos por resposta e briefings de imagens. Quatro imagens opcionais: logo, capa, perfil e foto de produto. O usuário sempre revisa a prévia e publica manualmente. Melhorias seguintes: assistente conversacional persistente, perguntas guiadas, variantes de layout, recomendações de cardápio e aplicação seletiva com versionamento.
 
-Cota de teste da branch: **12 imagens por proprietário/mês, máximo global 4 novas imagens/dia**, além de throttling por conta e token de uso único. O contador numérico deixa de aparecer na interface, mas geração **não é ilimitada** e está sujeita ao orçamento real da Lovable. **Não publicar essa alteração antes de estimar custos do gateway e autorizar o novo teto.** Mensagens de indisponibilidade devem ser claras; não dizer ao cliente que o serviço é ilimitado.
+A proposta inicial do beta era 12 imagens por proprietário/mês e 4 novas imagens/dia na plataforma. Esse aumento ainda não teve custo estimado e autorização do novo teto; a correção da IA mantém a cota publicada: **3 imagens por proprietário/mês e 2 novas imagens/dia na plataforma**, além de throttling por conta e token de uso único. O contador numérico deixa de aparecer na interface, mas geração **não é ilimitada** e está sujeita ao orçamento real da Lovable. Mensagens de indisponibilidade devem ser claras; não dizer ao cliente que o serviço é ilimitado.
 
 ## Fase 2: cobrança com teste de 7 dias (planejada, não ativada)
 
