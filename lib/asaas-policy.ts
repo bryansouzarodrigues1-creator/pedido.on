@@ -79,8 +79,7 @@ export function monthAfterDueDate(dueDate: string): number | null {
   const actual = new Date(Date.UTC(year, month - 1, day));
   if (actual.getUTCFullYear() !== year || actual.getUTCMonth() !== month - 1
     || actual.getUTCDate() !== day || year < 2020 || year > 2100) return null;
-  const target = new Date(Date.UTC(year, month, 1));
-  const endOfNextMonth = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 2, 0)).getUTCDate();
+  const endOfNextMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
   const end = Date.UTC(year, month, Math.min(day, endOfNextMonth));
   return Math.floor(end / 1000);
 }
