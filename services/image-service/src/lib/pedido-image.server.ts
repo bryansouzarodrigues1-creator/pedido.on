@@ -132,14 +132,17 @@ export async function handleGenerate(request: Request, deps: Deps): Promise<Resp
   if (!input) return fail(400, "invalid_request");
   if (!deps.apiKey) return fail(503, "not_configured");
 
+  // Native Workers fetch requires the global receiver, even when injected.
+  const requestFetch = deps.fetch.bind(globalThis);
+
   // 1. Claim the single-use capability on the main app BEFORE any model call.
   let claim: Claim | null = null;
   try {
-    const res = await deps.fetch(CLAIM_URL, {
+    const res = await requestFetch(CLAIM_URL, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(input),
-      redirect: "error",
+      redirect: "manual",
       signal: AbortSignal.timeout(CLAIM_TIMEOUT_MS),
     });
     if (res.status !== 200) return fail(res.status === 409 ? 409 : 401, "claim_denied");
@@ -152,7 +155,7 @@ export async function handleGenerate(request: Request, deps: Deps): Promise<Resp
   // 2. Exactly one generation with the fixed model.
   let gen: Response;
   try {
-    gen = await deps.fetch(GATEWAY_URL, {
+    gen = await requestFetch(GATEWAY_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${deps.apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -160,7 +163,7 @@ export async function handleGenerate(request: Request, deps: Deps): Promise<Resp
         contents: [{ role: "user", parts: [{ text: buildPrompt(claim) }] }],
         generationConfig: { responseModalities: ["TEXT", "IMAGE"], imageConfig: { aspectRatio: claim.ratio } },
       }),
-      redirect: "error",
+      redirect: "manual",
       signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS),
     });
   } catch {

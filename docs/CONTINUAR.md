@@ -1,5 +1,7 @@
 # Continuar o pedido.on
 
+**Prioridade atual:** corrigir e publicar a IA real antes de avançar para pagamentos/Netlify. Ver [IA-PRODUCAO.md](IA-PRODUCAO.md): reprodução dos handlers Lovable no workerd confirmou `Illegal invocation` e `redirect: "error"` no serviço. Código corrigido localmente, publicação remota e fluxo autenticado ainda pendentes. Os 4 créditos citados abaixo já foram consumidos na etapa anterior.
+
 ## Produção — 11/10/2026
 
 Aplicativo: https://forno-cardapios.waves4845.chatgpt.site, versão **17**, fonte Sites `b8ba77bb6b93498b0f686151ee318958236a2ae7`, projeto `appgprj_6ac6d3ea9f7881918f315a156338ed52`. Implantação `appgdep_6acb68f0c1448191af7f5d24742be882` concluída, ambiente revisão 5, audiência pública preservada.
