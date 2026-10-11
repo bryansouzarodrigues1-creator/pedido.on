@@ -22,9 +22,9 @@ export async function runStudio(ownerId:string,restaurantId:string,input:z.infer
  let phase="connect";
  try{
   const response=await requestAiProvider(config.endpoint,{jobId:id,token},60000);
-  if(!response.ok)console.error("[pedido.on] studio provider response",{status:response.status});
+  if(!response.ok)console.error("[pedido.on] studio provider response",{status:response.status,phase:"provider_post",contentType:response.headers.get("content-type"),requestId:response.headers.get("cf-ray")||response.headers.get("x-request-id")});
   if(response.status===402){await env.DB!.prepare("UPDATE studio_jobs SET state='cancelled',updated_at=? WHERE id=? AND state IN ('queued','claimed')").bind(new Date().toISOString(),id).run();throw new HttpError(503,"A IA está sem saldo. A tentativa foi devolvida; você pode continuar com os estilos prontos.");}
-  if(!response.ok)throw new HttpError(503,"O assistente não concluiu a sugestão. Confira a tentativa antes de pedir outra.");
+  if(!response.ok)throw new HttpError(503,response.status===401?"A autorização da IA falhou entre os serviços.":response.status===404?"O endereço do serviço de IA não está disponível.":response.status===429?"O provedor está limitando solicitações. Aguarde antes de tentar novamente.":response.status>=500?"O serviço de IA respondeu com erro. Os estilos prontos continuam disponíveis.":"O assistente não concluiu a sugestão. Confira a tentativa antes de pedir outra.");
   if(!(response.headers.get("content-type")||"").toLowerCase().startsWith("application/json"))throw new HttpError(502,"A sugestão retornou em um formato inválido.");
   phase="read";
   const bytes=await readBytes(new Request("https://studio.invalid",{method:"POST",body:response.body,duplex:"half"} as RequestInit),24000),proposal=studioProposal.parse(JSON.parse(new TextDecoder().decode(bytes)));proposalPatch(proposal,input.snapshot);if(input.productId&&(proposal.productDescriptions.some(p=>p.id!==input.productId)||(proposal.imageBrief?.asset==="product"&&proposal.imageBrief.productId!==input.productId)))throw new HttpError(502,"A sugestão precisa corresponder ao produto escolhido.");

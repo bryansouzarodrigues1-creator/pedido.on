@@ -59,7 +59,18 @@ export default function StudioChat({data,restaurantId,onApply,onClose,onPrepare,
    setPending(true);
    const r=await fetch(`/api/restaurants/${restaurantId}/${job.path}`,{method:"POST",headers:{"Content-Type":"application/json","x-pedido-csrf":await csrf()},body:JSON.stringify(job.body),signal:AbortSignal.timeout(job.path==="ai/images"?95000:65000)});
    const v=await responseBody(r);if(!mounted.current)return;
-   if(!r.ok){if(v.attempt==="cancelled"||v.attempt==="failed"||[400,401,403,429].includes(r.status)){attempt.current=null;setPending(false);}throw Error(typeof v.error==="string"?v.error:"Não foi possível concluir. Verifique o resultado antes de pedir outra vez.");}
+   if(!r.ok){
+    if(v.attempt==="cancelled"||v.attempt==="failed"||[400,401,403,429].includes(r.status)){attempt.current=null;setPending(false);}
+    if(job.path==="studio"&&v.attempt==="cancelled"){
+      // The remote service never claimed the operation, so no model call was billed.
+      // Explicitly label this as a local alternative, not AI-generated content.
+      const local=localStudio(message.trim(),prepared,productId||undefined);
+      setProposal({...local,reply:"A IA online não respondeu. Preparei uma alternativa com os estilos locais, sem consumir geração. Confira a prévia antes de aplicar."});
+      setGenerated(null);setBase(snapshot);setApplied(false);setMode("local");setError("IA online temporariamente indisponível. Esta sugestão foi montada sem IA.");
+      return;
+    }
+    throw Error(typeof v.error==="string"?v.error:"Não foi possível concluir. Verifique o resultado antes de pedir outra vez.");
+   }
    if(job.path==="ai/images"){
     if(typeof v.url!=="string"||!v.url.startsWith(`/media/${restaurantId}/`)||v.asset!==job.target)throw Error("Não recebemos uma imagem válida.");
     setImageUsage(usageSchema.parse(v.usage));setGenerated({url:v.url,asset:job.target,...(job.target==="product"?{productId:String(job.body.productId)}:{})});setProposal({reply:"Sua imagem está pronta. Confira abaixo e use no cardápio se gostar.",productDescriptions:[]});

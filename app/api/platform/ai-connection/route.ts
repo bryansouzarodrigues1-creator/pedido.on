@@ -24,7 +24,7 @@ export async function POST(request:Request){
    try{
     const response=await requestAiProvider(target.endpoint,{jobId:"diagnostic-invalid-id",token:"0".repeat(64)},12000);
     const status=response.status;await response.body?.cancel().catch(()=>{});
-    return {name:target.name,connected:status===400,status,reason:status===400?"reached_validation":"unexpected_response"};
+    return {name:target.name,connected:status===400,status,reason:status===400?"post_reached_validation":status===404?"endpoint_not_found":status===403?"service_rejected_request":status===503?"provider_not_configured":status>=500?"provider_internal_error":status===200?"unexpected_success_no_claim":"unexpected_response"};
    }catch{return {name:target.name,connected:false,status:0,reason:"network_failure"};}
   }));
   return Response.json({checks},{headers:privateHeaders});
