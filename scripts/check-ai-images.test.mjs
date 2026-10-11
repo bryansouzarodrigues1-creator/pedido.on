@@ -38,7 +38,7 @@ test('generation claims once, stays owned, preserves the menu and caches repeate
  try{
   const before=f.db.prepare('SELECT * FROM restaurants WHERE id=?').get('shop-a'),body=input();
   const generated=await f.call('images','POST',{id:'shop-a'},body);assert.equal(generated.status,200,await generated.clone().text());const result=await generated.json();
-  assert.ok(result.url.startsWith('/media/shop-a/'));assert.equal(result.usage.used,1);assert.equal(result.usage.limit,12);
+  assert.ok(result.url.startsWith('/media/shop-a/'));assert.equal(result.usage.used,1);assert.equal(result.usage.limit,3);
   assert.equal(f.objects.size,1);assert.equal((await f.call('images','POST',{id:'shop-a'},body)).status,200);assert.equal(calls,1);
   assert.equal((await f.call('images','POST',{id:'shop-a'},{...body,description:'Outro símbolo e outros elementos.'})).status,409);
   const job=f.db.prepare('SELECT * FROM image_jobs').get();assert.notEqual(job.token_hash,token);assert.equal(job.state,'completed');assert.equal(JSON.stringify(result).includes(token),false);
@@ -52,9 +52,9 @@ test('concurrent repeats reserve once and platform limits cannot be bypassed by 
  try{
   const body=input(),responses=await Promise.all([f.call('images','POST',{id:'shop-a'},body),f.call('images','POST',{id:'shop-a'},body)]);
   assert.ok(responses.every(r=>[409,503].includes(r.status)));assert.equal(calls,1);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM image_jobs').get().n,1);
-  for(let i=1;i<4;i++){assert.equal((await f.call('images','POST',{id:'shop-a'},input())).status,503);assert.equal(calls,i+1);}
-  assert.equal((await f.call('images','POST',{id:'shop-a'},input())).status,429);assert.equal(calls,4);
-  assert.equal((await (await f.call('images','GET',{id:'shop-a'})).json()).used,4);
+  for(let i=1;i<2;i++){assert.equal((await f.call('images','POST',{id:'shop-a'},input())).status,503);assert.equal(calls,i+1);}
+  assert.equal((await f.call('images','POST',{id:'shop-a'},input())).status,429);assert.equal(calls,2);
+  assert.equal((await (await f.call('images','GET',{id:'shop-a'})).json()).used,2);
  }finally{globalThis.fetch=original;f.close();}
 });
 
@@ -69,14 +69,14 @@ test('monthly quota belongs to the owner and creating another shop cannot multip
  f.db.prepare('UPDATE restaurants SET owner_id=? WHERE id=?').run('owner-a','shop-b');
  globalThis.fetch=async(_url,options)=>{calls++;assert.equal((await f.call('imageClaim','POST',{},JSON.parse(options.body))).status,200);return new Response(png,{headers:{'Content-Type':'image/png'}});};
  try{
-  for(let i=0;i<12;i++){
+  for(let i=0;i<3;i++){
    assert.equal((await f.call('images','POST',{id:i%2===0?'shop-b':'shop-a'},input())).status,200);
    f.db.prepare("UPDATE image_jobs SET created_at='2026-01-01T00:00:00.000Z' WHERE state='completed'").run();
    // Model separate daily windows for this owner without altering its monthly limit.
    f.db.exec("DELETE FROM rate_buckets");
   }
-  assert.equal((await f.call('images','POST',{id:'shop-b'},input())).status,429);assert.equal(calls,12);
-  assert.equal((await (await f.call('images','GET',{id:'shop-b'})).json()).used,12);
+  assert.equal((await f.call('images','POST',{id:'shop-b'},input())).status,429);assert.equal(calls,3);
+  assert.equal((await (await f.call('images','GET',{id:'shop-b'})).json()).used,3);
  }finally{globalThis.fetch=original;f.close();}
 });
 
