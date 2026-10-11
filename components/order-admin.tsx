@@ -4,6 +4,7 @@ import {Bell,BellRing,Check,Clock,Download,FileText,MessageCircle,ArrowUpRight,T
 import {money,type OrderSummary} from "@/lib/domain";
 import {orderStatuses,type ManagedOrder,type OrderAction,type OrderStatus} from "@/lib/order-policy";
 import {Spinner} from "./ui";
+import OrderChat from "./order-chat";
 export type OrderRecord=ManagedOrder&{status:OrderStatus;restaurantId:string;receiptMime:string|null};
 export type ActionDetails=Pick<OrderAction,"action"|"etaMinutes"|"receivedPix"|"reason">;
 export function nextOrderAction(order:OrderRecord):ActionDetails["action"]|null{
@@ -50,5 +51,6 @@ export function OrderDetails({order,onAction,busy,error="",demo=false}:{order:Or
  {['confirmed','preparing','out_for_delivery'].includes(order.status)&&<button type="button" className="btn outline full" disabled={eta<5||eta>240} onClick={()=>onAction({action:"eta",etaMinutes:eta})}><Clock size={17}/>Atualizar prazo para o cliente</button>}
  <details className="checkout-optional"><summary>{order.paymentStatus==="proof_sent"?"Recusar comprovante ou cancelar pedido":"Cancelar pedido"}</summary><label className="field"><span>Motivo que o cliente vai receber</span><textarea maxLength={300} minLength={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Explique com clareza o que aconteceu."/></label><div className="order-decision-buttons">{order.status==="awaiting"&&order.paymentStatus==="proof_sent"&&<button type="button" className="btn outline" disabled={reason.trim().length<3} onClick={()=>onAction({action:"reject_receipt",reason:reason.trim()})}>Pedir novo comprovante</button>}<button type="button" className="btn outline danger" disabled={reason.trim().length<3} onClick={()=>onAction({action:"cancel",reason:reason.trim()})}>Cancelar pedido</button></div><p className="field-hint">Se houve pagamento, a devolução deve ser combinada e feita pela pizzaria.</p></details>
  </fieldset>}
- <a className="btn whatsapp-btn full" href={`https://wa.me/${order.phone}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={18}/>Falar com cliente <ArrowUpRight size={17}/></a></div>;
+ {!demo&&<OrderChat orderId={order.id} restaurantId={order.restaurantId} closed={!active}/>}
+ <a className="order-whatsapp-secondary" href={`https://wa.me/${order.phone}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={18}/>WhatsApp <ArrowUpRight size={14}/></a></div>;
 }
