@@ -71,7 +71,7 @@ describe("pedido-on image endpoint", () => {
     expect(new Uint8Array(await res.arrayBuffer())).toEqual(PNG);
     expect(modelCalls(f)).toBe(1);
     const claimInit = f.mock.calls[0]![1];
-    expect(claimInit.redirect).toBe("error");
+    expect(claimInit.redirect).toBe("manual");
     expect(JSON.parse(claimInit.body)).toEqual(JOB);
     expect(JSON.parse(f.mock.calls[1]![1].body).model).toBe(IMAGE_MODEL);
   });
@@ -86,11 +86,11 @@ describe("pedido-on image endpoint", () => {
   const withImage = (bytes: number[]) => () =>
     new Response(JSON.stringify({ data: [{ b64_json: btoa(String.fromCharCode(...bytes)) }] }));
 
-  it("both outbound fetches use redirect:error and a timeout signal", async () => {
+  it("both outbound fetches use redirect:manual and a timeout signal", async () => {
     const f = stub(200, GOOD);
     await handleGenerate(req(JOB), { fetch: f, apiKey: "k" });
     for (const [, init] of f.mock.calls) {
-      expect(init.redirect).toBe("error");
+      expect(init.redirect).toBe("manual");
       expect(init.signal).toBeInstanceOf(AbortSignal);
     }
   });
