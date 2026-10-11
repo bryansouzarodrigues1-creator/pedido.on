@@ -1,48 +1,45 @@
 # Continuar o pedido.on
 
-> **Atualização de produção — 11/10/2026:** a IA do estúdio foi conectada e habilitada no aplicativo principal. Serviço publicado: https://pedido-on-estudio.lovable.app, projeto Lovable `aa27093c-2768-41f2-8274-923fdfe2b5ff`, workspace Pro `workspace_01kn20zmepfahsq3q7xa36ct6h`, commit `81b09ac97be1ddfa62ec5ff60fb63fe6094a5221`. O original permanece disponível. Os endpoints de texto e imagem do aplicativo agora apontam para o serviço novo; ambas as flags estão habilitadas. A versão 16 do Sites foi republicada com revisão de ambiente 5, implantação concluída. A Lovable verificou GETs públicos 200/application-json/configured=true e POSTs com tokens desconhecidos 401/claim_denied. Passaram 7 testes de protocolo e 14 testes existentes, typecheck e build do serviço. A atualização e a verificação consumiram 3,8 créditos de construção informados pelo plugin. Não houve geração real. O teste de um texto e uma imagem por uma loja autenticada permanece pendente; o acesso HTTP direto deste ambiente foi bloqueado. Preservar cotas e publicação após revisão. O texto abaixo registra o planejamento/estado anterior, quando mencionar IA desativada ou ativação pendente.
+## Produção — 11/10/2026
 
+Aplicativo: https://forno-cardapios.waves4845.chatgpt.site, versão **17**, fonte Sites `b8ba77bb6b93498b0f686151ee318958236a2ae7`, projeto `appgprj_6ac6d3ea9f7881918f315a156338ed52`. Implantação `appgdep_6acb68f0c1448191af7f5d24742be882` concluída, ambiente revisão 5, audiência pública preservada.
 
-Este repositório reúne o aplicativo publicado e uma cópia completa do serviço de imagens. O registro de origem está em `source-provenance.json`; os hashes de cada arquivo estão em `source-files.json`.
+IA: https://pedido-on-estudio.lovable.app, projeto `aa27093c-2768-41f2-8274-923fdfe2b5ff`, workspace Pro `workspace_01kn20zmepfahsq3q7xa36ct6h`, commit `81b09ac97be1ddfa62ec5ff60fb63fe6094a5221`. Chave gerenciada somente no servidor do serviço. Supabase Auth `lxavrmzafumqmbswtfbe`, D1/R2, contas e preços preservados.
 
-## Estado preservado
+## Correção e interface
 
-| Área | Implementação | Validação pendente |
-| --- | --- | --- |
-| Cardápio | Quatro layouts, editor por loja, URL `/p/<slug>`, rascunho e publicação | Revisão final em celular e desktop |
-| Pedidos | Totais no servidor, carrinho, meio a meio, entrega/retirada, WhatsApp manual | Operação acompanhada com uma pizzaria de teste |
-| Pix | Chave por loja, comprovante privado, conferência manual, aprovação e previsão | Conferência de um pagamento real pela loja |
-| Acesso | Supabase Auth, sessão protegida, cadastro direto, login, recuperação e logout | Cadastro/login e recuperação com conta e e-mail reais |
-| Identidade | Estilos locais, exportação PNG e aplicação após revisão | Revisão visual da identidade desejada |
-| Calculadora | Pública, gratuita, sem cadastro, custos prontos, comparação e cenários no navegador | Conferir entradas reais da pizzaria |
-| Estúdio | Chat com estilos locais, prévia e aplicação ao rascunho; textos/fotos da Lovable preparados e desativados | Ativação com autorização de custos em `ATIVAR_ESTUDIO.md` |
-| Imagens IA | Serviço Lovable, token de uso único, cotas e proteção contra duplicidade | Uma geração real autorizada, medição do custo e aplicação do arquivo |
-| Mensalidades | Integração Stripe e webhook preparados | Configuração comercial e teste em sandbox; cobrança desativada |
-| Importação IA | Implementação OpenAI preservada | Desativada; não exige configurar OpenAI para usar o restante |
+A IA falhava antes do envio: workerd recusava `redirect: "error"`. A falha foi reproduzida no runtime. O helper `lib/ai-provider.ts` usa `manual`, rejeita redirects e não encaminha tokens. Erros retornam `attempt: cancelled`, `failed` ou `pending`; falha anterior ao claim não desconta a cota, falha ambígua posterior fica contada. Nenhum retry pago automático.
 
-O aplicativo principal está em `https://forno-cardapios.waves4845.chatgpt.site`; o serviço de imagens está em `https://pedido-on-imagens.lovable.app`. Copiar o código para o GitHub não troca a hospedagem nem configura sincronização automática da Lovable.
+O painel tem **Pedidos, Cardápio, Pizzaria e Criar com IA**. Criação reúne visual/textos, logo, capa, perfil e foto numa seleção e campo de ideia. Imagens não precisam de uma chamada de texto antes. O rascunho é salvo antes do envio; o dono confere, usa no rascunho e publica explicitamente. Estilos sem IA ficam recolhidos.
 
-## Primeiros passos no próximo desenvolvimento
+Cadastro inicial sem seleção de quatro layouts; uma ação principal para adicionar produtos. A calculadora `/calculadora` é pública, destacada no início, login e painel. Salva preenchimento e até seis cálculos no navegador, copia/baixa resultado; nenhum login para calcular ou salvar. IDs de temas e chaves de armazenamento do navegador preservados.
 
-1. Ler `README.md`, `docs/ARQUITETURA.md` e `docs/IMAGENS.md`.
-2. Instalar as dependências com os lockfiles existentes e executar `pnpm test` e `pnpm typecheck`.
-3. Preservar o projeto Supabase `lxavrmzafumqmbswtfbe`, a chave interna de sessão e os bindings de armazenamento existentes. Não criar um segundo sistema de contas.
-4. Conferir **Confirm email** no Supabase: a regra autorizada para este protótipo é cadastro direto, sem confirmação, com e-mail somente em **Esqueci minha senha**. O servidor exige `mailer_autoconfirm=true` antes de cadastrar. Configurações externas não foram alteradas durante esta exportação.
-5. Manter o protótipo restrito a `PEDIDO_AUTH_TEST_EMAILS` até validar o ciclo externo. Testar cadastro, recarga, login, logout, recuperação no mesmo navegador e acesso negado entre duas lojas.
-6. Antes de gastar créditos Lovable ou iniciar uma geração paga, apresentar o custo e obter autorização do proprietário. Testes com mocks e consultas de saúde não geram imagens.
+## Evidências e limites
 
-## O que os testes comprovam
+| Verificação | Resultado |
+| --- | --- |
+| Aplicativo | 93 testes, typecheck e build passaram |
+| Workers | Envio e não encaminhamento de tokens em redirects, com serviço simulado |
+| Serviço Lovable | 7 testes de protocolo, 14 existentes, typecheck e build passaram |
+| Gateway real | Um texto 200/JSON/577 bytes; uma imagem 200/JPEG/179.881 bytes; claim simulado somente no teste interno |
+| Produção v17 | `/` e `/calculadora` anônimos 200, sem login; saúde de texto/imagem habilitada e conectada |
+| Visual/celular | Navegador indisponível; revisão visual interativa não executada |
+| Loja autenticada | Ciclo de geração → R2 → aplicar → publicar não executado nesta sessão |
 
-Os testes do aplicativo executam SQL das migrações em SQLite e adaptadores de D1/R2, verificam permissões entre lojas, pedidos/Pix, autenticação, recuperação, cookies, cálculos, cobranças e cotas de IA. Provedores externos são simulados. Eles não comprovam entrega de e-mail, pagamento recebido, OAuth real nem custo de geração.
+Lovable informou **4,0 créditos de construção** nesta correção (3,1 diagnóstico/testes; 0,9 conferência final), além do consumo separado das duas chamadas reais, cujo custo unitário não foi informado. Sem compra de saldo, aumento de cotas ou Max.
 
-Nesta atualização, 88 testes do aplicativo e 7 testes adicionais dos protocolos do serviço passaram sem chamadas reais a provedores. A verificação de tipos do aplicativo e dos dois arquivos de servidor do serviço passou; o build do aplicativo passou. O build nativo do serviço atualizado permanece pendente da ativação na Lovable.
+## Próximos testes úteis
 
-O serviço inclui testes de rotas e do protocolo de imagem. O arquivo `src/lib/pedido-image.test.ts` usa respostas simuladas; nunca chama o gateway real.
+1. Conferir os quatro destinos do painel no celular e a rolagem das janelas de produto.
+2. Rever uma imagem existente antes de pedir outra. Para uma geração paga nova, considerar a autorização e o orçamento da sessão; não repetir chamadas para investigar conexão.
+3. Validar com conta de teste o ciclo completo: produto salvo, uma imagem autorizada, conferir fidelidade, usar no rascunho e publicar somente o conteúdo aprovado pelo dono.
+4. Abrir a calculadora fora do login, salvar, recarregar e baixar a cópia. Não há sincronização entre dispositivos.
+5. Validar Supabase Auth e recuperação de e-mail quando necessário, mantendo cadastro direto e a lista de teste.
 
-## Publicar a partir deste código
+## Continuidade
 
-O diretório raiz é um aplicativo Vinext para Cloudflare Workers, com bindings `DB` e `BUCKET`. Não é um site estático. A publicação atual pertence ao projeto Sites registrado em `.openai/hosting.json`. No ambiente Sites, use o fluxo oficial de abertura, verificação, sincronização da fonte e publicação para esse mesmo projeto.
+Ler `AGENTS.md`, `README.md`, `STUDIO.md` e `CALCULADORA.md`. Preservar Supabase, chave interna de sessão, bindings DB/BUCKET, migrações e `PEDIDO_AUTH_TEST_EMAILS`. Não exportar segredos, dumps, dados pessoais ou comprovantes.
 
-O GitHub contém o código, os ativos estáticos e as migrações. Dados de produção, uploads de clientes, comprovantes, sessões e segredos permanecem nos serviços de armazenamento e autenticação. Migrar a hospedagem exige planejar esses dados, os bindings, o acesso interno da plataforma e as URLs de retorno antes de mudar o domínio.
+Executar `pnpm test`, `pnpm typecheck` e build. Publicar pelo fluxo oficial Sites, no mesmo projeto/audiência. GitHub não faz deploy automático; não conectar a raiz do monorepositório à Lovable. O serviço fica separado em `services/image-service`.
 
-O serviço em `services/image-service` é uma cópia do projeto Lovable, não uma conexão GitHub configurada pelo plugin. Não conecte automaticamente a raiz deste monorepositório ao projeto Lovable: a raiz contém outro aplicativo. Para mudar o serviço, trabalhe na pasta correta e use o mecanismo de publicação aprovado para esse serviço. Preserve o histórico já publicado.
+Stripe e importação OpenAI continuam desativados. Não comprar saldo, aumentar limites ou usar Max sem instrução do dono. Não inventar revisão em navegador ou geração completa a partir de consulta de saúde.

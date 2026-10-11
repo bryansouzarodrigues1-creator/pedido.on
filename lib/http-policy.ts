@@ -1,4 +1,4 @@
-export class HttpError extends Error{status:number;constructor(status:number,message:string){super(message);this.status=status;}}
+export class HttpError extends Error{status:number;attempt?:"cancelled"|"failed"|"pending";constructor(status:number,message:string,attempt?:"cancelled"|"failed"|"pending"){super(message);this.status=status;this.attempt=attempt;}}
 export const privateHeaders={"Cache-Control":"private, no-store","Referrer-Policy":"no-referrer","X-Content-Type-Options":"nosniff"};
 export function sameOrigin(request:Request){if(request.headers.get("origin")!==new URL(request.url).origin||request.headers.get("sec-fetch-site")==="cross-site")throw new HttpError(403,"Origem da solicitação não permitida.");}
 export async function readBytes(request:Request,max=16000){

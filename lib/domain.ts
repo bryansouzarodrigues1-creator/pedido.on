@@ -1,10 +1,10 @@
 import { z } from "zod";
 import {pixSchema,validPixKey} from "./order-policy.ts";
 export const themes = [
-  {id:"editorial",name:"Artesanal",description:"Elegância, cores quentes e um toque de tradição.",color:"#c64b2e",tag:"Escolha da casa"},
-  {id:"classic",name:"Essencial",description:"Leve, direto e feito para escolher sem complicar.",color:"#dc382b",tag:"Minimalista"},
-  {id:"dark",name:"Noturno",description:"Contraste marcante para uma marca cheia de atitude.",color:"#bde46c",tag:"Contemporâneo"},
-  {id:"playful",name:"Família",description:"Acolhedor, vibrante e com personalidade de sobra.",color:"#e74736",tag:"Divertido"},
+  {id:"editorial",name:"Forno a lenha",description:"Tons quentes e visual de pizzaria artesanal.",color:"#c64b2e",tag:"Escolha da casa"},
+  {id:"classic",name:"Clássico",description:"Fundo claro e pedido fácil de montar.",color:"#dc382b",tag:"Claro"},
+  {id:"dark",name:"Delivery",description:"Fundo escuro, vermelho e sabores em destaque.",color:"#dc3828",tag:"Escuro"},
+  {id:"playful",name:"Família",description:"Combos e sabores para compartilhar.",color:"#e74736",tag:"Combos"},
 ] as const;
 export type ThemeId = typeof themes[number]["id"];
 export const sizeLabels = {p:"Pequena · 4 fatias",m:"Média · 6 fatias",g:"Grande · 8 fatias"};

@@ -1,46 +1,44 @@
 # pedido.on
 
-> **Atualização de produção — 11/10/2026:** a IA do estúdio foi conectada e habilitada no aplicativo principal. Serviço publicado: https://pedido-on-estudio.lovable.app, projeto Lovable `aa27093c-2768-41f2-8274-923fdfe2b5ff`, workspace Pro `workspace_01kn20zmepfahsq3q7xa36ct6h`, commit `81b09ac97be1ddfa62ec5ff60fb63fe6094a5221`. O original permanece disponível. Os endpoints de texto e imagem do aplicativo agora apontam para o serviço novo; ambas as flags estão habilitadas. A versão 16 do Sites foi republicada com revisão de ambiente 5, implantação concluída. A Lovable verificou GETs públicos 200/application-json/configured=true e POSTs com tokens desconhecidos 401/claim_denied. Passaram 7 testes de protocolo e 14 testes existentes, typecheck e build do serviço. A atualização e a verificação consumiram 3,8 créditos de construção informados pelo plugin. Não houve geração real. O teste de um texto e uma imagem por uma loja autenticada permanece pendente; o acesso HTTP direto deste ambiente foi bloqueado. Preservar cotas e publicação após revisão. O texto abaixo registra o planejamento/estado anterior, quando mencionar IA desativada ou ativação pendente.
+Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criação de imagens e textos com IA e calculadora pública de preço e lucro.
 
+**Publicado:** [forno-cardapios.waves4845.chatgpt.site](https://forno-cardapios.waves4845.chatgpt.site) · [Calculadora sem cadastro](https://forno-cardapios.waves4845.chatgpt.site/calculadora) · [Meu painel](https://forno-cardapios.waves4845.chatgpt.site/app)
 
-Plataforma de cardápios digitais para várias pizzarias, com quatro layouts, painel por proprietário, pedidos, Pix com aprovação manual e criação de identidade visual.
+## Estado atual — 11/10/2026
 
-Este repositório reúne o aplicativo principal e o serviço de imagens da Lovable. A fonte do aplicativo corresponde à versão publicada **v16**, commit `b8cbe68b5fc7720c4543453709eefd560e4ec1ac`. O serviço tem como origem o commit `4578d1cc508cfc850946fcf882bab3032288ab18`, com uma extensão de chat/fotos preparada aqui e ainda não publicada na Lovable.
+O aplicativo está na **versão 17**, fonte Sites `b8ba77bb6b93498b0f686151ee318958236a2ae7`, ambiente de produção revisão 5. O visual usa pizza real, carvão e vermelho, com menos ações e textos curtos. A navegação do painel é **Pedidos, Cardápio, Pizzaria e Criar com IA**. O cadastro inicial pede nome, WhatsApp e endereço do cardápio; a aparência pode ser ajustada depois.
 
-**Aplicativo:** [forno-cardapios.waves4845.chatgpt.site](https://forno-cardapios.waves4845.chatgpt.site) · **Serviço de imagens:** [pedido-on-imagens.lovable.app](https://pedido-on-imagens.lovable.app)
+A falha de IA foi reproduzida no runtime Cloudflare: `redirect: "error"` não é suportado e interrompia a chamada antes de chegar à Lovable. O aplicativo usa `redirect: "manual"`; retornos 3xx continuam rejeitados e o token de uso único não é encaminhado a outro endereço. Os erros diferenciam falhas antes e depois da autorização, com cota devolvida somente quando adequado.
+
+O serviço ativo é [pedido-on-estudio.lovable.app](https://pedido-on-estudio.lovable.app), projeto `aa27093c-2768-41f2-8274-923fdfe2b5ff`, workspace Pro `workspace_01kn20zmepfahsq3q7xa36ct6h`, commit `81b09ac97be1ddfa62ec5ff60fb63fe6094a5221`. Sua chave fica somente no servidor Lovable. O aplicativo e seus dados permanecem em Sites, D1/R2 e Supabase Auth.
 
 ## Funcionalidades
 
-- Visual SaaS compacto em carvão/vermelho, com painel operacional e foco em pizzarias.
-- Calculadora pública em `/calculadora`, sem conta, com projeção de resultado, preço, equilíbrio e cenários salvos no navegador.
-- Estúdio em um chat, com estilo, cor, chamada, textos e briefing de imagens na mesma prévia. Aplicação ao rascunho antes de publicar; IA de textos ainda depende da ativação autorizada.
+- Cardápios públicos em `/p/<slug>`, com pizzas, meio a meio, tamanhos, bordas, bebidas e combos. Preços, descontos e entrega são recalculados no servidor.
+- Painel por proprietário, com revisão de produtos, pedidos, entrega, Pix e publicação. Rascunho e versão pública separados, com proteção contra sobrescrita entre abas.
+- **Criar com IA** reúne visual, textos, logo, capa, perfil e fotos. Imagens podem ser pedidas diretamente, sem uma chamada de texto antes. O rascunho é salvo antes da solicitação; o resultado precisa ser revisado e aplicado antes de publicar.
+- Estilos prontos opcionais: Forno a lenha, Clássico, Delivery e Família. Os IDs antigos de temas continuam válidos, preservando lojas existentes.
+- **Calculadora em `/calculadora` sem login**: custo pronto, despesas, taxas, volume, preço sugerido e resultado estimado. Salvamento automático do preenchimento, até seis cálculos, cópia e download em texto. Dados ficam neste navegador.
+- Cliente pede sem conta e acompanha pelo link privado do pedido. WhatsApp tem envio manual.
+- Pix direto na chave da pizzaria: comprovante privado, conferência no banco, aprovação manual, prazo e acompanhamento.
+- Supabase Auth, sessões protegidas e autorização por loja. Para este protótipo: cadastro direto, e-mail somente na recuperação, lista autorizada de contas de teste.
+- Stripe e importação de cardápio OpenAI estão preservados e desativados; não são necessários para usar as demais funções.
 
+## Estrutura
 
-- Cardápios em `/p/<slug>`, com estilos Artesanal, Essencial, Noturno e Família.
-- Painel com Vendas, Cardápio e Minha loja; produtos com ou sem foto, tamanhos, bordas, preços, entrega e pagamentos.
-- Rascunho e publicação separados, com proteção contra sobrescrita entre abas.
-- Pizzas inteiras ou meio a meio; preços, descontos e entrega recalculados no servidor.
-- Cliente pede sem criar conta e acompanha pelo link privado. A mensagem de WhatsApp tem envio manual.
-- Pix com chave própria da pizzaria, comprovante privado, conferência humana, aprovação, prazo e acompanhamento.
-- Contas e senhas pelo Supabase Auth, sessões protegidas e autorização das lojas no servidor. Cadastro direto; e-mail somente na recuperação.
-- Identidade local com exportação PNG e serviço de imagens Lovable separado, com cotas e revisão antes de publicar.
-- Integrações Stripe e importação de cardápio OpenAI preservadas, atualmente desativadas.
-
-## Estrutura e dados
-
-| Diretório ou serviço | Responsabilidade |
+| Local | Responsabilidade |
 | --- | --- |
-| `app/`, `components/`, `lib/` | Aplicativo: React, TypeScript, Vinext e Cloudflare Workers |
+| `app/`, `components/`, `lib/` | React, TypeScript, Vinext e Cloudflare Workers |
 | `db/`, `drizzle/` | Esquema e migrações do D1 |
-| `build/`, `scripts/`, `.openai/hosting.json` | Integração e execução da hospedagem atual |
-| `public/` | Símbolo da marca, logos e imagens estáticas |
-| `services/image-service/` | Fonte completa do servidor TanStack Start/Lovable |
-| Supabase Auth | Usuários e senhas, projeto `lxavrmzafumqmbswtfbe` |
-| D1 e R2 | Dados do negócio, sessões protegidas, imagens e comprovantes |
+| `scripts/`, `.openai/hosting.json` | Verificação e hospedagem Sites |
+| `public/` | Marca e imagens estáticas |
+| `services/image-service/` | Serviço TanStack/Lovable; arquivos de servidor e rotas sincronizados com o commit ativo |
+| Supabase Auth | Usuários e senhas; projeto `lxavrmzafumqmbswtfbe` |
+| D1 e R2 | Negócio, sessões, imagens e comprovantes |
 
-## Desenvolvimento do aplicativo
+## Desenvolvimento
 
-Use **Node.js 24** e o **pnpm 11.25.0** definido em `package.json`. Instale a versão de pnpm correspondente usando o método disponível no seu ambiente.
+Node.js 24 e pnpm 11.25.0, conforme `package.json`.
 
 ```sh
 git clone https://github.com/bryansouzarodrigues1-creator/pedido.on.git
@@ -52,33 +50,35 @@ pnpm typecheck
 pnpm dev
 ```
 
-O ambiente local usa emulação de D1/R2 e a integração de desenvolvimento presente no código. O acesso interno simulado serve apenas ao desenvolvimento; teste o fluxo Supabase com credenciais de teste e ambiente próprio. `.env.example` contém nomes e exemplos, sem segredos. Configure valores reais somente em arquivos ignorados ou no ambiente da hospedagem.
+Configure valores reais somente em arquivos ignorados ou no ambiente da hospedagem. Nunca exporte segredos ou dados de produção. O modo local usa emulação de D1/R2; não substitui testes externos de autenticação.
 
 ```sh
 pnpm build
 pnpm start
 ```
 
-`start` executa localmente o Worker produzido pelo build. A publicação atual usa Sites e preserva seu projeto, bindings e fluxo oficial; veja [como continuar](docs/CONTINUAR.md). Outra hospedagem exige configurar os serviços e transferir os dados separadamente do código.
+`start` executa o Worker local. Sites preserva o projeto de `.openai/hosting.json`. GitHub não publica automaticamente o aplicativo, nem conecta este monorepositório à Lovable.
 
-## Serviço de imagens
+## IA e validação
 
-O serviço possui suas próprias dependências e seu `bun.lock`. Use Bun para instalação com lockfile congelado; os comandos e o protocolo estão em [docs/IMAGENS.md](docs/IMAGENS.md). A chave gerenciada da Lovable pertence somente ao servidor desse serviço e não é exportada.
+Cotas mantidas: imagens **3 por proprietário/mês e 2/dia na plataforma**; sugestões **20 por proprietário/mês e 20/dia na plataforma**. Cada geração nova consome saldo de IA. Não existe repetição paga automática; consultar o mesmo pedido reutiliza o resultado. Estilos prontos não usam modelos.
 
-O protótipo limita imagens a **3 tentativas por proprietário/mês** e **2 por dia na plataforma inteira**. Geração real consome saldo; o próximo teste pago depende de autorização do proprietário. A identidade por estilos locais funciona sem geração por IA.
+- **93 testes do aplicativo passaram**, incluindo os testes novos no runtime Workers e falhas de conexão antes/depois do claim. Typecheck e build passaram.
+- Serviço: 7 testes de protocolo e 14 testes existentes passaram, assim como typecheck e build.
+- Um teste real de texto e um de imagem passaram pelo gateway. Texto: 200, JSON, 577 bytes; imagem: 200, JPEG, 179.881 bytes. Apenas o claim do aplicativo foi simulado nesse teste interno; a proteção de produção continua obrigatória.
+- Após publicar v17, consultas externas confirmaram `/` e `/calculadora` anônimos com 200, sem redirecionamento para login; `/api/platform?check=ai` retornou texto e imagens habilitados/conectados. Esse endpoint só consulta saúde, não gera conteúdo.
+- Geração completa por uma loja autenticada e revisão visual no celular ainda precisam de validação acompanhada. Não houve navegador disponível nesta execução.
+
+Nesta correção, Lovable informou **4,0 créditos de construção** (3,1 para diagnóstico/testes e 0,9 para a conferência final), além das duas chamadas reais de IA cujo custo unitário não foi informado. Não houve compra de saldo nem uso do modo Max da Lovable.
 
 ## Guias
 
-- [Ativar a IA do estúdio, custos e workspace](docs/ATIVAR_ESTUDIO.md)
-- [Fluxo e proteção do estúdio](STUDIO.md)
-- [Cálculo, escopo e armazenamento de cenários](CALCULADORA.md)
-- [Estado atual e próximos passos](docs/CONTINUAR.md)
-- [Arquitetura e armazenamento](docs/ARQUITETURA.md)
-- [Geração de imagens, custos e limites](docs/IMAGENS.md)
-- [Cadastro, Google e ativação das integrações](ATIVACAO.md)
-- [Recuperação de senha e e-mails](EMAIL_SUPABASE.md)
-- [Fluxo de pedidos com Pix](FLUXO_PEDIDOS.md)
-
-Os testes usam provedores simulados e SQL real das migrações. Não substituem testes externos de e-mail, OAuth, pagamento ou geração. A validação visual final no celular e o ciclo externo de autenticação permanecem registrados no guia de continuidade.
-
-O repositório contém código, ativos estáticos, lockfiles, migrações, templates e testes. Dados de clientes, uploads, comprovantes, sessões, chaves e bancos de produção permanecem nos serviços existentes.
+- [Continuidade e validações pendentes](docs/CONTINUAR.md)
+- [Configuração atual da IA](docs/ATIVAR_ESTUDIO.md)
+- [Criação com IA e proteção dos dados](STUDIO.md)
+- [Calculadora pública](CALCULADORA.md)
+- [Arquitetura](docs/ARQUITETURA.md)
+- [Protocolo e limites de imagens](docs/IMAGENS.md)
+- [Cadastro e integrações](ATIVACAO.md)
+- [Recuperação de senha](EMAIL_SUPABASE.md)
+- [Pedidos com Pix](FLUXO_PEDIDOS.md)

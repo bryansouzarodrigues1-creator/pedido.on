@@ -15,6 +15,8 @@ Para avaliar a operação inteira, usar ticket e custo médios de todos os pedid
 
 Valores monetários são entradas em centavos; os percentuais são expressos em porcentagem e o arredondamento de taxas ocorre sobre o total mensal. A ferramenta compara preço atual, preço de referência e 20% mais vendas, mantendo os custos informados. O preço de referência é uma simulação; a interface orienta comparar com a realidade da região.
 
-Até seis cenários e o preenchimento atual ficam no armazenamento do navegador. É possível copiar ou baixar um resultado em texto e excluir/carregar cenários. Limpar os dados do navegador remove o histórico; não há promessa de sincronização entre dispositivos.
+Até seis cálculos e o preenchimento atual ficam no armazenamento do navegador. É possível copiar ou baixar um resultado em texto e excluir/abrir cálculos. Limpar os dados do navegador remove o histórico; não há promessa de sincronização entre dispositivos.
 
 A sugestão de criar um cardápio aparece após um cálculo válido, pode ser fechada e não impede o uso posterior. Nenhuma conta, chamada paga, compra ou geração é exigida para calcular ou salvar.
+
+Em v17, taxas/margem ficam recolhidas e a calculadora aparece no início e no login. GET anônimo em produção retornou 200, sem encaminhamento para login. As chaves anteriores do navegador foram preservadas.

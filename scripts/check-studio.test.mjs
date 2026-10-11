@@ -25,7 +25,7 @@ test('local styles work with AI disabled; disabled AI, foreign shops and cross-o
 });
 test('single-use studio claims and identical requests reuse one proposal without editing the shop',async()=>{
  const f=fixture(),original=globalThis.fetch;enable(f);let calls=0;
- globalThis.fetch=async(url,options)=>{calls++;assert.equal(url,endpoint);assert.equal(options.redirect,'error');const body=JSON.parse(options.body);assert.deepEqual(Object.keys(body).sort(),['jobId','token']);const claim=await f.call('studioClaim','POST',{},body);assert.equal(claim.status,200);const c=await claim.json();assert.equal(c.protocol,'pedido-studio-v1');assert.equal(c.prompt.includes(f.data.pix.key),false);assert.equal((await f.call('studioClaim','POST',{},body)).status,401);return Response.json(suggestion);};
+ globalThis.fetch=async(url,options)=>{calls++;assert.equal(url,endpoint);assert.equal(options.redirect,'manual');const body=JSON.parse(options.body);assert.deepEqual(Object.keys(body).sort(),['jobId','token']);const claim=await f.call('studioClaim','POST',{},body);assert.equal(claim.status,200);const c=await claim.json();assert.equal(c.protocol,'pedido-studio-v1');assert.equal(c.prompt.includes(f.data.pix.key),false);assert.equal((await f.call('studioClaim','POST',{},body)).status,401);return Response.json(suggestion);};
  try{const body=input(f.data),before=f.db.prepare('SELECT data,published_data FROM restaurants WHERE id=?').get('shop-a'),r=await f.call('studio','POST',{id:'shop-a'},body);assert.equal(r.status,200,await r.clone().text());assert.equal((await r.json()).usage.used,1);assert.equal((await f.call('studio','POST',{id:'shop-a'},body)).status,200);assert.equal(calls,1);assert.equal((await f.call('studio','POST',{id:'shop-a'},{...body,message:'Outra mensagem completamente diferente.'})).status,409);assert.deepEqual(f.db.prepare('SELECT data,published_data FROM restaurants WHERE id=?').get('shop-a'),before);assert.equal(f.objects.size,0);}finally{globalThis.fetch=original;f.close();}
 });
 test('monthly studio quota spans stores owned by the same account and failed claimed attempts remain counted',async()=>{
@@ -50,4 +50,10 @@ test('studio remains bound to the selected product and cannot propose a differen
  const f=fixture(),original=globalThis.fetch;enable(f);
  globalThis.fetch=async(_url,options)=>{assert.equal((await f.call('studioClaim','POST',{},JSON.parse(options.body))).status,200);return Response.json({...suggestion,productDescriptions:[],imageBrief:{asset:'product',productId:f.data.products[1].id,description:'Foto ilustrativa somente deste produto.'}});};
  try{assert.equal((await f.call('studio','POST',{id:'shop-a'},input(f.data,{productId:'margherita'}))).status,502);}finally{globalThis.fetch=original;f.close();}
+});
+
+test('studio connection failures before claim return an accurate uncharged result',async()=>{
+ const f=fixture(),original=globalThis.fetch;enable(f);let calls=0;
+ globalThis.fetch=async()=>{calls++;throw new TypeError('Provider connection failed');};
+ try{const body=input(f.data),r=await f.call('studio','POST',{id:'shop-a'},body),v=await r.json();assert.equal(r.status,502);assert.equal(v.attempt,'cancelled');assert.match(v.error,/Nenhuma sugestão foi descontada/);assert.equal((await (await f.call('studio','GET',{id:'shop-a'})).json()).used,0);const retry=await f.call('studio','POST',{id:'shop-a'},body);assert.equal(retry.status,409);assert.equal((await retry.json()).attempt,'cancelled');assert.equal(calls,1);}finally{globalThis.fetch=original;f.close();}
 });

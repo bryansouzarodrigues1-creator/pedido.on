@@ -29,7 +29,7 @@ test('disabled image AI, foreign shops and forged origins never call a provider'
 test('generation claims once, stays owned, preserves the menu and caches repeated requests',async()=>{
  const f=fixture(),original=globalThis.fetch;enable(f);let calls=0;let token;
  globalThis.fetch=async(url,options)=>{
-  assert.equal(url,endpoint);assert.equal(options.redirect,'error');calls++;
+  assert.equal(url,endpoint);assert.equal(options.redirect,'manual');calls++;
   const body=JSON.parse(options.body);token=body.token;assert.deepEqual(Object.keys(body).sort(),['jobId','token']);
   const claim=await f.call('imageClaim','POST',{},body);assert.equal(claim.status,200);const data=await claim.json();assert.equal(data.protocol,'pedido-image-v1');assert.equal(data.ratio,'1:1');assert.equal(data.prompt.includes(f.data.pix.key),false);
   assert.equal((await f.call('imageClaim','POST',{},body)).status,401);
@@ -87,4 +87,16 @@ test('product photos require an existing owned product and an activated updated 
  const f=fixture(),original=globalThis.fetch;enable(f);let calls=0;
  globalThis.fetch=async(_url,options)=>{calls++;const r=await f.call('imageClaim','POST',{},JSON.parse(options.body));assert.equal(r.status,200);const c=await r.json();assert.equal(c.asset,'product');assert.equal(c.ratio,'1:1');assert.ok(c.prompt.includes('Margherita'));assert.equal(c.prompt.includes(f.data.pix.key),false);return new Response(png,{headers:{'content-type':'image/png'}});};
  try{const body={...input(),asset:'product',productId:'margherita'};assert.equal((await f.call('images','POST',{id:'shop-a'},body)).status,503);f.env.PEDIDO_STUDIO_ENABLED='true';f.env.PEDIDO_STUDIO_ENDPOINT='https://pedido-on-imagens.lovable.app/api/pedido-on/studio';assert.equal((await f.call('images','POST',{id:'shop-a'},{...body,productId:'unknown'})).status,400);assert.equal((await f.call('images','POST',{id:'shop-b'},body)).status,404);assert.equal(calls,0);assert.equal((await f.call('images','POST',{id:'shop-a'},body)).status,200);assert.equal(calls,1);}finally{globalThis.fetch=original;f.close();}
+});
+
+test('a connection failure before claim reports no charge and does not create a paid retry',async()=>{
+ const f=fixture(),original=globalThis.fetch;enable(f);let calls=0;
+ globalThis.fetch=async()=>{calls++;throw new TypeError('Provider connection failed');};
+ try{const body=input(),r=await f.call('images','POST',{id:'shop-a'},body),v=await r.json();assert.equal(r.status,503);assert.equal(v.attempt,'cancelled');assert.match(v.error,/Nenhuma imagem foi descontada/);assert.equal((await (await f.call('images','GET',{id:'shop-a'})).json()).used,0);const retry=await f.call('images','POST',{id:'shop-a'},body);assert.equal(retry.status,409);assert.equal((await retry.json()).attempt,'cancelled');assert.equal(calls,1);assert.equal(f.objects.size,0);}finally{globalThis.fetch=original;f.close();}
+});
+
+test('an image connection lost after claim stays counted and is reported separately',async()=>{
+ const f=fixture(),original=globalThis.fetch;enable(f);
+ globalThis.fetch=async(_url,options)=>{assert.equal((await f.call('imageClaim','POST',{},JSON.parse(options.body))).status,200);throw new TypeError('Connection lost');};
+ try{const r=await f.call('images','POST',{id:'shop-a'},input()),v=await r.json();assert.equal(r.status,503);assert.equal(v.attempt,'failed');assert.doesNotMatch(v.error,/Nenhuma imagem foi descontada/);assert.equal((await (await f.call('images','GET',{id:'shop-a'})).json()).used,1);}finally{globalThis.fetch=original;f.close();}
 });

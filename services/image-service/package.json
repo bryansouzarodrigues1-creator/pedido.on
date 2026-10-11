@@ -12,7 +12,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:studio": "node --experimental-strip-types --test scripts/check-studio.mjs"
+    "test:studio": "node --experimental-strip-types --no-warnings --test scripts/check-studio.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"

@@ -1,37 +1,43 @@
-# Ativar a IA do estúdio sem refazer o site
+# IA do pedido.on: configuração atual
 
-> **Atualização de produção — 11/10/2026:** a IA do estúdio foi conectada e habilitada no aplicativo principal. Serviço publicado: https://pedido-on-estudio.lovable.app, projeto Lovable `aa27093c-2768-41f2-8274-923fdfe2b5ff`, workspace Pro `workspace_01kn20zmepfahsq3q7xa36ct6h`, commit `81b09ac97be1ddfa62ec5ff60fb63fe6094a5221`. O original permanece disponível. Os endpoints de texto e imagem do aplicativo agora apontam para o serviço novo; ambas as flags estão habilitadas. A versão 16 do Sites foi republicada com revisão de ambiente 5, implantação concluída. A Lovable verificou GETs públicos 200/application-json/configured=true e POSTs com tokens desconhecidos 401/claim_denied. Passaram 7 testes de protocolo e 14 testes existentes, typecheck e build do serviço. A atualização e a verificação consumiram 3,8 créditos de construção informados pelo plugin. Não houve geração real. O teste de um texto e uma imagem por uma loja autenticada permanece pendente; o acesso HTTP direto deste ambiente foi bloqueado. Preservar cotas e publicação após revisão. O texto abaixo registra o planejamento/estado anterior, quando mencionar IA desativada ou ativação pendente.
+A IA está habilitada no aplicativo publicado v17. Serviço: https://pedido-on-estudio.lovable.app, projeto `aa27093c-2768-41f2-8274-923fdfe2b5ff`, workspace Pro `workspace_01kn20zmepfahsq3q7xa36ct6h`. O serviço antigo foi preservado; produção usa o novo.
 
+## Ambiente do aplicativo
 
-O aplicativo principal já contém o chat, a revisão, a aplicação ao rascunho, a calculadora pública e o visual SaaS. A modalidade **Estilos** funciona sem modelos. A modalidade **IA** ainda está desativada. Não foi gasto crédito de construção ou de geração nesta atualização.
+```text
+PEDIDO_STUDIO_ENABLED=true
+PEDIDO_STUDIO_ENDPOINT=https://pedido-on-estudio.lovable.app/api/pedido-on/studio
+PEDIDO_IMAGE_ENABLED=true
+PEDIDO_IMAGE_ENDPOINT=https://pedido-on-estudio.lovable.app/api/pedido-on/image
+```
 
-## Fontes e workspace
+São configurações públicas. `LOVABLE_API_KEY` fica gerenciada somente no servidor Lovable. Sites/D1/R2/Supabase não precisam de migração para ativar o gateway. Mudança de variável Sites exige publicação com a revisão nova do ambiente.
 
-O serviço de imagens publicado continua no projeto Lovable `c1919edd-8b5e-40f8-b646-9ccd9c69e01f`, workspace `pidO24xJbN1TAzXmLHwH` (**Bryan’s Lovable**, Free). A outra área `workspace_01kn20zmepfahsq3q7xa36ct6h` (**BRYAN’s Lovable**, Pro) está acessível e sem projetos. O usuário informou uma recarga de 30 créditos nessa outra área; o plugin não expõe o saldo, portanto ele não foi confirmado pelo sistema.
+## Correção da falha
 
-Copiar ou publicar a raiz inteira na Lovable recriaria desnecessariamente o aplicativo. A fonte preparada em `services/image-service` contém o novo chat de textos/visual e a extensão de fotos de produtos; ela deve ser incorporada somente ao serviço existente ou a uma cópia desse serviço na área correta. O banco e o Supabase Auth do aplicativo principal não precisam ser recriados.
+`redirect: "error"` causava exceção no Worker antes da chamada. `lib/ai-provider.ts` usa `manual`, com respostas 3xx rejeitadas sem encaminhar tokens. A correção foi reproduzida e testada em workerd.
 
-## Uma intervenção agrupada, depois da autorização de custos
+`/api/platform?check=ai` consulta saúde dos dois endpoints sem chamar modelos. Tem limite de frequência, não devolve chaves e não gera conteúdo. Em v17 retornou `enabled:true, connected:true` nos dois canais. Isso verifica conexão/configuração; não substitui geração completa na conta da loja.
 
-1. Confirmar no painel que o saldo pertence à área Pro. Não comprar créditos nem habilitar recarga automática.
-2. Usar a operação de remix da Lovable para copiar o serviço existente para essa área, mantendo o original disponível. O plugin não oferece mudança direta de workspace. Conferir custos aplicáveis antes de executar o remix.
-3. Incorporar em uma única intervenção, sem Max, somente o servidor e a rota novos, a extensão de imagem e seus testes. Reutilizar a implementação deste repositório, sem solicitar uma reconstrução livre do produto:
-   - `src/lib/pedido-studio.server.ts`
-   - `src/routes/api/pedido-on/studio.ts`
-   - `src/lib/pedido-image.server.ts`
-   - `scripts/check-studio.mjs` e script `test:studio` do `package.json`
-   - Regeneração da tabela de rotas TanStack para incluir `/api/pedido-on/studio`.
-4. Executar testes simulados, a verificação de tipos e o build do serviço. A chave `LOVABLE_API_KEY` permanece gerenciada e somente no servidor. Não fazer geração real nessa intervenção.
-5. Publicar o serviço e verificar os dois endpoints GET, que não geram texto nem imagens. Conferir URLs e configuração retornadas antes de trocar os endpoints no aplicativo.
-6. Com autorização, usar uma mensagem curta e, separadamente, uma imagem para medir consumo real e revisar qualidade. Esses testes consomem Run credits e não estão incluídos implicitamente em uma autorização somente de construção.
-7. Alterar os dois endpoints na hospedagem, ativar `PEDIDO_STUDIO_ENABLED` e preservar cotas, Supabase, sessão, D1/R2, audience público e cobrança desligada.
+## Modelos e custos
 
-O consumo da construção é variável; o plugin não aceita um teto financeiro por mensagem. Não garantir que a execução consumirá uma quantidade exata dos 30 créditos. A IA em uso também consome saldo, com limites de tentativas no aplicativo, modelo fixo, saída limitada e sem repetição automática de chamadas pagas. Medir custo antes de oferecer geração ilimitada a clientes.
+| Canal | Modelo | Endpoint do gateway |
+| --- | --- | --- |
+| Texto | `google/gemini-3.1-flash-lite` | `/v1/chat/completions` |
+| Imagem | `google/gemini-3.1-flash-lite-image` | `/v1/images/generations` |
 
-## O que foi verificado
+Texto tem saída limitada a 1800 tokens; imagem produz uma por pedido. Modelos fixos no serviço. Cotas preservadas: texto 20/proprietário/mês e 20/dia na plataforma; imagem 3/proprietário/mês e 2/dia na plataforma.
 
-- Aplicativo: 88 testes passaram, incluindo SQL real das migrações, isolamento por proprietário, sessão/pedidos/Pix, cálculo, aplicação de identidade, cotas, idempotência, claim e retorno inválido. Provedores externos simulados.
-- Serviço preparado: 7 testes adicionais passaram sem rede real; chave ausente, entrada inválida, claim recusado, modelo e limite fixos, falta de saldo, falha/truncamento, resposta exagerada e foto de produto.
-- O envio real ao modelo, o custo dos créditos, a publicação do novo serviço e a validação visual em navegador/celular seguem pendentes. O plugin de controle de navegador não estava disponível nesta execução; não foram inventadas capturas ou resultados de navegação.
+Run credits são separados de construção. Nova geração usa saldo; consulta do mesmo pedido reutiliza resultado. Erros anteriores ao claim ou saldo explicitamente recusado devolvem reserva. Após claim, falhas ambíguas ficam contadas, evitando novas chamadas pagas automáticas.
 
-Referências atuais: [Lovable AI](https://docs.lovable.dev/features/ai) e [Lovable Cloud](https://docs.lovable.dev/features/cloud). O saldo e a cobrança devem ser verificados na área escolhida; documentação não comprova o saldo da conta.
+## Validação de 11/10/2026
+
+A chave gerenciada e os modelos foram aceitos. Um texto real retornou 200/JSON/577 bytes; uma imagem real retornou 200/JPEG/179.881 bytes. Os handlers foram usados com claim simulado localmente, sem bypass público. Não houve erro de saldo/modelo. Passaram 7 testes de protocolo e 14 existentes, typecheck e build.
+
+A investigação e a conferência final consumiram 4,0 créditos de construção, sem Max ou compra de saldo. As duas chamadas reais têm consumo separado, não informado pelo plugin. O ciclo completo com loja autenticada e a revisão no celular permanecem pendentes.
+
+## Manutenção
+
+Arquivos de servidor, rotas e testes em `services/image-service` foram sincronizados com o commit ativo `81b09ac97be1ddfa62ec5ff60fb63fe6094a5221`. Nunca conectar a raiz inteira do monorepositório à Lovable ou expor a chave ao aplicativo/navegador.
+
+Primeiro investigar logs do Worker e saúde. Não pedir imagens repetidas para testar conexão, aumentar cotas ou comprar saldo sem instrução do proprietário. Ver também `STUDIO.md` e `docs/IMAGENS.md`.
