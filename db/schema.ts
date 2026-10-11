@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 export const restaurants = sqliteTable("restaurants", {
   id: text("id").primaryKey(), ownerId: text("owner_id").notNull(), slug: text("slug").notNull().unique(), name: text("name").notNull(),
   data: text("data").notNull(), publishedData: text("published_data"), revision: integer("revision").notNull().default(1),
@@ -11,6 +11,14 @@ export const orders = sqliteTable("orders", {
   status: text("status").notNull().default("awaiting"), createdAt: text("created_at").notNull(),
   trackingHash:text("tracking_hash"),paymentStatus:text("payment_status").notNull().default("pay_on_delivery"),pixSnapshot:text("pix_snapshot"),receiptId:text("receipt_id"),receiptCount:integer("receipt_count").notNull().default(0),version:integer("version").notNull().default(1),estimatedAt:text("estimated_at"),approvedAt:text("approved_at"),decisionReason:text("decision_reason"),updatedAt:text("updated_at"),
 }, t => [index("orders_restaurant_idx").on(t.restaurantId,t.createdAt), uniqueIndex("orders_request_idx").on(t.restaurantId,t.requestId)]);
+export const deliveryChecks=sqliteTable("delivery_checks",{
+ id:text("id").primaryKey(),restaurantId:text("restaurant_id").notNull().references(()=>restaurants.id),
+ requestId:text("request_id").notNull(),tokenHash:text("token_hash").notNull(),
+ phone:text("phone").notNull(),address:text("address").notNull(),
+ latitude:real("latitude"),longitude:real("longitude"),
+ status:text("status").notNull().default("pending"),version:integer("version").notNull().default(1),
+ createdAt:text("created_at").notNull(),expiresAt:integer("expires_at").notNull(),reviewedAt:text("reviewed_at"),
+},t=>[uniqueIndex("delivery_checks_request_idx").on(t.restaurantId,t.requestId),index("delivery_checks_owner_queue_idx").on(t.restaurantId,t.status,t.createdAt)]);
 export const orderReceipts=sqliteTable("order_receipts",{id:text("id").primaryKey(),orderId:text("order_id").notNull().references(()=>orders.id),objectKey:text("object_key").notNull().unique(),mime:text("mime").notNull(),size:integer("size").notNull(),createdAt:text("created_at").notNull()},t=>[index("order_receipts_order_idx").on(t.orderId)]);
 export const orderEvents=sqliteTable("order_events",{id:text("id").primaryKey(),orderId:text("order_id").notNull().references(()=>orders.id),version:integer("version").notNull(),actorId:text("actor_id"),action:text("action").notNull(),message:text("message").notNull(),createdAt:text("created_at").notNull()},t=>[uniqueIndex("order_events_version_idx").on(t.orderId,t.version)]);
 
