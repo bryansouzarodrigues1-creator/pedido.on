@@ -25,6 +25,7 @@ test("Asaas stays disabled without explicit approval and matched environment key
 test("invoice links only allow a direct HTTPS Asaas invoice for the current environment", () => {
   assert.equal(safeAsaasInvoiceUrl("https://sandbox.asaas.com/i/sandbox123", "sandbox"), "https://sandbox.asaas.com/i/sandbox123");
   assert.equal(safeAsaasInvoiceUrl("https://www.asaas.com/i/paid123", "production"), "https://www.asaas.com/i/paid123");
+  assert.equal(safeAsaasInvoiceUrl("https://www.asaas.com/000/i/paid123", "production"), "https://www.asaas.com/000/i/paid123");
   for (const bad of [
     "https://sandbox.asaas.com.evil.test/i/foo",
     "https://user:password@sandbox.asaas.com/i/foo",
