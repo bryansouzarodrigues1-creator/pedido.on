@@ -5,6 +5,7 @@ import {Brand,Spinner} from "./ui";
 import {money,phoneNumber} from "@/lib/domain";
 import {orderStatuses,trackingToken,MAX_PROOF_BYTES} from "@/lib/order-policy";
 import {savedPrivateOrderToken} from "@/lib/device-orders";
+import OrderChat from "./order-chat";
 import type {CustomerOrder} from "@/lib/order-server";
 export function CustomerOrderView({order,busy=false,error="",onReceipt,onDemoReceipt}:{order:CustomerOrder;busy?:boolean;error?:string;onReceipt?:(file:File)=>void;onDemoReceipt?:()=>void}){
  const [copied,setCopied]=useState(false),input=useRef<HTMLInputElement>(null),[copyError,setCopyError]=useState("");
@@ -24,7 +25,8 @@ export function CustomerOrderView({order,busy=false,error="",onReceipt,onDemoRec
  {error&&<div className="field-error" role="alert">{error}</div>}
  <section className="tracking-summary"><h2>Seu pedido</h2>{order.summary.items.map((line,i)=><div key={i}><span><strong>{line.quantity}× {line.label}</strong><small>{line.detail}{line.note&&` · ${line.note}`}</small></span><b>{money(line.total)}</b></div>)}<div><span>Entrega</span><b>{money(order.summary.delivery)}</b></div>{order.summary.discount>0&&<div><span>Desconto</span><b>− {money(order.summary.discount)}</b></div>}<div className="tracking-total"><strong>Total</strong><strong>{money(order.summary.total)}</strong></div><p>{order.summary.method==='delivery'?order.summary.address:'Retirada no local'}<br/>Em nome de {order.summary.customer}</p></section>
  {order.events.length>0&&<section className="tracking-events"><h2>Últimas atualizações</h2>{order.events.slice(0,5).map((event,i)=><div key={event.createdAt+':'+i}><i/><p>{event.message}<small>{new Date(event.createdAt).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'})}</small></p></div>)}</section>}
- {order.whatsapp&&<a className="btn whatsapp-btn full" href={`https://wa.me/${phoneNumber(order.whatsapp)}?text=${encodeURIComponent(`Olá! Gostaria de falar sobre meu pedido #${order.code}.`)}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={18}/>Falar com a pizzaria <ArrowUpRight size={17}/></a>}
+ {typeof window!=="undefined"&&<OrderChat orderId={order.id} token={savedPrivateOrderToken(localStorage,order.id)||trackingToken(location.hash.slice(1))} closed={terminal}/>}
+ {order.whatsapp&&<a className="order-whatsapp-secondary" href={`https://wa.me/${phoneNumber(order.whatsapp)}?text=${encodeURIComponent(`Olá! Gostaria de falar sobre meu pedido #${order.code}.`)}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={18}/>Preferir WhatsApp <ArrowUpRight size={14}/></a>}
  </div>;
 }
 export default function OrderTracking({id}:{id:string}){
