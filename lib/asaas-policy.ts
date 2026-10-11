@@ -50,8 +50,14 @@ export function safeAsaasInvoiceUrl(value: unknown, mode: AsaasMode): string | n
   try {
     const url = new URL(value);
     const hosts = mode === "sandbox" ? ["sandbox.asaas.com"] : ["www.asaas.com", "asaas.com"];
+    const parts = url.pathname.split("/").filter(Boolean);
+    // A URL pública do Asaas pode ter um novo prefixo (ex.: /000/i/ID).
+    // Verifique o host e os segmentos, sem extrair IDs por posição fixa.
+    const invoiceAt = parts.length === 2 ? 0 : parts.length === 3 ? 1 : -1;
     if (url.protocol !== "https:" || !hosts.includes(url.hostname)
-      || url.port || url.username || url.password || !url.pathname.startsWith("/i/")) return null;
+      || url.port || url.username || url.password || invoiceAt < 0
+      || (invoiceAt === 1 && !/^[a-zA-Z0-9_-]{1,32}$/.test(parts[0]))
+      || parts[invoiceAt] !== "i" || !/^[a-zA-Z0-9_-]{3,200}$/.test(parts[invoiceAt + 1])) return null;
     return url.href;
   } catch { return null; }
 }
