@@ -1,0 +1,42 @@
+name: Group beta auth and order checks
+on:
+  pull_request:
+    paths:
+      - "lib/invite-policy.ts"
+      - "lib/trial-policy.ts"
+      - "lib/device-orders.ts"
+      - "lib/platform.ts"
+      - "lib/image-policy.ts"
+      - "app/api/auth/**"
+      - "app/api/platform/ai-connection/**"
+      - "components/auth-form.tsx"
+      - "components/order-tracking.tsx"
+      - "components/menu.tsx"
+      - "components/studio-chat.tsx"
+      - "scripts/check-invite-trial.test.mjs"
+      - "scripts/check-device-orders.test.mjs"
+      - ".github/workflows/group-beta.yml"
+  push:
+    branches:
+      - "feature/group-onboarding-and-order-recovery"
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Pure policies (no network or paid generation)
+        run: node --experimental-strip-types --test scripts/check-invite-trial.test.mjs scripts/check-device-orders.test.mjs
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm@11.25.0
+          pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Domain tests
+        run: pnpm test
