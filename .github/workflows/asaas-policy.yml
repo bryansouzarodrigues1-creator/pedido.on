@@ -1,0 +1,27 @@
+name: Asaas policy checks
+on:
+  pull_request:
+    paths:
+      - "lib/asaas-policy.ts"
+      - "scripts/check-asaas-policy.test.mjs"
+      - ".github/workflows/asaas-policy.yml"
+  push:
+    branches:
+      - "feature/asaas-sandbox-foundation"
+    paths:
+      - "lib/asaas-policy.ts"
+      - "scripts/check-asaas-policy.test.mjs"
+      - ".github/workflows/asaas-policy.yml"
+permissions:
+  contents: read
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Pure offline policy tests
+        run: node --experimental-strip-types --test scripts/check-asaas-policy.test.mjs
