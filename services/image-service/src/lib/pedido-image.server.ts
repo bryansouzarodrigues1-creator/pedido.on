@@ -126,14 +126,12 @@ function decodeBase64(b64: string): Uint8Array {
 }
 
 export async function handleGenerate(request: Request, deps: Deps): Promise<Response> {
+  const requestFetch = deps.fetch.bind(globalThis);
   const raw = await readLimited(request.body, request.headers, MAX_BODY_BYTES);
   if (raw === null) return fail(413, "payload_too_large");
   const input = parseJobInput(raw);
   if (!input) return fail(400, "invalid_request");
   if (!deps.apiKey) return fail(503, "not_configured");
-
-  // Native Workers fetch requires the global receiver, even when injected.
-  const requestFetch = deps.fetch.bind(globalThis);
 
   // 1. Claim the single-use capability on the main app BEFORE any model call.
   let claim: Claim | null = null;
