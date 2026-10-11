@@ -1,5 +1,8 @@
 # Continuar o pedido.on
 
+> **Atualização de produção — 11/10/2026:** a IA do estúdio foi conectada e habilitada no aplicativo principal. Serviço publicado: https://pedido-on-estudio.lovable.app, projeto Lovable `aa27093c-2768-41f2-8274-923fdfe2b5ff`, workspace Pro `workspace_01kn20zmepfahsq3q7xa36ct6h`, commit `81b09ac97be1ddfa62ec5ff60fb63fe6094a5221`. O original permanece disponível. Os endpoints de texto e imagem do aplicativo agora apontam para o serviço novo; ambas as flags estão habilitadas. A versão 16 do Sites foi republicada com revisão de ambiente 5, implantação concluída. A Lovable verificou GETs públicos 200/application-json/configured=true e POSTs com tokens desconhecidos 401/claim_denied. Passaram 7 testes de protocolo e 14 testes existentes, typecheck e build do serviço. A atualização e a verificação consumiram 3,8 créditos de construção informados pelo plugin. Não houve geração real. O teste de um texto e uma imagem por uma loja autenticada permanece pendente; o acesso HTTP direto deste ambiente foi bloqueado. Preservar cotas e publicação após revisão. O texto abaixo registra o planejamento/estado anterior, quando mencionar IA desativada ou ativação pendente.
+
+
 Este repositório reúne o aplicativo publicado e uma cópia completa do serviço de imagens. O registro de origem está em `source-provenance.json`; os hashes de cada arquivo estão em `source-files.json`.
 
 ## Estado preservado
