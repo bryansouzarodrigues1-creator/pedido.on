@@ -195,10 +195,14 @@ test('invite-only onboarding requires a private code and email verification befo
   const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
   f.env.PEDIDO_AUTH_MODE='invite';
   f.env.PEDIDO_AUTH_INVITE_CODE='grupo-pizzaiolos-2026-EXEMPLO';
+  f.env.PEDIDO_GOOGLE_ENABLED='true';
+  f.env.TURNSTILE_SITE_KEY='site-test-key';
   p.settings.mailer_autoconfirm=false;
   try{
     const config=await (await f.call('auth','GET',{action:'config'})).json();
     assert.equal(config.inviteRequired,true);
+    assert.equal(config.googleEnabled,false); // OAuth must not bypass invitation.
+    assert.equal(config.captchaSiteKey,""); // closed beta relies on invite + throttling.
     assert.equal(config.registrationEnabled,true);
     assert.equal(JSON.stringify(config).includes(f.env.PEDIDO_AUTH_INVITE_CODE),false);
     const input={name:'Pizzaiolo de teste',email:'owner@example.test',password:initialPassword};
