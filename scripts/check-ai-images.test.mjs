@@ -52,7 +52,7 @@ test('concurrent repeats reserve once and platform limits cannot be bypassed by 
  try{
   const body=input(),responses=await Promise.all([f.call('images','POST',{id:'shop-a'},body),f.call('images','POST',{id:'shop-a'},body)]);
   assert.ok(responses.every(r=>[409,503].includes(r.status)));assert.equal(calls,1);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM image_jobs').get().n,1);
-  for(let i=2;i<4;i++){assert.equal((await f.call('images','POST',{id:'shop-a'},input())).status,503);assert.equal(calls,i+1);}
+  for(let i=1;i<4;i++){assert.equal((await f.call('images','POST',{id:'shop-a'},input())).status,503);assert.equal(calls,i+1);}
   assert.equal((await f.call('images','POST',{id:'shop-a'},input())).status,429);assert.equal(calls,4);
   assert.equal((await (await f.call('images','GET',{id:'shop-a'})).json()).used,4);
  }finally{globalThis.fetch=original;f.close();}
@@ -72,6 +72,8 @@ test('monthly quota belongs to the owner and creating another shop cannot multip
   for(let i=0;i<12;i++){
    assert.equal((await f.call('images','POST',{id:i%2===0?'shop-b':'shop-a'},input())).status,200);
    f.db.prepare("UPDATE image_jobs SET created_at='2026-01-01T00:00:00.000Z' WHERE state='completed'").run();
+   // Model separate daily windows for this owner without altering its monthly limit.
+   f.db.exec("DELETE FROM rate_buckets");
   }
   assert.equal((await f.call('images','POST',{id:'shop-b'},input())).status,429);assert.equal(calls,12);
   assert.equal((await (await f.call('images','GET',{id:'shop-b'})).json()).used,12);
