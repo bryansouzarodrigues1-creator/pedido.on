@@ -67,3 +67,29 @@ Cota de teste da branch: **12 imagens por proprietário/mês, máximo global 4 n
 
 ## Correção solicitada em 11/10 — cadastro sem confirmação
 No modo invite, Supabase precisa ter `mailer_autoconfirm=true` (Confirm email desativado). Não envie e-mail no cadastro. Resend fica apenas para recuperação de senha; sem domínio verificado, usar temporariamente somente envio de teste disponibilizado pelo provedor, respeitando limites, e não fingir produção. O beta não exige domínio próprio comprado agora.
+
+## Pré-aprovação de entrega e PWA — 11/10/2026
+
+A verificação de local é opcional por configuração e **permanece desligada** enquanto a migração D1 e publicação não forem validadas:
+`PEDIDO_DELIVERY_APPROVAL_ENABLED=false`.
+
+Ao ativar:
+1. Cliente do delivery informa número e endereço, podendo autorizar coordenadas pelo navegador. Sem geocodificação automática e sem custos de mapas. Solicitação criptografada pelo token de posse (hash no D1) com expiração em 2 horas.
+2. O dono autenticado vê a fila **Verificar locais de entrega** e aceita ou rejeita. A ação exige CSRF e propriedade da pizzaria; decisão é atômica e não pode ser repetida.
+3. Cliente consulta o status pelo token, a cada ~6 segundos. Só após aprovação abre o cardápio e pode finalizar. Pedido PIX/delivery criado por API é recusado se endereço ou telefone não corresponderem ao registro aprovado.
+4. Retirada (quando disponível) pula essa etapa.
+5. Nada disso movimenta ou retém dinheiro. Pix do pedido continua direto ao dono da pizzaria, com conferência humana de recebimento.
+
+### Instalação PWA e notificações
+
+Manifest em `app/manifest.ts`, service worker em `public/sw.js` e convite de instalação no painel. O SW guarda **somente** favicon e ícone em cache, nunca sessões, páginas administrativas, pedidos, API ou comprovantes. A interface avisa sobre falta de internet. O painel já tem alertas de novos pedidos; agora há alerta para novo pedido de análise de endereço quando o navegador mantém o painel aberto e a permissão é concedida.
+
+**Não confundir com push em segundo plano**: avisar com o app inteiramente fechado requer cadastro de subscription Web Push no servidor, chaves VAPID, revogação, eventos e teste real Android/iOS. Isso NÃO está instalado; não prometer recebimento quando a PWA está encerrada.
+
+### Email e domínio
+
+O beta será sem domínio novo e sem confirmação de cadastro. `Confirm email` do Supabase precisa estar desligado para o modo `invite`. O envio de e-mail será SOMENTE para `Esqueci minha senha`. Resend foi escolhido, mas sem domínio de remetente verificado não pode enviar para destinatários arbitrários em produção. Não gastar comprando domínio sem nova decisão. Para testes limitados pode-se validar o provedor padrão do Supabase respeitando seus limites; não marcar `PEDIDO_EMAIL_DELIVERY_READY=true` sem entrega real.
+
+### Release seguro
+
+Antes de mesclar/publicar: CI + testagem no navegador, migrar D1 `0007`, verificar URLs HTTPS e scope PWA, instalar num Android e testar atendimento entre duas contas/lojas. Só então definir a flag `PEDIDO_DELIVERY_APPROVAL_ENABLED=true` e o modo `invite` no ambiente existente.
