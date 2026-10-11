@@ -11,6 +11,7 @@ import { availableProduct } from "@/lib/menu-sales";
 import type { SalesSummary } from "@/lib/sales";
 import {orderStatuses as statuses} from "@/lib/order-policy";
 import {OrderDetails,OrderAlerts,PaymentBadge,nextOrderAction,actionLabels,type OrderRecord,type ActionDetails} from "./order-admin";
+import PwaSetup from "./pwa-setup";
 
 const navigation = [
   { id: "overview", label: "Pedidos", icon: ClipboardList },
@@ -131,7 +132,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const shownOrders = orderList.filter(o => orderFilter === "all" || (orderFilter === "work" ? ["awaiting_payment", "awaiting", "confirmed", "preparing", "out_for_delivery"].includes(o.status) : ["delivered", "canceled"].includes(o.status)));
   const sectionName = navigation.find(n => n.id === tab)?.label;
 
-  return <div className="dashboard simple-dashboard">
+  return <div className="dashboard simple-dashboard"><PwaSetup/>
     <aside className={`sidebar ${mobileNav ? "visible" : ""}`}>
       <div className="sidebar-brand"><Brand /><button className="icon-btn mobile-nav" aria-label="Fechar menu" onClick={() => setMobileNav(false)}><X size={20} /></button></div>
       <div className="shop-picker"><label><span>SUA PIZZARIA</span><select value={activeId} disabled={saving} onChange={e => switchRestaurant(e.target.value)}>{!restaurants.length && <option value="">Criar minha pizzaria</option>}{restaurants.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label><span className={`shop-status ${active?.published ? "live" : ""}`}><i />{active?.published ? "Cardápio no ar" : "Ainda não publicado"}</span></div>
