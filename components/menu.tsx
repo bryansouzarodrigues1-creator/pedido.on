@@ -4,6 +4,7 @@ import { Pizza, Search, ShoppingBag, Plus, Minus, Trash2, ArrowUpRight, Clock, M
 import { Modal, Spinner, themeStyle } from "./ui";
 import { money, priceLine, sizeLabels, calculateOrder, type RestaurantData, type Product, type LineInput, type Size } from "@/lib/domain";
 import { availableProduct as isAvailable, drinkSuggestions, addCartLine } from "@/lib/menu-sales";
+import {savePrivateOrderLink,recentPrivateOrderLinks} from "@/lib/device-orders";
 function productPrice(product: Product) { return product.kind === "pizza" ? Math.min(...Object.values(product.sizes).filter(n => n > 0)) : product.price; }
 type ContactDetails = { customer: string; phone: string; address: string; method: "delivery" | "pickup"; payment: RestaurantData["payments"][number]; note: string };
 
@@ -20,7 +21,7 @@ export default function Menu({ data, slug = "", demo = false, preview = false }:
         return Array.isArray(saved) ? saved.slice(0, 30).filter((line: LineInput) => { try { priceLine(data, line); return true; } catch { return false; } }) as LineInput[] : [];
       } catch { return []; }
     };
-    if (slug && !demo && !preview) { setCart(restore(`forno-cart-${slug}`)); setLastOrder(restore(`forno-last-${slug}`));try{const link=localStorage.getItem(`pedido-track-${slug}`)||"";if(/^\/pedido\/[a-f0-9-]{36}#[a-f0-9]{64}$/.test(link))setTrackingLink(link);}catch{} }
+    if (slug && !demo && !preview) { setCart(restore(`forno-cart-${slug}`)); setLastOrder(restore(`forno-last-${slug}`));try{const links=recentPrivateOrderLinks(localStorage,slug),link=links[0]||localStorage.getItem(`pedido-track-${slug}`)||"";if(/^\/pedido\/[a-f0-9-]{36}#[a-f0-9]{64}$/.test(link))setTrackingLink(link);}catch{} }
     setLoadedSlug(slug);
   }, [slug]);
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function Menu({ data, slug = "", demo = false, preview = false }:
   function quantity(index: number, delta: number) { setCart(old => old.flatMap((line, i) => i !== index ? [line] : line.quantity + delta <= 0 ? [] : [{ ...line, quantity: Math.min(20, line.quantity + delta) }])); }
   function repeatOrder() { setCart(lastOrder); setCartOpen(true); setToast("Confira seu pedido. Os valores são os preços atuais do cardápio."); }
   function orderDone(trackingUrl="") {
-    if(trackingUrl){setTrackingLink(trackingUrl);try{localStorage.setItem(`pedido-track-${slug}`,trackingUrl);}catch{}}
+    if(trackingUrl){setTrackingLink(trackingUrl);try{savePrivateOrderLink(localStorage,slug,trackingUrl);}catch{}}
     const saved = cart.map(line => ({ ...line, note: "" }));
     if (slug && !demo && !preview) { try { localStorage.setItem(`forno-last-${slug}`, JSON.stringify(saved)); } catch {} }
     setLastOrder(saved); setCart([]);
