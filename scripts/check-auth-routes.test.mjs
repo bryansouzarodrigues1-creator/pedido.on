@@ -179,6 +179,7 @@ test('registration signs in immediately without mail and stores only a protected
 
 test('signup cannot send a confirmation while provider settings are stale and cannot trust unverified signup tokens',async()=>{
   const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
+  f.env.PEDIDO_EMAIL_DELIVERY_READY='false';
   try{
     p.settings.mailer_autoconfirm=false;
     const blocked=await f.call('auth','POST',{action:'register'},{name:'Dono de teste',email:'owner@example.test',password:initialPassword});
@@ -187,6 +188,35 @@ test('signup cannot send a confirmation while provider settings are stale and ca
     globalThis.fetch=async(input,options)=>new URL(input).pathname.endsWith('/signup')?Response.json({access_token:'forged-access',refresh_token:'forged-refresh',expires_in:3600,user:{id:firstId,email:'owner@example.test',email_confirmed_at:'now'}}):p.fetcher(input,options);
     assert.equal((await f.call('auth','POST',{action:'register'},{name:'Dono de teste',email:'owner@example.test',password:initialPassword})).status,401);
     assert.equal(f.db.prepare('select count(*) as n from auth_sessions').get().n,0);
+  }finally{globalThis.fetch=originalFetch;f.close();}
+});
+
+test('invite-only onboarding starts directly without confirmation email and protects group access',async()=>{
+  const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
+  f.env.PEDIDO_AUTH_MODE='invite';
+  f.env.PEDIDO_AUTH_INVITE_CODE='grupo-pizzaiolos-2026-EXEMPLO';
+  f.env.PEDIDO_GOOGLE_ENABLED='true';
+  f.env.TURNSTILE_SITE_KEY='site-test-key';
+  f.env.PEDIDO_EMAIL_DELIVERY_READY='false';
+  p.settings.mailer_autoconfirm=true;
+  try{
+    const config=await (await f.call('auth','GET',{action:'config'})).json();
+    assert.equal(config.inviteRequired,true);
+    assert.equal(config.googleEnabled,false);
+    assert.equal(config.captchaSiteKey,"");
+    assert.equal(config.registrationEnabled,true);
+    assert.equal(config.recoveryEnabled,false);
+    assert.equal(JSON.stringify(config).includes(f.env.PEDIDO_AUTH_INVITE_CODE),false);
+    const input={name:'Pizzaiolo de teste',email:'owner@example.test',password:initialPassword};
+    assert.equal((await f.call('auth','POST',{action:'register'},input)).status,403);
+    assert.equal(p.users.size,0);
+    const created=await f.call('auth','POST',{action:'register'},{...input,inviteCode:f.env.PEDIDO_AUTH_INVITE_CODE});
+    assert.equal(created.status,200,await created.clone().text());
+    assert.equal((await created.json()).next,'/app');
+    assert.ok(created.headers.get('Set-Cookie'));
+    assert.equal(p.hashes.size,0);
+    assert.equal(f.db.prepare('select count(*) as n from auth_sessions').get().n,1);
+    assert.equal((await f.call('account','GET',{},undefined,cookieHeader(sessionCookie(created)))).status,200);
   }finally{globalThis.fetch=originalFetch;f.close();}
 });
 

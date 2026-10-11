@@ -7,14 +7,14 @@ import {accountProfiles,authSessions} from "@/db/schema";
 import {getChatGPTUser} from "@/app/chatgpt-auth";
 import {HttpError,throttle} from "./http";
 import {providerFailure} from "./provider-diagnostics";
-import {prototypeEmailAllowed} from "./platform";
+import {prototypeEmailAllowed,inviteOnlyRegistration} from "./platform";
 import {providerOrigin,readSessionCookie,sessionCookie,randomToken,sha256,sealTokens,openTokens,SESSION_SECONDS,RECOVERY_SECONDS,safeReturnPath,allowsAccountAccess} from "./auth-policy";
 export type AccountUser={userId:string;displayName:string;email:string;fullName:string|null;provider:"supabase"|"chatgpt";loginMethod:"email"|"google"|"internal"};
 type AuthEnv={SUPABASE_URL?:string;SUPABASE_PUBLISHABLE_KEY?:string;AUTH_SESSION_KEY?:string;TURNSTILE_SITE_KEY?:string;PEDIDO_GOOGLE_ENABLED?:string};
 type ProviderUser={id:string;email?:string;email_confirmed_at?:string;user_metadata?:{name?:unknown;full_name?:unknown}};
 export type ProviderSession={access_token:string;refresh_token:string;expires_in:number;user:ProviderUser};
 type TokenVault={access:string;refresh:string;method?:"email"|"google"};
-export function authConfig(){const e=env as typeof env&AuthEnv;const origin=providerOrigin(e.SUPABASE_URL||""),enabled=!!origin&&!!e.SUPABASE_PUBLISHABLE_KEY&&/^[a-f0-9]{64}$/.test(e.AUTH_SESSION_KEY||"");return {enabled,googleEnabled:enabled&&e.PEDIDO_GOOGLE_ENABLED==="true",origin,key:e.SUPABASE_PUBLISHABLE_KEY||"",seal:e.AUTH_SESSION_KEY||"",captchaSiteKey:e.TURNSTILE_SITE_KEY||""};}
+export function authConfig(){const e=env as typeof env&AuthEnv;const origin=providerOrigin(e.SUPABASE_URL||""),enabled=!!origin&&!!e.SUPABASE_PUBLISHABLE_KEY&&/^[a-f0-9]{64}$/.test(e.AUTH_SESSION_KEY||"");return {enabled,googleEnabled:enabled&&e.PEDIDO_GOOGLE_ENABLED==="true"&&!inviteOnlyRegistration(),origin,key:e.SUPABASE_PUBLISHABLE_KEY||"",seal:e.AUTH_SESSION_KEY||"",captchaSiteKey:inviteOnlyRegistration()?"":e.TURNSTILE_SITE_KEY||""};}
 export async function providerRequest<T>(path:string,method="POST",body?:unknown,access?:string):Promise<T>{
   const config=authConfig();if(!config.enabled)throw new HttpError(503,"O acesso à plataforma está sendo configurado. Tente novamente mais tarde.");
   let response:Response;try{response=await fetch(config.origin+"/auth/v1/"+path,{method,headers:{apikey:config.key,...(body?{"Content-Type":"application/json"}:{}),...(access?{Authorization:"Bearer "+access}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(12000),redirect:"manual"});}catch(error){console.error("[pedido.on] auth provider connection",{origin:config.origin,operation:path.split("?")[0],...providerFailure(error,[config.key,access,body])});throw new HttpError(503,"O serviço de acesso está temporariamente indisponível.");}

@@ -11,6 +11,8 @@ import { availableProduct } from "@/lib/menu-sales";
 import type { SalesSummary } from "@/lib/sales";
 import {orderStatuses as statuses} from "@/lib/order-policy";
 import {OrderDetails,OrderAlerts,PaymentBadge,nextOrderAction,actionLabels,type OrderRecord,type ActionDetails} from "./order-admin";
+import PwaSetup from "./pwa-setup";
+import DeliveryApprovals from "./delivery-approvals";
 
 const navigation = [
   { id: "overview", label: "Pedidos", icon: ClipboardList },
@@ -131,7 +133,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const shownOrders = orderList.filter(o => orderFilter === "all" || (orderFilter === "work" ? ["awaiting_payment", "awaiting", "confirmed", "preparing", "out_for_delivery"].includes(o.status) : ["delivered", "canceled"].includes(o.status)));
   const sectionName = navigation.find(n => n.id === tab)?.label;
 
-  return <div className="dashboard simple-dashboard">
+  return <div className="dashboard simple-dashboard"><PwaSetup/>
     <aside className={`sidebar ${mobileNav ? "visible" : ""}`}>
       <div className="sidebar-brand"><Brand /><button className="icon-btn mobile-nav" aria-label="Fechar menu" onClick={() => setMobileNav(false)}><X size={20} /></button></div>
       <div className="shop-picker"><label><span>SUA PIZZARIA</span><select value={activeId} disabled={saving} onChange={e => switchRestaurant(e.target.value)}>{!restaurants.length && <option value="">Criar minha pizzaria</option>}{restaurants.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label><span className={`shop-status ${active?.published ? "live" : ""}`}><i />{active?.published ? "Cardápio no ar" : "Ainda não publicado"}</span></div>
@@ -146,6 +148,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
         {!active ? <div className="dashboard-welcome"><span className="brand-icon"><Pizza /></span><span className="eyebrow">COMECE PELO ESSENCIAL</span><h1>Seu próximo pedido<br />começa aqui.</h1><p>Nome, WhatsApp e seus sabores. Monte o cardápio e compartilhe o link com seus clientes.</p><button className="btn primary" onClick={() => setCreateOpen(true)}>Criar meu cardápio <Plus size={18} /></button></div> : <>
           <OrderAlerts key={active.id} orders={orderList} loaded={!!lastSync} onOpen={()=>setTab("overview")}/>{ordersOffline&&<div className="error-banner" role="alert"><AlertCircle size={20}/><p>Conexão interrompida. Os pedidos podem estar desatualizados. Use Atualizar para tentar novamente.</p></div>}<div className="dashboard-title"><div><span className="eyebrow">{tab === "overview" ? draft.name : sectionName}</span><h1>{tab === "overview" ? "Pedidos" : tab === "menu" ? "Cardápio" : tab === "studio" ? "Criar com IA" : "Sua pizzaria"}</h1><p>{tab === "overview" ? "Acompanhe cada pedido, do pagamento à entrega." : tab === "menu" ? "Seus sabores, tamanhos e preços." : tab === "studio" ? "Visual, textos e imagens em um só lugar." : "Contato, entrega e pagamento."}</p></div>{tab === "overview" && <button className="btn outline small" disabled={ordersLoading} onClick={() => loadOrders()}>{ordersLoading ? <Spinner /> : <RefreshCw size={17} />}Atualizar</button>}</div>
           {tab === "overview" && <>
+            <DeliveryApprovals key={active.id} restaurantId={active.id}/>
             {!active.published && <section className="setup-simple panel-card"><div className="panel-heading"><div><span className="eyebrow">SEU PRIMEIRO CARDÁPIO</span><h2>Três passos para começar.</h2></div><span className="pill">{Number(storeReady) + Number(menuReady)} de 3</span></div><div className="setup-simple-steps"><button onClick={() => setTab("store")}><span className={storeReady ? "done" : ""}>{storeReady ? <Check size={18} /> : "1"}</span><b>Configure sua loja</b><small>WhatsApp, entrega e pagamento</small><ArrowRight size={18} /></button><button onClick={() => setTab("menu")}><span className={menuReady ? "done" : ""}>{menuReady ? <Check size={18} /> : "2"}</span><b>Cadastre os sabores</b><small>Uma pizza com preço já basta</small><ArrowRight size={18} /></button><button disabled={saving} onClick={() => publish()}><span>3</span><b>Publique e compartilhe</b><small>Seu link pronto para receber pedidos</small><ArrowRight size={18} /></button></div></section>}
             <div className="dashboard-stats sales-stats"><article className="sales-main"><span><TrendingUp size={19} />Vendido hoje</span><strong>{sales ? money(sales.value) : "—"}<small>{sales ? `${sales.confirmed} ${sales.confirmed === 1 ? "pedido confirmado" : "pedidos confirmados"}` : "Carregando vendas…"}</small></strong></article><article><span><ShoppingBag size={19} />Valor médio por pedido</span><strong>{sales ? money(sales.average) : "—"}<small>Somente pedidos confirmados</small></strong></article><article><span><Clock size={19} />A confirmar hoje</span><strong>{sales ? sales.pending : "—"}<small>Confira os pedidos e comprovantes</small></strong></article></div>
             <p className="sales-caption">Hoje em São Paulo · valor dos pedidos após descontos, incluindo entrega. Pedidos pendentes e cancelados ficam fora das vendas.</p>
