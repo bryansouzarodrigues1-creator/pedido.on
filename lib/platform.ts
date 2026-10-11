@@ -16,5 +16,5 @@ function testEmails(){
   return values;
 }
 export function prototypeEmailAllowed(email:string){return !authTestMode()||testEmails().includes(email.trim().toLowerCase());}
-export function registrationAvailable(){return authTestMode()?testEmails().length>0:inviteOnlyRegistration()?registrationInviteConfigured():true;}
+export function registrationAvailable(){return authTestMode()?testEmails().length>0:inviteOnlyRegistration()?registrationInviteConfigured()&&emailDeliveryReady():true;}
 export function emailFlowsAvailable(){return authTestMode()?testEmails().length>0:emailDeliveryReady();}
