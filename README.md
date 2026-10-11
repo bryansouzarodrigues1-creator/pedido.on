@@ -2,11 +2,16 @@
 
 Plataforma de cardápios digitais para várias pizzarias, com quatro layouts, painel por proprietário, pedidos, Pix com aprovação manual e criação de identidade visual.
 
-Este repositório reúne o aplicativo principal e o serviço de imagens da Lovable. A fonte do aplicativo corresponde à versão publicada **v15**, commit `ad29ba952a723145ff6a317f7fc7e20531222f1d`. O serviço foi exportado no commit `4578d1cc508cfc850946fcf882bab3032288ab18`.
+Este repositório reúne o aplicativo principal e o serviço de imagens da Lovable. A fonte do aplicativo corresponde à versão publicada **v16**, commit `b8cbe68b5fc7720c4543453709eefd560e4ec1ac`. O serviço tem como origem o commit `4578d1cc508cfc850946fcf882bab3032288ab18`, com uma extensão de chat/fotos preparada aqui e ainda não publicada na Lovable.
 
 **Aplicativo:** [forno-cardapios.waves4845.chatgpt.site](https://forno-cardapios.waves4845.chatgpt.site) · **Serviço de imagens:** [pedido-on-imagens.lovable.app](https://pedido-on-imagens.lovable.app)
 
 ## Funcionalidades
+
+- Visual SaaS compacto em carvão/vermelho, com painel operacional e foco em pizzarias.
+- Calculadora pública em `/calculadora`, sem conta, com projeção de resultado, preço, equilíbrio e cenários salvos no navegador.
+- Estúdio em um chat, com estilo, cor, chamada, textos e briefing de imagens na mesma prévia. Aplicação ao rascunho antes de publicar; IA de textos ainda depende da ativação autorizada.
+
 
 - Cardápios em `/p/<slug>`, com estilos Artesanal, Essencial, Noturno e Família.
 - Painel com Vendas, Cardápio e Minha loja; produtos com ou sem foto, tamanhos, bordas, preços, entrega e pagamentos.
@@ -61,6 +66,9 @@ O protótipo limita imagens a **3 tentativas por proprietário/mês** e **2 por 
 
 ## Guias
 
+- [Ativar a IA do estúdio, custos e workspace](docs/ATIVAR_ESTUDIO.md)
+- [Fluxo e proteção do estúdio](STUDIO.md)
+- [Cálculo, escopo e armazenamento de cenários](CALCULADORA.md)
 - [Estado atual e próximos passos](docs/CONTINUAR.md)
 - [Arquitetura e armazenamento](docs/ARQUITETURA.md)
 - [Geração de imagens, custos e limites](docs/IMAGENS.md)

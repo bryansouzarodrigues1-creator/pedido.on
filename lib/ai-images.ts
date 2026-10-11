@@ -14,9 +14,9 @@ export async function claimImage(jobId:string,token:string){
  if(!claimed)throw new HttpError(401,"Solicitação de imagem inválida ou já utilizada.");
  return {prompt:claimed.prompt,asset:claimed.asset,ratio:claimed.asset==="cover"?"16:9":"1:1",protocol:imageProtocol};
 }
-export async function generateImage(ownerId:string,restaurantId:string,name:string,input:z.infer<typeof imageInput>){
+export async function generateImage(ownerId:string,restaurantId:string,name:string,input:z.infer<typeof imageInput>,product?:{name:string;description:string}){
  const config=imageConfig();if(!config.enabled)throw new HttpError(503,"A IA de imagens está em configuração. Você pode usar os modelos prontos.");
- const hash=await sha256(JSON.stringify({...input,requestId:undefined,name}));
+ const hash=await sha256(JSON.stringify({...input,requestId:undefined,name,product}));
  const find=()=>env.DB!.prepare("SELECT id,input_hash,state,result_url,asset FROM image_jobs WHERE owner_id=? AND restaurant_id=? AND request_id=?").bind(ownerId,restaurantId,input.requestId).first<Job>();
  const existing=await find();
  function resume(job:Job){if(job.input_hash!==hash)throw new HttpError(409,"Esta solicitação já foi utilizada com outra descrição.");if(job.state==="completed"&&job.result_url)return {url:job.result_url,asset:job.asset};throw new HttpError(409,job.state==="queued"||job.state==="claimed"?"Sua imagem está sendo preparada. Aguarde.":"Esta tentativa terminou. Gere uma nova solicitação.");}
@@ -26,7 +26,7 @@ export async function generateImage(ownerId:string,restaurantId:string,name:stri
  const reserved=await env.DB!.prepare(`INSERT INTO image_jobs (id,owner_id,restaurant_id,request_id,input_hash,token_hash,prompt,asset,state,period_key,created_at,expires_at,updated_at)
  SELECT ?,?,?,?,?,?,?,?,'queued',?,?,?,? WHERE
  (SELECT COUNT(*) FROM image_jobs WHERE owner_id=? AND period_key=? AND state!='cancelled')<? AND
- (SELECT COUNT(*) FROM image_jobs WHERE created_at>=? AND state!='cancelled')<? ON CONFLICT(owner_id,restaurant_id,request_id) DO NOTHING`).bind(id,ownerId,restaurantId,input.requestId,hash,tokenHash,imagePrompt(name,input),input.asset,period,stamp,expires,stamp,ownerId,period,imageLimits.monthly,day,imageLimits.daily).run();
+ (SELECT COUNT(*) FROM image_jobs WHERE created_at>=? AND state!='cancelled')<? ON CONFLICT(owner_id,restaurant_id,request_id) DO NOTHING`).bind(id,ownerId,restaurantId,input.requestId,hash,tokenHash,imagePrompt(name,input,product),input.asset,period,stamp,expires,stamp,ownerId,period,imageLimits.monthly,day,imageLimits.daily).run();
  if(!reserved.meta.changes){const duplicate=await find();if(duplicate)return {...resume(duplicate),usage:await imageAllowance(ownerId)};throw new HttpError(429,"O limite de tentativas do protótipo foi atingido. Tente no próximo período.");}
  try{
   const response=await fetch(config.endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobId:id,token}),redirect:"error",signal:AbortSignal.timeout(90000)});

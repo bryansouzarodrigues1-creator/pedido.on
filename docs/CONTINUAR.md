@@ -11,6 +11,8 @@ Este repositório reúne o aplicativo publicado e uma cópia completa do serviç
 | Pix | Chave por loja, comprovante privado, conferência manual, aprovação e previsão | Conferência de um pagamento real pela loja |
 | Acesso | Supabase Auth, sessão protegida, cadastro direto, login, recuperação e logout | Cadastro/login e recuperação com conta e e-mail reais |
 | Identidade | Estilos locais, exportação PNG e aplicação após revisão | Revisão visual da identidade desejada |
+| Calculadora | Pública, gratuita, sem cadastro, custos prontos, comparação e cenários no navegador | Conferir entradas reais da pizzaria |
+| Estúdio | Chat com estilos locais, prévia e aplicação ao rascunho; textos/fotos da Lovable preparados e desativados | Ativação com autorização de custos em `ATIVAR_ESTUDIO.md` |
 | Imagens IA | Serviço Lovable, token de uso único, cotas e proteção contra duplicidade | Uma geração real autorizada, medição do custo e aplicação do arquivo |
 | Mensalidades | Integração Stripe e webhook preparados | Configuração comercial e teste em sandbox; cobrança desativada |
 | Importação IA | Implementação OpenAI preservada | Desativada; não exige configurar OpenAI para usar o restante |
@@ -29,6 +31,8 @@ O aplicativo principal está em `https://forno-cardapios.waves4845.chatgpt.site`
 ## O que os testes comprovam
 
 Os testes do aplicativo executam SQL das migrações em SQLite e adaptadores de D1/R2, verificam permissões entre lojas, pedidos/Pix, autenticação, recuperação, cookies, cálculos, cobranças e cotas de IA. Provedores externos são simulados. Eles não comprovam entrega de e-mail, pagamento recebido, OAuth real nem custo de geração.
+
+Nesta atualização, 88 testes do aplicativo e 7 testes adicionais dos protocolos do serviço passaram sem chamadas reais a provedores. A verificação de tipos do aplicativo e dos dois arquivos de servidor do serviço passou; o build do aplicativo passou. O build nativo do serviço atualizado permanece pendente da ativação na Lovable.
 
 O serviço inclui testes de rotas e do protocolo de imagem. O arquivo `src/lib/pedido-image.test.ts` usa respostas simuladas; nunca chama o gateway real.
 

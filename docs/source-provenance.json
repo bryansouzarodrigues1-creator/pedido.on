@@ -1,14 +1,14 @@
 {
   "schema": 1,
-  "exported_at": "2026-10-10T21:56:05.313348+00:00",
+  "exported_at": "2026-10-11T00:25:57.355122+00:00",
   "repository": "https://github.com/bryansouzarodrigues1-creator/pedido.on",
-  "github_parent_commit": "6c224f9808a25746205009b7711e58f683aac011",
+  "github_parent_commit": "c82aad9755a8c56a899bc94de1203a3fd9c3d955",
   "sources": {
     "application": {
       "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
-      "version": 15,
-      "commit_sha": "ad29ba952a723145ff6a317f7fc7e20531222f1d",
-      "tracked_files": 230,
+      "version": 16,
+      "commit_sha": "b8cbe68b5fc7720c4543453709eefd560e4ec1ac",
+      "tracked_files": 248,
       "url": "https://forno-cardapios.waves4845.chatgpt.site",
       "handover_adaptations": [
         ".env.example",
@@ -24,18 +24,27 @@
     "image_service": {
       "project_id": "c1919edd-8b5e-40f8-b646-9ccd9c69e01f",
       "commit_sha": "4578d1cc508cfc850946fcf882bab3032288ab18",
-      "source_files": 80,
+      "source_files": 84,
       "directory": "services/image-service",
       "url": "https://pedido-on-imagens.lovable.app",
       "handover_adaptations": [
         "README.md"
       ],
-      "binary_asset_note": "public/favicon.ico copied without transformation from the published service; 20373 bytes"
+      "binary_asset_note": "public/favicon.ico copied without transformation from the published service; 20373 bytes",
+      "local_extension_status": "prepared, tested with mocks; not built or deployed on Lovable",
+      "extension_files": [
+        "src/lib/pedido-studio.server.ts",
+        "src/routes/api/pedido-on/studio.ts",
+        "scripts/check-studio.mjs",
+        "src/lib/pedido-image.server.ts",
+        "src/routeTree.gen.ts",
+        "package.json"
+      ]
     }
   },
   "verification": {
     "application_tests": {
-      "passed": 74,
+      "passed": 88,
       "failed": 0,
       "external_providers": "mocked"
     },
@@ -44,9 +53,19 @@
     "image_service_tests": {
       "previous_lovable_build_passed": 14,
       "rerun_during_export": false,
-      "external_providers": "mocked"
+      "external_providers": "mocked",
+      "additional_local_protocol_tests_passed": 7,
+      "server_files_typecheck": "passed",
+      "updated_service_native_build": "not run; activation requires credit authorization"
     },
-    "real_image_generation": "not run during export; owner authorization required"
+    "real_image_generation": "not run; owner authorization required",
+    "deployment": {
+      "application_version": 16,
+      "status": "succeeded",
+      "lovable_extension": "not deployed"
+    },
+    "real_text_generation": "not run; studio disabled until approved activation",
+    "visual_browser_qa": "not run; browser-control plugin unavailable"
   },
   "excluded": [
     "deployment credentials and environment secrets",

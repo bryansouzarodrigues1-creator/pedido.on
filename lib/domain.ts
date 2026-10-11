@@ -39,7 +39,7 @@ export function money(value:number){return new Intl.NumberFormat("pt-BR",{style:
 export function asCents(value:string){const n=Number(value.replace(",","."));return Number.isFinite(n)?Math.max(0,Math.round(n*100)):0;}
 export function phoneNumber(value:string){const n=value.replace(/\D/g,"");return !value.trim().startsWith("+")&&(n.length===10||n.length===11)?"55"+n:n;}
 export function slugify(value:string){return value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60);}
-export const slugSchema=z.string().min(3).max(60).regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/).refine(s=>!["app","api","admin","demo","signin","forno","pedido","pedido-on","conta","configuracao","entrar","cadastro","esqueci-senha","redefinir-senha","confirmar-email","sair","planos","layouts","media","pedido"].includes(s),"Esse endereço é reservado.");
+export const slugSchema=z.string().min(3).max(60).regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/).refine(s=>!["app","api","admin","calculadora","estudio","demo","signin","forno","pedido","pedido-on","conta","configuracao","entrar","cadastro","esqueci-senha","redefinir-senha","confirmar-email","sair","planos","layouts","media","pedido"].includes(s),"Esse endereço é reservado.");
 export function priceLine(data:RestaurantData,line:LineInput):PricedLine{
   if(!Number.isInteger(line.quantity)||line.quantity<1||line.quantity>20)throw new Error("Quantidade inválida.");
   if(line.productIds.length<1||line.productIds.length>2||new Set(line.productIds).size!==line.productIds.length)throw new Error("Escolha um ou dois sabores diferentes.");

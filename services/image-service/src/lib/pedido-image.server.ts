@@ -16,7 +16,7 @@ const TOKEN_RE = /^[0-9a-f]{64}$/;
 
 type Deps = { fetch: typeof fetch; apiKey: string | undefined };
 
-type Claim = { prompt: string; asset: "logo" | "cover" | "profile"; ratio: "1:1" | "16:9" };
+type Claim = { prompt: string; asset: "logo" | "cover" | "profile" | "product"; ratio: "1:1" | "16:9" };
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
@@ -84,7 +84,7 @@ function parseClaim(data: unknown): Claim | null {
   const c = data as { prompt?: unknown; asset?: unknown; ratio?: unknown; protocol?: unknown };
   if (c.protocol !== PROTOCOL) return null;
   if (typeof c.prompt !== "string" || !c.prompt.trim() || c.prompt.length > 3000) return null;
-  if (c.asset !== "logo" && c.asset !== "cover" && c.asset !== "profile") return null;
+  if (c.asset !== "logo" && c.asset !== "cover" && c.asset !== "profile" && c.asset !== "product") return null;
   if (c.ratio !== "1:1" && c.ratio !== "16:9") return null;
   return { prompt: c.prompt, asset: c.asset, ratio: c.ratio };
 }
@@ -93,6 +93,7 @@ const ASSET_LABEL: Record<Claim["asset"], string> = {
   logo: "a clean restaurant logo",
   cover: "a wide cover banner for a restaurant's digital menu",
   profile: "a profile picture for a restaurant",
+  product: "a realistic illustrative food photograph of the registered pizza or product, using only its stated ingredients",
 };
 
 export function buildPrompt(claim: Claim) {

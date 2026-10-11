@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPedidoOnImageRouteImport } from './routes/api/pedido-on/image'
+import { Route as ApiPedidoOnStudioRouteImport } from './routes/api/pedido-on/studio'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const ApiPedidoOnImageRoute = ApiPedidoOnImageRouteImport.update({
   path: '/api/pedido-on/image',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPedidoOnStudioRoute = ApiPedidoOnStudioRouteImport.update({
+  id: '/api/pedido-on/studio',
+  path: '/api/pedido-on/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/pedido-on/image': typeof ApiPedidoOnImageRoute
+  '/api/pedido-on/studio': typeof ApiPedidoOnStudioRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/pedido-on/image': typeof ApiPedidoOnImageRoute
+  '/api/pedido-on/studio': typeof ApiPedidoOnStudioRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/pedido-on/image': typeof ApiPedidoOnImageRoute
+  '/api/pedido-on/studio': typeof ApiPedidoOnStudioRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/pedido-on/image'
+  fullPaths: '/' | '/api/pedido-on/image' | '/api/pedido-on/studio'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/pedido-on/image'
-  id: '__root__' | '/' | '/api/pedido-on/image'
+  to: '/' | '/api/pedido-on/image' | '/api/pedido-on/studio'
+  id: '__root__' | '/' | '/api/pedido-on/image' | '/api/pedido-on/studio'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiPedidoOnImageRoute: typeof ApiPedidoOnImageRoute
+  ApiPedidoOnStudioRoute: typeof ApiPedidoOnStudioRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPedidoOnImageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/pedido-on/studio': {
+      id: '/api/pedido-on/studio'
+      path: '/api/pedido-on/studio'
+      fullPath: '/api/pedido-on/studio'
+      preLoaderRoute: typeof ApiPedidoOnStudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiPedidoOnImageRoute: ApiPedidoOnImageRoute,
+  ApiPedidoOnStudioRoute: ApiPedidoOnStudioRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

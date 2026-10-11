@@ -1,0 +1,7 @@
+"use client";
+import {useState} from "react";
+import {ArrowLeft,ArrowRight} from "lucide-react";
+import {Brand} from "./ui";
+import StudioChat from "./studio-chat";
+import {demoRestaurant} from "@/lib/domain";
+export default function StudioDemo(){const [data,setData]=useState(()=>({...demoRestaurant("dark"),name:"Sua Pizzaria",accent:"#dc3828"}));return <div className="studio-demo-page"><header className="saas-header"><div className="saas-container saas-nav"><Brand/><a className="saas-back" href="/"><ArrowLeft size={15}/> Voltar à plataforma</a></div></header><main className="saas-container"><div className="studio-demo-heading"><span className="saas-label">TESTE SEM CADASTRO</span><h1>A sua marca começa<br/>com uma direção.</h1><p>Esta demonstração usa estilos prontos. Você vê o resultado e experimenta sem gerar imagens nem consumir créditos de IA.</p><label>Nome da sua pizzaria<input value={data.name} maxLength={100} onChange={e=>setData(old=>({...old,name:e.target.value}))} onBlur={()=>{if(data.name.trim().length<2)setData(old=>({...old,name:"Sua Pizzaria"}));}}/></label></div><StudioChat key={data.name.trim().length>=2?"ready":"editing"} data={{...data,name:data.name.trim().length>=2?data.name:"Sua Pizzaria"}} demo onApply={patch=>setData(old=>({...old,...patch}))}/><footer className="studio-demo-footer"><span>Produtos e imagens de exemplo. A prévia não publica uma loja.</span><a href="/cadastro?next=%2Fapp%3Fnew%3D1" className="text-button">Começar minha pizzaria <ArrowRight size={15}/></a></footer></main></div>;}
