@@ -1,0 +1,40 @@
+name: Order chat tests
+on:
+  push:
+    branches: ["feature/order-chat"]
+  pull_request:
+    paths:
+      - "app/api/orders/**"
+      - "app/api/restaurants/**/orders/**"
+      - "components/order-chat.tsx"
+      - "components/order-admin.tsx"
+      - "components/order-tracking.tsx"
+      - "lib/order-chat-policy.ts"
+      - "drizzle/**"
+      - "db/schema.ts"
+      - "scripts/check-order-chat-*.test.mjs"
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Dependencies
+        run: |
+          npm install -g pnpm@11.25.0
+          pnpm install --frozen-lockfile
+      - name: TypeScript checks
+        run: pnpm typecheck
+      - name: All tests
+        run: pnpm test
+      - name: Production build
+        run: pnpm build
+      - name: Netlify preparation
+        run: pnpm build:netlify
+      - name: Netlify checks
+        run: pnpm check:netlify
