@@ -7,7 +7,7 @@ import {accountProfiles,authSessions} from "@/db/schema";
 import {getChatGPTUser} from "@/app/chatgpt-auth";
 import {HttpError,throttle} from "./http";
 import {providerFailure} from "./provider-diagnostics";
-import {prototypeEmailAllowed,inviteOnlyRegistration} from "./platform";
+import {prototypeEmailAllowed,inviteOnlyRegistration,registrationAvailable} from "./platform";
 import {providerOrigin,readSessionCookie,sessionCookie,randomToken,sha256,sealTokens,openTokens,SESSION_SECONDS,RECOVERY_SECONDS,safeReturnPath,allowsAccountAccess} from "./auth-policy";
 export type AccountUser={userId:string;displayName:string;email:string;fullName:string|null;provider:"supabase"|"chatgpt";loginMethod:"email"|"google"|"internal"};
 type AuthEnv={SUPABASE_URL?:string;SUPABASE_PUBLISHABLE_KEY?:string;AUTH_SESSION_KEY?:string;TURNSTILE_SITE_KEY?:string;PEDIDO_GOOGLE_ENABLED?:string};
@@ -15,6 +15,11 @@ type ProviderUser={id:string;email?:string;email_confirmed_at?:string;user_metad
 export type ProviderSession={access_token:string;refresh_token:string;expires_in:number;user:ProviderUser};
 type TokenVault={access:string;refresh:string;method?:"email"|"google"};
 export function authConfig(){const e=env as typeof env&AuthEnv;const origin=providerOrigin(e.SUPABASE_URL||""),enabled=!!origin&&!!e.SUPABASE_PUBLISHABLE_KEY&&/^[a-f0-9]{64}$/.test(e.AUTH_SESSION_KEY||"");return {enabled,googleEnabled:enabled&&e.PEDIDO_GOOGLE_ENABLED==="true"&&!inviteOnlyRegistration(),origin,key:e.SUPABASE_PUBLISHABLE_KEY||"",seal:e.AUTH_SESSION_KEY||"",captchaSiteKey:inviteOnlyRegistration()?"":e.TURNSTILE_SITE_KEY||""};}
+export async function directRegistrationReady(){
+ if(!authConfig().enabled||!registrationAvailable())return false;
+ try{const settings=await providerRequest<{external?:{email?:boolean};mailer_autoconfirm?:boolean;disable_signup?:boolean}>("settings","GET");return settings.external?.email===true&&settings.mailer_autoconfirm===true&&settings.disable_signup===false;}
+ catch{return false;}
+}
 export async function providerRequest<T>(path:string,method="POST",body?:unknown,access?:string):Promise<T>{
   const config=authConfig();if(!config.enabled)throw new HttpError(503,"O acesso à plataforma está sendo configurado. Tente novamente mais tarde.");
   let response:Response;try{response=await fetch(config.origin+"/auth/v1/"+path,{method,headers:{apikey:config.key,...(body?{"Content-Type":"application/json"}:{}),...(access?{Authorization:"Bearer "+access}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(12000),redirect:"manual"});}catch(error){console.error("[pedido.on] auth provider connection",{origin:config.origin,operation:path.split("?")[0],...providerFailure(error,[config.key,access,body])});throw new HttpError(503,"O serviço de acesso está temporariamente indisponível.");}
@@ -30,13 +35,20 @@ export async function limitAuth(request:Request,action:string,email=""){
 }
 function mapUser(user:ProviderUser):AccountUser{
   if(!user.id||!user.email||!user.email_confirmed_at)throw new HttpError(401,"Não foi possível validar sua conta. Entre novamente.");
-  if(!prototypeEmailAllowed(user.email))throw new HttpError(401,"Esta conta não está autorizada para o teste do protótipo.");
+  if(!prototypeEmailAllowed(user.email))throw new HttpError(401,"Esta conta não tem acesso à plataforma.");
   const name=([user.user_metadata?.name,user.user_metadata?.full_name,user.email].find(v=>typeof v==="string"&&v.trim()) as string).slice(0,100);
   return {userId:"supabase:"+user.id,email:user.email,displayName:name,fullName:name,provider:"supabase",loginMethod:"email"};
 }
-export async function createSession(tokens:ProviderSession,scope:"account"|"recovery",request:Request,method:"email"|"google"="email"){
+export async function createSession(tokens:ProviderSession,scope:"account"|"recovery",request:Request,method:"email"|"google"="email",options:{enroll?:boolean}={}){
   if(!tokens.access_token||!tokens.refresh_token)throw new HttpError(401,"Solicite um novo link para continuar.");
   const verified=await providerRequest<ProviderUser>("user","GET",undefined,tokens.access_token),user={...mapUser(verified),loginMethod:method};
+  // Enrollment is granted only by the registration route after checking its invite.
+  // A provider account created directly outside this app cannot bypass that check.
+  if(inviteOnlyRegistration()&&!options.enroll){
+    const profile=await getDb().select().from(accountProfiles).where(eq(accountProfiles.ownerId,user.userId)).get();
+    const legacyOwner=profile?null:await env.DB!.prepare("SELECT id FROM restaurants WHERE owner_id=? LIMIT 1").bind(user.userId).first();
+    if(!profile&&!legacyOwner)throw new HttpError(403,"Seu acesso ainda não está liberado. Crie sua conta com o convite do grupo.");
+  }
   const token=randomToken(),id=await sha256(token),now=Math.floor(Date.now()/1000),seconds=scope==="recovery"?RECOVERY_SECONDS:SESSION_SECONDS;
   await env.DB!.prepare("DELETE FROM auth_sessions WHERE expires_at <= ?").bind(now).run();
   await getDb().insert(authSessions).values({id,ownerId:user.userId,email:user.email,displayName:user.displayName,scope,sealedTokens:await sealTokens({access:tokens.access_token,refresh:tokens.refresh_token,method},authConfig().seal,id+":"+user.userId),tokenExpiresAt:now+Math.min(tokens.expires_in||3600,86400),expiresAt:now+seconds,createdAt:new Date().toISOString()});

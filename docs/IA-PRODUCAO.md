@@ -6,7 +6,7 @@
 - PR #5 integrada à `main` em `de1414ef15a9a2f975d6fb942eb7cd1784acea90`, além das PRs #2, #3 e #4. PR #1 Asaas permanece separada. Esta atualização posterior de documentação registra a publicação; não requer outra implantação para alterar o comportamento do aplicativo.
 - Lovable ativa: projeto `aa27093c-2768-41f2-8274-923fdfe2b5ff`, URL https://pedido-on-estudio.lovable.app. Correção publicada do commit `b7ef46a7efc0132b48ed4386382d66bc942f40eb`, implantação `7d13aeee-902f-449c-b513-9f27f13dd619`.
 - `PEDIDO_STUDIO_ENDPOINT` aponta para `/api/pedido-on/studio` nessa URL e `PEDIDO_IMAGE_ENDPOINT` para `/api/pedido-on/image`. As duas flags estão `true` em produção. Valores secretos não foram exportados nem alterados.
-- D1 ainda registra apenas as tentativas antigas de texto e imagem canceladas, sem resultado e sem resgate da autorização. As migrações `0007_delivery_approval` e `0008_order_chat` foram aplicadas: `delivery_checks` e `order_messages` existem e estão vazias. Os dados visíveis das 14 tabelas anteriores permaneceram iguais após a publicação (a inspeção de sessões continua parcial).
+- D1 registra as tentativas antigas canceladas e, agora, duas gerações reais de texto concluídas pelo proprietário. Ainda não há imagem real concluída nesta sessão. As migrações `0007_delivery_approval` e `0008_order_chat` foram aplicadas: `delivery_checks` e `order_messages` existem e estão vazias. Os dados visíveis das 14 tabelas anteriores permaneceram iguais após a publicação (a inspeção de sessões continua parcial).
 
 ## Evidência e causa
 
@@ -46,9 +46,23 @@ Foi salva uma cópia privada dos dados de negócio de 13 tabelas do D1, sem linh
 
 As migrações 0007 e 0008 somente criam duas tabelas e seus índices; não alteram nem excluem linhas/tabelas existentes e não modificam objetos R2. A fonte e a versão v17 foram preservadas para reversão do aplicativo. Isso não equivale a um backup integral de sessões ou do R2. Chave de sessão, ambiente revisão 5, bindings e audiência pública permanecem os mesmos.
 
+## Texto real comprovado no celular e erro de destino
+
+As duas tentativas mostradas nas novas telas têm claim e POST autenticado com status 200, além de estado `completed` e resultado no D1:
+
+| Job | Criado UTC | Concluído UTC | Resultado |
+| --- | --- | --- | --- |
+| `df158380-d0b4-4836-9c6e-b649fb7eefb6` | 21:08:40.477 | 21:08:43.830 | Texto/visual, 465 bytes |
+| `39fa6cba-cfe3-4b1a-a107-66c4dfd5302c` | 21:09:21.237 | 21:09:23.718 | Texto/visual, 1.025 bytes |
+
+Os POSTs tiveram requests `69f6849babbb9690d572f5ac1f226d64` e `eb1bcf5606c1666adf3a337efdea72f6`. São gerações reais de texto em 3,35 e 2,48 segundos; velocidade não era prova de simulação. As ideias pediam uma logo, mas a interface as enviou à rota de texto. Esse gerador devolve parâmetros, descrições e briefing de imagem, sem bytes de logo. A interface antiga não apresentava o briefing como uma etapa separada.
+
+A correção do aplicativo detecta pedidos explícitos de logo/capa/perfil/foto antes de reservar qualquer texto e seleciona a rota de imagem. O servidor de texto rejeita uma solicitação explícita de imagem com 422 e sem consumo. Briefings sugeridos pelo texto têm botão para preparar a imagem; a geração só começa após clique do proprietário. Falhas não exibem fallback local como resultado de IA. Nenhum novo build/consulta do agente Lovable foi necessário.
+
 ## Sequência restante
 
-1. Com o transporte publicado comprovado e autorização já recebida, validar **no máximo um texto e uma imagem** pela pizzaria autenticada. Registrar request IDs e estados, prévia e imagem no R2; reaproveitar os resultados nos demais testes. Aplicar somente ao rascunho aprovado, preservando preços/Pix e sem publicar conteúdo automaticamente. Não criar uma sessão falsa, utilizar selos extraídos do D1 ou simular a identidade do proprietário para esse teste. A sessão no celular não está disponível para o agente; o proprietário recebeu os passos para iniciar as duas ações e permitir conferir seus registros reais.
-2. Realizar os testes de entrega e chat com dois celulares antes de ativar o beta e seus convites. As tabelas já foram publicadas; o fluxo completo ainda não foi exercitado em produção.
+1. Publicar esta correção no Sites, ativar `PEDIDO_AUTH_MODE=invite` com convite secreto e confirmar `directSignup` lendo as configurações reais do Supabase. Testar uma conta nova pelo cadastro normal, sem enviar confirmação. Nunca rotacionar `AUTH_SESSION_KEY`, apagar usuários ou expor convite na API/GitHub.
+2. Validar **uma imagem real** pela pizzaria autenticada. Não repetir texto: os dois resultados acima já comprovam esse fluxo. Registrar claim, estado, prévia e bytes no R2; aplicar somente ao rascunho aprovado, preservando preços/Pix. Não criar sessão falsa, extrair selos D1 nem simular o proprietário. O dono está autenticado no celular e pode iniciar o pedido normal.
+3. Realizar entrega e chat com dois celulares. As migrações estão aplicadas; o fluxo completo ainda precisa de validação. Web Push com app fechado, recuperação de senha real, trial persistente/fiscalizado, Asaas e Netlify permanecem pendentes.
 
-Não declarar a IA funcionando até concluir a geração real e a aplicação ao rascunho. Continuam pendentes geração autenticada, prévia/R2/rascunho, testes com dois celulares, Web Push com app fechado, entrega real de recuperação de senha, persistência/fiscalização do trial, Asaas e a migração Netlify.
+Não declarar imagem ou cadastro externo funcionando somente com mocks/configuração. Os 129 testes e typecheck desta correção passaram; a publicação e provas reais posteriores devem ser registradas em `CONTINUAR.md`.

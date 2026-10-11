@@ -6,11 +6,11 @@ Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criaçã
 
 ## Estado atual — 11/10/2026
 
-O aplicativo está na **versão 17**, fonte Sites `b8ba77bb6b93498b0f686151ee318958236a2ae7`, ambiente de produção revisão 5. O visual usa pizza real, carvão e vermelho, com menos ações e textos curtos. A navegação do painel é **Pedidos, Cardápio, Pizzaria e Criar com IA**. O cadastro inicial pede nome, WhatsApp e endereço do cardápio; a aparência pode ser ajustada depois.
+Última publicação confirmada: **versão 18**, fonte Sites `0509ffc7875ff02b1db786b6a51207b121be5911`, ambiente revisão 5. A correção de cadastro e destino de imagens está preparada; a próxima publicação será registrada em `docs/CONTINUAR.md`. O visual usa pizza real, carvão e vermelho, com menos ações e textos curtos. A navegação do painel é **Pedidos, Cardápio, Pizzaria e Criar com IA**. O cadastro inicial pede nome, WhatsApp e endereço do cardápio; a aparência pode ser ajustada depois.
 
 A falha de IA foi reproduzida no runtime Cloudflare: `redirect: "error"` não é suportado e interrompia a chamada antes de chegar à Lovable. O aplicativo usa `redirect: "manual"`; retornos 3xx continuam rejeitados e o token de uso único não é encaminhado a outro endereço. Os erros diferenciam falhas antes e depois da autorização, com cota devolvida somente quando adequado.
 
-O serviço ativo é [pedido-on-estudio.lovable.app](https://pedido-on-estudio.lovable.app), projeto `aa27093c-2768-41f2-8274-923fdfe2b5ff`, workspace Pro `workspace_01kn20zmepfahsq3q7xa36ct6h`, commit `81b09ac97be1ddfa62ec5ff60fb63fe6094a5221`. Sua chave fica somente no servidor Lovable. O aplicativo e seus dados permanecem em Sites, D1/R2 e Supabase Auth.
+O serviço ativo é [pedido-on-estudio.lovable.app](https://pedido-on-estudio.lovable.app), projeto `aa27093c-2768-41f2-8274-923fdfe2b5ff`, workspace Pro `workspace_01kn20zmepfahsq3q7xa36ct6h`, commit publicado `b7ef46a7efc0132b48ed4386382d66bc942f40eb`. Sua chave fica somente no servidor Lovable. O aplicativo e seus dados permanecem em Sites, D1/R2 e Supabase Auth.
 
 ## Funcionalidades
 
@@ -21,7 +21,7 @@ O serviço ativo é [pedido-on-estudio.lovable.app](https://pedido-on-estudio.lo
 - **Calculadora em `/calculadora` sem login**: custo pronto, despesas, taxas, volume, preço sugerido e resultado estimado. Salvamento automático do preenchimento, até seis cálculos, cópia e download em texto. Dados ficam neste navegador.
 - Cliente pede sem conta e acompanha pelo link privado do pedido. WhatsApp tem envio manual.
 - Pix direto na chave da pizzaria: comprovante privado, conferência no banco, aprovação manual, prazo e acompanhamento.
-- Supabase Auth, sessões protegidas e autorização por loja. Para este protótipo: cadastro direto, e-mail somente na recuperação, lista autorizada de contas de teste.
+- Supabase Auth, sessões protegidas e autorização por loja. Cadastro real por convite do grupo, com acesso direto e sem confirmação por e-mail. A recuperação fica indisponível até comprovar a entrega real.
 - Stripe e importação de cardápio OpenAI estão preservados e desativados; não são necessários para usar as demais funções.
 
 ## Estrutura
@@ -74,17 +74,11 @@ O [guia Netlify](docs/NETLIFY.md) descreve os três valores do gateway, a public
 
 ## IA e validação
 
-**Produção de 11/10 — v18:** o 401 foi rastreado aos handlers do serviço Lovable, que chamavam `fetch` com receptor incorreto e ainda usavam `redirect: "error"`. A correção foi publicada na Lovable e os dois callbacks foram comprovados nos logs reais do Sites com tokens inválidos, sem chamar modelos. PR #5 integrada e Sites atualizado pelo fluxo oficial; migrações de entrega e chat confirmadas no D1. Passaram 121 testes do aplicativo, typecheck, build e os testes do serviço. A geração com loja autenticada, R2 e aplicação ao rascunho permanecem pendentes. Ver [evidências e pendências](docs/IA-PRODUCAO.md).
+**Produção de 11/10 — v18:** o transporte Lovable foi corrigido e publicado. Os registros do celular comprovam duas gerações reais de texto, com autorização de uso único e resultados concluídos no D1. As ideias pediam logo, mas foram enviadas ao gerador de textos; por isso apareciam como prévia de cardápio. A correção atual reconhece pedidos explícitos de imagem antes de qualquer chamada de texto e encaminha ao gerador de imagens. Não há fallback automático de IA para estilo pronto.
 
-Cotas mantidas: imagens **3 por proprietário/mês e 2/dia na plataforma**; sugestões **20 por proprietário/mês e 20/dia na plataforma**. Cada geração nova consome saldo de IA. Não existe repetição paga automática; consultar o mesmo pedido reutiliza o resultado. Estilos prontos não usam modelos.
+Cotas mantidas: imagens **3 por proprietário/mês e 2/dia na plataforma**; sugestões **20 por proprietário/mês e 20/dia na plataforma**. Cada geração nova consome saldo de IA. Consultar o mesmo pedido reutiliza o resultado; estilos prontos não usam modelos.
 
-- **103 testes do repositório passaram**, incluindo 10 verificações da entrada Netlify, runtime Workers, proteção de cookies/origem e falhas de IA antes/depois do claim. Typecheck, build Sites, build da entrada Netlify e empacotamento das duas funções passaram. A Netlify ainda não foi implantada.
-- Serviço: 7 testes de protocolo e 14 testes existentes passaram, assim como typecheck e build.
-- Um teste real de texto e um de imagem passaram pelo gateway. Texto: 200, JSON, 577 bytes; imagem: 200, JPEG, 179.881 bytes. Apenas o claim do aplicativo foi simulado nesse teste interno; a proteção de produção continua obrigatória.
-- Após publicar v17, consultas externas confirmaram `/` e `/calculadora` anônimos com 200, sem redirecionamento para login; `/api/platform?check=ai` retornou texto e imagens habilitados/conectados. Esse endpoint só consulta saúde, não gera conteúdo.
-- Geração completa por uma loja autenticada e revisão visual no celular ainda precisam de validação acompanhada. Não houve navegador disponível nesta execução.
-
-Nesta correção, Lovable informou **4,0 créditos de construção** (3,1 para diagnóstico/testes e 0,9 para a conferência final), além das duas chamadas reais de IA cujo custo unitário não foi informado. Não houve compra de saldo nem uso do modo Max da Lovable.
+Passaram **129 testes do aplicativo** e o typecheck nesta correção. Os testes de rotas adaptam os provedores externos e D1/R2; não são uma nova geração real. Duas gerações de texto do proprietário foram comprovadas em produção. Imagem pela pizzaria autenticada, bytes no R2 e aplicação ao rascunho ainda precisam de prova real. Não houve nova consulta/build do agente Lovable nem novas chamadas pagas nesta etapa. Ver [evidências](docs/IA-PRODUCAO.md) e [cadastro por convite](docs/CADASTRO-GRUPO.md).
 
 ## Guias
 

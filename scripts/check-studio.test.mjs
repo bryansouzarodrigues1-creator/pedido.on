@@ -57,3 +57,21 @@ test('studio connection failures before claim return an accurate uncharged resul
  globalThis.fetch=async()=>{calls++;throw new TypeError('Provider connection failed');};
  try{const body=input(f.data),r=await f.call('studio','POST',{id:'shop-a'},body),v=await r.json();assert.equal(r.status,502);assert.equal(v.attempt,'cancelled');assert.match(v.error,/Nenhuma sugestão foi descontada/);assert.equal((await (await f.call('studio','GET',{id:'shop-a'})).json()).used,0);const retry=await f.call('studio','POST',{id:'shop-a'},body);assert.equal(retry.status,409);assert.equal((await retry.json()).attempt,'cancelled');assert.equal(calls,1);}finally{globalThis.fetch=original;f.close();}
 });
+
+test('explicit image requests on the text route are rejected without models, jobs, quota or draft changes',async()=>{
+ const f=fixture(),original=globalThis.fetch;enable(f);let calls=0;
+ globalThis.fetch=async()=>{calls++;throw Error('Image request must not call a text model');};
+ try{
+  const before=f.db.prepare('SELECT data,published_data FROM restaurants WHERE id=?').get('shop-a');
+  for(const mode of ['ai','local'])for(const message of ['Gere uma logo real','Gere uma logo real com cores vibrantes e um desing que vai fazer lembrar','Gere uma imagem profissional']){
+   const response=await f.call('studio','POST',{id:'shop-a'},input(f.data,{mode,message}));
+   assert.equal(response.status,422);assert.match((await response.json()).error,/Nenhuma sugestão de texto foi usada/);
+  }
+  assert.equal(calls,0);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM studio_jobs').get().n,0);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM image_jobs').get().n,0);
+  assert.equal((await (await f.call('studio','GET',{id:'shop-a'})).json()).used,0);
+  assert.equal(f.objects.size,0);
+  assert.deepEqual(f.db.prepare('SELECT data,published_data FROM restaurants WHERE id=?').get('shop-a'),before);
+ }finally{globalThis.fetch=original;f.close();}
+});

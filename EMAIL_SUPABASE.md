@@ -10,7 +10,7 @@ No [acesso do projeto Pedido.on](https://supabase.com/dashboard/project/lxavrmza
 
 Mantenha `PEDIDO_AUTH_MODE=prototype` e os endereços autorizados em `PEDIDO_AUTH_TEST_EMAILS`, com até dez e-mails separados por vírgula. A lista fica apenas no servidor. Ausência ou erro na lista bloqueia o acesso; tokens e sessões de contas fora dela também são recusados.
 
-O SMTP padrão do Supabase envia somente aos e-mails da equipe da organização; confira o limite vigente no painel antes do teste. Apenas a recuperação usa esse envio: cadastro e login não enviam mensagem. No protótipo restrito, `PEDIDO_EMAIL_DELIVERY_READY=false` pode continuar. Importação por OpenAI e cobrança permanecem desligadas; imagens Lovable usam configuração separada, descrita em `docs/IMAGENS.md`.
+O SMTP padrão do Supabase envia somente aos e-mails da equipe da organização; confira o limite vigente no painel antes do teste. Apenas a recuperação usa esse envio: cadastro e login não enviam mensagem. No cadastro por convite, mantenha `PEDIDO_EMAIL_DELIVERY_READY=false` até validar a recuperação com destinatário real do grupo. Importação por OpenAI e cobrança permanecem desligadas; imagens Lovable usam configuração separada, descrita em `docs/IMAGENS.md`.
 
 ## Link de recuperação
 
