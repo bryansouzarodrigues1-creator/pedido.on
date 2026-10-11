@@ -74,7 +74,7 @@ O [guia Netlify](docs/NETLIFY.md) descreve os três valores do gateway, a public
 
 ## IA e validação
 
-**Diagnóstico de produção de 11/10:** o 401 foi rastreado aos handlers do serviço Lovable, que chamavam `fetch` com receptor incorreto e ainda usavam `redirect: "error"`. A correção foi publicada na Lovable e os dois callbacks foram comprovados nos logs reais do Sites com tokens inválidos, sem chamar modelos. Passaram 121 testes do aplicativo, typecheck e os testes do serviço. A geração com loja autenticada, R2 e aplicação ao rascunho permanecem pendentes. Ver [evidências e próxima implantação](docs/IA-PRODUCAO.md).
+**Produção de 11/10 — v18:** o 401 foi rastreado aos handlers do serviço Lovable, que chamavam `fetch` com receptor incorreto e ainda usavam `redirect: "error"`. A correção foi publicada na Lovable e os dois callbacks foram comprovados nos logs reais do Sites com tokens inválidos, sem chamar modelos. PR #5 integrada e Sites atualizado pelo fluxo oficial; migrações de entrega e chat confirmadas no D1. Passaram 121 testes do aplicativo, typecheck, build e os testes do serviço. A geração com loja autenticada, R2 e aplicação ao rascunho permanecem pendentes. Ver [evidências e pendências](docs/IA-PRODUCAO.md).
 
 Cotas mantidas: imagens **3 por proprietário/mês e 2/dia na plataforma**; sugestões **20 por proprietário/mês e 20/dia na plataforma**. Cada geração nova consome saldo de IA. Não existe repetição paga automática; consultar o mesmo pedido reutiliza o resultado. Estilos prontos não usam modelos.
 

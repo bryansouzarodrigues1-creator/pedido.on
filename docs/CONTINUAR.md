@@ -4,7 +4,7 @@
 
 ## Produção — 11/10/2026
 
-Aplicativo: https://forno-cardapios.waves4845.chatgpt.site, versão **17**, fonte Sites `b8ba77bb6b93498b0f686151ee318958236a2ae7`, projeto `appgprj_6ac6d3ea9f7881918f315a156338ed52`. Implantação `appgdep_6acb68f0c1448191af7f5d24742be882` concluída, ambiente revisão 5, audiência pública preservada.
+Aplicativo: https://forno-cardapios.waves4845.chatgpt.site, versão **18**, fonte Sites `0509ffc7875ff02b1db786b6a51207b121be5911`, projeto `appgprj_6ac6d3ea9f7881918f315a156338ed52`. Implantação `appgdep_6acbf9522808819187183b508e487dbd` concluída em 11/10/2026 às 21:02:35 UTC, ambiente revisão 5, audiência pública preservada. PR #5 integrada à main em `de1414ef15a9a2f975d6fb942eb7cd1784acea90`. Migrações 0007/0008 confirmadas no D1; comparação dos dados visíveis anteriores não encontrou mudanças. Fluxos reais de entrega/chat e IA autenticada continuam pendentes. A v17 está preservada no histórico para reversão do aplicativo.
 
 IA: https://pedido-on-estudio.lovable.app, projeto `aa27093c-2768-41f2-8274-923fdfe2b5ff`, workspace Pro `workspace_01kn20zmepfahsq3q7xa36ct6h`, commit publicado `b7ef46a7efc0132b48ed4386382d66bc942f40eb`, implantação `7d13aeee-902f-449c-b513-9f27f13dd619`. Chave gerenciada somente no servidor do serviço. Supabase Auth `lxavrmzafumqmbswtfbe`, D1/R2, contas e preços preservados.
 
@@ -16,7 +16,7 @@ O painel tem **Pedidos, Cardápio, Pizzaria e Criar com IA**. Criação reúne v
 
 Cadastro inicial sem seleção de quatro layouts; uma ação principal para adicionar produtos. A calculadora `/calculadora` é pública, destacada no início, login e painel. Salva preenchimento e até seis cálculos no navegador, copia/baixa resultado; nenhum login para calcular ou salvar. IDs de temas e chaves de armazenamento do navegador preservados.
 
-## Evidências e limites
+## Evidências da etapa anterior (v17) e limites
 
 | Verificação | Resultado |
 | --- | --- |

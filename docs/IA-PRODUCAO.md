@@ -2,11 +2,11 @@
 
 ## Estado confirmado
 
-- Sites continua na versão **17**, fonte `b8ba77bb6b93498b0f686151ee318958236a2ae7`, ambiente revisão **5**, público.
-- GitHub `main` conferida em `0bdfe38df88430da5656cf64603d8cef4a06b55b`: PRs #2, #3 e #4 integradas. PR #1 Asaas permanece separada.
+- Sites publicou a versão **18**, fonte `0509ffc7875ff02b1db786b6a51207b121be5911`, implantação `appgdep_6acbf9522808819187183b508e487dbd` concluída em **11/10/2026 às 21:02:35 UTC**, ambiente revisão **5**, público. A v17 continua preservada no histórico.
+- PR #5 integrada à `main` em `de1414ef15a9a2f975d6fb942eb7cd1784acea90`, além das PRs #2, #3 e #4. PR #1 Asaas permanece separada. Esta atualização posterior de documentação registra a publicação; não requer outra implantação para alterar o comportamento do aplicativo.
 - Lovable ativa: projeto `aa27093c-2768-41f2-8274-923fdfe2b5ff`, URL https://pedido-on-estudio.lovable.app. Correção publicada do commit `b7ef46a7efc0132b48ed4386382d66bc942f40eb`, implantação `7d13aeee-902f-449c-b513-9f27f13dd619`.
 - `PEDIDO_STUDIO_ENDPOINT` aponta para `/api/pedido-on/studio` nessa URL e `PEDIDO_IMAGE_ENDPOINT` para `/api/pedido-on/image`. As duas flags estão `true` em produção. Valores secretos não foram exportados nem alterados.
-- D1 confirma tentativas de texto e imagem canceladas, sem resultado e sem resgate da autorização. As tabelas das migrações `0007_delivery_approval` e `0008_order_chat` ainda não existem na publicação atual.
+- D1 ainda registra apenas as tentativas antigas de texto e imagem canceladas, sem resultado e sem resgate da autorização. As migrações `0007_delivery_approval` e `0008_order_chat` foram aplicadas: `delivery_checks` e `order_messages` existem e estão vazias. Os dados visíveis das 14 tabelas anteriores permaneceram iguais após a publicação (a inspeção de sessões continua parcial).
 
 ## Evidência e causa
 
@@ -48,8 +48,7 @@ As migrações 0007 e 0008 somente criam duas tabelas e seus índices; não alte
 
 ## Sequência restante
 
-1. Integrar a PR #5 e implantar a atualização Sites pelo fluxo oficial no mesmo projeto, com as migrações adicionais. GitHub e Lovable não implantam o Sites automaticamente.
-2. Com a conexão comprovada e autorização já recebida, validar **no máximo um texto e uma imagem** pela pizzaria autenticada. Registrar request IDs e estados, prévia e imagem no R2; reaproveitar os resultados nos demais testes. Aplicar somente ao rascunho aprovado, preservando preços/Pix e sem publicar conteúdo automaticamente. Não criar uma sessão falsa, utilizar selos extraídos do D1 ou simular a identidade do proprietário para esse teste.
-3. Conferir as tabelas de entrega/chat e realizar os testes com dois celulares antes de ativar o beta e seus convites.
+1. Com o transporte publicado comprovado e autorização já recebida, validar **no máximo um texto e uma imagem** pela pizzaria autenticada. Registrar request IDs e estados, prévia e imagem no R2; reaproveitar os resultados nos demais testes. Aplicar somente ao rascunho aprovado, preservando preços/Pix e sem publicar conteúdo automaticamente. Não criar uma sessão falsa, utilizar selos extraídos do D1 ou simular a identidade do proprietário para esse teste. A sessão no celular não está disponível para o agente; o proprietário recebeu os passos para iniciar as duas ações e permitir conferir seus registros reais.
+2. Realizar os testes de entrega e chat com dois celulares antes de ativar o beta e seus convites. As tabelas já foram publicadas; o fluxo completo ainda não foi exercitado em produção.
 
-Não declarar a IA funcionando até concluir a geração real e a aplicação ao rascunho. Continuam pendentes testes com dois celulares, migrações de entrega/chat, Web Push com app fechado, entrega real de recuperação de senha, persistência/fiscalização do trial, Asaas e a migração Netlify.
+Não declarar a IA funcionando até concluir a geração real e a aplicação ao rascunho. Continuam pendentes geração autenticada, prévia/R2/rascunho, testes com dois celulares, Web Push com app fechado, entrega real de recuperação de senha, persistência/fiscalização do trial, Asaas e a migração Netlify.
