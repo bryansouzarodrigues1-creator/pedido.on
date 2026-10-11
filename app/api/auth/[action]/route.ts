@@ -60,14 +60,13 @@ export async function POST(request:Request,{params}:Context){try{
     // The provider sends the confirmation template (via Resend SMTP when configured).
     const settings=await providerRequest<{mailer_autoconfirm?:boolean;disable_signup?:boolean}>("settings","GET");
     if(settings.disable_signup===true||typeof settings.mailer_autoconfirm!=="boolean"
-      ||inviteOnlyRegistration()&&settings.mailer_autoconfirm!==false)
+      ||inviteOnlyRegistration()&&settings.mailer_autoconfirm!==true)
       throw new HttpError(503,"A confirmação por e-mail ainda está sendo configurada. Tente novamente em instantes.");
-    if(settings.mailer_autoconfirm===false&&!emailFlowsAvailable())throw new HttpError(503,"O envio de e-mails ainda está sendo configurado.");
+    if(settings.mailer_autoconfirm===false)throw new HttpError(503,"O cadastro direto ainda está sendo configurado.");
     let tokens:Partial<ProviderSession>;
     try{tokens=await providerRequest<Partial<ProviderSession>>("signup","POST",{email:data.email,password:data.password,data:{name:data.name},...security});}
     catch(error){if(error instanceof HttpError&&error.status===401)throw new HttpError(400,"Não foi possível criar a conta. Se já tem cadastro, entre ou use Esqueci minha senha.");throw error;}
-    if(settings.mailer_autoconfirm===false)
-      return Response.json({ok:true,message:"Confira seu e-mail para confirmar a conta. Depois, entre para montar sua pizzaria."},{headers:privateHeaders});
+
     if(!tokens.access_token||!tokens.refresh_token||!tokens.user)
       throw new HttpError(503,"Não foi possível concluir seu cadastro. Tente entrar ou recuperar a senha.");
     const session=await createSession(tokens as ProviderSession,"account",request);
