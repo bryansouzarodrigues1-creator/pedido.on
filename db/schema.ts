@@ -19,6 +19,9 @@ export const deliveryChecks=sqliteTable("delivery_checks",{
  status:text("status").notNull().default("pending"),version:integer("version").notNull().default(1),
  createdAt:text("created_at").notNull(),expiresAt:integer("expires_at").notNull(),reviewedAt:text("reviewed_at"),
 },t=>[uniqueIndex("delivery_checks_request_idx").on(t.restaurantId,t.requestId),index("delivery_checks_owner_queue_idx").on(t.restaurantId,t.status,t.createdAt)]);
+export const orderMessages=sqliteTable("order_messages",{
+ id:text("id").primaryKey(),orderId:text("order_id").notNull().references(()=>orders.id),sender:text("sender").notNull(),body:text("body").notNull(),createdAt:text("created_at").notNull(),
+},t=>[index("order_messages_order_idx").on(t.orderId,t.createdAt)]);
 export const orderReceipts=sqliteTable("order_receipts",{id:text("id").primaryKey(),orderId:text("order_id").notNull().references(()=>orders.id),objectKey:text("object_key").notNull().unique(),mime:text("mime").notNull(),size:integer("size").notNull(),createdAt:text("created_at").notNull()},t=>[index("order_receipts_order_idx").on(t.orderId)]);
 export const orderEvents=sqliteTable("order_events",{id:text("id").primaryKey(),orderId:text("order_id").notNull().references(()=>orders.id),version:integer("version").notNull(),actorId:text("actor_id"),action:text("action").notNull(),message:text("message").notNull(),createdAt:text("created_at").notNull()},t=>[uniqueIndex("order_events_version_idx").on(t.orderId,t.version)]);
 
