@@ -62,6 +62,7 @@ export async function POST(request:Request,{params}:Context){try{
     if(settings.disable_signup===true||typeof settings.mailer_autoconfirm!=="boolean"
       ||inviteOnlyRegistration()&&settings.mailer_autoconfirm!==false)
       throw new HttpError(503,"A confirmação por e-mail ainda está sendo configurada. Tente novamente em instantes.");
+    if(settings.mailer_autoconfirm===false&&!emailFlowsAvailable())throw new HttpError(503,"O envio de e-mails ainda está sendo configurado.");
     let tokens:Partial<ProviderSession>;
     try{tokens=await providerRequest<Partial<ProviderSession>>("signup","POST",{email:data.email,password:data.password,data:{name:data.name},...security});}
     catch(error){if(error instanceof HttpError&&error.status===401)throw new HttpError(400,"Não foi possível criar a conta. Se já tem cadastro, entre ou use Esqueci minha senha.");throw error;}
