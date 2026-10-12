@@ -1,5 +1,17 @@
 # Administração, PWA e operação — 12/10/2026
 
+**Publicado — v26, 12/10/2026:** fonte Sites `6629ea2cfa6c73130d06d07f7ee742cf3588944b`, versão `appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_e37b0a5043348191ba8594d36c755045`, implantação `appgdep_6acd6779fb848191bbd72d892c9a196e` concluída às **23:04:53.326 UTC (20:04 no Brasil)**. Ambiente revisão **8**, audiência pública. PR #9, #10 e #11 integradas. Main de código `d7f72054cb933b085131d251cd8be8d38c30d56c` antes deste registro; PR #11 merge `da4045ac454e36dc8135bc82eedd57cc521ef44c`. GitHub e Sites não se atualizam automaticamente entre si.
+
+Administração em /admin apenas para a conta existente fixada como segredo; PWA instalável com ícones, atualização protegida e shell offline; Web Push por aparelho e fila criptografada; carrinho antes de endereço/bairro/consulta; taxas/regras definidas pelo dono; aceite operacional separado da conferência Pix; Minhas criações recupera imagens/textos sem modelos; trial começa uma vez na primeira pizzaria de novos cadastros, com fiscalização **desativada até a cobrança**. Nenhum backfill ou corte de contas anteriores.
+
+Migrações 0009, 0010 e 0011 confirmadas no D1 (19 tabelas); 0007/0008 preservadas. As **14 tabelas de negócio anteriores permaneceram iguais** após a v25; a v26 remove somente alertas antigos duplicados e com endereço no navegador, deixando o Web Push com texto genérico. Chave de sessão, Supabase, banco/R2, preços/Pix, cotas de IA preservados. Sem créditos Lovable/OpenAI ou mensagens de e-mail nesta etapa.
+
+Passaram **175 testes**, typecheck, build/empacotamento e preparação/check Netlify. Após o ajuste final, 12 testes de administração/push/entrega, typecheck e build passaram. Criptografia/assinatura em workerd e SSR do menu são reais; transporte push, serviços Auth/modelo e adaptadores D1/R2 dos testes são simulados. Em produção: início, calculadora, offline, manifesto e arquivos PWA responderam 200; admin/status e notifications negaram anônimos com 401. A v23 teve redirecionamento de offline.html, corrigido na v24 para /offline; não repetir esse erro.
+
+**Etapas humanas e comerciais ainda pendentes:** testar câmera, toque, instalação, atualização com rascunho, notificação com painel fechado e fluxo em dois celulares. Resend listou nenhum domínio; recuperação precisa de remetente/SMTP e entrega/link real validados. Asaas PR #1 continua separada, com políticas puras apenas: faltam integração/checkout/webhook/credenciais próprias e teste de pagamento/renovação/cancelamento. Não usar chaves JurisAuto, comprar domínio ou ativar fiscalização/cobrança sem finalizar essa etapa. Netlify continua preparada e entra após o gateway. Ver [registro completo](ADMIN-PWA-OPERACAO.md).
+
+
+
 ## Publicações confirmadas
 
 - v22: correção de cancelamento OCR, 153 testes, fonte Sites c70c717808546b357385aaee76c7ba3b8edf9a85; PR #9 integrada em c67aa050cc52af42730f81a22ee9dc92d5a69136.
