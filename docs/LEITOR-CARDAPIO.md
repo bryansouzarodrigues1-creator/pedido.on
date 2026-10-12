@@ -1,6 +1,6 @@
 # Leitor por foto e promoção do dia
 
-Implementação preparada em **12/10/2026**, a partir da v20, para publicação no mesmo projeto Sites. A versão e as verificações reais da implantação devem ser registradas em `CONTINUAR.md` depois da publicação. Nenhum modelo pago é chamado por estas funções.
+**Publicada na v21 em 12/10/2026**, no mesmo projeto Sites, PR #8 integrada. Início, calculadora, demo e arquivos de OCR foram conferidos por GET real; os bytes de OCR coincidiram com os testados. Nenhum modelo pago é chamado por estas funções. Câmera/toque/retomada no celular ainda precisam de validação. A correção adicional de cancelamento da PR #9 está em rascunho e não foi publicada porque o ambiente ficou offline.
 
 ## Uso do leitor
 
@@ -32,7 +32,7 @@ Depois de publicar, o dono pode copiar uma mensagem pronta com nome, preço, val
 
 - **151 testes** passaram no aplicativo: importação, valores BRL, itens sem tamanho, duplicados, bordas, recuperação local, aprovação de total, expiração e não acúmulo com cupom, além dos fluxos anteriores. Serviços de IA/Auth e D1/R2 dos testes automatizados são adaptados/simulados; IndexedDB usa `fake-indexeddb`.
 - OCR **real**, sem respostas simuladas e sem API paga, em três imagens reproduzíveis: tabela com P/M/G; duas colunas; JPEG inclinado/escurecido. Todos os itens esperados e seus preços foram verificados. Tempos locais de 0,394–0,821 s por imagem após inicializar o worker; não representam uma promessa de velocidade em celular nem o download inicial.
-- Typecheck e um build inicial passaram. A preparação/empacotamento final deve usar o fluxo oficial Sites e registrar seu resultado.
+- Typecheck e build/empacotamento final pelo fluxo oficial Sites passaram. A v21 foi publicada com ambiente revisão 6. As 14 tabelas de negócio comparadas permaneceram iguais; GETs de páginas públicas e cinco ativos OCR retornaram 200, com hashes de bytes conferidos.
 - O navegador de QA exigido pelo fluxo Sites não está disponível nesta sessão. Câmera, toque, cancelamento e retomada no aparelho original ainda precisam de validação do proprietário; não declarar uma revisão móvel executada.
 - Cópia privada de 14 tabelas de negócio do D1, sem truncamento, foi guardada antes da implantação. Isso não é um backup integral de sessões ou do R2. Não houve migração, alteração de chave, mudança de cota ou nova geração Lovable.
 
