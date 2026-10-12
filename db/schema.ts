@@ -1,4 +1,5 @@
 import { sqliteTable, text, integer, real, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+export const accountTrials=sqliteTable("account_trials",{ownerId:text("owner_id").primaryKey(),registeredAt:text("registered_at").notNull(),startedAt:integer("started_at"),endsAt:integer("ends_at")});
 export const pushSubscriptions=sqliteTable("push_subscriptions",{id:text("id").primaryKey(),ownerId:text("owner_id").notNull(),endpointHash:text("endpoint_hash").notNull().unique(),sealedSubscription:text("sealed_subscription").notNull(),sessionId:text("session_id"),publicKeyHash:text("public_key_hash").notNull(),orders:integer("orders").notNull().default(1),messages:integer("messages").notNull().default(1),delivery:integer("delivery").notNull().default(1),expiresAt:integer("expires_at").notNull(),lastStatus:integer("last_status"),lastSentAt:text("last_sent_at"),createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull()},t=>[index("push_subscriptions_owner_idx").on(t.ownerId,t.expiresAt)]);
 export const pushDeliveries=sqliteTable("push_deliveries",{id:text("id").primaryKey(),ownerId:text("owner_id").notNull(),subscriptionId:text("subscription_id").notNull().references(()=>pushSubscriptions.id,{onDelete:"cascade"}),eventId:text("event_id").notNull(),payload:text("payload").notNull(),state:text("state").notNull().default("queued"),attempts:integer("attempts").notNull().default(0),availableAt:integer("available_at").notNull(),expiresAt:integer("expires_at").notNull(),leaseUntil:integer("lease_until").notNull().default(0),lastStatus:integer("last_status"),createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull()},t=>[uniqueIndex("push_deliveries_event_idx").on(t.eventId,t.subscriptionId),index("push_deliveries_pending_idx").on(t.ownerId,t.state,t.availableAt)]);
 export const restaurants = sqliteTable("restaurants", {
@@ -11,13 +12,14 @@ export const orders = sqliteTable("orders", {
   id: text("id").primaryKey(), restaurantId: text("restaurant_id").notNull().references(()=>restaurants.id), requestId: text("request_id").notNull(),
   customer: text("customer").notNull(), phone: text("phone").notNull(), data: text("data").notNull(), total: integer("total").notNull(),
   status: text("status").notNull().default("awaiting"), createdAt: text("created_at").notNull(),
-  trackingHash:text("tracking_hash"),paymentStatus:text("payment_status").notNull().default("pay_on_delivery"),pixSnapshot:text("pix_snapshot"),receiptId:text("receipt_id"),receiptCount:integer("receipt_count").notNull().default(0),version:integer("version").notNull().default(1),estimatedAt:text("estimated_at"),approvedAt:text("approved_at"),decisionReason:text("decision_reason"),updatedAt:text("updated_at"),
+  acceptedAt:text("accepted_at"),acceptedEtaMinutes:integer("accepted_eta_minutes"),trackingHash:text("tracking_hash"),paymentStatus:text("payment_status").notNull().default("pay_on_delivery"),pixSnapshot:text("pix_snapshot"),receiptId:text("receipt_id"),receiptCount:integer("receipt_count").notNull().default(0),version:integer("version").notNull().default(1),estimatedAt:text("estimated_at"),approvedAt:text("approved_at"),decisionReason:text("decision_reason"),updatedAt:text("updated_at"),
 }, t => [index("orders_restaurant_idx").on(t.restaurantId,t.createdAt), uniqueIndex("orders_request_idx").on(t.restaurantId,t.requestId)]);
 export const deliveryChecks=sqliteTable("delivery_checks",{
  id:text("id").primaryKey(),restaurantId:text("restaurant_id").notNull().references(()=>restaurants.id),
  requestId:text("request_id").notNull(),tokenHash:text("token_hash").notNull(),
  phone:text("phone").notNull(),address:text("address").notNull(),
  latitude:real("latitude"),longitude:real("longitude"),
+ neighborhood:text("neighborhood"),zoneId:text("zone_id"),deliveryFee:integer("delivery_fee"),
  status:text("status").notNull().default("pending"),version:integer("version").notNull().default(1),
  createdAt:text("created_at").notNull(),expiresAt:integer("expires_at").notNull(),reviewedAt:text("reviewed_at"),
 },t=>[uniqueIndex("delivery_checks_request_idx").on(t.restaurantId,t.requestId),index("delivery_checks_owner_queue_idx").on(t.restaurantId,t.status,t.createdAt)]);

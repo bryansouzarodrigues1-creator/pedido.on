@@ -5,10 +5,11 @@ export const deliveryCheckRequest=z.object({
  token:z.string().regex(/^[a-f0-9]{64}$/),
  phone:z.string().trim().min(10).max(25).regex(/^[\d\s()+.-]+$/),
  address:z.string().trim().min(8).max(300),
+ neighborhood:z.string().trim().max(70).optional(),
  latitude:z.number().finite().min(-90).max(90).optional(),
  longitude:z.number().finite().min(-180).max(180).optional(),
 }).strict().refine(x=>(x.latitude===undefined)===(x.longitude===undefined),"Informe latitude e longitude juntas.");
-export const deliveryDecision=z.object({id:z.string().uuid(),version:z.number().int().positive(),action:z.enum(["approve","reject"])}).strict();
+export const deliveryDecision=z.object({id:z.string().uuid(),version:z.number().int().positive(),action:z.enum(["approve","reject"]),deliveryFee:z.number().int().min(0).max(100000).optional()}).strict();
 export const deliveryAccess=z.object({deliveryCheckId:z.string().uuid().optional(),deliveryCheckToken:z.string().regex(/^[a-f0-9]{64}$/).optional()});
 export function deliveryCheckEnabled(value?:string){return value==="true";}
 export function normalizedDeliveryPhone(phone:string){
