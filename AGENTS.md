@@ -3,7 +3,7 @@
 - O aplicativo principal está na raiz; o serviço Lovable está em `services/image-service`, com configuração, dependências e instruções próprias.
 - Leia `README.md` e `docs/CONTINUAR.md`. Preserve o aplicativo e as funcionalidades; não reconstrua contas ou transfira banco sem tarefa específica.
 - Contas usam Supabase Auth. Dados e sessões ficam no D1; imagens e comprovantes no R2. Toda rota administrativa confirma propriedade no servidor.
-- O cadastro do grupo usa convite secreto, é direto e não envia confirmação. E-mail somente na recuperação, após entrega validada. Preserve contas existentes, sessões, a antiga lista de teste e o projeto Supabase; não reative o modo de protótipo.
+- O cadastro está aberto sem convite por decisão do proprietário em 12/10/2026; é direto e não envia confirmação. O modo por convite permanece disponível no código, sem reativá-lo nas publicações comuns. E-mail somente na recuperação, após entrega validada. Preserve contas existentes, sessões, a antiga lista de teste e o projeto Supabase; não reative o modo de protótipo.
 - Nunca envie chaves, tokens, comprovantes, dumps ou dados pessoais ao GitHub. Não altere a chave interna de sessão durante exportações ou publicações comuns.
 - Preserve migrações aplicadas; gere uma migração nova para mudanças de esquema.
 - Não force push nem reescreva histórico publicado. Não conecte a raiz deste monorepositório ao projeto Lovable do serviço.

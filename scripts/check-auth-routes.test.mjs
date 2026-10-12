@@ -421,3 +421,16 @@ test('password changes in an ordinary session require the current password and c
     assert.equal((await login(f,'owner@example.test','nova senha para testar')).response.status,200);
   }finally{globalThis.fetch=originalFetch;f.close();}
 });
+
+ test('open registration ignores retained invite, enters directly and never grants platform admin',async()=>{
+ const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
+ Object.assign(f.env,{PEDIDO_AUTH_MODE:'open',PEDIDO_AUTH_INVITE_CODE:'retained-secret-invite-2026',PEDIDO_EMAIL_DELIVERY_READY:'false',PLATFORM_ADMIN_ACCOUNT_ID:secondId});
+ try{
+ const config=await (await f.call('auth','GET',{action:'config'})).json();
+ assert.equal(config.registrationEnabled,true);assert.equal(config.inviteRequired,false);assert.equal(config.prototype,false);assert.equal(config.captchaSiteKey,'');assert.equal(config.googleEnabled,false);assert.equal(config.recoveryEnabled,false);
+ const created=await f.call('auth','POST',{action:'register'},{name:'Novo pizzaiolo',email:'new-owner@example.test',password:initialPassword});
+ assert.equal(created.status,200,await created.clone().text());assert.equal((await created.json()).next,'/app');assert.equal(p.hashes.size,0);
+ const headers=cookieHeader(sessionCookie(created));assert.equal((await f.call('account','GET',{},undefined,headers)).status,200);assert.equal((await f.call('adminStatus','GET',{},undefined,headers)).status,403);
+ assert.equal(f.db.prepare('select count(*) as n from account_trials').get().n,1);
+ }finally{globalThis.fetch=originalFetch;f.close();}
+ });

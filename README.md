@@ -23,7 +23,7 @@ O serviço ativo é [pedido-on-estudio.lovable.app](https://pedido-on-estudio.lo
 - **Calculadora em `/calculadora` sem login**: custo pronto, despesas, taxas, volume, preço sugerido e resultado estimado. Salvamento automático do preenchimento, até seis cálculos, cópia e download em texto. Dados ficam neste navegador.
 - Cliente pede sem conta e acompanha pelo link privado do pedido. WhatsApp tem envio manual.
 - Pix direto na chave da pizzaria: comprovante privado, conferência no banco, aprovação manual, prazo e acompanhamento.
-- Supabase Auth, sessões protegidas e autorização por loja. Cadastro real por convite do grupo, com acesso direto e sem confirmação por e-mail. A recuperação fica indisponível até comprovar a entrega real.
+- Supabase Auth, sessões protegidas e autorização por loja. Cadastro aberto sem convite, com acesso direto e sem confirmação por e-mail. A recuperação fica indisponível até comprovar a entrega real.
 - Stripe e importação de cardápio OpenAI estão preservados e desativados; não são necessários para usar as demais funções.
 
 ## Estrutura
