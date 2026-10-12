@@ -1,31 +1,20 @@
 "use client";
 import {asCents} from "@/lib/domain";
-import {useEffect,useRef,useState} from "react";
+import {useEffect,useState} from "react";
 import {MapPin,Phone,Check,Truck,X,RefreshCw} from "lucide-react";
 type RequestRow={neighborhood?:string|null;deliveryFee?:number|null;id:string;phone:string;address:string;latitude:number|null;longitude:number|null;status:string;version:number;createdAt:string;expiresAt:number};
 type Result={enabled:boolean;requests:RequestRow[];error?:string};
 export default function DeliveryApprovals({restaurantId,defaultFee=0}:{restaurantId:string;defaultFee?:number}){
  const [enabled,setEnabled]=useState(false),[rows,setRows]=useState<RequestRow[]>([]),[error,setError]=useState(""),[busy,setBusy]=useState("");
  const [fees,setFees]=useState<Record<string,string>>({});
- const seen=useRef(new Set<string>()),initialized=useRef(false);
  async function load(){
   const res=await fetch(`/api/restaurants/${restaurantId}/delivery-checks`,{cache:"no-store"});
   const result=await res.json() as Result;
   if(!res.ok)throw Error(result.error||"Não conseguimos consultar as solicitações.");
   setEnabled(result.enabled);setRows(result.requests);
-  const pending=result.requests.filter(r=>r.status==="pending");
-  if(!initialized.current){pending.forEach(row=>seen.current.add(row.id));initialized.current=true;return;}
-  const fresh=pending.filter(row=>!seen.current.has(row.id));
-  pending.forEach(row=>seen.current.add(row.id));
-  if(fresh.length&&typeof Notification!=="undefined"&&Notification.permission==="granted"){
-   try {
-    const options={body:fresh.length===1?"Novo endereço para verificar: "+fresh[0].address:fresh.length+" endereços aguardam resposta",icon:"/assets/pedido-symbol.png",tag:"pedido-delivery-checks"};
-    if("serviceWorker" in navigator&&navigator.serviceWorker.controller)navigator.serviceWorker.ready.then(reg=>reg.showNotification("pedido.on · verificar entrega",options)).catch(()=>{});
-    else {const n=new Notification("pedido.on · verificar entrega",options);n.onclick=()=>{window.focus();n.close();};}
-   }catch{}
-  }
+
  }
- useEffect(()=>{initialized.current=false;seen.current.clear();let active=true;
+ useEffect(()=>{let active=true;
   const sync=async()=>{try{if(!active)return;await load();if(active)setError("");}catch(e){if(active)setError(e instanceof Error?e.message:"Conexão indisponível.");}};
   sync();const timer=setInterval(sync,8000);
   return()=>{active=false;clearInterval(timer);};
