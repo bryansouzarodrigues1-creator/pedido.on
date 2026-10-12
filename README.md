@@ -6,7 +6,7 @@ Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criaçã
 
 ## Estado atual — 12/10/2026
 
-Última publicação confirmada: **versão 20**, fonte Sites `5153cab4266fa7680de194336f686cdb9f367fcb`, ambiente revisão 6, PR #7 integrada. A criação começa em imagem e conserva o prompt do dono até o gerador. O cadastro por convite foi validado com acesso direto e login normal, sem confirmação de e-mail. Uma imagem real do pedido “Gere algo marcante de pizza de queijo” foi gerada pela Lovable, salva no R2 e aplicada ao rascunho privado de teste. Ainda falta conferir a interação no celular do proprietário. As duas pizzarias e o perfil anteriores foram comparados e permaneceram iguais. A navegação mantém **Pedidos, Cardápio, Pizzaria e Criar com IA**.
+Última publicação confirmada: **versão 20**, fonte Sites `5153cab4266fa7680de194336f686cdb9f367fcb`, ambiente revisão 6, PR #7 integrada. A criação começa em imagem e conserva o prompt do dono até o gerador. O cadastro por convite foi validado com acesso direto e login normal, sem confirmação de e-mail. Uma imagem real do pedido “Gere algo marcante de pizza de queijo” foi gerada pela Lovable, salva no R2 e aplicada ao rascunho privado de teste. Posteriormente, o dono mostrou a geração/prévia de uma pizza voando sob uma luz no seu celular; a aplicação/publicação dessa capa ainda não foi confirmada. As duas pizzarias e o perfil anteriores foram comparados e permaneceram iguais no teste. A navegação mantém **Pedidos, Cardápio, Pizzaria e Criar com IA**. A próxima evolução está em [planejamento de produto](docs/PAPEL-DA-IA.md), sem novas funções implementadas nesta etapa.
 
 A falha de IA foi reproduzida no runtime Cloudflare: `redirect: "error"` não é suportado e interrompia a chamada antes de chegar à Lovable. O aplicativo usa `redirect: "manual"`; retornos 3xx continuam rejeitados e o token de uso único não é encaminhado a outro endereço. Os erros diferenciam falhas antes e depois da autorização, com cota devolvida somente quando adequado.
 
@@ -78,11 +78,12 @@ O [guia Netlify](docs/NETLIFY.md) descreve os três valores do gateway, a public
 
 Cotas mantidas: imagens **3 por proprietário/mês e 2/dia na plataforma**; sugestões **20 por proprietário/mês e 20/dia na plataforma**. Cada geração nova consome saldo de IA. Consultar o mesmo pedido reutiliza o resultado; estilos prontos não usam modelos.
 
-Passaram **134 testes**, typecheck e build nesta correção. Os testes locais adaptam modelos e D1/R2; não são novas gerações reais. Em produção, uma conta isolada foi criada pelo convite e autenticada por senha. Uma geração real recebeu o prompt original, completou o claim, devolveu JPEG **1376 × 768 / 230.350 bytes**, foi lida do R2 e aplicada ao rascunho privado, conservando preços/Pix. Três textos anteriores do proprietário também estão comprovados. Foi consumida **uma geração de imagem**, sem novo build/consulta do agente Lovable ou nova geração de texto. Revisão da interface no celular, recuperação de senha, Web Push, trial fiscalizado, Asaas e Netlify permanecem pendentes. Ver [evidências](docs/IA-PRODUCAO.md) e [cadastro por convite](docs/CADASTRO-GRUPO.md).
+Passaram **134 testes**, typecheck e build nesta correção. Os testes locais adaptam modelos e D1/R2; não são novas gerações reais. Em produção, uma conta isolada foi criada pelo convite e autenticada por senha. Uma geração real recebeu o prompt original, completou o claim, devolveu JPEG **1376 × 768 / 230.350 bytes**, foi lida do R2 e aplicada ao rascunho privado, conservando preços/Pix. Três textos anteriores do proprietário também estão comprovados. Foi consumida **uma geração de imagem**, sem novo build/consulta do agente Lovable ou nova geração de texto. A geração/prévia no celular foi confirmada depois pelo proprietário. Aplicação/publicação dessa capa pelo dono, recuperação de senha, Web Push, trial fiscalizado, Asaas e Netlify permanecem pendentes. Ver [evidências](docs/IA-PRODUCAO.md) e [cadastro por convite](docs/CADASTRO-GRUPO.md).
 
 ## Guias
 
 - [Continuidade e validações pendentes](docs/CONTINUAR.md)
+- [Proposta de papel da IA no SaaS](docs/PAPEL-DA-IA.md)
 - [Preparação e implantação futura na Netlify](docs/NETLIFY.md)
 - [Configuração atual da IA](docs/ATIVAR_ESTUDIO.md)
 - [Criação com IA e proteção dos dados](STUDIO.md)
