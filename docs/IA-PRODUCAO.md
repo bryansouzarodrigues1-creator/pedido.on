@@ -66,3 +66,9 @@ A correção do aplicativo detecta pedidos explícitos de logo/capa/perfil/foto 
 3. Realizar entrega e chat com dois celulares. As migrações estão aplicadas; o fluxo completo ainda precisa de validação. Web Push com app fechado, recuperação de senha real, trial persistente/fiscalizado, Asaas e Netlify permanecem pendentes.
 
 Não declarar imagem ou cadastro externo funcionando somente com mocks/configuração. Os 129 testes e typecheck desta correção passaram; a publicação e provas reais posteriores devem ser registradas em `CONTINUAR.md`.
+
+## Publicação da correção de destino — v19
+
+Sites v19 publicada em 12/10/2026 às 02:18:30.023 UTC, fonte `7b609fe29aed01a5195a9f8df3e05da8f395133c`, ambiente revisão 6, implantação `appgdep_6acc435cfc788191968ed813789fb57e`. PR #6 integrada à main em `8f4bc7fa813ceedc93f47087095a132a6969f7c9`. Os dois endpoints Lovable e suas flags permaneceram iguais e ativados. Não houve nova chamada ao agente Lovable nem geração paga do agente.
+
+Os registros ainda mostram dois textos completos e quatro imagens antigas canceladas. O proprietário recebeu a instrução de atualizar o celular e fazer uma única geração de logo; não declarar que essa imagem funcionou até observar seu job/claim/bytes e aplicação. O cadastro foi retirado do modo de protótipo, mas a configuração Supabase `mailer_autoconfirm:false` bloqueia cadastro sem confirmação e precisa ser alterada no painel. As duas lojas e o perfil existente permaneceram iguais na comparação completa depois da publicação.

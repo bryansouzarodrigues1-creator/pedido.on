@@ -15,3 +15,9 @@ O convite não controla a calculadora nem os clientes que compram pizza: esses f
 129 testes do aplicativo e typecheck passaram. As novas verificações cobrem o convite antes de signup, sessão validada, ausência de confirmação, configuração do provedor, bloqueio de inscrição externa, recuperação e preservação das sessões/perfis/lojas anteriores. Provedor e bindings são adaptados nos testes locais; o cadastro de uma conta nova e a entrega de recuperação exigem prova no ambiente real.
 
 Após a publicação, abrir `/cadastro`, informar convite/nome/e-mail/senha e conferir acesso direto ao painel. Sair e entrar novamente. Conferir também o acesso da conta antiga e isolamento entre pizzarias. `/api/auth/config?registration=1` deve retornar `prototype:false`, `inviteRequired:true`, `directSignup:true` e `recoveryEnabled:false`, sem devolver convite ou segredos. Esse GET verifica configuração; não substitui cadastrar uma conta.
+
+## Publicação e bloqueio externo confirmado
+
+Sites v19 foi publicada em 12/10/2026 às 02:18:30 UTC, ambiente revisão 6, modo `invite` e convite secreto configurados. O GET real do aplicativo devolveu 200, `prototype:false`, `inviteRequired:true`, `directSignup:false`, recuperação/Google/CAPTCHA desativados. O GET real de configurações do Supabase confirmou e-mail habilitado e signup permitido, mas `mailer_autoconfirm:false`. **Confirm email deve ser desativado** no projeto `lxavrmzafumqmbswtfbe` antes de liberar o formulário. Nenhuma confirmação foi enviada durante o diagnóstico. O navegador do agente precisa de login seguro para fazer essa alteração; ela não está disponível nos métodos do plugin Supabase instalado.
+
+Depois de salvar no Supabase, repetir o GET do aplicativo para comprovar `directSignup:true`, sem publicar outra versão nem trocar chaves. Ainda é necessário criar uma conta real pelo formulário e validar login/isolamento. Recuperação por Resend e fiscalização de trial continuam pendentes.

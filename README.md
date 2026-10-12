@@ -6,7 +6,7 @@ Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criaçã
 
 ## Estado atual — 11/10/2026
 
-Última publicação confirmada: **versão 18**, fonte Sites `0509ffc7875ff02b1db786b6a51207b121be5911`, ambiente revisão 5. A correção de cadastro e destino de imagens está preparada; a próxima publicação será registrada em `docs/CONTINUAR.md`. O visual usa pizza real, carvão e vermelho, com menos ações e textos curtos. A navegação do painel é **Pedidos, Cardápio, Pizzaria e Criar com IA**. O cadastro inicial pede nome, WhatsApp e endereço do cardápio; a aparência pode ser ajustada depois.
+Última publicação confirmada: **versão 19**, fonte Sites `7b609fe29aed01a5195a9f8df3e05da8f395133c`, ambiente revisão 6, PR #6 integrada. Pedidos explícitos de imagem seguem ao gerador de imagens. O cadastro usa convite secreto, mas a configuração real do Supabase ainda exige desligar Confirm email; `directSignup:false` mantém o formulário fechado até essa alteração externa. O visual usa pizza real, carvão e vermelho, com menos ações e textos curtos. A navegação do painel é **Pedidos, Cardápio, Pizzaria e Criar com IA**. O cadastro inicial pede nome, WhatsApp e endereço do cardápio; a aparência pode ser ajustada depois.
 
 A falha de IA foi reproduzida no runtime Cloudflare: `redirect: "error"` não é suportado e interrompia a chamada antes de chegar à Lovable. O aplicativo usa `redirect: "manual"`; retornos 3xx continuam rejeitados e o token de uso único não é encaminhado a outro endereço. Os erros diferenciam falhas antes e depois da autorização, com cota devolvida somente quando adequado.
 
