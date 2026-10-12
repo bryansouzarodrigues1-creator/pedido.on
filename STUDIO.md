@@ -5,12 +5,14 @@ O painel tem uma área única **Criar com IA** para visual/textos, logo, capa, p
 ## Uso
 
 1. Escolher o que criar e, no caso de foto, um produto cadastrado.
-2. Escrever a ideia ou usar o exemplo. Pedidos explícitos como “Gere uma logo real” selecionam Logo e pedem uma imagem diretamente, sem gerar texto antes. Pedidos ambíguos exigem escolher o tipo de imagem; estilos locais não simulam uma imagem gerada.
+2. A criação começa em **Imagem para a pizzaria**: a ideia segue diretamente ao gerador de imagens, sem texto intermediário. “Gere algo marcante de pizza de queijo” cria uma arte horizontal que pode ser usada como capa. Pedidos de logo/perfil/foto são reconhecidos; uma foto exige escolher um produto da própria loja. Trocar o tipo de criação conserva a ideia escrita.
 3. O painel salva o rascunho antes de enviar o pedido para a IA.
 4. Conferir o resultado e escolher **Usar no cardápio**.
 5. **Publicar/Atualizar** no painel é a ação que disponibiliza a mudança aos clientes.
 
-Os estilos prontos estão numa opção recolhida e não usam o limite de IA. A interface começa com IA quando ela está habilitada; a cota só é usada após um pedido explícito. Fotos ilustrativas usam o nome e a descrição cadastrada. O dono deve conferir se a imagem corresponde ao que vende.
+**Cores e textos do cardápio** é uma escolha explícita para sugestões de texto e parâmetros, sem prometer uma imagem. Pedidos de arte ou de imagem enviados por um cliente antigo a essa rota são recusados antes de gastar texto. Os estilos prontos estão recolhidos e não usam IA. Não há substituição automática de uma imagem por prévia do cardápio.
+
+O prompt visual do dono segue completo ao serviço. As cores e o estilo atuais são referências secundárias e não substituem a aparência pedida. Fotos ilustrativas usam os alimentos informados no produto e no pedido do dono, sem acrescentar ingredientes por conta própria. O dono confere a fidelidade antes de usar.
 
 ## Proteção e limites
 
@@ -27,4 +29,4 @@ Os estilos prontos estão numa opção recolhida e não usam o limite de IA. A i
 
 Serviço: https://pedido-on-estudio.lovable.app. Rotas `/api/pedido-on/studio` e `/api/pedido-on/image`; chave gerenciada somente no servidor. Nenhum segredo vai para o app ou navegador. Stripe permanece uma etapa independente, desativada.
 
-129 testes do aplicativo e typecheck passaram nesta correção, incluindo o destino dos dois pedidos de logo enviados pelo proprietário. Duas gerações reais de texto do celular foram comprovadas no Sites/D1 em 11/10/2026. O ciclo real de imagem autorizada, R2 e aplicação ao rascunho permanece pendente. O serviço não precisou de outro build Lovable nesta etapa.
+134 testes do aplicativo e typecheck passaram nesta correção. Um teste integrado atravessa o pedido exato do celular, rota de imagem, autorização de uso único, handler Lovable, bytes e aplicação explícita ao rascunho, com modelo e armazenamento externos simulados. Três gerações reais de texto do proprietário foram comprovadas no Sites/D1 em 11 e 12/10/2026. O ciclo real de imagem autorizada, R2 e aplicação ao rascunho ainda depende da validação em produção. O serviço não precisou de outro build Lovable nesta etapa.

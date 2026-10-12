@@ -1,4 +1,6 @@
 export type ImageAsset="logo"|"cover"|"profile"|"product";
+export type CreationTarget="image"|"visual"|ImageAsset;
+export const defaultCreationTarget:CreationTarget="image";
 export type ImageIntent={asset:ImageAsset|null;label:string};
 export const imageLabels:Record<ImageAsset,string>={logo:"logo",cover:"capa",profile:"imagem de perfil",product:"foto do produto"};
 
@@ -13,7 +15,13 @@ export function requestedImage(message:string):ImageIntent|null{
   const segment=text.slice(command.index!+command[0].length).split(/[.!?;\n]/,1)[0].slice(0,180);
   if(/^\s*(?:(?:um|uma|o|a|me|de)\s+)*(?:briefing|descricao|descricoes|texto|textos|prompt|prompts|ideia|ideias|sugestao|sugestoes)\b/.test(segment))continue;
   const firstAsset=segment.search(/\b(?:logo|logotipo|logomarca|capa|banner|avatar|foto|fotografia|imagem|imagens)\b/);
-  if(firstAsset<0||firstAsset>110)continue;
+  if(firstAsset<0){
+   // An art request need not say "image" or "photo". The owner's mobile request
+   // was otherwise sent to the paid writing model instead of image generation.
+   if(/\b(?:arte|artes|ilustracao|ilustracoes|desenho|desenhos)\b/.test(segment)||/^\s*(?:algo|alguma\s+coisa)\b/.test(segment)&&/\b(?:pizza|pizzas|queijo|queijos|forno|bebida|sabor)\b/.test(segment))segments.push(segment);
+   continue;
+  }
+  if(firstAsset>110)continue;
   if(/\b(?:cardapio|layout|identidade|visual|cores|textos|descricoes)\b/.test(segment.slice(0,firstAsset)))continue;
   segments.push(segment);
  }
@@ -33,8 +41,9 @@ export function requestedImage(message:string):ImageIntent|null{
  return {asset,label:asset?imageLabels[asset]:"imagem"};
 }
 
-export function creationTarget(selected:"visual"|ImageAsset,message:string,mode:"ai"|"local"){
- const intent=selected==="visual"?requestedImage(message):null;
- return {target:selected==="visual"&&mode==="ai"&&intent?.asset?intent.asset:selected,intent,
+export function creationTarget(selected:CreationTarget,message:string,mode:"ai"|"local"){
+ const intent=selected==="visual"||selected==="image"?requestedImage(message):null;
+ const target:"visual"|ImageAsset=selected==="image"?intent?.asset||"cover":selected==="visual"&&mode==="ai"&&intent?.asset?intent.asset:selected;
+ return {target,intent,
   needsChoice:selected==="visual"&&!!intent&&(!intent.asset||mode==="local")};
 }
