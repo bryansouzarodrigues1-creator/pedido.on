@@ -1,0 +1,7 @@
+/sw.js
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  Service-Worker-Allowed: /
+/pwa-release.js
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/manifest.webmanifest
+  Cache-Control: no-cache, max-age=0, must-revalidate

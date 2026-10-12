@@ -5,6 +5,7 @@ import {eq} from "drizzle-orm";
 import {getDb} from "@/db";
 import {accountProfiles,authSessions} from "@/db/schema";
 import {getChatGPTUser} from "@/app/chatgpt-auth";
+import {revokeSessionPush} from "./push";
 import {HttpError,throttle} from "./http";
 import {providerFailure} from "./provider-diagnostics";
 import {prototypeEmailAllowed,inviteOnlyRegistration,registrationAvailable} from "./platform";
@@ -94,9 +95,11 @@ export async function changePassword(password:string,currentPassword?:string){
   }else await providerRequest("user","PUT",{password},session.vault.access);
   // Password changes revoke every application session, including the recovery session.
   await getDb().delete(authSessions).where(eq(authSessions.ownerId,session.user.userId));
+  if((env as typeof env&{PEDIDO_PUSH_ENABLED?:string}).PEDIDO_PUSH_ENABLED==="true")await env.DB!.prepare("DELETE FROM push_subscriptions WHERE owner_id=?").bind(session.user.userId).run();
   try{await providerRequest("logout?scope=global","POST",undefined,session.vault.access);}catch{/* application sessions are already revoked */}
 }
 export async function logout(request:Request){
+  const pushToken=readSessionCookie(request.headers.get("cookie")||"",new URL(request.url).protocol==="https:");if(pushToken)await revokeSessionPush(await sha256(pushToken));
   const secure=new URL(request.url).protocol==="https:",token=readSessionCookie(request.headers.get("cookie")||"",secure);
   if(token&&authConfig().enabled){const id=await sha256(token),db=getDb(),row=await db.select().from(authSessions).where(eq(authSessions.id,id)).get();await db.delete(authSessions).where(eq(authSessions.id,id));if(row)try{const vault=await openTokens<TokenVault>(row.sealedTokens,authConfig().seal,id+":"+row.ownerId);await providerRequest("logout?scope=local","POST",undefined,vault.access);}catch{/* local deletion is authoritative for this application */}}
   return sessionCookie("",secure,0);

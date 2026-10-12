@@ -64,6 +64,13 @@
       "when": 1791740000000,
       "tag": "0008_order_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1791841768938,
+      "tag": "0009_nice_gamma_corps",
+      "breakpoints": true
     }
   ]
 }

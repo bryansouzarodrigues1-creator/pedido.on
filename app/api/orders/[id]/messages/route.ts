@@ -2,6 +2,7 @@ import {and,eq,asc,count} from "drizzle-orm";
 import {getDb} from "@/db";
 import {orderMessages} from "@/db/schema";
 import {trackedOrder} from "@/lib/order-server";
+import {queueRestaurantNotice} from "@/lib/push";
 import {chatInput,CHAT_LIMIT,chatClosed} from "@/lib/order-chat-policy";
 import {sameOrigin,readJson,privateHeaders,errorResponse,HttpError,throttle} from "@/lib/http";
 export const dynamic="force-dynamic";
@@ -21,5 +22,6 @@ export async function POST(request:Request,{params}:C){try{
  if((total?.n||0)>=CHAT_LIMIT)throw new HttpError(429,"Esta conversa atingiu o limite. Use o WhatsApp.");
  const message={id:crypto.randomUUID(),orderId:id,sender:"customer",body:input.text,createdAt:new Date().toISOString()};
  await db.insert(orderMessages).values(message);
+ queueRestaurantNotice(order.restaurantId,"message:"+message.id,"messages",order.id);
  return Response.json({message},{status:201,headers:privateHeaders});
 }catch(e){return errorResponse(e);}}

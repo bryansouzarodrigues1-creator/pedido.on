@@ -30,12 +30,14 @@ async function api(path: string, method = "GET", body?: unknown): Promise<ApiRes
   return result;
 }
 
-export default function Dashboard({ initialRestaurants, user, signOutUrl, initialTheme = "editorial", initialPlan = "essencial", startNew = false }: {
-  initialRestaurants: RestaurantRecord[]; user: { name: string; email: string }; signOutUrl: string; initialTheme?: ThemeId; initialPlan?: string; startNew?: boolean;
+export default function Dashboard({ initialRestaurants, user, signOutUrl, initialTheme = "editorial", initialPlan = "essencial", startNew = false, initialRestaurantId, initialOrderId }: {
+  initialRestaurants: RestaurantRecord[]; user: { name: string; email: string;admin?:boolean }; signOutUrl: string; initialTheme?: ThemeId; initialPlan?: string; startNew?: boolean;initialRestaurantId?:string;initialOrderId?:string;
 }) {
   const [restaurants, setRestaurants] = useState(initialRestaurants);
-  const [activeId, setActiveId] = useState(initialRestaurants[0]?.id || "");
-  const [draft, setDraft] = useState<RestaurantData>(initialRestaurants[0] ? restaurantSchema.parse(JSON.parse(initialRestaurants[0].data)) : defaultRestaurant("Sua pizzaria"));
+  const firstRestaurant=initialRestaurants.find(r=>r.id===initialRestaurantId)||initialRestaurants[0];
+  const [activeId, setActiveId] = useState(firstRestaurant?.id || "");
+  const [draft, setDraft] = useState<RestaurantData>(firstRestaurant ? restaurantSchema.parse(JSON.parse(firstRestaurant.data)) : defaultRestaurant("Sua pizzaria"));
+  const [requestedOrder,setRequestedOrder]=useState(initialOrderId||"");
   const [tab, setTab] = useState("overview");
   const [dirty, setDirty] = useState(false), [saving, setSaving] = useState(false);
   const [error, setError] = useState(""), [toast, setToast] = useState("");
@@ -46,6 +48,10 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const [lastSync,setLastSync]=useState(0),[ordersOffline,setOrdersOffline]=useState(false);
   const [orderFilter, setOrderFilter] = useState("work"), [orderDetail, setOrderDetail] = useState<OrderRecord | null>(null), [updatingOrder, setUpdatingOrder] = useState("");
   const active = restaurants.find(r => r.id === activeId);
+  const openNotification=useRef<(url:string)=>void>(()=>{});
+  openNotification.current=async(value)=>{try{const url=new URL(value,location.origin);if(url.origin!==location.origin||url.pathname!=="/app")return;const shop=url.searchParams.get("loja"),order=url.searchParams.get("pedido");if(shop&&!restaurants.some(r=>r.id===shop))return;if(shop&&shop!==activeId){if(dirty&&!await save())return;setActiveId(shop);}setTab("overview");if(order)setRequestedOrder(order);}catch{}};
+  useEffect(()=>{const handler=(event:MessageEvent)=>{if(event.data?.type==="OPEN_NOTIFICATION"&&typeof event.data.url==="string")openNotification.current(event.data.url);};navigator.serviceWorker?.addEventListener("message",handler);return()=>navigator.serviceWorker?.removeEventListener("message",handler);},[]);
+  useEffect(()=>{if(!requestedOrder)return;const found=orderList.find(row=>row.id===requestedOrder);if(found){setOrderDetail(found);setRequestedOrder("");}},[requestedOrder,orderList]);
   const dirtyRef = useRef(dirty), activeIdRef = useRef(activeId), ordersRequest = useRef(0),ordersBusy=useRef(new Set<string>());
   dirtyRef.current = dirty; activeIdRef.current = activeId;
 
@@ -134,12 +140,12 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const shownOrders = orderList.filter(o => orderFilter === "all" || (orderFilter === "work" ? ["awaiting_payment", "awaiting", "confirmed", "preparing", "out_for_delivery"].includes(o.status) : ["delivered", "canceled"].includes(o.status)));
   const sectionName = navigation.find(n => n.id === tab)?.label;
 
-  return <div className="dashboard simple-dashboard"><PwaSetup/>
+  return <div className="dashboard simple-dashboard"><PwaSetup hasUnsaved={dirty}/>
     <aside className={`sidebar ${mobileNav ? "visible" : ""}`}>
       <div className="sidebar-brand"><Brand /><button className="icon-btn mobile-nav" aria-label="Fechar menu" onClick={() => setMobileNav(false)}><X size={20} /></button></div>
       <div className="shop-picker"><label><span>SUA PIZZARIA</span><select value={activeId} disabled={saving} onChange={e => switchRestaurant(e.target.value)}>{!restaurants.length && <option value="">Criar minha pizzaria</option>}{restaurants.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label><span className={`shop-status ${active?.published ? "live" : ""}`}><i />{active?.published ? "Cardápio no ar" : "Ainda não publicado"}</span></div>
       <nav aria-label="Painel da pizzaria">{navigation.map(item => <button key={item.id} className={tab === item.id ? "active" : ""} aria-current={tab === item.id ? "page" : undefined} onClick={() => { setTab(item.id); setMobileNav(false); }}><item.icon size={20} />{item.label}{item.id === "overview" && working.length > 0 && <span>{working.length}</span>}</button>)}</nav>
-      <div className="sidebar-bottom"><a href="/calculadora" className="sidebar-calculator"><Calculator size={19}/><span>Preço e lucro<small>Calculadora grátis · sem login</small></span><ArrowUpRight size={15}/></a><details className="sidebar-more"><summary>Conta e outras opções <ChevronDown size={15}/></summary><button className="sidebar-link" disabled={saving} onClick={() => setCreateOpen(true)}><Plus size={17}/>Nova pizzaria</button><a href="/conta" className="sidebar-link"><Settings size={17}/>Minha conta</a><a href={signOutUrl} target="_top" className="sidebar-link"><LogOut size={17}/>Sair</a></details><div className="user-profile"><span>{user.name.slice(0,1).toUpperCase()}</span><div><strong>{user.name.includes("@")?user.name.split("@")[0]:user.name}</strong><small>{user.email}</small></div></div></div>
+      <div className="sidebar-bottom"><a href="/calculadora" className="sidebar-calculator"><Calculator size={19}/><span>Preço e lucro<small>Calculadora grátis · sem login</small></span><ArrowUpRight size={15}/></a><details className="sidebar-more"><summary>Conta e outras opções <ChevronDown size={15}/></summary><button className="sidebar-link" disabled={saving} onClick={() => setCreateOpen(true)}><Plus size={17}/>Nova pizzaria</button><a href="/conta" className="sidebar-link"><Settings size={17}/>Minha conta</a>{user.admin&&<a href="/admin" className="sidebar-link"><Settings size={17}/>Administração</a>}<a href={signOutUrl} target="_top" className="sidebar-link"><LogOut size={17}/>Sair</a></details><div className="user-profile"><span>{user.name.slice(0,1).toUpperCase()}</span><div><strong>{user.name.includes("@")?user.name.split("@")[0]:user.name}</strong><small>{user.email}</small></div></div></div>
     </aside>
     {mobileNav && <button className="sidebar-scrim" aria-label="Fechar menu" onClick={() => setMobileNav(false)} />}
     <div className="dashboard-body">

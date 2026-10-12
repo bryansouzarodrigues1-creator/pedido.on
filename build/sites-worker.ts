@@ -39,6 +39,12 @@ export default {
     if (normalized.proxied && request.method === "POST" && /^\/api\/restaurants\/[^/]+\/(?:studio|ai\/images)$/.test(new URL(request.url).pathname)) {
       ctx.waitUntil(Promise.resolve(response).then(() => undefined).catch(() => undefined));
     }
+    if (/^\/(?:sw\.js|pwa-release\.js|manifest\.webmanifest)$/.test(new URL(request.url).pathname)) {
+      const result = new Response((await response).body, await response);
+      result.headers.set("Cache-Control", "no-cache, max-age=0, must-revalidate");
+      if(new URL(request.url).pathname === "/sw.js")result.headers.set("Service-Worker-Allowed", "/");
+      return result;
+    }
     return response;
   },
 };

@@ -1,29 +1,11 @@
-/* pedido.on: PWA conservador; nunca guardar pedidos, login, comprovantes ou API em cache. */
-const CACHE="pedido-on-static-v1";
-const STATIC=["/assets/pedido-symbol.png","/favicon.svg"];
-self.addEventListener("install",event=>{
- event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(STATIC)).catch(()=>{}));
- self.skipWaiting();
-});
-self.addEventListener("activate",event=>{
- event.waitUntil(Promise.all([
-  caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith("pedido-on-static-")&&key!==CACHE).map(key=>caches.delete(key)))),
-  self.clients.claim()
- ]));
-});
-self.addEventListener("fetch",event=>{
- const req=event.request;
- if(req.method!=="GET"||new URL(req.url).origin!==self.location.origin)return;
- const path=new URL(req.url).pathname;
- if(!STATIC.includes(path))return; // all app pages, authenticated requests and API stay network only
- event.respondWith(caches.match(req).then(saved=>saved||fetch(req)));
-});
-self.addEventListener("notificationclick",event=>{
- event.notification.close();
- const target="/app";
- event.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then(async clients=>{
-  const existing=clients.find(client=>new URL(client.url).origin===self.location.origin&&new URL(client.url).pathname.startsWith("/app"));
-  if(existing)return existing.focus();
-  return self.clients.openWindow(target);
- }));
-});
+/* Public shell only. Never cache APIs, sessions, orders, private pages or receipts. */
+importScripts("/pwa-release.js");
+const CACHE="pedido-on-shell-"+self.PEDIDO_RELEASE;
+const STATIC=["/offline","/pwa/icon-192.png","/pwa/icon-512.png","/pwa/icon-maskable-512.png","/favicon.svg"];
+self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(STATIC)));});
+self.addEventListener("message",event=>{if(event.data?.type==="SKIP_WAITING")self.skipWaiting();});
+self.addEventListener("activate",event=>{event.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(key=>(key.startsWith("pedido-on-static-")||key.startsWith("pedido-on-shell-"))&&key!==CACHE).map(key=>caches.delete(key)))),self.clients.claim()]));});
+self.addEventListener("fetch",event=>{const req=event.request,url=new URL(req.url);if(req.method!=="GET"||url.origin!==self.location.origin)return;if(STATIC.includes(url.pathname)){event.respondWith(caches.match(req).then(saved=>saved||fetch(req)));return;}if(req.mode==="navigate"){event.respondWith(fetch(req).catch(async()=>await caches.match("/offline")||new Response("Sem conexão. Abra o pedido.on quando a internet voltar.",{status:503,headers:{"Content-Type":"text/plain;charset=utf-8"}})));}});
+function safeTarget(value){try{const u=new URL(value||"/app",self.location.origin);return u.origin===self.location.origin&&u.pathname==="/app"?u.href:self.location.origin+"/app";}catch{return self.location.origin+"/app";}}
+self.addEventListener("push",event=>{let data={};try{data=event.data?.json()||{};}catch{}const title=typeof data.title==="string"?data.title.slice(0,80):"pedido.on",body=typeof data.body==="string"?data.body.slice(0,180):"Há uma atualização no painel.",tag=typeof data.tag==="string"?data.tag.slice(0,160):"pedido-on-update";event.waitUntil(self.registration.showNotification(title,{body,tag,icon:"/pwa/icon-192.png",badge:"/pwa/icon-192.png",data:{url:safeTarget(data.url)}}));});
+self.addEventListener("notificationclick",event=>{event.notification.close();const target=safeTarget(event.notification.data?.url);event.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then(async clients=>{const existing=clients.find(client=>{const u=new URL(client.url);return u.origin===self.location.origin&&u.pathname==="/app";});if(existing){await existing.focus();existing.postMessage({type:"OPEN_NOTIFICATION",url:target});return;}return self.clients.openWindow(target);}));});
