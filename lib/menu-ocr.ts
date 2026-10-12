@@ -1,6 +1,6 @@
-import {arrangeMenuWords,type ReaderPage,type ReaderLine} from "./menu-reader-policy";
+import {arrangeMenuWords,type ReaderPage,type ReaderLine} from "./menu-reader-policy.ts";
 const MAX_SOURCE_BYTES=15*1024*1024,MAX_PIXELS=4500000,MAX_EDGE=2600;
-function abortable<T>(promise:Promise<T>,signal:AbortSignal){return new Promise<T>((resolve,reject)=>{if(signal.aborted){reject(signal.reason);return;}const cancel=()=>reject(signal.reason);signal.addEventListener("abort",cancel,{once:true});promise.then(value=>{signal.removeEventListener("abort",cancel);resolve(value);},error=>{signal.removeEventListener("abort",cancel);reject(error);});});}
+export function abortable<T>(promise:Promise<T>,signal:AbortSignal){return new Promise<T>((resolve,reject)=>{if(signal.aborted){reject(signal.reason);return;}const cancel=()=>reject(signal.reason);signal.addEventListener("abort",cancel,{once:true});promise.then(value=>{signal.removeEventListener("abort",cancel);resolve(value);},error=>{signal.removeEventListener("abort",cancel);reject(error);});});}
 export async function prepareMenuPhoto(file:File):Promise<ReaderPage>{
   if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>MAX_SOURCE_BYTES)throw Error("Envie JPG, PNG ou WebP com até 15 MB por foto.");
   const url=URL.createObjectURL(file);
@@ -25,7 +25,7 @@ export async function recognizeMenuPhotos(pages:ReaderPage[],signal:AbortSignal,
   const worker=await abortable(loading,signal);
   const cancel=()=>{void worker.terminate().catch(()=>{});};signal.addEventListener("abort",cancel,{once:true});
   try{
-    signal.throwIfAborted();await worker.setParameters({tessedit_pageseg_mode:PSM.SINGLE_BLOCK,preserve_interword_spaces:"1"});
+    signal.throwIfAborted();await abortable(worker.setParameters({tessedit_pageseg_mode:PSM.SINGLE_BLOCK,preserve_interword_spaces:"1"}),signal);
     const result:ReaderPage[]=[];
     for(index=0;index<pages.length;index++){
       signal.throwIfAborted();const page=pages[index];
