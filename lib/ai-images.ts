@@ -29,7 +29,7 @@ export async function generateImage(ownerId:string,restaurantId:string,name:stri
  SELECT ?,?,?,?,?,?,?,?,'queued',?,?,?,? WHERE
  (SELECT COUNT(*) FROM image_jobs WHERE owner_id=? AND period_key=? AND state!='cancelled')<? AND
  (SELECT COUNT(*) FROM image_jobs WHERE created_at>=? AND state!='cancelled')<? ON CONFLICT(owner_id,restaurant_id,request_id) DO NOTHING`).bind(id,ownerId,restaurantId,input.requestId,hash,tokenHash,imagePrompt(name,input,product),input.asset,period,stamp,expires,stamp,ownerId,period,imageLimits.monthly,day,imageLimits.daily).run();
- if(!reserved.meta.changes){const duplicate=await find();if(duplicate)return {...resume(duplicate),usage:await imageAllowance(ownerId)};throw new HttpError(429,"O limite de tentativas do protótipo foi atingido. Tente no próximo período.");}
+ if(!reserved.meta.changes){const duplicate=await find();if(duplicate)return {...resume(duplicate),usage:await imageAllowance(ownerId)};throw new HttpError(429,"O limite de criações foi atingido. Tente no próximo período.");}
  let phase="connect";
  try{
   const response=await requestAiProvider(config.endpoint,{jobId:id,token},90000);

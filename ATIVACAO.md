@@ -1,6 +1,6 @@
 # pedido.on — guia de ativação
 
-> Este guia detalha a ativação de integrações externas. Para o estado consolidado do protótipo e do serviço de imagens Lovable, consulte [docs/CONTINUAR.md](docs/CONTINUAR.md). As cotas de importação por OpenAI descritas aqui são diferentes dos limites de imagens, documentados em [docs/IMAGENS.md](docs/IMAGENS.md).
+> Este guia detalha a ativação de integrações externas. Para o estado consolidado do aplicativo e do serviço de imagens Lovable, consulte [docs/CONTINUAR.md](docs/CONTINUAR.md). As cotas de importação por OpenAI descritas aqui são diferentes dos limites de imagens, documentados em [docs/IMAGENS.md](docs/IMAGENS.md).
 
 O acesso dos clientes oferece **Google como opção principal** e e-mail/senha como alternativa. O código está preparado para esses dois métodos, mensalidades e importação de cardápio por IA. Cada integração começa desligada e só opera depois da configuração e dos testes abaixo. O editor e os pedidos com Pix/comprovante continuam disponíveis no acesso administrativo interno. O cliente acompanha a compra pelo link privado, sem criar conta. A tela pública não oferece login por ChatGPT.
 
@@ -12,7 +12,7 @@ O SMTP personalizado do Gmail foi desativado pelo proprietário. O e-mail mostra
 
 O código verifica `mailer_autoconfirm=true` antes de cadastrar, para impedir envio acidental de confirmação quando a opção do provedor estiver desatualizada. No Supabase, desative **Confirm email** em Authentication → Sign In / Providers. O cadastro recebe a sessão nativa e abre o painel. Uma conta anteriormente pendente pode repetir o cadastro com o mesmo e-mail e senha, preservando seu UUID e suas pizzarias; não é necessário excluir usuários.
 
-`PEDIDO_AUTH_MODE=prototype` e `PEDIDO_AUTH_TEST_EMAILS` mantêm o acesso restrito às contas autorizadas. `PEDIDO_EMAIL_DELIVERY_READY=false` bloqueia somente recuperação pública fora desse modo, sem impedir cadastro e login. Importação de cardápio por OpenAI e cobrança permanecem desligadas. O serviço de imagens Lovable tem ativação independente. O envio padrão atende e-mails da equipe Supabase no protótipo; não exige compra de domínio. A entrega e o uso de um link real de recuperação ainda precisam ser testados pelo proprietário.
+O cadastro do grupo usa **`PEDIDO_AUTH_MODE=invite`** e **`PEDIDO_AUTH_INVITE_CODE` secreto**. O convite substitui a restrição antiga por e-mail de teste, sem excluir a lista histórica. Novos cadastros entram diretamente; login preserva perfis e proprietários existentes. Uma conta criada diretamente no Supabase não adquire acesso ao grupo só por existir no provedor. `PEDIDO_EMAIL_DELIVERY_READY=false` mantém a recuperação indisponível até validar entrega real, sem impedir cadastro ou login. Importação OpenAI e cobrança permanecem desligadas; Lovable tem ativação independente. Ver [cadastro do grupo](docs/CADASTRO-GRUPO.md).
 
 ### Onde os dados ficam
 
@@ -84,7 +84,7 @@ A solicitação gera um desafio PKCE S256; o verificador permanece em cookie tem
 
 A sessão de recuperação dura 15 minutos e só permite alterar a senha. Não abre lojas, pedidos nem cobrança. A alteração encerra todas as sessões locais e solicita revogação global no provedor. O login normal dura até sete dias, com renovação protegida.
 
-Para o protótipo, use o SMTP padrão com o e-mail da equipe Supabase. Somente a recuperação consome seu limite atual de duas mensagens por hora. Para enviar recuperação aos clientes externos, configure Resend ou Brevo e teste esse ciclo antes de ativar `PEDIDO_EMAIL_DELIVERY_READY=true`. Os detalhes estão em [EMAIL_SUPABASE.md](EMAIL_SUPABASE.md). Não é necessário trocar banco, hospedagem ou provedor de login.
+O SMTP padrão pode servir a testes internos com a equipe Supabase, mas não comprova recuperação de contas do grupo. Consulte os limites atuais do provedor antes do teste. Para enviar recuperação aos clientes externos, configure Resend ou Brevo e teste esse ciclo antes de ativar `PEDIDO_EMAIL_DELIVERY_READY=true`. Os detalhes estão em [EMAIL_SUPABASE.md](EMAIL_SUPABASE.md). Não é necessário trocar banco, hospedagem ou provedor de login.
 
 Teste cadastro sem confirmação nem mensagem, acesso imediato ao painel, login, credenciais erradas, sessão persistente, logout, recuperação, link vencido/reutilizado, alteração de senha e isolamento entre duas pizzarias. Os testes automatizados usam o SQL real e o provedor simulado; não substituem receber o e-mail e executar o ciclo externo.
 

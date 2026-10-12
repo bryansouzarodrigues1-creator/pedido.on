@@ -220,6 +220,55 @@ test('invite-only onboarding starts directly without confirmation email and prot
   }finally{globalThis.fetch=originalFetch;f.close();}
 });
 
+test('registration config checks actual provider readiness without creating accounts or sending email',async()=>{
+ const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
+ f.env.PEDIDO_AUTH_MODE='invite';f.env.PEDIDO_AUTH_INVITE_CODE='grupo-pizzaiolos-2026-EXEMPLO';f.env.PEDIDO_EMAIL_DELIVERY_READY='false';
+ const inspect=async()=>{
+  const request=new Request('https://pedido.example/api/auth/config?registration=1');
+  const response=await f.dispatch('auth','GET',request,{action:'config'});
+  assert.equal(response.status,200);return response.json();
+ };
+ try{
+  let config=await inspect();assert.equal(config.registrationEnabled,true);assert.equal(config.directSignup,true);assert.equal(config.prototype,false);assert.equal(config.inviteRequired,true);assert.equal(config.recoveryEnabled,false);
+  assert.equal(JSON.stringify(config).includes(f.env.PEDIDO_AUTH_INVITE_CODE),false);
+  for(const settings of [{mailer_autoconfirm:false},{disable_signup:true},{external:{email:false}},{mailer_autoconfirm:undefined}]){
+   const previous={...p.settings};Object.assign(p.settings,settings);config=await inspect();assert.equal(config.registrationEnabled,false);assert.equal(config.directSignup,false);Object.assign(p.settings,previous);
+  }
+  globalThis.fetch=async()=>new Response('provider unavailable',{status:503});assert.equal((await inspect()).directSignup,false);
+  assert.ok(p.calls.every(c=>c.path==='settings'&&c.method==='GET'));assert.equal(p.users.size,0);assert.equal(p.hashes.size,0);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').get().n,0);
+ }finally{globalThis.fetch=originalFetch;f.close();}
+});
+
+test('invite membership cannot be forged by signing up directly at the identity provider',async()=>{
+ const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
+ f.env.PEDIDO_AUTH_MODE='invite';f.env.PEDIDO_AUTH_INVITE_CODE='grupo-pizzaiolos-2026-EXEMPLO';
+ try{
+  const outsider=p.add('outside@example.test',secondId);outsider.user_metadata={name:'Outsider',inviteCode:f.env.PEDIDO_AUTH_INVITE_CODE,role:'admin'};
+  const denied=await f.call('auth','POST',{action:'login'},{email:outsider.email,password:initialPassword});assert.equal(denied.status,403);assert.equal(denied.headers.get('Set-Cookie'),null);
+  p.hashes.set(recoveryHash,{email:outsider.email,type:'recovery'});
+  assert.equal((await f.call('auth','POST',{action:'confirm-recovery'},{tokenHash:recoveryHash})).status,403);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').get().n,0);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM account_profiles').get().n,0);
+  // A new account entering through the validated invite becomes a member and can log in again.
+  const registered=await f.call('auth','POST',{action:'register'},{email:'invited@example.test',name:'Pizzaiolo convidado',password:initialPassword,inviteCode:f.env.PEDIDO_AUTH_INVITE_CODE});assert.equal(registered.status,200);
+  assert.equal((await login(f,'invited@example.test')).response.status,200);assert.equal(p.hashes.size,0);
+ }finally{globalThis.fetch=originalFetch;f.close();}
+});
+
+test('activating invite registration preserves existing sessions, account identities and legacy shop owners',async()=>{
+ const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
+ try{
+  p.add('owner@example.test',firstId);p.add('legacy@example.test',secondId);
+  f.db.prepare('UPDATE restaurants SET owner_id=? WHERE id=?').run('supabase:'+secondId,'shop-b');
+  const old=await login(f),oldRows=f.db.prepare('SELECT * FROM auth_sessions').all(),shops=f.db.prepare('SELECT * FROM restaurants ORDER BY id').all(),key=f.env.AUTH_SESSION_KEY;
+  f.env.PEDIDO_AUTH_MODE='invite';f.env.PEDIDO_AUTH_INVITE_CODE='grupo-pizzaiolos-2026-EXEMPLO';f.env.PEDIDO_AUTH_TEST_EMAILS='different@example.test';
+  assert.equal((await f.call('account','GET',{},undefined,cookieHeader(old.cookie))).status,200);
+  assert.deepEqual(f.db.prepare('SELECT * FROM auth_sessions').all(),oldRows);
+  assert.equal((await login(f)).response.status,200);assert.equal((await login(f,'legacy@example.test')).response.status,200);
+  assert.equal(f.env.AUTH_SESSION_KEY,key);assert.deepEqual(f.db.prepare('SELECT * FROM restaurants ORDER BY id').all(),shops);
+  assert.deepEqual(f.db.prepare('SELECT owner_id FROM account_profiles ORDER BY owner_id').all().map(row=>row.owner_id),['supabase:'+firstId,'supabase:'+secondId]);
+ }finally{globalThis.fetch=originalFetch;f.close();}
+});
+
 test('repeating signup after auto-confirm is enabled preserves a previously pending identity and its shops',async()=>{
   const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
   try{

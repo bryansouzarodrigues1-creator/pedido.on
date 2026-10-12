@@ -5,7 +5,7 @@ O painel tem uma área única **Criar com IA** para visual/textos, logo, capa, p
 ## Uso
 
 1. Escolher o que criar e, no caso de foto, um produto cadastrado.
-2. Escrever a ideia ou usar o exemplo. Uma imagem é solicitada diretamente, sem gerar texto antes.
+2. Escrever a ideia ou usar o exemplo. Pedidos explícitos como “Gere uma logo real” selecionam Logo e pedem uma imagem diretamente, sem gerar texto antes. Pedidos ambíguos exigem escolher o tipo de imagem; estilos locais não simulam uma imagem gerada.
 3. O painel salva o rascunho antes de enviar o pedido para a IA.
 4. Conferir o resultado e escolher **Usar no cardápio**.
 5. **Publicar/Atualizar** no painel é a ação que disponibiliza a mudança aos clientes.
@@ -21,10 +21,10 @@ Os estilos prontos estão numa opção recolhida e não usam o limite de IA. A i
 - Texto: 20 por proprietário/mês e 20/dia na plataforma. Imagem: 3 por proprietário/mês e 2/dia na plataforma. Criar outra pizzaria não multiplica a cota do dono.
 - Request ID idempotente, token de uso único, hash, expiração e reserva atômica no D1. Nenhum retry pago automático. **Ver resultado** repete o mesmo ID e reaproveita o resultado quando disponível.
 - O Worker usa `redirect: "manual"`; tokens não são encaminhados a redirects. `redirect: "error"` não funciona no runtime de produção.
-- `attempt: cancelled` indica falha anterior ao claim ou saldo recusado com devolução. `failed` indica falha após claim; `pending` indica pedido em andamento. O cliente distingue esses estados sem avisar desconto quando ele não ocorreu.
+- `attempt: cancelled` indica falha anterior ao claim ou saldo recusado com devolução. `failed` indica falha após claim; `pending` indica pedido em andamento. O cliente distingue esses estados sem avisar desconto quando ele não ocorreu. Falhas não são transformadas automaticamente em resultados locais; estilos prontos são escolhidos explicitamente.
 
 ## Integração ativa
 
 Serviço: https://pedido-on-estudio.lovable.app. Rotas `/api/pedido-on/studio` e `/api/pedido-on/image`; chave gerenciada somente no servidor. Nenhum segredo vai para o app ou navegador. Stripe permanece uma etapa independente, desativada.
 
-93 testes do aplicativo passaram, com provedores simulados e dois testes em workerd. Um texto e uma imagem reais passaram no serviço, com claim simulado no teste interno. A conexão dos dois endpoints foi confirmada em produção via saúde. O ciclo completo na loja autenticada e a revisão visual do celular continuam pendentes; não confundir esses níveis de validação.
+129 testes do aplicativo e typecheck passaram nesta correção, incluindo o destino dos dois pedidos de logo enviados pelo proprietário. Duas gerações reais de texto do celular foram comprovadas no Sites/D1 em 11/10/2026. O ciclo real de imagem autorizada, R2 e aplicação ao rascunho permanece pendente. O serviço não precisou de outro build Lovable nesta etapa.

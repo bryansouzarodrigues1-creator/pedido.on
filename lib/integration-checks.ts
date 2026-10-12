@@ -41,7 +41,7 @@ export async function checkSupabase(
         checks.push(
           { id: "supabase", label: "Conexão com Supabase", state: "ok", message: "O serviço de acesso respondeu à chave deste projeto." },
           { id: "email-login", label: "Acesso por e-mail e senha", state: settings.external.email ? "ok" : "error", message: settings.external.email ? "O provedor de e-mail está habilitado." : "Habilite o provedor de e-mail em Supabase Auth." },
-          { id: "signup", label: "Cadastro de clientes", state: settings.disable_signup ? "error" : "ok", message: settings.disable_signup ? "O projeto está bloqueando novos cadastros. Habilite o cadastro em Supabase Auth." : "O projeto permite criar contas." },
+          { id: "signup", label: "Cadastro de pizzaiolos", state: settings.disable_signup ? "error" : "ok", message: settings.disable_signup ? "O projeto está bloqueando novos cadastros. Habilite o cadastro em Supabase Auth." : "O projeto permite criar contas." },
           { id: "confirmation", label: "Cadastro direto", state: settings.mailer_autoconfirm ? "ok" : "error", message: settings.mailer_autoconfirm ? "O cadastro libera acesso direto, sem enviar mensagem de confirmação." : "Desative Confirm email em Authentication → Sign In / Providers para liberar o cadastro direto." },
         );
       }
@@ -53,7 +53,7 @@ export async function checkSupabase(
     ? config.googleEnabled ? "O Google está habilitado no provedor e no site. Esta consulta não executa o login: confira o ciclo completo, a URL de retorno e a conta criada." : "O Google está habilitado no Supabase. Teste o ciclo completo e ative PEDIDO_GOOGLE_ENABLED na hospedagem."
     : googleProvider === false ? "Configure o cliente OAuth no provedor Google do Supabase e teste o retorno ao pedido.on." : "Conecte o projeto Supabase e confira seu provedor Google. A conexão não foi confirmada." });
   checks.push({ id: "smtp", label: "Entrega dos e-mails", state: config.prototype || config.emailReady ? "review" : "pending", message: config.prototype
-    ? "Protótipo restrito às contas autorizadas. O SMTP padrão do Supabase permite testar recuperação com os e-mails da equipe, sem domínio próprio. Esta consulta não comprova recebimento: desative o SMTP personalizado e teste Esqueci minha senha. O cadastro não envia e-mail."
+    ? "Acesso restrito às contas autorizadas. O SMTP padrão do Supabase permite testar recuperação com os e-mails da equipe, sem domínio próprio. Esta consulta não comprova recebimento: desative o SMTP personalizado e teste Esqueci minha senha. O cadastro não envia e-mail."
     : config.emailReady
     ? "O envio está marcado como testado na hospedagem. Esta verificação não envia mensagens: confirme a entrega e os links com um destinatário externo."
     : "Configure SMTP próprio e teste recuperação de senha. Depois ative PEDIDO_EMAIL_DELIVERY_READY. Cadastro e login funcionam sem envio de e-mail." });

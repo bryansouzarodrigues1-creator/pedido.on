@@ -1,4 +1,5 @@
 import {env} from "cloudflare:workers";
+import {requestedImage} from "./creation-intent";
 import {randomToken,sha256} from "./auth-policy";
 import {HttpError,readBytes,throttle} from "./http";
 import {localStudio,proposalPatch,studioEndpoint,studioLimits,studioPrompt,studioProtocol,studioProposal,studioInput} from "./studio-policy";
@@ -11,6 +12,8 @@ export function studioConfig(){const e=env as typeof env&StudioEnv,endpoint=stud
 export async function studioAllowance(ownerId:string){const period=new Date().toISOString().slice(0,7),row=await env.DB!.prepare("SELECT COUNT(*) AS used FROM studio_jobs WHERE owner_id=? AND period_key=? AND state!='cancelled'").bind(ownerId,period).first<{used:number}>();return {enabled:studioConfig().enabled,used:row?.used||0,limit:studioLimits.monthly,localAvailable:true};}
 export async function claimStudio(jobId:string,token:string){if(!studioConfig().enabled)throw new HttpError(503,"O assistente de IA ainda não foi ativado.");const now=new Date().toISOString(),row=await env.DB!.prepare("UPDATE studio_jobs SET state='claimed',updated_at=? WHERE id=? AND token_hash=? AND state='queued' AND expires_at>? RETURNING prompt").bind(now,jobId,await sha256(token),now).first<{prompt:string}>();if(!row)throw new HttpError(401,"Solicitação inválida ou já utilizada.");return {protocol:studioProtocol,prompt:row.prompt};}
 export async function runStudio(ownerId:string,restaurantId:string,input:z.infer<typeof studioInput>){
+ const imageIntent=requestedImage(input.message);
+ if(imageIntent)throw new HttpError(422,`Você pediu ${imageIntent.label}. Escolha o tipo de imagem em “O que você quer criar?” para gerar uma imagem real. Nenhuma sugestão de texto foi usada.`);
  const config=studioConfig();if(input.mode==="ai"&&!config.enabled)throw new HttpError(503,"A IA ainda está em conexão. Os estilos prontos continuam disponíveis.");if(input.mode==="local"){await throttle("studio-local:"+await sha256(ownerId),60,300);return {proposal:localStudio(input.message,input.snapshot,input.productId),mode:"local" as const,usage:await studioAllowance(ownerId)};}
  const inputHash=await sha256(JSON.stringify({...input,requestId:undefined})),find=()=>env.DB!.prepare("SELECT id,input_hash,state,result FROM studio_jobs WHERE owner_id=? AND restaurant_id=? AND request_id=?").bind(ownerId,restaurantId,input.requestId).first<Job>();
  function resume(job:Job){if(job.input_hash!==inputHash)throw new HttpError(409,"Esta tentativa já foi usada com outro pedido.");if(job.state==="completed"&&job.result)return {proposal:studioProposal.parse(JSON.parse(job.result)),mode:"ai" as const};throw new HttpError(409,job.state==="queued"||job.state==="claimed"?"A IA está preparando sua sugestão. Aguarde.":"Este pedido terminou sem sugestão. Você pode criar outro.",job.state==="queued"||job.state==="claimed"?"pending":job.state==="cancelled"?"cancelled":"failed");}
