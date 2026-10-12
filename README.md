@@ -4,9 +4,9 @@ Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criaçã
 
 **Publicado:** [forno-cardapios.waves4845.chatgpt.site](https://forno-cardapios.waves4845.chatgpt.site) · [Calculadora sem cadastro](https://forno-cardapios.waves4845.chatgpt.site/calculadora) · [Meu painel](https://forno-cardapios.waves4845.chatgpt.site/app)
 
-## Estado atual — 11/10/2026
+## Estado atual — 12/10/2026
 
-Última publicação confirmada: **versão 19**, fonte Sites `7b609fe29aed01a5195a9f8df3e05da8f395133c`, ambiente revisão 6, PR #6 integrada. Pedidos explícitos de imagem seguem ao gerador de imagens. O cadastro usa convite secreto e está liberado sem confirmação de e-mail: Confirm email foi desativado no Supabase após aprovação do proprietário, e a API real do aplicativo confirmou `directSignup:true`. Nova conta e imagem real ainda precisam de validação pelo celular. O visual usa pizza real, carvão e vermelho, com menos ações e textos curtos. A navegação do painel é **Pedidos, Cardápio, Pizzaria e Criar com IA**. O cadastro inicial pede nome, WhatsApp e endereço do cardápio; a aparência pode ser ajustada depois.
+Última publicação confirmada: **versão 20**, fonte Sites `5153cab4266fa7680de194336f686cdb9f367fcb`, ambiente revisão 6, PR #7 integrada. A criação começa em imagem e conserva o prompt do dono até o gerador. O cadastro por convite foi validado com acesso direto e login normal, sem confirmação de e-mail. Uma imagem real do pedido “Gere algo marcante de pizza de queijo” foi gerada pela Lovable, salva no R2 e aplicada ao rascunho privado de teste. Ainda falta conferir a interação no celular do proprietário. As duas pizzarias e o perfil anteriores foram comparados e permaneceram iguais. A navegação mantém **Pedidos, Cardápio, Pizzaria e Criar com IA**.
 
 A falha de IA foi reproduzida no runtime Cloudflare: `redirect: "error"` não é suportado e interrompia a chamada antes de chegar à Lovable. O aplicativo usa `redirect: "manual"`; retornos 3xx continuam rejeitados e o token de uso único não é encaminhado a outro endereço. Os erros diferenciam falhas antes e depois da autorização, com cota devolvida somente quando adequado.
 
@@ -74,11 +74,11 @@ O [guia Netlify](docs/NETLIFY.md) descreve os três valores do gateway, a public
 
 ## IA e validação
 
-**Produção de 11/10 — v18:** o transporte Lovable foi corrigido e publicado. Os registros do celular comprovam duas gerações reais de texto, com autorização de uso único e resultados concluídos no D1. As ideias pediam logo, mas foram enviadas ao gerador de textos; por isso apareciam como prévia de cardápio. A correção atual reconhece pedidos explícitos de imagem antes de qualquer chamada de texto e encaminha ao gerador de imagens. Não há fallback automático de IA para estilo pronto.
+**Histórico de 11/10 — v18:** o transporte Lovable foi corrigido e publicado. Os registros do celular comprovam duas gerações reais de texto, com autorização de uso único e resultados concluídos no D1. As ideias pediam logo, mas foram enviadas ao gerador de textos; por isso apareciam como prévia de cardápio. A correção atual reconhece pedidos explícitos de imagem antes de qualquer chamada de texto e encaminha ao gerador de imagens. Não há fallback automático de IA para estilo pronto.
 
 Cotas mantidas: imagens **3 por proprietário/mês e 2/dia na plataforma**; sugestões **20 por proprietário/mês e 20/dia na plataforma**. Cada geração nova consome saldo de IA. Consultar o mesmo pedido reutiliza o resultado; estilos prontos não usam modelos.
 
-Passaram **129 testes do aplicativo** e o typecheck nesta correção. Os testes de rotas adaptam os provedores externos e D1/R2; não são uma nova geração real. Duas gerações de texto do proprietário foram comprovadas em produção. Imagem pela pizzaria autenticada, bytes no R2 e aplicação ao rascunho ainda precisam de prova real. Não houve nova consulta/build do agente Lovable nem novas chamadas pagas nesta etapa. Ver [evidências](docs/IA-PRODUCAO.md) e [cadastro por convite](docs/CADASTRO-GRUPO.md).
+Passaram **134 testes**, typecheck e build nesta correção. Os testes locais adaptam modelos e D1/R2; não são novas gerações reais. Em produção, uma conta isolada foi criada pelo convite e autenticada por senha. Uma geração real recebeu o prompt original, completou o claim, devolveu JPEG **1376 × 768 / 230.350 bytes**, foi lida do R2 e aplicada ao rascunho privado, conservando preços/Pix. Três textos anteriores do proprietário também estão comprovados. Foi consumida **uma geração de imagem**, sem novo build/consulta do agente Lovable ou nova geração de texto. Revisão da interface no celular, recuperação de senha, Web Push, trial fiscalizado, Asaas e Netlify permanecem pendentes. Ver [evidências](docs/IA-PRODUCAO.md) e [cadastro por convite](docs/CADASTRO-GRUPO.md).
 
 ## Guias
 

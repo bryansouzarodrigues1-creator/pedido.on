@@ -1,6 +1,12 @@
-# IA em produção — diagnóstico de 11/10/2026
+# IA em produção — estado e evidências
 
-## Estado confirmado
+## Estado atual — 12/10/2026, v20
+
+A correção de encaminhamento está publicada na **versão 20**, fonte Sites `5153cab4266fa7680de194336f686cdb9f367fcb`, implantação `appgdep_6accbc470bc481918ecf2f363a32eea9`, concluída às **10:54:21.705 UTC (07:54 no Brasil)**. PR #7 integrada em `d4da8482aa6e21bf6b3b141f704ede3ff04f0aca`. Fonte Sites e GitHub foram comparadas pela árvore `ab42696c7a987a0503a035130fed706323347fc3`. Ambiente revisão 6, audiência, endpoints/flags, chave de sessão, cotas e dados anteriores preservados.
+
+**Uma imagem real está comprovada**, pelo fluxo normal de uma conta de teste convidada, autenticada com senha. O mesmo prompt “Gere algo marcante de pizza de queijo” seguiu completo ao modelo de imagem, sem texto intermediário. O JPEG foi lido do R2, decodificado, inspecionado e aplicado ao rascunho privado de teste. Ainda falta a conferência do componente no celular do proprietário. Não houve novo build/consulta do agente Lovable. Ver a prova detalhada ao final.
+
+## Histórico confirmado — 11/10/2026, v18
 
 - Sites publicou a versão **18**, fonte `0509ffc7875ff02b1db786b6a51207b121be5911`, implantação `appgdep_6acbf9522808819187183b508e487dbd` concluída em **11/10/2026 às 21:02:35 UTC**, ambiente revisão **5**, público. A v17 continua preservada no histórico.
 - PR #5 integrada à `main` em `de1414ef15a9a2f975d6fb942eb7cd1784acea90`, além das PRs #2, #3 e #4. PR #1 Asaas permanece separada. Esta atualização posterior de documentação registra a publicação; não requer outra implantação para alterar o comportamento do aplicativo.
@@ -80,3 +86,27 @@ O pedido exato **“Gere algo marcante de pizza de queijo”** criou o job de te
 A identificação anterior dependia de substantivos como logo/foto/imagem, e a tela iniciava na criação de texto. A correção inicia em **Imagem para a pizzaria**, envia o prompt literal diretamente à rota de imagem e conserva a ideia ao trocar o destino. A opção de texto é explícita; o servidor bloqueia também o pedido de arte sem a palavra “imagem”, antes de reservar uma sugestão. O prompt de imagem prioriza as cores/estilo pedidos pelo dono sobre a identidade existente. Nenhum CSS de contraste ou alteração do componente de prévia foi usado para tratar esse defeito.
 
 Os endpoints/flags publicados foram conferidos na **revisão 6** e continuam corretos e ativados. A leitura do handler Lovable no commit atual confirma o modelo de imagem e o claim separado; não houve novo pedido ao agente Lovable. **134 testes** e typecheck passaram; a integração até bytes/R2/rascunho nos testes usa modelo e banco simulados. A publicação e a única geração real autorizada ainda precisam de registro posterior. Usar cadastro e sessão normais de uma conta isolada de teste, sem falsificar o dono, ler selos D1 ou alterar pizzarias existentes. Nenhuma imagem paga foi executada até este ponto.
+
+## Imagem real autenticada e rascunho — v20
+
+A conta isolada passou por cadastro `/api/auth/register` **200**, sessão Supabase do aplicativo, logout e login com senha **200**. Inicialmente não via pizzarias; uma pizzaria privada de teste foi criada pelo POST normal, com um produto de queijo. Nenhum convite, senha, cookie ou token consta neste documento. A chamada de imagem foi montada pelo mesmo `creationRequest` usado no componente, com o prompt original e sem um pedido de texto prévio.
+
+| Etapa real | Resultado |
+| --- | --- |
+| Job D1 | `5e9d42fc-d5f9-4970-b4d8-9b22342f5cd1`, `cover`, `completed` |
+| Reserva / conclusão | 12/10/2026 **11:03:18.594 / 11:03:24.095 UTC** |
+| Claim de imagem | POST `/api/ai/images/claim` **200**, 11:03:19.445 UTC, request `b6cbb585dd9d1a94c880728088727bbd` |
+| Resposta ao cliente autenticado | POST `/api/restaurants/:id/ai/images` **200**, 11:03:24.243 UTC, request `4ed1ef28e47f03e674bdbc7988323170` |
+| Arquivo R2 | JPEG **1376 × 768**, **230.350 bytes**, GET público **200**, decodificado e inspecionado |
+| SHA-256 dos bytes | `acc70b1fc14e215734ff7bdda5e15cbaf46d673eff8da36353649f7573a264e9` |
+| Consumo da conta de teste | Imagem **1**, texto **0**, conferidos por GET; somente um POST de imagem |
+| Aplicação | PUT autenticado **200**, capa no rascunho, revisão **3**, `published:false`; produtos/preços e Pix iguais |
+| Encerramento | Logout **200** às 11:04:12.933 UTC, request `4a5a94a16e15da0138b7a4b6eeee06de`; GET de sessão retornou usuário nulo |
+
+Imagem: `/media/a0ababd5-8022-4f4d-8709-db24ea59756f/4c78d998-52d5-4831-932d-d444557f1615.jpg`. O resultado é uma fotografia de pizza de queijo em ambiente de pizzaria, com textura de queijo e forno ao fundo. Não é uma captura do cardápio, nem o arquivo estático `/assets/pizza.webp` (dimensões e hash distintos). A latência total observada pelo cliente foi **18,707 segundos**, incluindo transporte e obtenção do CSRF; o intervalo do job foi de **5,501 segundos**. Velocidade por si só não distingue geração de simulação: claim, bytes e estado são a prova.
+
+O primeiro roteiro de diagnóstico foi rejeitado pela revisão automática porque incluía um segundo POST idempotente para conferir reutilização. O processo terminou, e a leitura do D1 confirmou **zero jobs de imagem dessa pizzaria**. A chamada redundante foi removida; conservou-se o mesmo request ID e o teste fez **somente uma geração**, com verificações posteriores por GET. Não houve retry pago, nova imagem ou novo texto.
+
+Depois do teste, as **duas pizzarias, o perfil e os cinco jobs de texto anteriores** foram comparados integralmente e permaneceram iguais. Há um perfil e uma pizzaria privada de teste adicionais. As sessões de teste foram encerradas; as três sessões anteriores permanecem existentes, mas seus campos selados têm projeção truncada, por isso não afirmar comparação completa de sessões. Nenhum objeto R2 anterior foi sobrescrito. Não houve migração, alteração de segredo, compra de saldo/domínio ou publicação do conteúdo de teste.
+
+Passaram **134 testes**, typecheck e build/empacotamento. A geração acima usa o modelo e as APIs reais; os testes automatizados continuam identificados como simulados. A interação no celular original, entrega/chat em dois aparelhos, Web Push, recuperação de senha, trial fiscalizado, Asaas e Netlify permanecem pendentes. Não repetir uma geração paga para conferir os fatos já registrados.
