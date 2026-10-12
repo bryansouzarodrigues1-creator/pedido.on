@@ -3,6 +3,7 @@ import {eq} from "drizzle-orm";
 import {getDb} from "@/db";
 import {orders} from "@/db/schema";
 import {trackedOrder,customerOrder} from "@/lib/order-server";
+import {queueRestaurantNotice} from "@/lib/push";
 import {receiptType,MAX_PROOF_BYTES,MAX_PROOFS,receiptSql} from "@/lib/order-policy";
 import {bucket} from "@/lib/server";
 import {sameOrigin,readBytes,HttpError,errorResponse,privateHeaders,throttle} from "@/lib/http";
@@ -25,5 +26,6 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(!results[1].meta.changes)throw new HttpError(409,"O pedido mudou durante o envio. Atualize para conferir.");
  }catch(e){await storage.delete(key).catch(()=>{});throw e;}
  const updated=await getDb().select().from(orders).where(eq(orders.id,id)).get();if(!updated)throw new HttpError(404,"Pedido não encontrado.");
+ queueRestaurantNotice(row.restaurantId,"receipt:"+receiptId,"orders",row.id);
  return Response.json({order:await customerOrder(updated)},{status:201,headers:privateHeaders});
 }catch(e){return errorResponse(e);}}

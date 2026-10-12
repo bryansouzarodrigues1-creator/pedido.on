@@ -1,4 +1,5 @@
 "use client";
+import {clearLocalNotifications,deactivatePush} from "@/lib/push-client";
 import {useState,useEffect,useRef,type FormEvent} from "react";
 import {ArrowLeft,ArrowRight,Eye,EyeOff,Mail,ShieldCheck,CheckCircle2,Loader2,LockKeyhole} from "lucide-react";
 import {Brand} from "./ui";
@@ -35,7 +36,7 @@ export default function AuthForm({mode,next="/app",tokenHash="",recoveryCode="",
  async function google(){setBusy(true);setGoogleBusy(true);setError("");try{const result=await send("google",{next});if(!result.url)throw new Error("Não conseguimos abrir o acesso com Google. Tente novamente.");location.assign(result.url);}catch(e){setError(e instanceof Error?e.message:"Não foi possível continuar.");setBusy(false);setGoogleBusy(false);}}
  async function submit(event:FormEvent){event.preventDefault();setError("");setBusy(true);try{
    if((mode==="register"||mode==="reset"&&ready)&&password!==confirmation)throw new Error("As senhas precisam ser iguais.");
-   if(mode==="logout"){const result=await send("logout",{});location.assign(result.chatgpt?chatGPTSignOutPath("/"):"/");return;}
+   if(mode==="logout"){await deactivatePush().catch(()=>{});await clearLocalNotifications().catch(()=>{});const result=await send("logout",{});location.assign(result.chatgpt?chatGPTSignOutPath("/"):"/");return;}
    if(mode==="confirm-email"){const result=await send("confirm-email",{tokenHash});location.assign(result.next||"/app");return;}
    if(mode==="reset"){if(!ready){if(recoveryCode)await send("confirm-recovery-code",{code:recoveryCode});else if(tokenHash)await send("confirm-recovery",{tokenHash});else throw new Error("Abra o link recebido por e-mail ou solicite um novo.");setReady(true);setPassword("");return;}await send("password",{password});setMessage("Senha alterada. Entre novamente com a nova senha.");return;}
    const result=await send(mode==="login"?"login":mode==="register"?"register":"recover",{email,password,name:name||undefined,inviteCode:mode==="register"?inviteCode||undefined:undefined,captchaToken:captcha||undefined,next});if(result.next)location.assign(result.next);else setMessage(result.message||"Confira seu e-mail para continuar.");

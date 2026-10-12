@@ -5,6 +5,7 @@ import {money,type OrderSummary} from "@/lib/domain";
 import {orderStatuses,type ManagedOrder,type OrderAction,type OrderStatus} from "@/lib/order-policy";
 import {Spinner} from "./ui";
 import OrderChat from "./order-chat";
+import PushControls from "./push-controls";
 export type OrderRecord=ManagedOrder&{status:OrderStatus;restaurantId:string;receiptMime:string|null};
 export type ActionDetails=Pick<OrderAction,"action"|"etaMinutes"|"receivedPix"|"reason">;
 export function nextOrderAction(order:OrderRecord):ActionDetails["action"]|null{
@@ -16,23 +17,14 @@ export function nextOrderAction(order:OrderRecord):ActionDetails["action"]|null{
 export const actionLabels={confirm:"Conferir e aprovar",prepare:"Começar preparo",dispatch:"Saiu para entrega",complete:"Concluir pedido",eta:"Atualizar prazo",reject_receipt:"Recusar comprovante",cancel:"Cancelar pedido"};
 export function PaymentBadge({order}:{order:OrderRecord}){return <span className={`payment-badge ${order.paymentStatus}`}>{order.paymentStatus==="approved"?"Pix conferido pela loja":order.paymentStatus==="proof_sent"?"Comprovante para conferir":order.paymentStatus==="pending"?"Cliente ainda vai enviar Pix":order.paymentStatus==="rejected"?"Comprovante recusado":"Pagamento na entrega ou retirada"}</span>;}
 export function OrderAlerts({orders,loaded,onOpen}:{orders:OrderRecord[];loaded:boolean;onOpen:()=>void}){
- const [enabled,setEnabled]=useState(false),[notice,setNotice]=useState(""),[notification,setNotification]=useState(false);
+ const [enabled,setEnabled]=useState(false),[notice,setNotice]=useState("");
  const seen=useRef(new Set<string>()),initialized=useRef(false),audio=useRef<AudioContext|null>(null),callback=useRef(onOpen);callback.current=onOpen;
  const pending=orders.filter(o=>o.status==="awaiting").length;
  function ring(){try{const ctx=audio.current;if(!ctx||ctx.state!=="running")return;for(let i=0;i<2;i++){const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.2;osc.frequency.value=i?880:660;gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(.12,start+.02);gain.gain.exponentialRampToValueAtTime(.0001,start+.16);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.17);}}catch{}}
- async function activate(){
-  try{audio.current ||= new AudioContext();await audio.current.resume();}catch{}
-  setEnabled(true);ring();
-  if("Notification" in window&&window.isSecureContext){try{const permission=await Notification.requestPermission();setNotification(permission==="granted");}catch{}}
- }
- useEffect(()=>{if(!loaded)return;const queued=orders.filter(o=>o.status==="awaiting"),keys=queued.map(o=>o.id+":"+(o.receiptId||"order"));
-  if(!initialized.current){keys.forEach(k=>seen.current.add(k));initialized.current=true;return;}
-  const fresh=queued.filter((_,i)=>!seen.current.has(keys[i]));keys.forEach(k=>seen.current.add(k));
-  if(!fresh.length)return;setNotice(fresh.length===1?"Novo pedido de "+fresh[0].customer+" para conferir.":fresh.length+" pedidos chegaram para aprovação.");
-  if(enabled){ring();if(notification){try{const n=new Notification("pedido.on · pedido para aprovar",{body:fresh.length===1?"Pedido #"+fresh[0].id.slice(0,8).toUpperCase()+" · "+money(fresh[0].total):fresh.length+" pedidos aguardam aprovação.",tag:"pedido-on-orders"});n.onclick=()=>{window.focus();callback.current();n.close();};}catch{}}}
- },[orders,loaded,enabled,notification]);
+ async function activateSound(){try{audio.current ||= new AudioContext();await audio.current.resume();setEnabled(true);}catch{}}
+ useEffect(()=>{if(!loaded)return;const queued=orders.filter(o=>["awaiting","awaiting_payment"].includes(o.status)),keys=queued.map(o=>o.id+":"+(o.receiptId||"order"));if(!initialized.current){keys.forEach(k=>seen.current.add(k));initialized.current=true;return;}const fresh=queued.filter((_,i)=>!seen.current.has(keys[i]));keys.forEach(k=>seen.current.add(k));if(!fresh.length)return;setNotice(fresh.length===1?"Um pedido foi atualizado no painel.":fresh.length+" pedidos foram atualizados.");if(enabled)ring();},[orders,loaded,enabled]);
  useEffect(()=>()=>{audio.current?.close().catch(()=>{});},[]);
- return <div className={`order-alert-panel ${pending?"has-pending":""}`}><BellRing size={22}/><div><strong>{pending?`${pending} ${pending===1?"pedido para aprovar":"pedidos para aprovar"}`:"Seus pedidos chegam aqui"}</strong><p>Alertas com o painel aberto. Ative o som e permita notificações no navegador.</p>{notice&&<button className="text-button" onClick={()=>{callback.current();setNotice("");}} role="status">{notice}</button>}</div><button className="btn outline small" onClick={enabled?onOpen:activate}><Bell size={16}/>{enabled?"Alertas ativos":"Ativar alertas"}</button></div>;
+ return <div className={`order-alert-panel ${pending?"has-pending":""}`}><BellRing size={22}/><div><strong>{pending?`${pending} ${pending===1?"pedido para aprovar":"pedidos para aprovar"}`:"Seus pedidos chegam aqui"}</strong><p>Receba avisos de pedidos e mensagens mesmo com o painel fechado.</p>{notice&&<button className="text-button" onClick={()=>{callback.current();setNotice("");}} role="status">{notice}</button>}<button className="text-button" type="button" onClick={activateSound}>{enabled?"Som do painel ativado":"Ativar som no painel"}</button></div><PushControls onEnable={activateSound}/></div>;
 }
 export function OrderDetails({order,onAction,busy,error="",demo=false}:{order:OrderRecord;onAction:(value:ActionDetails)=>Promise<boolean>;busy:boolean;error?:string;demo?:boolean}){
  const data=JSON.parse(order.data) as OrderSummary,[eta,setEta]=useState(50),[receivedReceipt,setReceivedReceipt]=useState<string|null>(null),[reason,setReason]=useState("");

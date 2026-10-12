@@ -68,3 +68,5 @@ next-env.d.ts
 .pnpm-store/
 .eslintcache
 *.log
+public/pwa/
+public/pwa-release.js

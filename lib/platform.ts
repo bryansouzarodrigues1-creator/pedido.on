@@ -2,8 +2,9 @@ import {env} from "cloudflare:workers";
 import {z} from "zod";
 import {inviteConfigured,matchesInvite} from "./invite-policy";
 import type {AccountUser} from "./auth";
-type PlatformEnv={PLATFORM_ADMIN_EMAIL?:string;PEDIDO_EMAIL_DELIVERY_READY?:string;PEDIDO_AUTH_MODE?:string;PEDIDO_AUTH_TEST_EMAILS?:string;PEDIDO_AUTH_INVITE_CODE?:string};
-export function platformAdmin(user:AccountUser){const key=(env as typeof env&PlatformEnv).PLATFORM_ADMIN_EMAIL;return !!key&&user.provider==="chatgpt"&&user.email.toLowerCase()===key.toLowerCase();}
+import {isPlatformAdministrator} from "./admin-policy";
+type PlatformEnv={PLATFORM_ADMIN_ACCOUNT_ID?:string;PLATFORM_ADMIN_EMAIL?:string;PEDIDO_EMAIL_DELIVERY_READY?:string;PEDIDO_AUTH_MODE?:string;PEDIDO_AUTH_TEST_EMAILS?:string;PEDIDO_AUTH_INVITE_CODE?:string};
+export function platformAdmin(user:AccountUser){const e=env as typeof env&PlatformEnv;return isPlatformAdministrator(user,{accountId:e.PLATFORM_ADMIN_ACCOUNT_ID,email:e.PLATFORM_ADMIN_EMAIL});}
 export function emailDeliveryReady(){return (env as typeof env&PlatformEnv).PEDIDO_EMAIL_DELIVERY_READY==="true";}
 export function authTestMode(){return (env as typeof env&PlatformEnv).PEDIDO_AUTH_MODE==="prototype";}
 export function inviteOnlyRegistration(){return (env as typeof env&PlatformEnv).PEDIDO_AUTH_MODE==="invite";}

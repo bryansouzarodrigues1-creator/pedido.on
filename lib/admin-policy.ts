@@ -1,0 +1,1 @@
+export function isPlatformAdministrator(user:{userId:string;email:string;provider:string}|null|undefined,config:{accountId?:string;email?:string}){if(!user)return false;if(config.accountId)return user.userId===config.accountId;return !!config.email&&user.provider==="chatgpt"&&user.email.trim().toLowerCase()===config.email.trim().toLowerCase();}

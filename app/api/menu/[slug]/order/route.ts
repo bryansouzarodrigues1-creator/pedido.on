@@ -9,6 +9,7 @@ import {sha256} from "@/lib/auth-policy";
 import {authConfig} from "@/lib/auth";
 import {deliveryApprovalEnabled} from "@/lib/delivery-config";
 import {canUseDeliveryCheck,sameDeliveryContact} from "@/lib/delivery-policy";
+import {queueOwnerNotice} from "@/lib/push";
 export const dynamic="force-dynamic";
 export async function POST(request:Request,{params}:{params:Promise<{slug:string}>}){try{
  sameOrigin(request);const {slug}=await params,db=getDb();
@@ -39,5 +40,6 @@ export async function POST(request:Request,{params}:{params:Promise<{slug:string
  await db.insert(orders).values({id:crypto.randomUUID(),restaurantId:row.id,requestId:input.requestId,trackingHash:hash,customer:summary.customer,phone:summary.phone,data:JSON.stringify(summary),total:summary.total,status:pix?"awaiting_payment":"awaiting",paymentStatus:pix?"pending":"pay_on_delivery",pixSnapshot:pix?JSON.stringify(pix):null,createdAt:stamp,updatedAt:stamp}).onConflictDoNothing();
  const saved=await db.select().from(orders).where(and(eq(orders.restaurantId,row.id),eq(orders.requestId,input.requestId))).get();
  if(!saved)throw new HttpError(500,"Não foi possível registrar o pedido.");
+ queueOwnerNotice(row.ownerId,"order:"+saved.id,"orders",row.id,saved.id);
  return Response.json(result(saved),{status:201,headers:privateHeaders});
 }catch(e){return errorResponse(e);}}

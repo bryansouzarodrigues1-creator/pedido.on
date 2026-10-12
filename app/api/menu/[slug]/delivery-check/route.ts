@@ -7,6 +7,7 @@ import {deliveryApprovalEnabled} from "@/lib/delivery-config";
 import {deliveryCheckRequest,DELIVERY_SECONDS,normalizedDeliveryPhone} from "@/lib/delivery-policy";
 import {sameOrigin,readJson,privateHeaders,throttle,errorResponse,HttpError} from "@/lib/http";
 import {sha256} from "@/lib/auth-policy";
+import {queueOwnerNotice} from "@/lib/push";
 export const dynamic="force-dynamic";
 type Context={params:Promise<{slug:string}>};
 async function published(slug:string){
@@ -41,6 +42,7 @@ export async function POST(request:Request,{params}:Context){try{
  }).onConflictDoNothing();
  const saved=await getDb().select().from(deliveryChecks).where(and(eq(deliveryChecks.restaurantId,row.id),eq(deliveryChecks.requestId,input.requestId))).get();
  if(!saved||saved.tokenHash!==tokenHash)throw new HttpError(409,"Consulta em andamento. Atualize para acompanhar.");
+ queueOwnerNotice(row.ownerId,"delivery:"+saved.id,"delivery",row.id);
  return Response.json({id:saved.id,status:saved.status,expiresAt:saved.expiresAt},{status:201,headers:privateHeaders});
  }catch(error){return errorResponse(error);}
 }
