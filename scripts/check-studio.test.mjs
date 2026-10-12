@@ -63,7 +63,7 @@ test('explicit image requests on the text route are rejected without models, job
  globalThis.fetch=async()=>{calls++;throw Error('Image request must not call a text model');};
  try{
   const before=f.db.prepare('SELECT data,published_data FROM restaurants WHERE id=?').get('shop-a');
-  for(const mode of ['ai','local'])for(const message of ['Gere uma logo real','Gere uma logo real com cores vibrantes e um desing que vai fazer lembrar','Gere uma imagem profissional']){
+  for(const mode of ['ai','local'])for(const message of ['Gere uma logo real','Gere uma logo real com cores vibrantes e um desing que vai fazer lembrar','Gere uma imagem profissional','Gere algo marcante de pizza de queijo','Crie uma arte vibrante de pizza']){
    const response=await f.call('studio','POST',{id:'shop-a'},input(f.data,{mode,message}));
    assert.equal(response.status,422);assert.match((await response.json()).error,/Nenhuma sugestão de texto foi usada/);
   }

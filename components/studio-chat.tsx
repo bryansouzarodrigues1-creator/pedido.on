@@ -2,22 +2,23 @@
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import {ArrowRight,Check,Image as ImageIcon,Sparkles,Send,RotateCcw,Download,Palette,Eye} from "lucide-react";
 import {localStudio,proposalPatch,studioImagePatch,studioProposal,type StudioProposal} from "@/lib/studio-policy";
-import {creationTarget,imageLabels} from "@/lib/creation-intent";
+import {creationTarget,defaultCreationTarget,imageLabels,type CreationTarget} from "@/lib/creation-intent";
+import {creationRequest} from "@/lib/creation-request";
 import {themes,type RestaurantData} from "@/lib/domain";
 import {MiniMenu,Spinner} from "./ui";
 import {z} from "zod";
 
 type Usage={enabled:boolean;used:number;limit:number};
-type Target="visual"|"logo"|"cover"|"profile"|"product";
+type Target=CreationTarget;
 type Generated={url:string;asset:string;productId?:string};
-type Attempt={path:string;body:Record<string,unknown>;base:string;target:Target};
+type Attempt={path:string;body:Record<string,unknown>;base:string;target:Exclude<Target,"image">};
 const usageSchema=z.object({enabled:z.boolean(),used:z.number().int().min(0),limit:z.number().int().min(1)});
-const options=[{id:"visual",label:"Visual e textos"},{id:"logo",label:"Logo da pizzaria"},{id:"cover",label:"Capa do cardápio"},{id:"profile",label:"Imagem de perfil"},{id:"product",label:"Foto de um produto"}] as const;
-const hints:Record<Target,string>={visual:"Quero um cardápio escuro, com vermelho e descrições mais apetitosas.",logo:"Um logo com forno a lenha, o nome da minha pizzaria e letras fáceis de ler.",cover:"Pizza saindo do forno, luz quente e espaço para o título do cardápio.",profile:"Um símbolo de pizza com fundo escuro, fácil de reconhecer no WhatsApp.",product:"Pizza vista de cima, sobre uma mesa de madeira, com luz natural."};
+const options=[{id:"image",label:"Imagem para a pizzaria"},{id:"logo",label:"Logo da pizzaria"},{id:"cover",label:"Capa do cardápio"},{id:"profile",label:"Imagem de perfil"},{id:"product",label:"Foto de um produto"},{id:"visual",label:"Cores e textos do cardápio"}] as const;
+const hints:Record<Target,string>={image:"Gere algo marcante de pizza de queijo, com queijo derretido e luz quente.",visual:"Quero um cardápio escuro, com vermelho e descrições mais apetitosas.",logo:"Um logo com forno a lenha, o nome da minha pizzaria e letras fáceis de ler.",cover:"Pizza saindo do forno, luz quente e espaço para o título do cardápio.",profile:"Um símbolo de pizza com fundo escuro, fácil de reconhecer no WhatsApp.",product:"Pizza vista de cima, sobre uma mesa de madeira, com luz natural."};
 async function responseBody(r:Response){const raw=await r.json();return raw&&typeof raw==="object"&&!Array.isArray(raw)?raw as Record<string,unknown>:{};}
 
 export default function StudioChat({data,restaurantId,onApply,onClose,onPrepare,demo=false}:{data:RestaurantData;restaurantId?:string;onApply?:(patch:Partial<RestaurantData>)=>void;onClose?:()=>void;onPrepare?:()=>Promise<RestaurantData|null>;demo?:boolean}){
- const [message,setMessage]=useState(""),[target,setTarget]=useState<Target>("visual"),[mode,setMode]=useState<"local"|"ai">("ai"),[usage,setUsage]=useState<Usage|null>(null),[imageUsage,setImageUsage]=useState<Usage|null>(null),[productId,setProductId]=useState(""),[proposal,setProposal]=useState<StudioProposal|null>(null),[base,setBase]=useState(""),[generated,setGenerated]=useState<Generated|null>(null),[resultMode,setResultMode]=useState<"local"|"text"|"image"|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[applied,setApplied]=useState(false),[pending,setPending]=useState(false);
+ const [message,setMessage]=useState(""),[target,setTarget]=useState<Target>(demo?"visual":defaultCreationTarget),[mode,setMode]=useState<"local"|"ai">("ai"),[usage,setUsage]=useState<Usage|null>(null),[imageUsage,setImageUsage]=useState<Usage|null>(null),[productId,setProductId]=useState(""),[proposal,setProposal]=useState<StudioProposal|null>(null),[base,setBase]=useState(""),[generated,setGenerated]=useState<Generated|null>(null),[resultMode,setResultMode]=useState<"local"|"text"|"image"|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[applied,setApplied]=useState(false),[pending,setPending]=useState(false);
  const attempt=useRef<Attempt|null>(null),current=useRef(data),mounted=useRef(true),modeChosen=useRef(false);current.current=data;
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  useEffect(()=>{
@@ -40,7 +41,7 @@ export default function StudioChat({data,restaurantId,onApply,onClose,onPrepare,
  const available=demo?!isImage:!!allowance&&(isImage||mode==="ai"?allowance.enabled:true);
  const limitReached=(isImage||mode==="ai")&&!!allowance&&allowance.used>=allowance.limit;
  async function csrf(){const r=await fetch("/api/auth/config",{cache:"no-store"}),v=await responseBody(r);if(!r.ok||typeof v.csrf!=="string")throw Error("Entre novamente para continuar.");return v.csrf;}
- function choose(value:Target){setTarget(value);setMessage("");setError("");}
+ function choose(value:Target){setTarget(value);setError("");}
  async function send(e?:FormEvent,retry=false){
   e?.preventDefault();if(busy)return;
   if(!retry&&needsChoice){setError("Escolha o tipo de imagem acima para criar sua imagem com IA.");return;}
@@ -54,8 +55,8 @@ export default function StudioChat({data,restaurantId,onApply,onClose,onPrepare,
    if(demo){const next=localStudio(message.trim(),current.current,productId||undefined);setProposal(next);setBase(snapshot);setGenerated(null);setResultMode("local");setApplied(false);return;}
    if(!restaurantId)throw Error("Escolha sua pizzaria para começar.");
    if(!retry){
-    const body:Record<string,unknown>=isImage?{requestId:crypto.randomUUID(),asset:resolvedTarget,description:message.trim(),theme:prepared.theme,accent:prepared.accent,...(resolvedTarget==="product"?{productId}:{})}:{requestId:crypto.randomUUID(),mode,message:message.trim(),snapshot:prepared,...(productId?{productId}:{}),history:[]};
-    attempt.current={path:isImage?"ai/images":"studio",body,base:snapshot,target:resolvedTarget};
+    const request=creationRequest(target,message,mode,prepared,crypto.randomUUID(),productId||undefined);
+    attempt.current={...request,base:snapshot};
     setProposal(null);setGenerated(null);setResultMode(null);setApplied(false);
    }
    const job=attempt.current;if(!job)throw Error("Escreva uma nova ideia para começar.");
@@ -85,19 +86,19 @@ export default function StudioChat({data,restaurantId,onApply,onClose,onPrepare,
  function prepareImage(){const brief=proposal?.imageBrief;if(!brief)return;setTarget(brief.asset);setMessage(brief.description);setProductId(brief.productId||"");setError("");}
  return <div className="pizza-studio">
   <section className="creation-form">
-   <div className="creation-heading"><span className="creation-icon"><Sparkles size={23}/></span><div><h2>Uma ideia. A cara da sua pizzaria.</h2><p>Crie o visual, os textos ou uma imagem. Você escolhe o que usar.</p></div></div>
+   <div className="creation-heading"><span className="creation-icon"><Sparkles size={23}/></span><div><h2>Uma ideia. A cara da sua pizzaria.</h2><p>{isImage?"Descreva a imagem que você quer criar. Confira a arte antes de usar.":"Peça cores, frases e descrições para o cardápio."}</p></div></div>
    <form onSubmit={e=>send(e)}>
     <fieldset disabled={busy||pending}>
-     <label className="creation-field">O que você quer criar?<select value={resolvedTarget} onChange={e=>choose(e.target.value as Target)}>{options.map(o=><option key={o.id} value={o.id}>{o.label}</option>)}</select></label>
+     <label className="creation-field">O que você quer criar?<select value={target} onChange={e=>choose(e.target.value as Target)}>{options.map(o=><option key={o.id} value={o.id}>{o.label}</option>)}</select></label>
      {(resolvedTarget==="product"||resolvedTarget==="visual"&&data.products.length>0)&&<label className="creation-field">{resolvedTarget==="product"?"Escolha o produto":"Para qual produto?"}<select value={productId} required={resolvedTarget==="product"} onChange={e=>setProductId(e.target.value)}><option value="">{resolvedTarget==="product"?"Selecione um produto":"Visual geral da pizzaria"}</option>{data.products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
      {resolvedTarget==="product"&&!data.products.length&&<p className="creation-note">Cadastre um produto no Cardápio antes de criar a foto.</p>}
      <label className="creation-field">Conte sua ideia<textarea rows={4} value={message} maxLength={isImage?600:1600} onChange={e=>setMessage(e.target.value)} placeholder={hints[target]} /></label>
      <button className="creation-example" type="button" onClick={()=>setMessage(hints[target])}>Usar esta ideia <ArrowRight size={13}/></button>
      {!isImage&&<label className="creation-mode"><input type="checkbox" checked={mode==="ai"&&!demo} disabled={demo||!usage?.enabled} onChange={e=>{modeChosen.current=true;setMode(e.target.checked?"ai":"local");}}/><span>Usar inteligência artificial<small>{demo?"Aqui você experimenta os estilos prontos.":usage?.enabled?"Sugestões de visual e descrições.":"Os estilos prontos estão disponíveis abaixo."}</small></span></label>}
-     {target==="visual"&&intent&&!needsChoice&&<p className="creation-note" role="status">Seu pedido é de {intent.label}. O resultado será uma imagem.</p>}
+     {isImage&&(target==="image"||target==="visual"&&intent)&&<p className="creation-note" role="status">{resolvedTarget==="cover"?"Vamos criar uma imagem horizontal que você poderá usar como capa.":`Vamos criar ${imageLabels[resolvedTarget as keyof typeof imageLabels]} com sua ideia.`}</p>}
      {needsChoice&&<p className="creation-note" role="status">Escolha Logo, Capa, Perfil ou Foto em “O que você quer criar?” para gerar sua imagem.</p>}
     </fieldset>
-    <div className="creation-submit"><span>{demo?"Prévia gratuita":!allowance?"Verificando disponibilidade…":!isImage&&mode==="local"?"Estilos prontos · sem limite":isImage?"Geração com IA · sujeita à disponibilidade":"Criar com IA · sujeita à disponibilidade"}</span><button className="btn primary" disabled={busy||pending||!available||limitReached||needsChoice||message.trim().length<(isImage?10:5)||isImage&&message.length>600||resolvedTarget==="product"&&!productId}>{busy?<Spinner/>:isImage?<ImageIcon size={17}/>:<Send size={17}/>} {busy?"Criando…":resolvedTarget==="logo"?"Criar logo":resolvedTarget==="cover"?"Criar capa":isImage?"Criar imagem":"Criar prévia"}</button></div>
+    <div className="creation-submit"><span>{demo?"Prévia gratuita":!allowance?"Verificando disponibilidade…":!isImage&&mode==="local"?"Estilos prontos · sem limite":isImage?"Geração com IA · sujeita à disponibilidade":"Criar com IA · sujeita à disponibilidade"}</span><button className="btn primary" disabled={busy||pending||!available||limitReached||needsChoice||message.trim().length<(isImage?10:5)||isImage&&message.length>600||resolvedTarget==="product"&&!productId}>{busy?<Spinner/>:isImage?<ImageIcon size={17}/>:<Send size={17}/>} {busy?"Criando…":target==="image"?"Criar imagem":resolvedTarget==="logo"?"Criar logo":resolvedTarget==="cover"?"Criar capa":isImage?"Criar imagem":"Criar prévia"}</button></div>
     {isImage&&message.length>600&&<p className="creation-note">Resuma sua ideia em até 600 caracteres.</p>}
    </form>
    {limitReached&&<p className="creation-note">As criações com IA estão temporariamente indisponíveis para sua conta. Os estilos prontos continuam disponíveis.</p>}

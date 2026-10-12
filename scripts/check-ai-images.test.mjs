@@ -1,10 +1,56 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture,png} from './test-backend-fixture.mjs';
-import {imageEndpoint,imageFormat,imageLimits} from '../lib/image-policy.ts';
+import {imageEndpoint,imageFormat,imageLimits,imagePrompt,imageInput} from '../lib/image-policy.ts';
+import {creationRequest} from '../lib/creation-request.ts';
+import {defaultCreationTarget} from '../lib/creation-intent.ts';
+import {studioImagePatch} from '../lib/studio-policy.ts';
+import {handleGenerate,IMAGE_MODEL,CLAIM_URL} from '../services/image-service/src/lib/pedido-image.server.ts';
 const input=()=>({requestId:crypto.randomUUID(),asset:'logo',description:'Símbolo rústico de forno a lenha e pizza.',theme:'editorial',accent:'#BD391D'});
 const endpoint='https://pedido-on-imagens.lovable.app/api/pedido-on/image';
 function enable(f){f.env.PEDIDO_IMAGE_ENABLED='true';f.env.PEDIDO_IMAGE_ENDPOINT=endpoint;}
+
+test('the full visual brief reaches the image service and overrides the old brand reference',()=>{
+ const brief='Logo com azul elétrico, amarelo intenso e um forno em estilo pop art.';
+ const prompt=imagePrompt('Pizzaria do teste',imageInput.parse({...input(),description:brief}));
+ assert.ok(prompt.includes(JSON.stringify(brief)));
+ assert.ok(prompt.includes('use essa referência somente onde o pedido não especificar outra aparência'));
+ assert.equal(prompt.includes('Logo simples'),false);
+ const largest=imagePrompt('n'.repeat(100),imageInput.parse({...input(),asset:'product',productId:'p',description:'d'.repeat(600)}),{name:'n'.repeat(100),description:'d'.repeat(600)});
+ assert.ok(largest.length<=3000,'The Lovable claim parser must accept the longest valid product brief');
+});
+
+test('the mobile request crosses app, one-use claim and Lovable image handler, saves bytes and requires explicit draft application',async()=>{
+ const f=fixture(),original=globalThis.fetch;enable(f);
+ const message='Gere algo marcante de pizza de queijo';let modelCalls=0,textCalls=0;
+ const request=creationRequest(defaultCreationTarget,message,'ai',f.data,crypto.randomUUID());
+ const before=f.db.prepare('SELECT data,published_data,revision FROM restaurants WHERE id=?').get('shop-a');
+ globalThis.fetch=async(url,init)=>{
+  if(url!==endpoint){textCalls++;throw Error('The image request must not reach the text service');}
+  return handleGenerate(new Request(endpoint,{method:'POST',body:init.body}),{apiKey:'mock-key',fetch:async(destination,options)=>{
+   if(destination===CLAIM_URL){const claim=await f.call('imageClaim','POST',{},JSON.parse(options.body));assert.equal(claim.status,200);return claim;}
+   assert.equal(destination,'https://ai.gateway.lovable.dev/v1/images/generations');modelCalls++;
+   const body=JSON.parse(options.body);assert.equal(body.model,IMAGE_MODEL);
+   assert.ok(body.contents[0].parts[0].text.includes(JSON.stringify(message)));
+   assert.equal(JSON.stringify(body).includes(f.data.pix.key),false);
+   return Response.json({data:[{b64_json:Buffer.from(png).toString('base64')}]});
+  }});
+ };
+ try{
+  assert.equal(request.path,'ai/images');
+  const response=await f.call('images','POST',{id:'shop-a'},request.body);assert.equal(response.status,200,await response.clone().text());const result=await response.json();
+  assert.equal(result.asset,'cover');assert.equal(modelCalls,1);assert.equal(textCalls,0);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM studio_jobs').get().n,0);
+  assert.deepEqual(f.db.prepare('SELECT data,published_data,revision FROM restaurants WHERE id=?').get('shop-a'),before);
+  const stored=f.objects.get(result.url.slice('/media/'.length));assert.deepEqual(stored.bytes,png);assert.equal(stored.options.httpMetadata.contentType,'image/png');
+  assert.equal((await f.call('images','POST',{id:'shop-a'},request.body)).status,200);assert.equal(modelCalls,1);
+  const data={...f.data,...studioImagePatch(f.data,{asset:'cover',url:result.url})};
+  const saved=await f.call('restaurant','PUT',{id:'shop-a'},{revision:before.revision,data});assert.equal(saved.status,200,await saved.clone().text());
+  const after=f.db.prepare('SELECT data,published_data FROM restaurants WHERE id=?').get('shop-a');
+  assert.equal(JSON.parse(after.data).cover,result.url);assert.equal(after.published_data,before.published_data);
+  assert.deepEqual(JSON.parse(after.data).products,f.data.products);assert.deepEqual(JSON.parse(after.data).pix,f.data.pix);
+ }finally{globalThis.fetch=original;f.close();}
+});
 
 test('image requests only target the configured HTTPS service and reject disguised files',()=>{
  assert.equal(imageEndpoint(endpoint),endpoint);
