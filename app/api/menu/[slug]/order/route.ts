@@ -24,6 +24,9 @@ export async function POST(request:Request,{params}:{params:Promise<{slug:string
  if(existing)return Response.json(result(existing),{headers:privateHeaders});
  await throttle("order-ip:"+await sha256(authConfig().seal+":"+(request.headers.get("cf-connecting-ip")||"anonymous")),30,600);
  let summary;try{summary=calculateOrder(data,input);}catch(e){throw new HttpError(400,e instanceof Error?e.message:"Confira o pedido.");}
+ // The browser confirms the current total; never create an order with a silently changed offer.
+ if(input.expectedTotal!==undefined&&input.expectedTotal!==summary.total||input.expectedTotal===undefined&&(data.promotions||[]).some(p=>p.enabled))
+  return Response.json({error:"O valor foi atualizado. Confira o novo total antes de confirmar.",quote:summary},{status:409,headers:privateHeaders});
  const recent=await db.select({n:count()}).from(orders).where(and(eq(orders.restaurantId,row.id),eq(orders.phone,summary.phone),gte(orders.createdAt,new Date(Date.now()-600000).toISOString()))).get();
  if((recent?.n||0)>=10)throw new HttpError(429,"Você enviou vários pedidos. Aguarde alguns minutos.");
  if(input.method==="delivery"&&deliveryApprovalEnabled()){

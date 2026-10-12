@@ -1,6 +1,6 @@
 # Papel da IA no pedido.on
 
-**Planejamento de produto — atualizado em 12/10/2026.** O proprietário pediu planejar o sentido da IA antes de implementar a evolução do SaaS e depois definiu a prioridade: enviar foto do cardápio, reconhecer os produtos e deixá-los prontos para compra com o mínimo de digitação. Também pediu promoção do dia, cadastro manual disponível, simplicidade e produtividade, com divulgação por IA possivelmente nos planos superiores depois. Esses objetivos são instruções do proprietário; o desenho técnico abaixo é uma proposta ainda não implementada. A publicação continua na v20.
+**Planejamento de produto — atualizado em 12/10/2026.** O proprietário pediu planejar o sentido da IA antes de implementar a evolução do SaaS e depois definiu a prioridade: enviar foto do cardápio, reconhecer os produtos e deixá-los prontos para compra com o mínimo de digitação. Também pediu promoção do dia, cadastro manual disponível, simplicidade e produtividade, com divulgação por IA possivelmente nos planos superiores depois. Autorizou avançar com a implementação. A primeira entrega por OCR local e promoção por regras está preparada e validada, conforme [LEITOR-CARDAPIO.md](LEITOR-CARDAPIO.md); a publicação deve ser conferida em `CONTINUAR.md`. Leitura complementar por IA, divulgação criativa, galeria e outras evoluções abaixo ainda são futuras.
 
 ## Objetivo
 
@@ -54,7 +54,7 @@ A promoção aprovada aparece em destaque no cardápio. A validade é aplicada p
 
 Copiar uma mensagem pronta com nome, preço, validade e link do cardápio não exige IA. O dono compartilha manualmente; nenhuma mensagem é enviada pelo sistema nesta etapa. Criatividade de legenda/arte por IA pode entrar depois nos planos superiores, após medir uso e custo. Não mudar os valores atuais de Essencial R$ 49, Profissional R$ 89 e Rede R$ 149, nem decidir novas cotas por plano neste planejamento.
 
-Cupom e destaque de produto já existem, mas não equivalem a uma promoção com preço próprio e validade. Essa função ainda exige implementação e testes do cálculo no servidor.
+Cupom e destaque de produto já existem, mas não equivalem a uma promoção com preço próprio e validade. A v20 ainda não tinha essa função. A primeira implementação e seus testes estão registrados em LEITOR-CARDAPIO.md.
 
 Fotos de produtos ficam vinculadas a um produto da loja. Quando o dono tiver uma foto real, ele pode usar o upload normal, sem geração. Uma imagem criada é ilustrativa: não deve inventar ingredientes nem ser apresentada como comprovação da pizza servida.
 
@@ -106,9 +106,9 @@ O fluxo de cliente aceito no planejamento anterior permanece: navegar e montar c
 
 **Reaproveitar:** rotas de geração, autorização de uso único, validação de produtos, proteção de preços/Pix, rascunho/publicação e quatro áreas do painel. Não repetir diagnóstico pago ou reconstruir esses mecanismos para começar o novo trabalho.
 
-**Importador existente, ainda desativado:** `components/ai-import.tsx`, `lib/ai.ts`, `lib/ai-menu.ts` e `/api/restaurants/[id]/ai/menu`. Usa OpenAI, uma imagem JPG/PNG/WebP de até 3 MB ou texto; reconhece no máximo 35 produtos por pedido e pede revisão antes de acrescentar ao rascunho. Não há biblioteca OCR local no projeto. Os valores `text:1` e `image:3` são unidades internas desse importador, não o custo comprovado de uma chamada Lovable. Não confundir a geração Lovable validada com importação por foto funcionando em produção.
+**Importador existente, ainda desativado:** `components/ai-import.tsx`, `lib/ai.ts`, `lib/ai-menu.ts` e `/api/restaurants/[id]/ai/menu`. Usa OpenAI, uma imagem JPG/PNG/WebP de até 3 MB ou texto; reconhece no máximo 35 produtos por pedido e pede revisão antes de acrescentar ao rascunho. Essa era a base da v20; a primeira implementação agora usa OCR local, conforme LEITOR-CARDAPIO.md. Os valores `text:1` e `image:3` são unidades internas desse importador, não o custo comprovado de uma chamada Lovable. Não confundir a geração Lovable validada com importação por foto funcionando em produção.
 
-**Implementar primeiro:** importação por foto e revisão compacta; produtos com destino de compra pelo cardápio existente; cadastro manual fácil; promoção do dia. Recuperar criações evita desperdício e pode aproveitar os jobs existentes sem modelos. Descrições criativas ficam opcionais, depois de colocar o cardápio no ar. Cores/layout continuam limitados aos parâmetros suportados, sem prometer que a IA reescreve o site.
+**Primeira implementação autorizada:** importação por foto e revisão compacta; produtos com destino de compra pelo cardápio existente; cadastro manual fácil; promoção do dia. Recuperar criações evita desperdício e pode aproveitar os jobs existentes sem modelos. Descrições criativas ficam opcionais, depois de colocar o cardápio no ar. Cores/layout continuam limitados aos parâmetros suportados, sem prometer que a IA reescreve o site.
 
 **Posterior:** legenda e arte de divulgação. O schema atual de texto não oferece uma saída própria para legendas, e as regras atuais proíbem preços/novas ofertas. Isso exige uma função específica, não apenas um novo exemplo de prompt. Eventuais preços de uma divulgação devem vir dos valores aprovados no servidor, sem cálculo ou desconto inventado pelo modelo. Não publicar nas redes automaticamente.
 
@@ -143,4 +143,4 @@ Esses critérios medem utilidade e confiabilidade. Aumento de vendas ainda é um
 5. Reaproveitar a geração publicada, recuperar criações e manter descrições/capa/logo opcionais, sem repetir trabalho ou diagnósticos pagos.
 6. Depois do uso pelo grupo e da conferência de custo, oferecer divulgação contextual nos planos superiores e rever limites comerciais.
 
-Nenhuma tela, endpoint, migração, segredo, plano comercial ou limite foi alterado para registrar esta proposta. Documentação não exige nova publicação Sites.
+O registro inicial desta proposta alterou somente documentação. A implementação posterior do leitor/promoções modifica o aplicativo e exige publicação Sites, com validações registradas em LEITOR-CARDAPIO.md e CONTINUAR.md. Segredos, planos comerciais e cotas de modelos permanecem preservados.

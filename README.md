@@ -8,7 +8,7 @@ Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criaçã
 
 Última publicação confirmada: **versão 20**, fonte Sites `5153cab4266fa7680de194336f686cdb9f367fcb`, ambiente revisão 6, PR #7 integrada. A criação começa em imagem e conserva o prompt do dono até o gerador. O cadastro por convite foi validado com acesso direto e login normal, sem confirmação de e-mail. Uma imagem real do pedido “Gere algo marcante de pizza de queijo” foi gerada pela Lovable, salva no R2 e aplicada ao rascunho privado de teste. Posteriormente, o dono mostrou a geração/prévia de uma pizza voando sob uma luz no seu celular; a aplicação/publicação dessa capa ainda não foi confirmada. As duas pizzarias e o perfil anteriores foram comparados e permaneceram iguais no teste. A navegação mantém **Pedidos, Cardápio, Pizzaria e Criar com IA**. A próxima evolução está em [planejamento de produto](docs/PAPEL-DA-IA.md), sem novas funções implementadas nesta etapa.
 
-**Próxima prioridade de produto:** enviar uma foto do cardápio, conferir o reconhecimento e obter produtos compráveis sem cadastrar cada sabor manualmente; cadastro manual continua disponível. Promoção do dia e mensagens prontas entram antes de ampliar a criação paga. O importador antigo OpenAI está desativado, limitado a uma foto de até 3 MB e 35 itens; OCR local e promoção por produto com validade ainda não foram implementados. O [planejamento atualizado](docs/PAPEL-DA-IA.md) propõe avaliar OCR/preparo convencional da foto e usar leitura Lovable complementar somente com consumo justificado e limitado.
+**Atualização preparada:** [leitura por foto no aparelho e promoção do dia](docs/LEITOR-CARDAPIO.md), com conferência em lote, retomada local, prévia de compra e mensagens prontas sem modelos pagos. O dono continua podendo cadastrar manualmente. OCR real passou em tabela, duas colunas e JPEG inclinado/escurecido; 151 testes e typecheck passaram, além de um build inicial. A publicação posterior deve ser registrada em `CONTINUAR.md`. Importação OpenAI continua desativada; esta entrega não usa essa rota nem o seu limite antigo de 35 itens. Leitura complementar Lovable e divulgação criativa permanecem futuras e dependem de orçamento justificado.
 
 A falha de IA foi reproduzida no runtime Cloudflare: `redirect: "error"` não é suportado e interrompia a chamada antes de chegar à Lovable. O aplicativo usa `redirect: "manual"`; retornos 3xx continuam rejeitados e o token de uso único não é encaminhado a outro endereço. Os erros diferenciam falhas antes e depois da autorização, com cota devolvida somente quando adequado.
 
@@ -86,6 +86,7 @@ Passaram **134 testes**, typecheck e build nesta correção. Os testes locais ad
 
 - [Continuidade e validações pendentes](docs/CONTINUAR.md)
 - [Proposta de papel da IA no SaaS](docs/PAPEL-DA-IA.md)
+- [Leitor por foto e promoção do dia](docs/LEITOR-CARDAPIO.md)
 - [Preparação e implantação futura na Netlify](docs/NETLIFY.md)
 - [Configuração atual da IA](docs/ATIVAR_ESTUDIO.md)
 - [Criação com IA e proteção dos dados](STUDIO.md)
