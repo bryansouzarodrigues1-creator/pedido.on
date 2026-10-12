@@ -1,0 +1,7 @@
+import {z} from "zod";
+export function neighborhoodKey(value:string){return value.trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").toLocaleLowerCase("pt-BR");}
+export const deliveryZoneSchema=z.object({id:z.string().uuid(),name:z.string().trim().min(2).max(70),fee:z.number().int().min(0).max(100000),enabled:z.boolean().default(true)}).strict();
+export const deliveryZonesSchema=z.array(deliveryZoneSchema).max(40).default([]).refine(zones=>new Set(zones.map(z=>neighborhoodKey(z.name))).size===zones.length,"Há bairros repetidos. Mantenha uma taxa por bairro.");
+export type DeliveryZone=z.infer<typeof deliveryZoneSchema>;
+export function quoteNeighborhood(settings:{deliveryZones?:DeliveryZone[];deliveryOutside?:"ask"|"reject"},name:string){const zone=(settings.deliveryZones||[]).find(z=>neighborhoodKey(z.name)===neighborhoodKey(name));if(zone&&!zone.enabled)return {mode:"rejected" as const,fee:null,zoneId:null};if(zone)return {mode:"approved" as const,fee:zone.fee,zoneId:zone.id};return {mode:settings.deliveryOutside==="reject"?"rejected" as const:"pending" as const,fee:null,zoneId:null};}
+export function approvedDeliveryFee(check:{zoneId:string|null;deliveryFee:number|null},settings:{deliveryZones?:DeliveryZone[];deliveryFee:number}){if(check.zoneId){const zone=(settings.deliveryZones||[]).find(z=>z.id===check.zoneId&&z.enabled);if(!zone||zone.fee!==check.deliveryFee)throw Error("A área ou taxa de entrega mudou. Consulte o endereço novamente.");}return check.deliveryFee??settings.deliveryFee;}

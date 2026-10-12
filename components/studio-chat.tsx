@@ -7,6 +7,8 @@ import {creationRequest} from "@/lib/creation-request";
 import {themes,type RestaurantData} from "@/lib/domain";
 import {MiniMenu,Spinner} from "./ui";
 import {z} from "zod";
+import SavedCreations from "./saved-creations";
+import type {SavedCreation} from "@/lib/creation-history-policy";
 
 type Usage={enabled:boolean;used:number;limit:number};
 type Target=CreationTarget;
@@ -42,6 +44,7 @@ export default function StudioChat({data,restaurantId,onApply,onClose,onPrepare,
  const limitReached=(isImage||mode==="ai")&&!!allowance&&allowance.used>=allowance.limit;
  async function csrf(){const r=await fetch("/api/auth/config",{cache:"no-store"}),v=await responseBody(r);if(!r.ok||typeof v.csrf!=="string")throw Error("Entre novamente para continuar.");return v.csrf;}
  function choose(value:Target){setTarget(value);setError("");}
+ function recover(creation:SavedCreation){if(busy||pending)return;try{const snapshot=current.current;setError("");if(creation.kind==="text"){proposalPatch(creation.proposal,snapshot);setProposal(creation.proposal);setGenerated(null);setResultMode("text");setTarget("visual");}else{if(!restaurantId||!creation.url.startsWith("/media/"+restaurantId+"/"))throw Error("Esta imagem pertence a outra pizzaria.");if(creation.asset==="product"&&!snapshot.products.some(p=>p.id===productId)){setTarget("product");throw Error("Selecione acima o produto que vai receber esta foto e abra a criação novamente.");}const image={url:creation.url,asset:creation.asset,...(creation.asset==="product"?{productId}:{})};studioImagePatch(snapshot,image);setGenerated(image);setProposal({reply:"Criação recuperada. Confira antes de usar no rascunho.",productDescriptions:[]});setResultMode("image");setTarget(creation.asset);}setBase(JSON.stringify(snapshot));setApplied(false);}catch(e){setError(e instanceof Error?e.message:"Esta criação precisa ser conferida.");}}
  async function send(e?:FormEvent,retry=false){
   e?.preventDefault();if(busy)return;
   if(!retry&&needsChoice){setError("Escolha o tipo de imagem acima para criar sua imagem com IA.");return;}
@@ -103,6 +106,7 @@ export default function StudioChat({data,restaurantId,onApply,onClose,onPrepare,
    </form>
    {limitReached&&<p className="creation-note">As criações com IA estão temporariamente indisponíveis para sua conta. Os estilos prontos continuam disponíveis.</p>}
    {error&&<div className="creation-error" role="alert"><p>{error}</p>{pending&&<div><button className="btn outline small" disabled={busy} onClick={()=>send(undefined,true)}><RotateCcw size={14}/> Ver resultado</button><button className="text-button" disabled={busy} onClick={()=>{attempt.current=null;setPending(false);setError("");}}>Descartar pedido</button></div>}</div>}
+   {restaurantId&&!demo&&<SavedCreations key={restaurantId} restaurantId={restaurantId} onChoose={recover}/>}
    <details className="creation-styles"><summary><Palette size={17}/> Prefere escolher um estilo pronto?</summary><p>Escolha e veja a prévia. Não usa seu limite de IA.</p><div>{themes.map(t=><button type="button" key={t.id} disabled={busy||pending} onClick={()=>readyStyle(t)} aria-pressed={proposal?.theme===t.id}><i style={{background:t.color}}/>{t.name}{proposal?.theme===t.id&&<Check size={14}/>}</button>)}</div></details>
   </section>
   <section className={`creation-result ${proposal?"has-result":""}`} aria-live="polite">

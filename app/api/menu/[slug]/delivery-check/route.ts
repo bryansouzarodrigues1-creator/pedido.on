@@ -8,6 +8,8 @@ import {deliveryCheckRequest,DELIVERY_SECONDS,normalizedDeliveryPhone} from "@/l
 import {sameOrigin,readJson,privateHeaders,throttle,errorResponse,HttpError} from "@/lib/http";
 import {sha256} from "@/lib/auth-policy";
 import {queueOwnerNotice} from "@/lib/push";
+import {quoteNeighborhood,neighborhoodKey,approvedDeliveryFee} from "@/lib/delivery-zone-policy";
+import type {RestaurantData} from "@/lib/domain";
 export const dynamic="force-dynamic";
 type Context={params:Promise<{slug:string}>};
 async function published(slug:string){
@@ -22,11 +24,13 @@ export async function POST(request:Request,{params}:Context){try{
  sameOrigin(request);
  const {slug}=await params,row=await published(slug);
  const input=deliveryCheckRequest.parse(await readJson(request,4000));
+ const settings=JSON.parse(row.publishedData!) as RestaurantData,quote=quoteNeighborhood(settings,input.neighborhood||"");
+ if(quote.mode==="rejected")throw new HttpError(400,"Não atendemos este bairro. Você pode escolher retirada, se disponível.");
  const tokenHash=await sha256(input.token);
  const previous=await getDb().select().from(deliveryChecks).where(and(eq(deliveryChecks.restaurantId,row.id),eq(deliveryChecks.requestId,input.requestId))).get();
  if(previous){
-  if(previous.tokenHash!==tokenHash||previous.phone!==normalizedDeliveryPhone(input.phone)||previous.address!==input.address)throw new HttpError(409,"Esta consulta já foi utilizada. Inicie outra.");
-  return Response.json({id:previous.id,status:previous.expiresAt>Date.now()/1000?previous.status:"expired",expiresAt:previous.expiresAt},{headers:privateHeaders});
+  if(previous.tokenHash!==tokenHash||previous.phone!==normalizedDeliveryPhone(input.phone)||previous.address!==input.address||neighborhoodKey(previous.neighborhood||"")!==neighborhoodKey(input.neighborhood||""))throw new HttpError(409,"Esta consulta já foi utilizada. Inicie outra.");
+  return Response.json({id:previous.id,status:previous.expiresAt>Date.now()/1000?previous.status:"expired",expiresAt:previous.expiresAt,deliveryFee:previous.deliveryFee},{headers:privateHeaders});
  }
  const seal=(env as typeof env&{AUTH_SESSION_KEY?:string}).AUTH_SESSION_KEY||"";
  const ip=request.headers.get("cf-connecting-ip")||"unknown";
@@ -38,20 +42,21 @@ export async function POST(request:Request,{params}:Context){try{
   id,restaurantId:row.id,requestId:input.requestId,tokenHash,
   phone:normalizedDeliveryPhone(input.phone),address:input.address,
   latitude:input.latitude??null,longitude:input.longitude??null,
-  status:"pending",version:1,createdAt:created.toISOString(),expiresAt,
+  neighborhood:input.neighborhood||null,zoneId:quote.zoneId,deliveryFee:quote.fee,status:quote.mode,version:1,createdAt:created.toISOString(),expiresAt,reviewedAt:quote.mode==="approved"?created.toISOString():null,
  }).onConflictDoNothing();
  const saved=await getDb().select().from(deliveryChecks).where(and(eq(deliveryChecks.restaurantId,row.id),eq(deliveryChecks.requestId,input.requestId))).get();
  if(!saved||saved.tokenHash!==tokenHash)throw new HttpError(409,"Consulta em andamento. Atualize para acompanhar.");
- queueOwnerNotice(row.ownerId,"delivery:"+saved.id,"delivery",row.id);
- return Response.json({id:saved.id,status:saved.status,expiresAt:saved.expiresAt},{status:201,headers:privateHeaders});
+ if(saved.status==="pending")queueOwnerNotice(row.ownerId,"delivery:"+saved.id,"delivery",row.id);
+ return Response.json({id:saved.id,status:saved.status,expiresAt:saved.expiresAt,deliveryFee:saved.deliveryFee},{status:201,headers:privateHeaders});
  }catch(error){return errorResponse(error);}
 }
 export async function GET(request:Request,{params}:Context){try{
  const {slug}=await params,row=await published(slug),url=new URL(request.url);
  const id=url.searchParams.get("id")||"",token=request.headers.get("x-pedido-delivery-token")||"";
  if(!/^[a-f0-9-]{36}$/i.test(id)||!/^[a-f0-9]{64}$/.test(token))throw new HttpError(404,"Consulta não encontrada.");
- const check=await getDb().select({status:deliveryChecks.status,expiresAt:deliveryChecks.expiresAt}).from(deliveryChecks).where(and(eq(deliveryChecks.id,id),eq(deliveryChecks.restaurantId,row.id),eq(deliveryChecks.tokenHash,await sha256(token)))).get();
+ const check=await getDb().select({status:deliveryChecks.status,expiresAt:deliveryChecks.expiresAt,deliveryFee:deliveryChecks.deliveryFee,zoneId:deliveryChecks.zoneId}).from(deliveryChecks).where(and(eq(deliveryChecks.id,id),eq(deliveryChecks.restaurantId,row.id),eq(deliveryChecks.tokenHash,await sha256(token)))).get();
  if(!check)throw new HttpError(404,"Consulta não encontrada.");
- return Response.json({status:check.expiresAt>Date.now()/1000?check.status:"expired",expiresAt:check.expiresAt},{headers:privateHeaders});
+ let state=check.expiresAt>Date.now()/1000?check.status:"expired";if(state==="approved")try{approvedDeliveryFee(check,JSON.parse(row.publishedData!) as RestaurantData);}catch{state="expired";}
+ return Response.json({status:state,expiresAt:check.expiresAt,deliveryFee:check.deliveryFee},{headers:privateHeaders});
  }catch(error){return errorResponse(error);}
 }

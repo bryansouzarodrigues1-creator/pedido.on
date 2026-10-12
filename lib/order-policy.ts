@@ -17,15 +17,23 @@ export function validPixKey(type:PixDetails["type"],key:string){
  const first=type==="cpf"?[10,9,8,7,6,5,4,3,2]:[5,4,3,2,9,8,7,6,5,4,3,2],second=type==="cpf"?[11,10,9,8,7,6,5,4,3,2]:[6,...first];
  return check(digits.slice(0,-2),first)===Number(digits.at(-2))&&check(digits.slice(0,-1),second)===Number(digits.at(-1));
 }
-export type ManagedOrder={id:string;status:string;paymentStatus:string;receiptId:string|null;receiptCount:number;version:number;estimatedAt:string|null;decisionReason:string|null;data:string;total:number;customer:string;phone:string;createdAt:string;updatedAt:string|null;pixSnapshot:string|null};
-export const orderActionSchema=z.object({orderId:z.string().uuid(),version:z.number().int().positive(),action:z.enum(["confirm","reject_receipt","prepare","dispatch","complete","cancel","eta"]),etaMinutes:z.number().int().min(5).max(240).optional(),receivedPix:z.boolean().optional(),reason:z.string().trim().min(3).max(300).optional()});
+export type ManagedOrder={acceptedAt?:string|null;acceptedEtaMinutes?:number|null;id:string;status:string;paymentStatus:string;receiptId:string|null;receiptCount:number;version:number;estimatedAt:string|null;decisionReason:string|null;data:string;total:number;customer:string;phone:string;createdAt:string;updatedAt:string|null;pixSnapshot:string|null};
+export const orderActionSchema=z.object({orderId:z.string().uuid(),version:z.number().int().positive(),action:z.enum(["accept","verify_payment","confirm","reject_receipt","prepare","dispatch","complete","cancel","eta"]),etaMinutes:z.number().int().min(5).max(240).optional(),receivedPix:z.boolean().optional(),reason:z.string().trim().min(3).max(300).optional()});
 export type OrderAction=z.infer<typeof orderActionSchema>;
 export function decideOrder(order:ManagedOrder,input:OrderAction,now=new Date()){
  if(input.version!==order.version)throw new Error("O pedido mudou. Confira a versão atual antes de decidir.");
  if(["delivered","canceled"].includes(order.status))throw new Error("Este pedido já foi finalizado.");
- const update:{status?:string;paymentStatus?:string;estimatedAt?:string;decisionReason?:string|null;approvedAt?:string}= {};
+ const update:{acceptedAt?:string;acceptedEtaMinutes?:number;status?:string;paymentStatus?:string;estimatedAt?:string;decisionReason?:string|null;approvedAt?:string}= {};
  const estimate=()=>{if(!Number.isInteger(input.etaMinutes)||!input.etaMinutes||input.etaMinutes<5||input.etaMinutes>240)throw new Error("Informe o prazo entre 5 e 240 minutos.");return new Date(now.getTime()+input.etaMinutes*60000).toISOString();};
- if(input.action==="confirm"){
+ if(input.action==="accept"){
+  if(!["awaiting","awaiting_payment"].includes(order.status)||order.acceptedAt)throw new Error("Este pedido já foi aceito ou mudou de etapa.");
+  estimate();update.acceptedAt=now.toISOString();update.acceptedEtaMinutes=input.etaMinutes!;update.decisionReason=null;
+  if(order.paymentStatus==="pay_on_delivery"){update.status="confirmed";update.estimatedAt=estimate();update.approvedAt=now.toISOString();}
+ }else if(input.action==="verify_payment"){
+  if(!order.acceptedAt||order.status!=="awaiting"||order.paymentStatus!=="proof_sent"||!order.receiptId)throw new Error("Aceite o pedido e confira o comprovante antes de confirmar o Pix.");
+  if(input.receivedPix!==true)throw new Error("Confirme que o valor entrou na conta bancária da pizzaria.");
+  update.paymentStatus="approved";update.status="confirmed";update.estimatedAt=estimate();update.approvedAt=now.toISOString();update.decisionReason=null;
+ }else if(input.action==="confirm"){
   if(order.status!=="awaiting")throw new Error("Este pedido ainda não pode ser aprovado.");
   if(order.paymentStatus!=="pay_on_delivery"){
    if(order.paymentStatus!=="proof_sent"||!order.receiptId)throw new Error("Confira o comprovante antes de aprovar.");
