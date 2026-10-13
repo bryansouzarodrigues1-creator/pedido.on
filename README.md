@@ -26,6 +26,10 @@ O serviço ativo é [pedido-on-estudio.lovable.app](https://pedido-on-estudio.lo
 - Supabase Auth, sessões protegidas e autorização por loja. Cadastro aberto sem convite, com acesso direto e sem confirmação por e-mail. A recuperação fica indisponível até comprovar a entrega real.
 - Stripe e importação de cardápio OpenAI estão preservados e desativados; não são necessários para usar as demais funções.
 
+## Administração
+
+O admin privado em `/admin` mostra pedidos e valor confirmado por pizzaria, períodos de 7/30/90 dias, etapas até o primeiro pedido, atividade do cardápio e uso/falhas de IA e alertas. Não mistura vendas das pizzarias com assinaturas. Ver [métricas e limites](docs/ADMIN-CLIENTES.md).
+
 ## Estrutura
 
 | Local | Responsabilidade |
