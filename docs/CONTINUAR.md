@@ -1,5 +1,7 @@
 # Continuar o pedido.on
 
+**Admin de clientes profissionais — 12/10/2026:** visão geral, pizzarias e uso do produto, com períodos 7/30/90, busca, filtros e paginação. Dados agregados no D1, acesso exclusivo à conta fixada, sem prompts/dados de compradores/chamadas pagas. Valores confirmados pertencem às pizzarias; receita SaaS permanece pendente. Ver [definições e verificação](ADMIN-CLIENTES.md). Registrar publicação/evidências após retorno do Sites.
+
 **Decisão de 12/10/2026:** cadastro público sem convite, autorizado pelo proprietário. Modo `open`, entrada direta sem confirmação de e-mail; limites de tentativas, sessões e restrição do admin preservados. Recuperação e cobrança continuam desativadas. Não reativar convite automaticamente. 176 testes e typecheck passaram, com Auth externo simulado.
 
 **Publicado — v26, 12/10/2026:** fonte Sites `6629ea2cfa6c73130d06d07f7ee742cf3588944b`, versão `appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_e37b0a5043348191ba8594d36c755045`, implantação `appgdep_6acd6779fb848191bbd72d892c9a196e` concluída às **23:04:53.326 UTC (20:04 no Brasil)**. Ambiente revisão **8**, audiência pública. PR #9, #10 e #11 integradas. Main de código `d7f72054cb933b085131d251cd8be8d38c30d56c` antes deste registro; PR #11 merge `da4045ac454e36dc8135bc82eedd57cc521ef44c`. GitHub e Sites não se atualizam automaticamente entre si.
