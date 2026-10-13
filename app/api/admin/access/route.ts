@@ -34,7 +34,7 @@ export async function PATCH(request:Request){try{
  ON CONFLICT(owner_id) DO UPDATE SET mode=excluded.mode,plan=excluded.plan,expires_at=excluded.expires_at,reason=excluded.reason,updated_by=excluded.updated_by,updated_at=excluded.updated_at,version=account_access.version+1
  WHERE account_access.version=?`).bind(ownerId,input.mode,plan,expires,input.reason,user.userId,timestamp,input.expectedVersion);
  const audit=env.DB!.prepare(`INSERT INTO account_access_events(id,owner_id,actor_id,action,plan,expires_at,reason,created_at)
- SELECT ?,owner_id,?,mode,plan,expires_at,reason,? FROM account_access WHERE owner_id=? AND version=?`).bind(crypto.randomUUID(),user.userId,timestamp,ownerId,input.expectedVersion+1);
+ SELECT ?,owner_id,?,mode,plan,expires_at,reason,? FROM account_access WHERE owner_id=? AND version=? AND changes()=1`).bind(crypto.randomUUID(),user.userId,timestamp,ownerId,input.expectedVersion+1);
  const result=await env.DB!.batch([update,audit]);
  if(!result[0]?.meta?.changes)throw new HttpError(409,"Outra alteração foi feita nesta conta. Atualize e confira antes de salvar.");
  const after=await env.DB!.prepare("SELECT mode,plan,expires_at AS expiresAt,version FROM account_access WHERE owner_id=?").bind(ownerId).first<{mode:string;plan:string|null;expiresAt:number|null;version:number}>();
