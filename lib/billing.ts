@@ -4,6 +4,7 @@ import {getDb} from "@/db";
 import {subscriptions,restaurants} from "@/db/schema";
 import {HttpError} from "./http";
 import {paidPlan} from "./billing-policy";
+import {accountAccess} from "./account-access";
 import {assertTrialPublication,trialEntitlement} from "./trial";
 export const billingPlans={essencial:{name:"Essencial",amount:4900,limit:1,aiCredits:20},profissional:{name:"Profissional",amount:8900,limit:3,aiCredits:60},rede:{name:"Rede",amount:14900,limit:10,aiCredits:200}} as const;
 export type BillingPlan=keyof typeof billingPlans;
@@ -15,5 +16,14 @@ export type StripeSubscription={id:string;customer:string|{id:string};status:str
 
 async function paidMenuServing(ownerId:string,restaurantId:string){if(!billingConfig().enabled)return true;const db=getDb(),subscription=await db.select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get();if(!paidPlan(subscription))return false;const plan=billingPlans[subscription!.paidPlan as BillingPlan];if(!plan)return false;const rows=await db.select({id:restaurants.id}).from(restaurants).where(and(eq(restaurants.ownerId,ownerId),eq(restaurants.published,true))).orderBy(asc(restaurants.createdAt),asc(restaurants.id)).limit(plan.limit);return rows.some(r=>r.id===restaurantId);}
 
-export async function assertPublishEntitlement(ownerId:string,restaurantId:string){if(billingConfig().enabled){const paid=await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get();if(paidPlan(paid))return assertPaidPublication(ownerId,restaurantId);}if(await assertTrialPublication(ownerId,restaurantId))return;return assertPaidPublication(ownerId,restaurantId);}
-export async function canServeMenu(ownerId:string,restaurantId:string){if(billingConfig().enabled){const paid=await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get();if(paidPlan(paid))return paidMenuServing(ownerId,restaurantId);}const trial=await trialEntitlement(ownerId,restaurantId);return trial===null?paidMenuServing(ownerId,restaurantId):trial;}
+async function manualGrantPublication(ownerId:string,restaurantId:string,planName:"essencial"|"profissional"|"rede"){
+ const limit=billingPlans[planName].limit;
+ const used=await getDb().select({n:count()}).from(restaurants).where(and(eq(restaurants.ownerId,ownerId),eq(restaurants.published,true),ne(restaurants.id,restaurantId))).get();
+ if((used?.n||0)>=limit)throw new HttpError(402,`A condição especial desta conta permite ${limit} pizzaria(s) publicada(s).`);
+}
+async function manualGrantServing(ownerId:string,restaurantId:string,planName:"essencial"|"profissional"|"rede"){
+ const rows=await getDb().select({id:restaurants.id}).from(restaurants).where(and(eq(restaurants.ownerId,ownerId),eq(restaurants.published,true))).orderBy(asc(restaurants.createdAt),asc(restaurants.id)).limit(billingPlans[planName].limit);
+ return rows.some(row=>row.id===restaurantId);
+}
+export async function assertPublishEntitlement(ownerId:string,restaurantId:string){const access=await accountAccess(ownerId);if(access.mode==="suspended")throw new HttpError(403,"O acesso comercial desta conta foi suspenso. Fale com o suporte.");if(access.mode==="grant")return manualGrantPublication(ownerId,restaurantId,access.plan);if(billingConfig().enabled){const paid=await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get();if(paidPlan(paid))return assertPaidPublication(ownerId,restaurantId);}if(await assertTrialPublication(ownerId,restaurantId))return;return assertPaidPublication(ownerId,restaurantId);}
+export async function canServeMenu(ownerId:string,restaurantId:string){const access=await accountAccess(ownerId);if(access.mode==="suspended")return false;if(access.mode==="grant")return manualGrantServing(ownerId,restaurantId,access.plan);if(billingConfig().enabled){const paid=await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get();if(paidPlan(paid))return paidMenuServing(ownerId,restaurantId);}const trial=await trialEntitlement(ownerId,restaurantId);return trial===null?paidMenuServing(ownerId,restaurantId):trial;}
