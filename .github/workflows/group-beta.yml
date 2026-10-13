@@ -3,6 +3,14 @@ on:
   pull_request:
     paths:
       - "lib/invite-policy.ts"
+      - "lib/account-access*.ts"
+      - "app/api/admin/access/**"
+      - "components/admin-access-control.tsx"
+      - "components/admin-report.tsx"
+      - "components/dashboard.tsx"
+      - "db/schema.ts"
+      - "drizzle/**"
+      - "scripts/check-admin-access.test.mjs"
       - "lib/trial-policy.ts"
       - "lib/device-orders.ts"
       - "lib/platform.ts"
