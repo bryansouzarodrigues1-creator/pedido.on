@@ -111,7 +111,7 @@ test('both real AI routes reject links and local-help questions before reserving
  const f=fixture(),originalFetch=globalThis.fetch;let calls=0;globalThis.fetch=()=>{calls++;throw Error('An import reference must not call providers');};
  try{
   const before=f.db.prepare("SELECT data,published_data FROM restaurants WHERE id='shop-a'").get();
-  for(const message of [url,shared,'Como importar pelo CNPJ do iFood?','Como funciona o Pix?','https://evil.example/menu']){
+  for(const message of [url,shared,'Como importar pelo CNPJ do iFood?','Como funciona o Pix?','https://evil.example/menu','Crie uma promoção com 2 pizzas e refrigerante']){
    const text=await f.call('studio','POST',{id:'shop-a'},{requestId:crypto.randomUUID(),mode:'ai',message,snapshot:f.data,history:[]});
    assert.equal(text.status,422,await text.clone().text());assert.match((await text.json()).error,/Nenhuma sugestão de IA foi usada/);
    const image=await f.call('images','POST',{id:'shop-a'},{requestId:crypto.randomUUID(),asset:'cover',description:message,theme:f.data.theme,accent:f.data.accent});

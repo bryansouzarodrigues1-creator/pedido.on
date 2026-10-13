@@ -15,6 +15,7 @@ export function assistantAnswer(input:string):AssistantAnswer|null{
  const source=inspectMenuSourceText(text);
  if(source.links.length&&!requestedImage(text))return {kind:"guide",screen:"menu",action:"Conferir no leitor",sourceText:text,reply:"Reconheci a referência da loja no iFood, sem usar créditos. Abra o leitor com esta mensagem para continuar sem perder a leitura guardada. A importação automática do catálogo ainda não está disponível; envie prints ou cole os produtos com preços para revisar."};
  if(source.status==="unsupported"&&!source.menuText)return {kind:"guide",screen:"menu",action:"Abrir Cardápio",reply:"Esse endereço não é um link completo de loja do iFood reconhecido. Para importar agora, envie prints ou cole os produtos com preços na aba Cardápio. Nenhuma geração de IA é necessária."};
+ if(/^(?:por favor[, ]*)?(?:crie|criar|monte|montar|cadastre|cadastrar|quero(?: criar)?|preciso(?: de)?)(?:\s+(?:um|uma|novo|nova|o|a))*\s+(?:promocao|combo|oferta)\b/.test(normalized)&&!requestedImage(text))return {kind:"guide",screen:"menu",action:"Abrir Cardápio",reply:"Em Cardápio, abra Promoções e escolha Produto ou Combo. Selecione os itens, defina o preço e a validade e salve no rascunho. A oferta não precisa custar menos que o normal. Esse cadastro não usa créditos de IA."};
  const isQuestion=/^(como|onde|aonde|cade|qual|me (?:ensina|ensine|explica|explique|mostra|mostre)|preciso de ajuda|ajuda\b|o que e|para que serve)/.test(normalized)||/\?$/.test(text);
  if(isQuestion){
   // Import questions commonly mention products, prices and photos as well.
@@ -24,7 +25,7 @@ export function assistantAnswer(input:string):AssistantAnswer|null{
   if(/(borda|adicional)/.test(normalized))return {kind:"guide",screen:"menu",action:"Abrir Cardápio",reply:"Na aba Cardápio, abra Bordas recheadas para cadastrar cada borda e seu valor. Os adicionais de borda ficam disponíveis na escolha da pizza. Confira e publique a alteração quando terminar."};
   if(/(entrega|bairro|taxa|cep|frete)/.test(normalized))return {kind:"guide",screen:"store",action:"Abrir Pizzaria",reply:"Na aba Pizzaria, configure Entrega, os bairros atendidos, as taxas e o prazo. O cliente escolhe os produtos antes de informar o endereço; regiões não cadastradas podem exigir sua aprovação."};
   if(/(pix|pagamento|comprovante)/.test(normalized))return {kind:"guide",screen:"store",action:"Abrir Pizzaria",reply:"Em Pizzaria, configure os meios de pagamento e a chave Pix da própria pizzaria. Os comprovantes ficam nos detalhes dos pedidos; confira o recebimento no banco antes de marcar como pago. A assinatura do pedido.on é separada."};
-  if(/(promoc|desconto|cupom|oferta)/.test(normalized))return {kind:"guide",screen:"menu",action:"Abrir Cardápio",reply:"Na aba Cardápio, procure Promoção do dia para escolher produto, valor e validade. O sistema encerra a oferta quando vence. Cupons são uma função diferente; confirme os preços antes de publicar."};
+  if(/(promoc|desconto|cupom|oferta|combo)/.test(normalized))return {kind:"guide",screen:"menu",action:"Abrir Cardápio",reply:"Em Cardápio, abra Promoções e escolha Produto ou Combo. Você define os itens, o preço e a validade; o valor não precisa ser menor que o normal. Salve no rascunho e atualize o cardápio. Categorias e cupons ficam em Mais opções."};
   if(/(preco|produto|pizza|sabor|categoria|foto)/.test(normalized))return {kind:"guide",screen:"menu",action:"Abrir Cardápio",reply:"Na aba Cardápio, adicione ou edite produtos. Cada pizza possui tamanhos e preços; confirme os valores e publique quando estiver pronto. Você também pode importar fotos de um cardápio e revisar o resultado antes de salvar."};
   if(/(cardapio|importar|ocr|ifood|99food|pdf|captura|print)/.test(normalized))return {kind:"guide",screen:"menu",action:"Enviar fotos do cardápio",reply:"Na aba Cardápio, use Enviar foto do cardápio. O leitor local aceita até 8 fotos por lote e mostra sabores, tamanhos e preços para revisão. Para cardápios grandes, importe em partes; o cadastro manual continua disponível."};
   if(/(pedido|notificac|chat|whatsapp|cliente)/.test(normalized))return {kind:"guide",screen:"overview",action:"Abrir Pedidos",reply:"Na aba Pedidos, acompanhe solicitações, pagamento, preparo e entrega. Abra o pedido para responder pelo chat. O WhatsApp é uma alternativa. Para alertas com app fechado, permita notificações e teste o PWA no celular."};
@@ -42,7 +43,7 @@ export function assistantAnswer(input:string):AssistantAnswer|null{
  }
  if(/\b(?:troque|mude|altere|configure|deixe|quero|prefiro)\b/.test(normalized)
     &&/\b(?:cor|cores|botao|botoes|tema|visual|layout|estilo|aparencia|cardapio)\b/.test(normalized)
-    &&/(?:#[a-f0-9]{6}\b|\b(?:vermelh|preto|escuro|azul|verde|laranja|amarelo|branco|claro|noturno|artesanal|dourado)\w*\b)/.test(normalized)){
+    &&/(?:#[a-f0-9]{6}\b|\b(?:vermelh|preto|escur[oa]|azul|verde|laranja|amarelo|branco|claro|noturno|artesanal|dourado)\w*\b)/.test(normalized)){
   return {kind:"style",message:text};
  }
  return null;

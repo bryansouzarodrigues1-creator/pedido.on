@@ -53,6 +53,13 @@ test("iFood link and CNPJ help describes the local source reference without prom
  const cnpj=assistantAnswer("Como importar pelo CNPJ do iFood?");assert.match(cnpj.reply,/CNPJ sozinho não importa/);assert.match(cnpj.reply,/ainda não está ativa/);
 });
 
+test("creating an offer or bundle is local guidance while explicit advertising art keeps its image route",()=>{
+ for(const message of ["Crie uma promoção de 2 pizzas e refrigerante por 200 reais","Monte um combo para hoje","Quero criar uma oferta"]){const answer=assistantAnswer(message);assert.equal(answer.kind,"guide");assert.equal(answer.screen,"menu");assert.match(answer.reply,/não precisa custar menos/);}
+ assert.equal(assistantAnswer("Crie uma capa para divulgar a promoção"),null);
+ assert.equal(assistantAnswer("Quero cores escuras para a promoção").kind,"style");
+ assert.equal(assistantAnswer("Crie uma descrição para o combo"),null);
+});
+
 test("visual tweaks are local while paid image requests and creative description remain in their established route",()=>{
  assert.equal(assistantAnswer("Quero meu cardápio preto e vermelho")?.kind,"style");
  assert.equal(assistantAnswer("Mude a cor dos botões para #cc2244")?.kind,"style");

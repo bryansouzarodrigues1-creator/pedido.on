@@ -1,5 +1,7 @@
 # Leitor por foto e promoção do dia
 
+**Candidata da PR #13 — 13/10/2026:** o leitor preserva a revisão e reconhece referências iFood; promoções aceitam preço livre e combos compostos. O painel cria/edita ofertas em janela curta e recolhe categorias/cupons em Mais opções. Estas mudanças ainda não estão publicadas; produção segue v28. Ver [pacote preparado](PROXIMAS-ATUALIZACOES-2026-10-13.md) e [evidências](FECHAMENTO-MVP-2026-10-13.md). Os parágrafos abaixo registram o comportamento da versão originalmente publicada.
+
 **Publicada na v21 em 12/10/2026**, no mesmo projeto Sites, PR #8 integrada. Início, calculadora, demo e arquivos de OCR foram conferidos por GET real; os bytes de OCR coincidiram com os testados. Nenhum modelo pago é chamado por estas funções. Câmera/toque/retomada no celular ainda precisam de validação. A correção adicional de cancelamento da PR #9 está em rascunho e não foi publicada porque o ambiente ficou offline.
 
 ## Uso do leitor
@@ -20,7 +22,7 @@ Foto, texto reconhecido e ajustes ficam em IndexedDB, separados por pizzaria, di
 
 ## Promoção do dia
 
-Escolher um produto existente, tamanho quando necessário, preço menor que o normal e encerramento no horário de Brasília. A oferta vai para o rascunho e exige publicação. O campo JSON de promoções é opcional nas lojas antigas e recebe lista vazia ao validar; nenhuma migração ou alteração em massa das pizzarias é necessária.
+Na versão originalmente publicada, escolher um produto existente, tamanho quando necessário, preço menor que o normal e encerramento no horário de Brasília. A candidata remove a exigência de preço menor e permite selecionar vários produtos/quantidades em um combo. A oferta vai para o rascunho e exige publicação. O campo JSON de promoções é opcional nas lojas antigas e recebe lista vazia ao validar; não há nova migração de banco nesta ampliação.
 
 O servidor só aplica ofertas dentro do prazo e ao produto/tamanho correto. Pizza promocional vale inteira; meio a meio usa a regra normal. Borda é acrescentada normalmente. Cupons não acumulam com a linha promocional e continuam aplicados a outras linhas elegíveis. O preço-base não é alterado quando a oferta termina, e pedidos já registrados conservam seus valores.
 
