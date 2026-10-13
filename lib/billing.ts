@@ -5,6 +5,7 @@ import {subscriptions,restaurants} from "@/db/schema";
 import {HttpError} from "./http";
 import {paidPlan} from "./billing-policy";
 import {accountAccess} from "./account-access";
+import {moreGenerousPlan} from "./account-access-policy";
 import {assertTrialPublication,trialEntitlement} from "./trial";
 export const billingPlans={essencial:{name:"Essencial",amount:4900,limit:1,aiCredits:20},profissional:{name:"Profissional",amount:8900,limit:3,aiCredits:60},rede:{name:"Rede",amount:14900,limit:10,aiCredits:200}} as const;
 export type BillingPlan=keyof typeof billingPlans;
@@ -25,5 +26,11 @@ async function manualGrantServing(ownerId:string,restaurantId:string,planName:"e
  const rows=await getDb().select({id:restaurants.id}).from(restaurants).where(and(eq(restaurants.ownerId,ownerId),eq(restaurants.published,true))).orderBy(asc(restaurants.createdAt),asc(restaurants.id)).limit(billingPlans[planName].limit);
  return rows.some(row=>row.id===restaurantId);
 }
-export async function assertPublishEntitlement(ownerId:string,restaurantId:string){const access=await accountAccess(ownerId);if(access.mode==="suspended")throw new HttpError(403,"O acesso comercial desta conta foi suspenso. Fale com o suporte.");if(access.mode==="grant")return manualGrantPublication(ownerId,restaurantId,access.plan);if(billingConfig().enabled){const paid=await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get();if(paidPlan(paid))return assertPaidPublication(ownerId,restaurantId);}if(await assertTrialPublication(ownerId,restaurantId))return;return assertPaidPublication(ownerId,restaurantId);}
-export async function canServeMenu(ownerId:string,restaurantId:string){const access=await accountAccess(ownerId);if(access.mode==="suspended")return false;if(access.mode==="grant")return manualGrantServing(ownerId,restaurantId,access.plan);if(billingConfig().enabled){const paid=await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get();if(paidPlan(paid))return paidMenuServing(ownerId,restaurantId);}const trial=await trialEntitlement(ownerId,restaurantId);return trial===null?paidMenuServing(ownerId,restaurantId):trial;}
+export async function assertPublishEntitlement(ownerId:string,restaurantId:string){const access=await accountAccess(ownerId);if(access.mode==="suspended")throw new HttpError(403,"O acesso comercial desta conta foi suspenso. Fale com o suporte.");if(access.mode==="grant"){
+ const paid=billingConfig().enabled?await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get():null;
+ return manualGrantPublication(ownerId,restaurantId,moreGenerousPlan(access.plan,paidPlan(paid)));
+}if(billingConfig().enabled){const paid=await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get();if(paidPlan(paid))return assertPaidPublication(ownerId,restaurantId);}if(await assertTrialPublication(ownerId,restaurantId))return;return assertPaidPublication(ownerId,restaurantId);}
+export async function canServeMenu(ownerId:string,restaurantId:string){const access=await accountAccess(ownerId);if(access.mode==="suspended")return false;if(access.mode==="grant"){
+ const paid=billingConfig().enabled?await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get():null;
+ return manualGrantServing(ownerId,restaurantId,moreGenerousPlan(access.plan,paidPlan(paid)));
+}if(billingConfig().enabled){const paid=await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get();if(paidPlan(paid))return paidMenuServing(ownerId,restaurantId);}const trial=await trialEntitlement(ownerId,restaurantId);return trial===null?paidMenuServing(ownerId,restaurantId):trial;}
