@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {menuAmount,readMenuPages,prepareReaderItems,applyReaderItems,readerItemReady,arrangeMenuWords} from '../lib/menu-reader-policy.ts';
+import {menuAmount,readMenuPages,prepareReaderItems,applyReaderItems,readerItemReady,arrangeMenuWords,reconcileReaderReview} from '../lib/menu-reader-policy.ts';
 import {demoRestaurant,defaultRestaurant,restaurantSchema,calculateOrder} from '../lib/domain.ts';
 const read=text=>readMenuPages([{id:'photo',lines:text.split('\n').map(text=>({text,confidence:94,box:{x0:10,y0:20,x1:600,y1:70}}))}]);
 test('OCR rows preserve actual ingredients, sized prices, beverage and crust destinations',()=>{
@@ -29,4 +29,15 @@ test('detached photo noise cannot rename the product or expand its box; uncertai
  assert.equal(price.text,'Calabresa G 49,90');
  const [uncertain]=arrangeMenuWords([word('Frango',20,30),word('52,90',300,35)],1100);
  assert.equal(uncertain.text,'Frango 52,90');
+});
+
+test('reading again preserves owner corrections only for unchanged source text and uses the new source geometry',()=>{
+ const data=defaultRestaurant('Teste'),original=read('Pizzas\nCalabresa G R$ 499,00').items;
+ const previous=original.map(item=>({...item,name:'Calabresa da casa',sizes:{p:null,m:null,g:4990},image:'/media/shop-a/approved.jpg'}));
+ const recognized=original.map(item=>({...item,box:{x0:300,y0:400,x1:600,y1:460}}));
+ const [kept]=reconcileReaderReview(previous,recognized,data);
+ assert.equal(kept.name,'Calabresa da casa');assert.equal(kept.sizes.g,4990);assert.equal(kept.image,'/media/shop-a/approved.jpg');assert.deepEqual(kept.box,recognized[0].box);
+ const changed=recognized.map(item=>({...item,sourceText:'Calabresa G R$ 59,90',sizes:{p:null,m:null,g:5990}}));
+ const [fresh]=reconcileReaderReview(previous,changed,data);
+ assert.equal(fresh.name,'Calabresa');assert.equal(fresh.sizes.g,5990);assert.equal(fresh.image,undefined);
 });

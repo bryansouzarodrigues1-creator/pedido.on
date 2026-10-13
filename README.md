@@ -6,7 +6,7 @@ Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criaçã
 
 ## Estado atual — 13/10/2026
 
-Produção permanece na **v28**, com cadastro público, pedidos/Pix/chat, OCR local, PWA/Web Push e admin analítico. A **PR #13 continua em rascunho, sem merge nem publicação**: reúne controle administrativo de cortesia/suspensão, ajuda local no Estúdio e aproveitamento de fotografias de capturas. A validação local e os critérios de liberação estão em [Fechamento do MVP](docs/FECHAMENTO-MVP-2026-10-13.md). Trial fiscalizado, ampliação de cotas, Asaas e recuperação por e-mail continuam desativados.
+Produção permanece na **v28**, com cadastro público, pedidos/Pix/chat, OCR local, PWA/Web Push e admin analítico. A **PR #13 continua em rascunho, sem merge nem publicação**: reúne controle administrativo de cortesia/suspensão, ajuda local no Estúdio e aproveitamento de fotografias de capturas. A candidata também preserva texto/itens e ajustes na retomada, salva o rascunho antes de concluir a importação e mantém o link do pedido utilizável com storage bloqueado. A validação local (210 testes) e os critérios de liberação estão em [Fechamento do MVP](docs/FECHAMENTO-MVP-2026-10-13.md). Trial fiscalizado, ampliação de cotas, Asaas e recuperação por e-mail continuam desativados.
 
 ### Registro histórico — v21, 12/10/2026
 

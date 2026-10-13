@@ -112,7 +112,30 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
   return {items,unmatched,pages:pages.length};
 }
 export function readerItemReady(item:ReaderItem){return item.name.trim().length>=2&&item.category.trim().length>=2&&(item.kind==="pizza"?Object.values(item.sizes).some(v=>v!==null&&v>0):!!item.price&&item.price>0);}
-export function prepareReaderItems(items:ReaderItem[],data:RestaurantData){return items.map(item=>{const existing=item.kind==="crust"?data.crusts.find(v=>normalizeMenuText(v.name)===normalizeMenuText(item.name)):data.products.find(v=>normalizeMenuText(v.name)===normalizeMenuText(item.name));return {...item,...(existing?{existingId:existing.id,selected:false,action:"update" as const,issues:[...item.issues,"Já cadastrado: marque somente se quiser atualizar."]}:{})};});}
+export function prepareReaderItems(items:ReaderItem[],data:RestaurantData,options:{preserveSelection?:boolean}={}){
+ return items.map(item=>{
+  const entries=item.kind==="crust"?data.crusts:data.products;
+  const existing=item.existingId?entries.find(v=>v.id===item.existingId):entries.find(v=>normalizeMenuText(v.name)===normalizeMenuText(item.name));
+  const issues=[...new Set(item.issues)].slice(0,12);
+  if(item.existingId&&!existing)return {...item,selected:false,issues:[...new Set(["O item original mudou ou foi removido. Confira no editor antes de importar.",...issues])].slice(0,12)};
+  return {...item,issues,...(existing?{existingId:existing.id,selected:!!options.preserveSelection&&item.action==="update"&&item.existingId===existing.id&&item.selected,action:"update" as const,issues:[...new Set(["Já cadastrado: marque somente se quiser atualizar.",...issues])].slice(0,12)}:{})};
+ });
+}
+/** Leave every skipped item available, including valid prices and intentional updates. */
+export function remainingReaderItems(items:ReaderItem[],after:RestaurantData){return prepareReaderItems(items.filter(item=>!item.selected),after,{preserveSelection:true});}
+/** The reader may clear selected rows only after the draft write is acknowledged. */
+export async function importReaderItems(data:RestaurantData,items:ReaderItem[],persist:(patch:Partial<RestaurantData>)=>void|Promise<void>,makeId=()=>crypto.randomUUID()){
+ const patch=applyReaderItems(data,items,makeId);
+ await persist(patch);
+ return {patch,remaining:remainingReaderItems(items,{...data,...patch})};
+}
+export function reconcileReaderReview(previous:ReaderItem[],recognized:ReaderItem[],data:RestaurantData){
+ const restored=recognized.map(item=>{
+  const before=previous.find(v=>v.id===item.id&&v.sourceId===item.sourceId&&v.sourceText===item.sourceText);
+  return before?{...before,box:item.box,issues:[...new Set([...item.issues,...before.issues])].slice(0,12)}:item;
+ });
+ return prepareReaderItems(restored,data,{preserveSelection:true}).map(item=>({...item,selected:item.selected&&readerItemReady(item)}));
+}
 export function applyReaderItems(data:RestaurantData,items:ReaderItem[],makeId=()=>crypto.randomUUID()):Partial<RestaurantData>{
   const selected=items.filter(v=>v.selected);if(!selected.length)throw Error("Escolha pelo menos um item.");
   if(selected.some(v=>!readerItemReady(v)))throw Error("Confira os nomes, preços e tamanhos dos itens selecionados.");

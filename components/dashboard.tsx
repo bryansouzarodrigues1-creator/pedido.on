@@ -24,8 +24,14 @@ const navigation = [
 ] as const;
 type ApiResult = { restaurant: RestaurantRecord; orders: OrderRecord[]; order: OrderRecord; sales: SalesSummary; error?: string };
 async function api(path: string, method = "GET", body?: unknown): Promise<ApiResult> {
-  const csrf=method!=="GET"?await fetch("/api/auth/config",{cache:"no-store"}).then(r=>r.json() as Promise<{csrf:string}>).then(v=>v.csrf):"";
-  const res = await fetch(path, { method,cache:"no-store", headers: body ? { "Content-Type": "application/json", "x-pedido-csrf":csrf } : undefined, body: body ? JSON.stringify(body) : undefined });
+  let res:Response;
+  try{
+    const csrf=method!=="GET"?await fetch("/api/auth/config",{cache:"no-store",signal:AbortSignal.timeout(20000)}).then(r=>r.json() as Promise<{csrf:string}>).then(v=>v.csrf):"";
+    res=await fetch(path, { method,cache:"no-store",signal:AbortSignal.timeout(20000), headers: body ? { "Content-Type": "application/json", "x-pedido-csrf":csrf } : undefined, body: body ? JSON.stringify(body) : undefined });
+  }catch(error){
+    if(error instanceof Error&&["TimeoutError","AbortError"].includes(error.name))throw Error("A conexão demorou. Reabra o painel para conferir se a alteração foi salva antes de tentar novamente.");
+    if(error instanceof TypeError)throw Error("A alteração não foi confirmada. Confira sua conexão e tente novamente.");throw error;
+  }
   const result = await res.json() as ApiResult;
   if (!res.ok) throw new Error(result.error || "Não foi possível concluir a ação.");
   return result;
@@ -40,7 +46,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const [draft, setDraft] = useState<RestaurantData>(firstRestaurant ? restaurantSchema.parse(JSON.parse(firstRestaurant.data)) : defaultRestaurant("Sua pizzaria"));
   const [requestedOrder,setRequestedOrder]=useState(initialOrderId||"");
   const [tab, setTab] = useState("overview");
-  const [dirty, setDirty] = useState(false), [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false), [saving, setSaving] = useState(false),[readerActive,setReaderActive]=useState(false);
   const [error, setError] = useState(""), [toast, setToast] = useState("");
   const [firstRun,setFirstRun]=useState<{restaurantId:string;idea:string}|null>(null);
   const [createOpen, setCreateOpen] = useState(startNew || !initialRestaurants.length), [previewOpen, setPreviewOpen] = useState(false), [shareOpen, setShareOpen] = useState(false);
@@ -51,11 +57,12 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const [orderFilter, setOrderFilter] = useState("work"), [orderDetail, setOrderDetail] = useState<OrderRecord | null>(null), [updatingOrder, setUpdatingOrder] = useState("");
   const active = restaurants.find(r => r.id === activeId);
   const openNotification=useRef<(url:string)=>void>(()=>{});
-  openNotification.current=async(value)=>{try{const url=new URL(value,location.origin);if(url.origin!==location.origin||url.pathname!=="/app")return;const shop=url.searchParams.get("loja"),order=url.searchParams.get("pedido");if(shop&&!restaurants.some(r=>r.id===shop))return;if(shop&&shop!==activeId){if(dirty&&!await save())return;setActiveId(shop);}setTab("overview");if(order)setRequestedOrder(order);}catch{}};
+  openNotification.current=async(value)=>{try{if(savingRef.current)return;const url=new URL(value,location.origin);if(url.origin!==location.origin||url.pathname!=="/app")return;const shop=url.searchParams.get("loja"),order=url.searchParams.get("pedido");if(shop&&!restaurants.some(r=>r.id===shop))return;if(shop&&shop!==activeId){if(dirty&&!await save())return;setActiveId(shop);}setTab("overview");if(order)setRequestedOrder(order);}catch{}};
   useEffect(()=>{const handler=(event:MessageEvent)=>{if(event.data?.type==="OPEN_NOTIFICATION"&&typeof event.data.url==="string")openNotification.current(event.data.url);};navigator.serviceWorker?.addEventListener("message",handler);return()=>navigator.serviceWorker?.removeEventListener("message",handler);},[]);
   useEffect(()=>{if(!requestedOrder)return;const found=orderList.find(row=>row.id===requestedOrder);if(found){setOrderDetail(found);setRequestedOrder("");}},[requestedOrder,orderList]);
+  const savingRef=useRef(false);
   const dirtyRef = useRef(dirty), activeIdRef = useRef(activeId), ordersRequest = useRef(0),ordersBusy=useRef(new Set<string>());
-  dirtyRef.current = dirty; activeIdRef.current = activeId;
+  dirtyRef.current = dirty||saving||readerActive; activeIdRef.current = activeId;
 
   useEffect(() => {
     const row = restaurants.find(r => r.id === activeId);
@@ -77,32 +84,44 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   function change(patch: Partial<RestaurantData>) { setDraft(old => ({ ...old, ...patch })); setDirty(true); setError(""); }
   function updateRecord(record: RestaurantRecord) { setRestaurants(old => old.map(r => r.id === record.id ? record : r)); }
   async function save(): Promise<RestaurantRecord | null> {
-    if (!active) return null; if (!dirty) return active;
-    setSaving(true); setError("");
+    if (!active||savingRef.current) return null; if (!dirty) return active;
+    savingRef.current=true;setSaving(true); setError("");
     try {
       const result = await api(`/api/restaurants/${active.id}`, "PUT", { data: draft, revision: active.revision });
       updateRecord(result.restaurant); setDraft(restaurantSchema.parse(JSON.parse(result.restaurant.data))); setDirty(false); setToast("Rascunho salvo."); return result.restaurant;
     } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível salvar."); return null; }
-    finally { setSaving(false); }
+    finally { savingRef.current=false;setSaving(false); }
+  }
+  async function importMenu(patch:Partial<RestaurantData>){
+    if(!active||savingRef.current)throw Error("Aguarde o salvamento atual antes de importar.");
+    const next=restaurantSchema.parse({...draft,...patch});
+    savingRef.current=true;setSaving(true);setError("");
+    try{
+      const result=await api(`/api/restaurants/${active.id}`,"PUT",{data:next,revision:active.revision});
+      updateRecord(result.restaurant);setDraft(restaurantSchema.parse(JSON.parse(result.restaurant.data)));setDirty(false);
+      setToast("Produtos importados e rascunho salvo. Publique quando estiver pronto.");
+    }catch(error){throw Error(error instanceof Error?error.message:"Não foi possível salvar a importação. Sua leitura foi mantida.");}
+    finally{savingRef.current=false;setSaving(false);}
   }
   const storeReady = phoneNumber(draft.whatsapp).length >= 12 && phoneNumber(draft.whatsapp).length <= 15 && (draft.deliveryEnabled || draft.pickupEnabled) && (!draft.pickupEnabled || !!draft.address.trim()) && draft.payments.length > 0;
   const menuReady = draft.products.some(availableProduct);
   async function publish(value = true) {
+    if(savingRef.current)return;
     if (value && (!storeReady || !menuReady)) {
       setError(!storeReady ? "Complete o WhatsApp, a entrega ou retirada e as formas de pagamento para publicar." : "Cadastre ao menos um produto disponível com preço para publicar.");
       setTab(!storeReady ? "store" : "menu"); return;
     }
     const wasPublished = active?.published, row = await save(); if (!row) return;
-    setSaving(true); setError("");
+    savingRef.current=true;setSaving(true); setError("");
     try {
       const result = await api(`/api/restaurants/${row.id}/publish`, "POST", { revision: row.revision, published: value });
       updateRecord(result.restaurant);
       setToast(value ? "Cardápio atualizado. Seus clientes já veem as alterações." : "Publicação pausada.");
       if (value && !wasPublished) { setShareOpen(true); setTab("overview"); }
     } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível publicar."); }
-    finally { setSaving(false); }
+    finally { savingRef.current=false;setSaving(false); }
   }
-  async function switchRestaurant(id: string) { if (id === activeId) return; if (dirty && !await save()) return; setActiveId(id); setTab("overview"); }
+  async function switchRestaurant(id: string) { if (id === activeId||savingRef.current) return; if (dirty && !await save()) return; setActiveId(id); setTab("overview"); }
   async function loadOrders(silent = false) {
     if (!activeId||ordersBusy.current.has(activeId)) return; const id = activeId, request = ++ordersRequest.current;ordersBusy.current.add(id);
     if (!silent) setOrdersLoading(true);
@@ -142,7 +161,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const shownOrders = orderList.filter(o => orderFilter === "all" || (orderFilter === "work" ? ["awaiting_payment", "awaiting", "confirmed", "preparing", "out_for_delivery"].includes(o.status) : ["delivered", "canceled"].includes(o.status)));
   const sectionName = navigation.find(n => n.id === tab)?.label;
 
-  return <div className="dashboard simple-dashboard"><PwaSetup hasUnsaved={dirty||saving||!!productEdit||createOpen||tab==="studio"}/>
+  return <div className="dashboard simple-dashboard"><PwaSetup hasUnsaved={dirty||saving||readerActive||!!productEdit||createOpen||tab==="studio"}/>
     <aside className={`sidebar ${mobileNav ? "visible" : ""}`}>
       <div className="sidebar-brand"><Brand /><button className="icon-btn mobile-nav" aria-label="Fechar menu" onClick={() => setMobileNav(false)}><X size={20} /></button></div>
       <div className="shop-picker"><label><span>SUA PIZZARIA</span><select value={activeId} disabled={saving} onChange={e => switchRestaurant(e.target.value)}>{!restaurants.length && <option value="">Criar minha pizzaria</option>}{restaurants.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label><span className={`shop-status ${active?.published ? "live" : ""}`}><i />{active?.published ? "Cardápio no ar" : "Ainda não publicado"}</span></div>
@@ -172,7 +191,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
           </>}
           <fieldset className="editor-fieldset" disabled={saving}>
             {tab === "menu" && <>
-              <AiImport key={active.id} restaurantId={active.id} draft={draft} onImport={change}/>
+              <AiImport key={active.id} restaurantId={active.id} draft={draft} onImport={importMenu} onActivityChange={setReaderActive}/>
               {draft.products.length>0&&<div className="catalog-actions"><p>{draft.products.length} {draft.products.length===1?"produto cadastrado":"produtos cadastrados"}</p><button className="btn primary" onClick={()=>editProduct("pizza")}><Plus size={18}/>Adicionar produto</button></div>}
               {draft.products.length>0&&<div className="catalog-toolbar"><div className="input-search"><Search size={18} /><input value={catalogSearch} onChange={e => setCatalogSearch(e.target.value)} placeholder="Buscar produto" aria-label="Buscar produtos" /></div><select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} aria-label="Filtrar categoria"><option value="all">Todas as categorias</option>{draft.categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select><span className="catalog-count">{draft.products.filter(availableProduct).length} disponíveis</span></div>}
               <section className="panel-card product-table-panel"><div className="product-table-head"><span>PRODUTO</span><span>CATEGORIA</span><span>PREÇO</span><span>DISPONÍVEL</span><span /></div>{visibleProducts.map(product => <div className="product-table-row" key={product.id}><button className="product-cell" onClick={() => setProductEdit(product)}><span className="table-product-image">{product.image ? <img src={product.image} alt="" /> : <Pizza size={23} />}</span><div><b>{product.name}</b><small>{product.kind === "pizza" ? "Pizza" : "Produto ou combo"}{product.featured && <><Star size={11} />Destaque</>}</small></div></button><span>{draft.categories.find(c => c.id === product.categoryId)?.name}</span><span className="table-price">{product.kind === "pizza" ? <><small>A partir de</small>{money(Math.min(...Object.values(product.sizes).filter(n => n > 0)) || 0)}</> : money(product.price)}</span><button className={`toggle ${product.enabled ? "on" : ""}`} role="switch" aria-checked={product.enabled} aria-label={`Disponibilidade de ${product.name}`} onClick={() => change({ products: draft.products.map(row => row.id === product.id ? { ...row, enabled: !row.enabled } : row) })}><span /></button><button className="icon-btn" aria-label={`Editar ${product.name}`} onClick={() => setProductEdit(product)}><Pencil size={17} /></button></div>)}{!visibleProducts.length && <div className="table-empty">{!draft.products.length&&<img src="/assets/pizza.webp" alt="Pizza artesanal" className="empty-pizza-photo"/>}<h3>{draft.products.length ? "Nenhum produto encontrado." : "Vamos colocar sua pizza no cardápio."}</h3><p>{draft.products.length ? "Experimente outro nome ou categoria." : "Só precisa do nome e do preço para começar."}</p><button className="btn primary" onClick={() => editProduct("pizza")}><Plus size={18} />Adicionar manualmente</button></div>}</section>
