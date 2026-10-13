@@ -7,6 +7,7 @@ import {adminStatus} from "@/lib/admin-status";
 import {adminAnalytics} from "@/lib/admin-analytics";
 import {readAdminQuery} from "@/lib/admin-analytics-policy";
 import {AdminReport} from "@/components/admin-report";
+import "../admin-access.css";
 export const metadata={title:"Administração · pedido.on",robots:{index:false,follow:false}};
 export const dynamic="force-dynamic";
 export default async function Administration({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}){const user=await requireAccountUser("/admin");if(!platformAdmin(user))notFound();const params=await searchParams,queryParams=new URLSearchParams();for(const [key,value] of Object.entries(params||{})){const first=Array.isArray(value)?value[0]:value;if(first!==undefined)queryParams.set(key,first);}let query;try{query=readAdminQuery(queryParams);}catch{query=readAdminQuery(new URLSearchParams());}const [status,report]=await Promise.all([adminStatus(),adminAnalytics(query)]),s=status.services,n=status.notifications;
