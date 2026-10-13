@@ -22,6 +22,20 @@ test("common product questions get truthful local directions without any model c
  }
 });
 
+test("menu imports take priority over photos, prices and ingredients; PDF support is described accurately",()=>{
+ for(const input of ["Como importar uma foto do cardápio?","Como importar produtos e preços?","Onde envio o print do iFood com as pizzas?","Como ler meu cardápio por imagem?","Me ensina a importar bordas e bebidas do 99Food"]){
+  const answer=assistantAnswer(input);
+  assert.equal(answer?.kind,"guide",input);
+  assert.equal(answer?.action,"Enviar fotos do cardápio",input);
+  assert.match(answer.reply,/até 8 fotos por lote/,input);
+ }
+ const pdf=assistantAnswer("Como importar um PDF?");
+ assert.equal(pdf.action,"Enviar fotos do cardápio");
+ assert.match(pdf.reply,/capturas das páginas/);
+ assert.equal(assistantAnswer("Como altero a foto do produto?").action,"Abrir Cardápio");
+ assert.equal(assistantAnswer("Como mudo o preço no cardápio?").action,"Abrir Cardápio");
+});
+
 test("renaming the shop is a local preview validated by existing restaurant rules",()=>{
  const shop=defaultRestaurant("Pizza Exemplo");
  const found=assistantAnswer("Troque meu título para Bella Pizza Artesanal");

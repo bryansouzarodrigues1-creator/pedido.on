@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {fixture} from "./test-backend-fixture.mjs";
+import {fixture,png} from "./test-backend-fixture.mjs";
 import {adminAccessAction,effectiveAccess,grantExpiry,moreGenerousPlan} from "../lib/account-access-policy.ts";
 const reason="Cortesia autorizada para teste da pizzaria.";
 test("one account access action validates its reason and prevents contradictory actions",()=>{
@@ -46,5 +46,30 @@ test("other owners and even an administrator cannot change their own privileged 
   f.state.user={userId:"owner-b",displayName:"Owner B",email:"b@example.test",provider:"chatgpt",loginMethod:"internal"};
   assert.equal((await f.call("adminAccess","PATCH",{},{...input,restaurantId:"shop-b"})).status,403);
   assert.equal(f.db.prepare("SELECT count(*) AS n FROM account_access").get().n,0);
+ }finally{f.close();}
+});
+
+test("suspending a pizzeria blocks new orders and publication while existing Pix orders, private proofs and chat remain usable",async()=>{
+ const f=fixture();f.env.PLATFORM_ADMIN_ACCOUNT_ID="owner-a";
+ try{
+  const input=f.input(),created=await f.call("create","POST",{slug:"pizzaria-b"},input);
+  assert.equal(created.status,201);const order=await created.json(),token={"x-pedido-order-token":input.trackingToken};
+  const suspended=await f.call("adminAccess","PATCH",{}, {restaurantId:"shop-b",mode:"suspended",reason,expectedVersion:0});
+  assert.equal(suspended.status,200);
+  assert.equal((await f.call("create","POST",{slug:"pizzaria-b"},f.input())).status,404);
+  assert.equal((await f.call("customer","GET",{id:order.id},undefined,token)).status,200);
+  assert.equal((await f.call("upload","POST",{id:order.id},png,{...token,"Content-Type":"image/png"})).status,201);
+  assert.equal((await f.call("customerChat","POST",{id:order.id},{text:"Enviei o comprovante."},token)).status,201);
+  f.state.user={userId:"owner-b",displayName:"Local B",email:"b@example.test",provider:"chatgpt",loginMethod:"internal"};
+  const published=await f.call("publish","POST",{id:"shop-b"},{revision:1,published:true});
+  assert.equal(published.status,403);
+  assert.equal((await f.call("admin","GET",{id:"shop-b"})).status,200);
+  assert.equal((await f.call("ownerChat","POST",{id:"shop-b",orderId:order.id},{text:"Vamos conferir no banco."})).status,201);
+  const receiptId=f.db.prepare("SELECT receipt_id FROM orders WHERE id=?").get(order.id).receipt_id;
+  assert.equal((await f.call("proof","GET",{id:"shop-b",orderId:order.id,receiptId})).status,200);
+  assert.equal((await f.call("admin","PATCH",{id:"shop-b"},{orderId:order.id,version:2,action:"confirm",receivedPix:true,etaMinutes:40})).status,200);
+  for(const [version,action] of [[3,"prepare"],[4,"dispatch"],[5,"complete"]])assert.equal((await f.call("admin","PATCH",{id:"shop-b"},{orderId:order.id,version,action})).status,200);
+  assert.equal((await f.call("customer","GET",{id:order.id},undefined,token)).status,200);
+  assert.equal((await f.call("admin","GET",{id:"shop-a"})).status,404);
  }finally{f.close();}
 });

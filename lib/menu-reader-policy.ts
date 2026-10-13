@@ -37,6 +37,21 @@ export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
     let row=rows.findLast(r=>Math.abs(r.y-y)<=Math.max(6,Math.min(r.height,height)*.55));
     if(!row){row={y,height,words:[]};rows.push(row);}row.words.push(word);row.height=Math.max(row.height,height);
   }
+  // Photos sometimes produce isolated low-confidence letters next to a good
+  // product row. Keep uncertain text and distant prices, but exclude those
+  // detached non-price fragments from the product text and its source box.
+  for(const row of rows){
+    const chunks:ReaderWord[][]=[];
+    for(const word of row.words.sort((a,b)=>a.box.x0-b.box.x0)){
+      const last=chunks.at(-1);
+      if(!last||word.box.x0-last.at(-1)!.box.x1>Math.max(32,width*.035))chunks.push([word]);else last.push(word);
+    }
+    if(chunks.some(chunk=>chunk.some(w=>w.confidence>=75)))row.words=chunks.flatMap(chunk=>{
+      const text=chunk.map(w=>w.text).join(" ");
+      const meaningfulPrice=!!text.match(priceRE)||/^[PMG]$/i.test(text.trim());
+      return chunk.every(w=>w.confidence<55)&&!meaningfulPrice?[]:chunk;
+    });
+  }
   const boundaries:number[]=[];
   for(const row of rows){
     const chunks:ReaderWord[][]=[];

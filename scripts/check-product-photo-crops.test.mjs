@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {suggestProductCrops} from "../lib/menu-photo-crops.ts";
+import {suggestProductCrops,detectProductPhotoCrops} from "../lib/menu-photo-crops.ts";
 import {readerItemSchema,applyReaderItems} from "../lib/menu-reader-policy.ts";
 import {defaultRestaurant} from "../lib/domain.ts";
 
@@ -16,6 +16,25 @@ test("suggested screenshot crops are bounded and never intersect the OCR product
  assert.deepEqual(suggestProductCrops(200,700,box),[]);
  assert.deepEqual(suggestProductCrops(1000,1000),[]);
  assert.deepEqual(suggestProductCrops(1000,1000,{x0:-2,y0:3,x1:100,y1:120}),[]);
+});
+
+test("local photo search finds texture beyond adjacent whitespace and rejects plain/no-photo regions",()=>{
+ const raster={width:220,height:200,data:new Uint8ClampedArray(220*200*4).fill(255)},box={x0:50,y0:160,x1:405,y1:240};
+ const paint=(x0,y0,x1,y1,textured=true)=>{for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=(y*220+x)*4,light=textured&&(x+y)%2===0;raster.data[i]=light?240:160;raster.data[i+1]=light?100:40;raster.data[i+2]=light?60:20;}};
+ assert.deepEqual(detectProductPhotoCrops(1100,1000,box,raster),[]);
+ paint(165,25,209,69);
+ const [photo]=detectProductPhotoCrops(1100,1000,box,raster,[{x0:50,y0:396,x1:405,y1:476}]);
+ assert.equal(photo.side,"right");assert.ok(photo.rect.x0>=820&&photo.rect.x0<=825);assert.ok(photo.rect.x1>=1045);assert.ok(photo.rect.y0<=125&&photo.rect.y1>=345);
+ raster.data.fill(255);paint(165,25,209,69,false);
+ assert.deepEqual(detectProductPhotoCrops(1100,1000,box,raster),[]);
+ assert.deepEqual(detectProductPhotoCrops(1100,1000,box,{...raster,width:513}),[]);
+});
+
+test("the photo search stays clear of neighboring products and never uses another row's image",()=>{
+ const raster={width:220,height:200,data:new Uint8ClampedArray(220*200*4).fill(255)};
+ for(let y=100;y<144;y++)for(let x=165;x<209;x++){const i=(y*220+x)*4,light=(x+y)%2===0;raster.data[i]=light?240:160;raster.data[i+1]=light?100:40;raster.data[i+2]=light?60:20;}
+ const box={x0:50,y0:160,x1:405,y1:240},neighbors=[{x0:50,y0:450,x1:405,y1:540}];
+ assert.deepEqual(detectProductPhotoCrops(1100,1000,box,raster,neighbors),[]);
 });
 
 test("owner-approved screenshot photo follows existing product schema and importer, without automatic replacement",()=>{

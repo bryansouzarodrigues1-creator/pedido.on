@@ -1,5 +1,5 @@
 "use client";
-import {useState,useEffect,useRef,type ChangeEvent} from "react";
+import {useState,useEffect,useRef,useMemo,type ChangeEvent} from "react";
 import {Upload,Camera,ArrowRight,Check,Trash2,RotateCw,FileText,AlertCircle,Eye} from "lucide-react";
 import {Modal,Spinner} from "./ui";
 import Menu from "./menu";
@@ -13,6 +13,7 @@ export default function AiImport({restaurantId,draft,onImport}:{restaurantId:str
   const [open,setOpen]=useState(false),[pages,setPages]=useState<ReaderPage[]>([]),[items,setItems]=useState<ReaderItem[]>([]),[unmatched,setUnmatched]=useState<{sourceId:string;text:string}[]>([]);
   const [text,setText]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState(""),[progress,setProgress]=useState(0),[label,setLabel]=useState(""),[restored,setRestored]=useState(false),[confirmed,setConfirmed]=useState(false),[preview,setPreview]=useState(false),[source,setSource]=useState<ReaderItem|null>(null),[storageNote,setStorageNote]=useState(""),[initialized,setInitialized]=useState(false);
   const controller=useRef<AbortController|null>(null),mounted=useRef(true),current=useRef(draft);current.current=draft;
+  const sourceNeighbors=useMemo(()=>items.filter(item=>item.sourceId===source?.sourceId&&item.id!==source?.id).flatMap(item=>item.box?[item.box]:[]),[items,source?.id,source?.sourceId]);
   useEffect(()=>{mounted.current=true;void loadReading(restaurantId).then(value=>{if(!value||!mounted.current)return;setPages(value.pages);setItems(prepareReaderItems(value.items,current.current));setUnmatched(value.unmatched||[]);setRestored(true);}).catch(()=>{if(mounted.current)setStorageNote("A leitura ficará disponível enquanto esta tela estiver aberta.");}).finally(()=>{if(mounted.current)setInitialized(true);});return()=>{mounted.current=false;controller.current?.abort();};},[restaurantId]);
   useEffect(()=>{if(!initialized)return;if(!pages.length&&!items.length){void removeReading(restaurantId).catch(()=>{});return;}const timer=setTimeout(()=>{void saveReading({restaurantId,savedAt:Date.now(),pages,items,unmatched}).catch(()=>{if(mounted.current)setStorageNote("Não foi possível guardar a leitura neste aparelho. Confira antes de sair.");});},500);return()=>clearTimeout(timer);},[pages,items,unmatched,restaurantId,initialized]);
   function patch(id:string,value:Partial<ReaderItem>){setConfirmed(false);setItems(old=>old.map(v=>v.id===id?{...v,...value}:v));}
@@ -62,6 +63,6 @@ export default function AiImport({restaurantId,draft,onImport}:{restaurantId:str
       </div>}
     </Modal>
     <Modal open={preview} onClose={()=>setPreview(false)} title="Assim fica seu cardápio" wide>{previewData&&<Menu data={previewData} preview/>}</Modal>
-    <Modal open={!!source} onClose={()=>setSource(null)} title="Trecho original" wide>{photo?<div className="reader-source-photo"><div style={{position:"relative"}}><img src={photo.image} alt="Foto original do cardápio"/>{source?.box&&<svg viewBox={`0 0 ${photo.width} ${photo.height}`} aria-hidden="true"><rect x={source.box.x0} y={source.box.y0} width={source.box.x1-source.box.x0} height={source.box.y1-source.box.y0}/></svg>}</div><p>{source?.sourceText}</p>{source&&<ProductPhotoCrop key={source.id} page={photo} item={source} restaurantId={restaurantId} onAttach={url=>{patch(source.id,{image:url});setSource(null);setStorageNote("Foto aproveitada desta captura. Ela será associada ao produto quando você confirmar a importação.");}}/>}</div>:<p>{source?.sourceText}</p>}</Modal>
+    <Modal open={!!source} onClose={()=>setSource(null)} title="Trecho original" wide>{photo?<div className="reader-source-photo"><div style={{position:"relative"}}><img src={photo.image} alt="Foto original do cardápio"/>{source?.box&&<svg viewBox={`0 0 ${photo.width} ${photo.height}`} aria-hidden="true"><rect x={source.box.x0} y={source.box.y0} width={source.box.x1-source.box.x0} height={source.box.y1-source.box.y0}/></svg>}</div><p>{source?.sourceText}</p>{source&&<ProductPhotoCrop key={source.id} page={photo} item={source} neighbors={sourceNeighbors} restaurantId={restaurantId} onAttach={url=>{patch(source.id,{image:url});setSource(null);setStorageNote("Foto aproveitada desta captura. Ela será associada ao produto quando você confirmar a importação.");}}/>}</div>:<p>{source?.sourceText}</p>}</Modal>
   </>;
 }

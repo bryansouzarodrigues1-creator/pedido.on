@@ -4,7 +4,11 @@ Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criaçã
 
 **Publicado:** [forno-cardapios.waves4845.chatgpt.site](https://forno-cardapios.waves4845.chatgpt.site) · [Calculadora sem cadastro](https://forno-cardapios.waves4845.chatgpt.site/calculadora) · [Meu painel](https://forno-cardapios.waves4845.chatgpt.site/app)
 
-## Estado atual — 12/10/2026
+## Estado atual — 13/10/2026
+
+Produção permanece na **v28**, com cadastro público, pedidos/Pix/chat, OCR local, PWA/Web Push e admin analítico. A **PR #13 continua em rascunho, sem merge nem publicação**: reúne controle administrativo de cortesia/suspensão, ajuda local no Estúdio e aproveitamento de fotografias de capturas. A validação local e os critérios de liberação estão em [Fechamento do MVP](docs/FECHAMENTO-MVP-2026-10-13.md). Trial fiscalizado, ampliação de cotas, Asaas e recuperação por e-mail continuam desativados.
+
+### Registro histórico — v21, 12/10/2026
 
 Última publicação confirmada: **versão 21**, fonte Sites `c2c1b9cf75615acf24e6189db6c3d82575b74e65`, ambiente revisão 6, PR #8 integrada. Em **Cardápio**, o dono pode enviar fotos, revisar itens/preços em lote e acrescentar produtos e bordas ao rascunho, com OCR no aparelho. Promoção do dia usa preço e validade aprovados pelo dono; a compra confirma novamente um total que mudou. Mensagem pronta é copiada sem modelos. Contas existentes, configurações e as quatro áreas do painel foram preservadas. A validação de câmera/toque/retomada no celular continua pendente. A correção adicional de cancelamento está guardada na PR #9 em rascunho, sem publicação, após queda do ambiente.
 

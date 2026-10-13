@@ -18,3 +18,15 @@ test('unsupported sizes and private/contact/footer text remain visible for revie
 test('duplicate imports default to unselected and update only after explicit selection',()=>{const data=demoRestaurant(),before=JSON.stringify(data),raw=read('Pizzas\nMargherita G R$ 55,00').items;const prepared=prepareReaderItems(raw,data);assert.equal(prepared[0].selected,false);assert.equal(prepared[0].existingId,'margherita');assert.throws(()=>applyReaderItems(data,prepared),/Escolha/);const patch=applyReaderItems(data,prepared.map(v=>({...v,selected:true})));assert.equal(patch.products.length,data.products.length);assert.equal(patch.products[0].sizes.g,5500);assert.equal(patch.products[0].image,data.products[0].image);assert.deepEqual(patch.products.slice(1),data.products.slice(1));assert.equal(JSON.stringify(data),before);assert.equal(patch.pix,undefined);});
 test('BRL parsing rejects invented or malformed values and preserves cents',()=>{for(const [text,expected] of [['R$ 1.234,56',123456],['49,90',4990],['49.90',4990],['12',1200],['R$ 0,00',null],['-39,90',null],['I2,OO',null],['12,9',null],['1e3',null]])assert.equal(menuAmount(text),expected,text);});
 test('disconnected OCR price blocks rejoin the correct row, even when the engine returns a different order',()=>{const word=(text,x,y)=>({text,confidence:94,box:{x0:x,y0:y,x1:x+70,y1:y+25}});const words=[word('49,90',850,100),word('P',550,50),word('Calabresa',50,100),word('G',850,50),word('29,90',550,100),word('M',700,50),word('39,90',700,100),word('PIZZAS',50,10)];const lines=arrangeMenuWords(words,1100);const items=readMenuPages([{id:'geometry',lines}]).items;assert.equal(items.length,1);assert.equal(items[0].name,'Calabresa');assert.deepEqual(items[0].sizes,{p:2990,m:3990,g:4990});});
+
+test('detached photo noise cannot rename the product or expand its box; uncertain prices and names remain for review',()=>{
+ const word=(text,x,confidence=94)=>({text,confidence,box:{x0:x,y0:100,x1:x+60,y1:125}});
+ for(const words of [[word('EA',20,15),word('Calabresa',300),word('G',370),word('R$',440),word('49,90',510)], [word('Calabresa',20),word('G',90),word('R$',160),word('49,90',230),word('EA',850,15)]]){
+  const [line]=arrangeMenuWords(words,1100);assert.equal(line.text,'Calabresa G R$ 49,90');
+  assert.ok(line.box.x0>=20&&line.box.x1<=570);
+ }
+ const [price]=arrangeMenuWords([word('Calabresa',20,40),word('G',90),word('49,90',850,30)],1100);
+ assert.equal(price.text,'Calabresa G 49,90');
+ const [uncertain]=arrangeMenuWords([word('Frango',20,30),word('52,90',300,35)],1100);
+ assert.equal(uncertain.text,'Frango 52,90');
+});
