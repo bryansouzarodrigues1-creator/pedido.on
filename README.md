@@ -1,5 +1,7 @@
 # pedido.on
 
+**Continuação — 13/10/2026:** integração Asaas preparada junto do admin/leitor/promoções na PR #13. A candidata inclui faturas mensais, webhook, conciliação, cancelamento e migração 0013; credenciais específicas ainda não estão configuradas. O executor ficou indisponível no fechamento, e o código foi recuperado no GitHub para validação pelo CI. Produção permanece v28, sem publicação/migração remota. Ler [Asaas](docs/ASAAS.md) e conferir o CI da última árvore antes de empacotar. Cadastro público, preços, cotas e chave de sessão preservados.
+
 Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criação de imagens e textos com IA e calculadora pública de preço e lucro.
 
 **Publicado:** [forno-cardapios.waves4845.chatgpt.site](https://forno-cardapios.waves4845.chatgpt.site) · [Calculadora sem cadastro](https://forno-cardapios.waves4845.chatgpt.site/calculadora) · [Meu painel](https://forno-cardapios.waves4845.chatgpt.site/app)

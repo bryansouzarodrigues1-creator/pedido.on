@@ -36,6 +36,10 @@ on:
       - "components/dashboard.tsx"
       - "components/account-settings.tsx"
       - "lib/billing.ts"
+      - "lib/asaas*.ts"
+      - "app/api/billing/**"
+      - "components/billing-controls.tsx"
+      - "scripts/check-asaas*.test.mjs"
       - "app/api/account/route.ts"
       - "db/schema.ts"
       - "drizzle/**"
@@ -76,6 +80,8 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Typecheck
         run: pnpm typecheck
+      - name: Schema metadata
+        run: node scripts/check-db-snapshot.mjs
       - name: Domain tests
         run: pnpm test
       - name: Production build

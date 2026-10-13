@@ -47,6 +47,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const [draft, setDraft] = useState<RestaurantData>(firstRestaurant ? restaurantSchema.parse(JSON.parse(firstRestaurant.data)) : defaultRestaurant("Sua pizzaria"));
   const [requestedOrder,setRequestedOrder]=useState(initialOrderId||"");
   const [tab, setTab] = useState("overview");
+  useEffect(()=>{if(new URLSearchParams(location.search).has("billing"))setTab("store");},[]);
   const [dirty, setDirty] = useState(false), [saving, setSaving] = useState(false),[readerActive,setReaderActive]=useState(false),[promotionActive,setPromotionActive]=useState(false);
   const [readerSource,setReaderSource]=useState<{restaurantId:string;requestId:string;text:string}|null>(null);
   const readerPending=readerSource?.restaurantId===activeId;

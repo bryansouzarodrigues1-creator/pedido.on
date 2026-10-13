@@ -56,6 +56,8 @@ test("iFood link and CNPJ help describes the local source reference without prom
 test("creating an offer or bundle is local guidance while explicit advertising art keeps its image route",()=>{
  for(const message of ["Crie uma promoção de 2 pizzas e refrigerante por 200 reais","Monte um combo para hoje","Quero criar uma oferta"]){const answer=assistantAnswer(message);assert.equal(answer.kind,"guide");assert.equal(answer.screen,"menu");assert.match(answer.reply,/não precisa custar menos/);}
  assert.equal(assistantAnswer("Crie uma capa para divulgar a promoção"),null);
+ for(const input of ["Quero assinar o Profissional","Cancelar minha assinatura","Ver minhas faturas"]){assert.equal(assistantAnswer(input).kind,"guide");assert.equal(assistantAnswer(input).screen,"store");}
+ assert.equal(assistantAnswer("Crie uma imagem para divulgar a assinatura"),null);
  assert.equal(assistantAnswer("Quero cores escuras para a promoção").kind,"style");
  assert.equal(assistantAnswer("Crie uma descrição para o combo"),null);
 });

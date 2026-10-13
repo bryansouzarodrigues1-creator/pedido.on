@@ -12,6 +12,7 @@ export function assistantAnswer(input:string):AssistantAnswer|null{
  const text=input.trim();
  const normalized=text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
  if(!text||text.length>1600)return null;
+ if(/^(?:(?:quero|preciso|gostaria de)\s+)?(?:assinar\b|(?:cancelar|gerenciar|renovar)\s+(?:minha\s+|a\s+)?assinatura\b|ver\s+(?:minhas\s+|as\s+)?faturas\b)/.test(normalized)&&!requestedImage(text))return {kind:"guide",screen:"store",action:"Abrir Pizzaria",reply:"Em Pizzaria, abra Minha conta e assinatura para ver o plano e as faturas. A assinatura usa o Asaas quando a conexão estiver habilitada; pagamento e cancelamento precisam da sua confirmação."};
  const source=inspectMenuSourceText(text);
  if(source.links.length&&!requestedImage(text))return {kind:"guide",screen:"menu",action:"Conferir no leitor",sourceText:text,reply:"Reconheci a referência da loja no iFood, sem usar créditos. Abra o leitor com esta mensagem para continuar sem perder a leitura guardada. A importação automática do catálogo ainda não está disponível; envie prints ou cole os produtos com preços para revisar."};
  if(source.status==="unsupported"&&!source.menuText)return {kind:"guide",screen:"menu",action:"Abrir Cardápio",reply:"Esse endereço não é um link completo de loja do iFood reconhecido. Para importar agora, envie prints ou cole os produtos com preços na aba Cardápio. Nenhuma geração de IA é necessária."};

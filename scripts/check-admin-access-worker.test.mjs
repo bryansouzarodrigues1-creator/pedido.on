@@ -34,7 +34,7 @@ async function runtime({billing=false,migrate=true}={}){
  const db=await mf.getD1Database('DB');
  async function migration(file){for(const sql of readFileSync(path.join('drizzle',file),'utf8').split(';').map(v=>v.trim()).filter(Boolean))await db.prepare(sql).run();}
  try{
-  for(const file of readdirSync('drizzle').filter(name=>name.endsWith('.sql')&&!name.startsWith('0012')).sort())await migration(file);
+  for(const file of readdirSync('drizzle').filter(name=>name.endsWith('.sql')&&Number(name.slice(0,4))<12).sort())await migration(file);
   const stamp='2026-10-13T12:00:00.000Z',menu=JSON.stringify(demoRestaurant());
   for(const [id,owner] of [['shop-admin','owner-admin'],['shop-a','owner-a'],...Array.from({length:4},(_,i)=>['shop-b-'+(i+1),'owner-b'])])await db.prepare('INSERT INTO restaurants(id,owner_id,slug,name,data,published_data,published,created_at,updated_at) VALUES(?,?,?,?,?,?,1,?,?)').bind(id,owner,id,'Local D1 shop',menu,menu,stamp,stamp).run();
   await db.prepare('INSERT INTO orders(id,restaurant_id,request_id,customer,phone,data,total,status,created_at) VALUES(?,?,?,?,?,?,?,?,?)').bind('old-order','shop-b-1','local-order','Test customer','test-phone','{}',4900,'awaiting_payment',stamp).run();
