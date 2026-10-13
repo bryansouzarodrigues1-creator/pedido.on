@@ -27,6 +27,8 @@ export async function PATCH(request:Request){try{
  const input=adminAccessAction.parse(await readJson(request,3000));
  const ownerId=await accountForShop(input.restaurantId);
  if(ownerId===user.userId)throw new HttpError(403,"Não é possível alterar seu próprio acesso de administrador.");
+ const current=await env.DB!.prepare("SELECT version FROM account_access WHERE owner_id=?").bind(ownerId).first<{version:number}>();
+ if((current?.version||0)!==input.expectedVersion)throw new HttpError(409,"A situação desta conta mudou. Atualize e confira antes de salvar.");
  const now=Math.floor(Date.now()/1000),expires=input.mode==="grant"?grantExpiry(input.durationDays,now):null,plan=input.mode==="grant"?input.plan!:null;
  const timestamp=new Date(now*1000).toISOString();
  const update=env.DB!.prepare(`INSERT INTO account_access(owner_id,mode,plan,expires_at,reason,updated_by,updated_at,version)
