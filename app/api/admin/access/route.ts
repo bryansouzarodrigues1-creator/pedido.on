@@ -13,7 +13,7 @@ async function accountForShop(restaurantId:string){
 }
 export async function GET(request:Request){try{
  const user=await admin(),restaurantId=new URL(request.url).searchParams.get("restaurantId")||"";
- if(!/^[a-f0-9-]{36}$/i.test(restaurantId))throw new HttpError(400,"Escolha uma pizzaria válida.");
+ if(!/^[a-zA-Z0-9_-]{3,100}$/.test(restaurantId))throw new HttpError(400,"Escolha uma pizzaria válida.");
  const ownerId=await accountForShop(restaurantId);
  if(ownerId===user.userId)throw new HttpError(403,"A conta administradora não pode alterar seu próprio acesso.");
  const row=await env.DB!.prepare("SELECT mode,plan,expires_at AS expiresAt,reason,version,updated_at AS updatedAt FROM account_access WHERE owner_id=?").bind(ownerId).first<{mode:string;plan:string|null;expiresAt:number|null;reason:string;version:number;updatedAt:string}>();
