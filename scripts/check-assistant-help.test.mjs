@@ -47,6 +47,12 @@ test("renaming the shop is a local preview validated by existing restaurant rule
  assert.equal(assistantAnswer("Troque meu título para "+ "a".repeat(110)).kind,"guide");
 });
 
+test("iFood link and CNPJ help describes the local source reference without promising an active connector",()=>{
+ const link=assistantAnswer("Como importar o link do iFood com fotos e preços?");
+ assert.equal(link.kind,"guide");assert.equal(link.screen,"menu");assert.match(link.reply,/mensagem compartilhada inteira/);assert.match(link.reply,/importação automática ainda não está disponível/);
+ const cnpj=assistantAnswer("Como importar pelo CNPJ do iFood?");assert.match(cnpj.reply,/CNPJ sozinho não importa/);assert.match(cnpj.reply,/ainda não está ativa/);
+});
+
 test("visual tweaks are local while paid image requests and creative description remain in their established route",()=>{
  assert.equal(assistantAnswer("Quero meu cardápio preto e vermelho")?.kind,"style");
  assert.equal(assistantAnswer("Mude a cor dos botões para #cc2244")?.kind,"style");

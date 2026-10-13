@@ -1,8 +1,9 @@
 import {requestedImage} from "./creation-intent.ts";
+import {inspectMenuSourceText} from "./menu-source-links.ts";
 
 export type AssistantScreen="menu"|"store"|"overview"|"studio";
 export type AssistantAnswer=
- |{kind:"guide";reply:string;screen?:AssistantScreen;action?:string}
+ |{kind:"guide";reply:string;screen?:AssistantScreen;action?:string;sourceText?:string}
  |{kind:"rename";name:string}
  |{kind:"style";message:string};
 
@@ -11,10 +12,14 @@ export function assistantAnswer(input:string):AssistantAnswer|null{
  const text=input.trim();
  const normalized=text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
  if(!text||text.length>1600)return null;
+ const source=inspectMenuSourceText(text);
+ if(source.links.length&&!requestedImage(text))return {kind:"guide",screen:"menu",action:"Conferir no leitor",sourceText:text,reply:"Reconheci a referência da loja no iFood, sem usar créditos. Abra o leitor com esta mensagem para continuar sem perder a leitura guardada. A importação automática do catálogo ainda não está disponível; envie prints ou cole os produtos com preços para revisar."};
+ if(source.status==="unsupported"&&!source.menuText)return {kind:"guide",screen:"menu",action:"Abrir Cardápio",reply:"Esse endereço não é um link completo de loja do iFood reconhecido. Para importar agora, envie prints ou cole os produtos com preços na aba Cardápio. Nenhuma geração de IA é necessária."};
  const isQuestion=/^(como|onde|aonde|cade|qual|me (?:ensina|ensine|explica|explique|mostra|mostre)|preciso de ajuda|ajuda\b|o que e|para que serve)/.test(normalized)||/\?$/.test(text);
  if(isQuestion){
   // Import questions commonly mention products, prices and photos as well.
   // Route the explicit task before those broader editor topics.
+  if(/ifood/.test(normalized)&&/\b(link|cnpj)\b/.test(normalized))return {kind:"guide",screen:"menu",action:"Abrir Cardápio",reply:/\bcnpj\b/.test(normalized)?"O CNPJ sozinho não importa o catálogo. A conexão oficial com o iFood depende de autorização da loja e ainda não está ativa aqui. Na aba Cardápio, envie prints ou cole os produtos com preços para revisar e adicionar ao rascunho, sem créditos de IA.":"Na aba Cardápio, abra Enviar foto do cardápio e use Colar texto ou link da loja. Pode colar a mensagem compartilhada inteira do iFood. O link identifica a referência; a importação automática ainda não está disponível. Envie prints ou cole os produtos com preços para revisar e adicionar ao rascunho, sem créditos de IA."};
   if(/(importa|\bocr\b|ifood|99food|captura|\bprint\b|\bpdf\b|(?:foto|imagem).*cardapio|cardapio.*(?:foto|imagem))/.test(normalized))return {kind:"guide",screen:"menu",action:"Enviar fotos do cardápio",reply:/\bpdf\b/.test(normalized)?"O leitor atual aceita JPG, PNG e WebP, até 8 fotos por lote. Para um PDF, envie capturas das páginas na aba Cardápio, em Enviar foto do cardápio. Confira nomes, tamanhos e preços antes de adicionar ao rascunho.":"Na aba Cardápio, use Enviar foto do cardápio. O leitor local aceita até 8 fotos por lote, incluindo prints enviados por você, e mostra produtos, tamanhos e preços para revisão. Confira os recortes de fotos antes de associá-los. Para cardápios grandes, importe em partes; o cadastro manual continua disponível."};
   if(/(borda|adicional)/.test(normalized))return {kind:"guide",screen:"menu",action:"Abrir Cardápio",reply:"Na aba Cardápio, abra Bordas recheadas para cadastrar cada borda e seu valor. Os adicionais de borda ficam disponíveis na escolha da pizza. Confira e publique a alteração quando terminar."};
   if(/(entrega|bairro|taxa|cep|frete)/.test(normalized))return {kind:"guide",screen:"store",action:"Abrir Pizzaria",reply:"Na aba Pizzaria, configure Entrega, os bairros atendidos, as taxas e o prazo. O cliente escolhe os produtos antes de informar o endereço; regiões não cadastradas podem exigir sua aprovação."};

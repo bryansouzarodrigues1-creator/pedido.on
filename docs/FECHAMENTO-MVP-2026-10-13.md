@@ -18,6 +18,14 @@ Meta comercial: fechar o desenvolvimento principal até **16/10/2026**, para um 
 - Acompanhamento prioriza a chave do link privado e suporta bloqueio de acesso a localStorage/sessionStorage. A tela real foi renderizada em teste com bloqueio **simulado**; não houve teste interativo em Android. Ao trocar o pedido, o componente é reiniciado por ID.
 - Salvamento/importação/publicação compartilham uma trava contra ações simultâneas; operações do painel têm timeout, sem repetição automática da escrita.
 
+## Referência iFood — continuação a partir de 03305dc
+
+O leitor reconhece a URL ou a mensagem compartilhada inteira do iFood, apresenta os rótulos derivados do endereço e permite abrir o cardápio. Remove URLs/texto de compartilhamento antes da interpretação de produtos, preservando nomes/preços/ingredientes colados. A referência é retomada pelo checkpoint já existente. A tela informa que o catálogo não é importado automaticamente. Hosts enganosos, credenciais na URL, rotas inválidas e preços em parâmetros não passam pela leitura como referência/produto. Não há busca remota, scraping, nova migração ou modelo pago.
+
+O Estúdio também resolve mensagens com links pela ajuda local e permite transferir a fonte para o leitor da pizzaria ativa, preservando o checkpoint e sem truncamento. Dúvidas locais são recusadas no construtor de pedidos e nas rotas de geração antes de criar jobs/reservar cotas; a proteção também cobre clientes desatualizados. Criações de imagem pedidas explicitamente continuam pelo caminho existente.
+
+A URL da Aione enviada pelo proprietário foi usada nos testes; os produtos acrescentados ao texto são fictícios. Rótulos locais não confirmam nome oficial, endereço ou CNPJ, e o UUID do link não é presumido como merchantId autorizado. O guia [Importação iFood](IMPORTACAO-IFOOD.md) prepara o caminho oficial de homologação, autorização e integração; esse acesso externo continua pendente.
+
 ## Correções da primeira rodada
 
 1. **Ajuda contextual:** importação tem prioridade sobre palavras genéricas como foto, produto, preço e borda. A orientação para PDF informa que o leitor atual recebe capturas JPG/PNG/WebP; não promete importação nativa de PDF. Ajustes locais e pedidos criativos mantêm seus caminhos existentes.
@@ -31,7 +39,7 @@ Não há reconhecimento semântico do alimento. Fotografias monocromáticas, cai
 
 | Verificação | Evidência | Limite da prova |
 | --- | --- | --- |
-| Suíte do aplicativo | **210 testes aprovados**; typecheck e build aprovados | Serviços externos simulados nos testes de rotas |
+| Suíte do aplicativo | **222 testes aprovados**; typecheck e build aprovados | Serviços externos simulados nos testes de rotas |
 | Migração 0012 | Executada em workerd/D1 local após 0000–0011; preservou dados e as **19 tabelas anteriores**, incluindo pedidos, sessões e trial; adiciona duas tabelas; reaplicação e `foreign_key_check` passaram | Sem leitura/migração de produção; dados fictícios |
 | Admin e concorrência | Dono comum/anônimo, CSRF inválido, origem externa e alteração da própria conta negados; duas decisões com a mesma versão resultaram em 200/409 e um evento; falha na auditoria reverteu a mudança de acesso | D1 e SQL reais, identidade externa substituída por identidades locais |
 | Cortesia e assinatura | Plano pago Rede não foi rebaixado por cortesia Essencial; expiração volta à política vigente; nenhuma assinatura foi modificada | Credenciais fictícias; nenhuma chamada a gateway |
@@ -41,6 +49,7 @@ Não há reconhecimento semântico do alimento. Fotografias monocromáticas, cai
 | Retomada e importação | Texto sem foto, importação parcial, 30 reaberturas consecutivas, escrita seguida de exclusão, falha de escrita, metadados inválidos, seleção explícita e revisão da mesma fonte passaram | IndexedDB emulado; retenção depende das condições do navegador |
 | Gravação do rascunho | Fluxo esperou confirmação; gravou só produtos selecionados, manteve cardápio público/Pix e preservou os itens restantes; conflito de revisão e outro dono negados | Código real das rotas, identidade/D1/R2 simulados |
 | Link privado restrito | Renderização da tela real com acesso a storage negado manteve Pix e chat; token não apareceu no HTML | SSR e restrição simulados, sem navegador interativo |
+| Referência iFood | Mensagem da Aione vira referência e zero produtos; texto real de produtos preserva preços/ingredientes; SSR e retomada parcial passam sem fetch | Link real; cardápio acrescentado fictício; nenhum catálogo iFood foi importado |
 | Netlify | Preparação e verificação estática aprovadas | Sem implantação ou mudança de domínio |
 
 As quatro capturas com OCR e recorte levaram aproximadamente **0,26–0,50 segundo por imagem** nesta execução, depois de carregar o leitor. Não é medição de Android, rede ou primeira carga. Os relatórios e PNGs são regeneráveis em `.sites-runtime/`, sem dados de clientes. Nenhum crédito Lovable/OpenAI, imagem nova de IA ou e-mail foi consumido/enviado.
