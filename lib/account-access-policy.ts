@@ -2,7 +2,7 @@ import {z} from "zod";
 export const accessMode=z.enum(["normal","grant","suspended"]);
 export const accessPlan=z.enum(["essencial","profissional","rede"]);
 export const adminAccessAction=z.object({
- restaurantId:z.string().uuid(),
+ restaurantId:z.string().trim().regex(/^[a-zA-Z0-9_-]{3,100}$/),
  mode:accessMode,
  plan:accessPlan.optional(),
  durationDays:z.union([z.literal(7),z.literal(30),z.literal(90),z.null()]).optional(),
