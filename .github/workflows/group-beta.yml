@@ -4,6 +4,13 @@ on:
     paths:
       - "lib/invite-policy.ts"
       - "lib/account-access*.ts"
+      - "lib/assistant-help.ts"
+      - "lib/menu-photo-crops.ts"
+      - "lib/menu-reader-policy.ts"
+      - "components/ai-import.tsx"
+      - "components/product-photo-crop.tsx"
+      - "scripts/check-assistant-help.test.mjs"
+      - "scripts/check-product-photo-crops.test.mjs"
       - "app/api/admin/access/**"
       - "components/admin-access-control.tsx"
       - "components/admin-report.tsx"
