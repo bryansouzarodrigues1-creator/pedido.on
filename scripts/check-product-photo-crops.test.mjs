@@ -1,0 +1,35 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {suggestProductCrops} from "../lib/menu-photo-crops.ts";
+import {readerItemSchema,applyReaderItems} from "../lib/menu-reader-policy.ts";
+import {defaultRestaurant} from "../lib/domain.ts";
+
+test("suggested screenshot crops are bounded and never intersect the OCR product text",()=>{
+ const box={x0:300,y0:280,x1:570,y1:330};
+ const candidates=suggestProductCrops(1000,1300,box);
+ assert.deepEqual(candidates.map(x=>x.side),["left","right"]);
+ for(const c of candidates){
+  assert.ok(c.rect.x0>=0&&c.rect.y0>=0&&c.rect.x1<=1000&&c.rect.y1<=1300);
+  assert.ok(c.rect.x1<=box.x0||c.rect.x0>=box.x1);
+  assert.ok(c.rect.x1-c.rect.x0>=150);
+ }
+ assert.deepEqual(suggestProductCrops(200,700,box),[]);
+ assert.deepEqual(suggestProductCrops(1000,1000),[]);
+ assert.deepEqual(suggestProductCrops(1000,1000,{x0:-2,y0:3,x1:100,y1:120}),[]);
+});
+
+test("owner-approved screenshot photo follows existing product schema and importer, without automatic replacement",()=>{
+ const before=defaultRestaurant("Pizzaria Exemplo");
+ const image="/media/shop-a/crop-123.jpg";
+ const base={id:"reader-1",sourceId:"page-1",sourceText:"Coca 2L R$ 12,90",name:"Coca 2L",description:"",category:"Bebidas",kind:"simple",price:1290,sizes:{p:null,m:null,g:null},issues:[],selected:true,action:"add"};
+ const parsed=readerItemSchema.parse({...base,image});
+ let id=0;const patch=applyReaderItems(before,[parsed],()=>`new-${++id}`);
+ const product=patch.products.find(p=>p.name==="Coca 2L");
+ assert.equal(product.image,image);
+ assert.equal(before.products.length,0);
+ const update=readerItemSchema.parse({...base,id:"reader-2",existingId:product.id,action:"update",price:1390});
+ const updated=applyReaderItems({...before,...patch},[update],()=>`x-${++id}`);
+ assert.equal(updated.products.find(p=>p.id===product.id).image,image);
+ assert.equal(updated.products.find(p=>p.id===product.id).price,1390);
+ assert.equal(readerItemSchema.safeParse({...base,image:"https://third-party.example/fake.jpg"}).success,false);
+});
