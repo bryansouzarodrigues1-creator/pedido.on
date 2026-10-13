@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {fixture} from "./test-backend-fixture.mjs";
-import {adminAccessAction,effectiveAccess,grantExpiry} from "../lib/account-access-policy.ts";
+import {adminAccessAction,effectiveAccess,grantExpiry,moreGenerousPlan} from "../lib/account-access-policy.ts";
 const reason="Cortesia autorizada para teste da pizzaria.";
 test("one account access action validates its reason and prevents contradictory actions",()=>{
  const original={restaurantId:"shop-b",mode:"grant",plan:"profissional",durationDays:30,reason,expectedVersion:0};
@@ -9,6 +9,9 @@ test("one account access action validates its reason and prevents contradictory 
  for(const input of [{...original,reason:"curto"},{...original,mode:"suspended"},{...original,plan:"enterprise"},{...original,durationDays:365},{...original,expectedVersion:-1}])assert.equal(adminAccessAction.safeParse(input).success,false);
  assert.equal(grantExpiry(30,1000),1000+30*86400);
  assert.equal(grantExpiry(null,1000),null);
+ assert.equal(moreGenerousPlan("profissional","rede"),"rede");
+ assert.equal(moreGenerousPlan("profissional","essencial"),"profissional");
+ assert.equal(moreGenerousPlan("essencial",null),"essencial");
  assert.equal(effectiveAccess({mode:"grant",plan:"profissional",expiresAt:999},1000).mode,"normal");
  assert.equal(effectiveAccess({mode:"suspended",plan:"profissional",expiresAt:999},1000).mode,"suspended");
 });
