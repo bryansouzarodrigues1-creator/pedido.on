@@ -49,7 +49,7 @@ export default function StudioChat({data,restaurantId,onApply,onClose,onPrepare,
  function choose(value:Target){setTarget(value);setError("");}
  function recover(creation:SavedCreation){if(busy||pending)return;try{const snapshot=current.current;setError("");if(creation.kind==="text"){proposalPatch(creation.proposal,snapshot);setProposal(creation.proposal);setGenerated(null);setResultMode("text");setTarget("visual");}else{if(!restaurantId||!creation.url.startsWith("/media/"+restaurantId+"/"))throw Error("Esta imagem pertence a outra pizzaria.");if(creation.asset==="product"&&!snapshot.products.some(p=>p.id===productId)){setTarget("product");throw Error("Selecione acima o produto que vai receber esta foto e abra a criação novamente.");}const image={url:creation.url,asset:creation.asset,...(creation.asset==="product"?{productId}:{})};studioImagePatch(snapshot,image);setGenerated(image);setProposal({reply:"Criação recuperada. Confira antes de usar no rascunho.",productDescriptions:[]});setResultMode("image");setTarget(creation.asset);}setBase(JSON.stringify(snapshot));setApplied(false);}catch(e){setError(e instanceof Error?e.message:"Esta criação precisa ser conferida.");}}
  async function send(e?:FormEvent,retry=false){
-  e?.preventDefault();if(busy||pending)return;
+  e?.preventDefault();if(busy||(pending&&!retry))return;
   if(!retry&&quickAnswer){
    setError("");setGuide(null);setPending(false);attempt.current=null;
    if(quickAnswer.kind==="guide"){
