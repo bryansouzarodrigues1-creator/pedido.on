@@ -22,3 +22,9 @@ export function effectiveAccess(row:AccountAccessRecord|null|undefined,now=Math.
 export function grantExpiry(days:7|30|90|null|undefined,now=Math.floor(Date.now()/1000)){
  return days===null?null:now+(days??30)*86400;
 }
+
+export function moreGenerousPlan(grant:"essencial"|"profissional"|"rede",paid:string|null){
+ const rank={essencial:1,profissional:2,rede:3};
+ if(paid==="essencial"||paid==="profissional"||paid==="rede")return rank[paid]>rank[grant]?paid:grant;
+ return grant;
+}
