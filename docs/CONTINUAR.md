@@ -1,6 +1,11 @@
 # Continuar o pedido.on
 
-**Admin de clientes profissionais — 12/10/2026:** visão geral, pizzarias e uso do produto, com períodos 7/30/90, busca, filtros e paginação. Dados agregados no D1, acesso exclusivo à conta fixada, sem prompts/dados de compradores/chamadas pagas. Valores confirmados pertencem às pizzarias; receita SaaS permanece pendente. Ver [definições e verificação](ADMIN-CLIENTES.md). Registrar publicação/evidências após retorno do Sites.
+**Publicado — v28:** Sites fonte `fac73f3db8d0d44107b0a20f4686db4b9644b6a8`, versão `appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_f63873a80fd88191b4c02dcc2fa59b21`, implantação `appgdep_6acd77817d848191b72c10c11a7a2e57` concluída em **2026-10-13T00:13:16.178551Z (12/10, 21:13 no Brasil)**. Ambiente revisão 9 e público preservados. PR #12 integrada, head `b10bf034c2a65f4985a5f4c71b3742f2da5c7f47`, merge `05d16231ba2ae60fc61b8e6f26edfb89ca59aa08`.
+
+Passaram **184 testes**, typecheck e build. Lote SQL/JSON foi executado em workerd com D1 local; renderização SSR do relatório foi testada. Em produção: `/api/admin/analytics` negou anônimos com 401 e `private, no-store`; `/admin` redirecionou ao login com 307; início retornou 200; cadastro direto permaneceu disponível sem convite, CAPTCHA ou modo de protótipo. **A navegação autenticada no admin pelo celular não foi validada nesta execução**; esta é a conferência manual restante, não uma prova inferida dos testes. Nenhuma migração, escrita de métricas, troca de segredo ou consumo de modelo.
+
+
+**Admin de clientes profissionais — 12/10/2026:** visão geral, pizzarias e uso do produto, com períodos 7/30/90, busca, filtros e paginação. Dados agregados no D1, acesso exclusivo à conta fixada, sem prompts/dados de compradores/chamadas pagas. Valores confirmados pertencem às pizzarias; receita SaaS permanece pendente. Ver [definições e verificação](ADMIN-CLIENTES.md). Publicação e evidências registradas acima.
 
 **Decisão de 12/10/2026:** cadastro público sem convite, autorizado pelo proprietário. Modo `open`, entrada direta sem confirmação de e-mail; limites de tentativas, sessões e restrição do admin preservados. Recuperação e cobrança continuam desativadas. Não reativar convite automaticamente. 176 testes e typecheck passaram, com Auth externo simulado.
 
