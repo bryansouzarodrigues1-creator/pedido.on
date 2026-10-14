@@ -1,8 +1,11 @@
 import {creationTarget,type CreationTarget} from "./creation-intent.ts";
 import type {RestaurantData} from "./domain.ts";
+import {assistantAnswer} from "./assistant-help.ts";
 
 /** Keep the owner's literal prompt on the image route; no paid text pass first. */
 export function creationRequest(selected:CreationTarget,message:string,mode:"ai"|"local",snapshot:RestaurantData,requestId:string,productId?:string){
+ const guide=assistantAnswer(message);
+ if(guide?.kind==="guide")throw Error(guide.sourceText?"Abra este link no leitor do cardápio. Nenhuma geração de IA é necessária para importar produtos.":"Use a ajuda local do Estúdio para essa dúvida. Nenhuma geração de IA é necessária.");
  const resolved=creationTarget(selected,message,mode);
  if(resolved.needsChoice)throw Error("Escolha Logo, Capa, Perfil ou Foto para criar sua imagem.");
  if(resolved.target==="product"&&!snapshot.products.some(p=>p.id===productId))throw Error("Escolha um produto desta pizzaria para a foto.");

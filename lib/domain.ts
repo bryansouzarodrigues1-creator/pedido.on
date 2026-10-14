@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {deliveryZonesSchema} from "./delivery-zone-policy.ts";
 import {pixSchema,validPixKey} from "./order-policy.ts";
-import {promotionSchema,activePromotion} from "./promotions.ts";
+import {promotionSchema,activePromotion,isActivePromotion,bundleVersion,bundleDescription} from "./promotions.ts";
 export const themes = [
   {id:"editorial",name:"Forno a lenha",description:"Tons quentes e visual de pizzaria artesanal.",color:"#c64b2e",tag:"Escolha da casa"},
   {id:"classic",name:"Clássico",description:"Fundo claro e pedido fácil de montar.",color:"#dc382b",tag:"Claro"},
@@ -28,12 +28,17 @@ export const restaurantSchema = z.object({
   for(const p of v.products)if(!v.categories.some(c=>c.id===p.categoryId))ctx.addIssue({code:z.ZodIssueCode.custom,message:"O produto precisa de uma categoria válida."});
   const promotionKeys=new Set<string>(),promotionIds=new Set<string>();
   for(const promotion of v.promotions){
+    if(promotionIds.has(promotion.id))ctx.addIssue({code:z.ZodIssueCode.custom,message:"Existem identificadores de promoção repetidos."});promotionIds.add(promotion.id);
+    if(promotion.kind==="bundle"){
+      for(const item of promotion.items){const product=v.products.find(p=>p.id===item.productId);if(!product||product.kind==="pizza"&&(!item.size||product.sizes[item.size]<=0)||product.kind==="simple"&&(!!item.size||product.price<=0))ctx.addIssue({code:z.ZodIssueCode.custom,message:"Confira os produtos e tamanhos do combo."});}
+      continue;
+    }
     const product=v.products.find(p=>p.id===promotion.productId),key=promotion.productId+":"+(promotion.size||"");
     if(!product||product.kind==="pizza"&&!promotion.size||product.kind==="simple"&&promotion.size){ctx.addIssue({code:z.ZodIssueCode.custom,message:"Escolha um produto e tamanho válidos para a promoção."});continue;}
     const base=product.kind==="pizza"?product.sizes[promotion.size!]:product.price;
-    if(promotion.enabled&&(base<=0||promotion.price>=base))ctx.addIssue({code:z.ZodIssueCode.custom,message:"A promoção precisa custar menos que o preço normal."});
-    if(promotionKeys.has(key)||promotionIds.has(promotion.id))ctx.addIssue({code:z.ZodIssueCode.custom,message:"Use somente uma promoção por produto e tamanho."});
-    promotionKeys.add(key);promotionIds.add(promotion.id);
+    if(promotion.enabled&&base<=0)ctx.addIssue({code:z.ZodIssueCode.custom,message:"O tamanho ou produto da promoção precisa estar disponível."});
+    if(promotionKeys.has(key))ctx.addIssue({code:z.ZodIssueCode.custom,message:"Use somente uma promoção por produto e tamanho."});
+    promotionKeys.add(key);
   }
   if(v.coupon.enabled&&(!v.coupon.code||v.coupon.percent<1))ctx.addIssue({code:z.ZodIssueCode.custom,message:"Configure o código e o desconto do cupom."});
   if(v.pix.enabled&&(!v.payments.includes("Pix")||!validPixKey(v.pix.type,v.pix.key)||v.pix.recipient.length<2))ctx.addIssue({code:z.ZodIssueCode.custom,message:"Configure uma chave Pix válida, o titular e habilite Pix nas formas de pagamento."});
@@ -41,9 +46,10 @@ export const restaurantSchema = z.object({
 export type RestaurantData=z.infer<typeof restaurantSchema>;
 export type Product=z.infer<typeof productSchema>;
 export type RestaurantRecord={id:string;slug:string;name:string;data:string;revision:number;liveRevision:number;published:boolean;plan:string;createdAt:string;updatedAt:string};
-export type LineInput={productIds:string[];size?:Size;crustId?:string;quantity:number;note:string};
+export type LineInput={productIds:string[];size?:Size;crustId?:string;quantity:number;note:string;bundleId?:string;bundleVersion?:string};
 export type PricedLine=LineInput&{label:string;detail:string;unitPrice:number;total:number;promotionId?:string};
-export const orderInputSchema=z.object({requestId:z.string().uuid(),expectedTotal:z.number().int().min(1).max(1000000000).optional(),trackingToken:z.string().regex(/^[a-f0-9]{64}$/).optional(),deliveryCheckId:z.string().uuid().optional(),deliveryCheckToken:z.string().regex(/^[a-f0-9]{64}$/).optional(),neighborhood:z.string().trim().max(70).optional(),customer:z.string().trim().min(2).max(80),phone:z.string().trim().regex(/^[\d\s()+.-]{10,25}$/),method:z.enum(["delivery","pickup"]),address:z.string().trim().max(300),payment:z.enum(["Pix","Dinheiro","Cartão de crédito","Cartão de débito"]),note:z.string().trim().max(500),coupon:z.string().trim().max(30),website:z.string().max(0).optional(),items:z.array(z.object({productIds:z.array(idSchema).min(1).max(2),size:z.enum(["p","m","g"]).optional(),crustId:idSchema.optional(),quantity:z.number().int().min(1).max(20),note:z.string().trim().max(300)})).min(1).max(30)});
+export const cartLineSchema=z.object({productIds:z.array(idSchema).max(2),bundleId:idSchema.optional(),bundleVersion:z.string().min(1).max(1600).optional(),size:z.enum(["p","m","g"]).optional(),crustId:idSchema.optional(),quantity:z.number().int().min(1).max(20),note:z.string().trim().max(300)}).superRefine((line,ctx)=>{if(line.bundleId?line.productIds.length>0||!!line.size||!!line.crustId||!line.bundleVersion:line.productIds.length===0||!!line.bundleVersion)ctx.addIssue({code:z.ZodIssueCode.custom,message:"Confira a composição do item selecionado."});});
+export const orderInputSchema=z.object({requestId:z.string().uuid(),expectedTotal:z.number().int().min(1).max(1000000000).optional(),trackingToken:z.string().regex(/^[a-f0-9]{64}$/).optional(),deliveryCheckId:z.string().uuid().optional(),deliveryCheckToken:z.string().regex(/^[a-f0-9]{64}$/).optional(),neighborhood:z.string().trim().max(70).optional(),customer:z.string().trim().min(2).max(80),phone:z.string().trim().regex(/^[\d\s()+.-]{10,25}$/),method:z.enum(["delivery","pickup"]),address:z.string().trim().max(300),payment:z.enum(["Pix","Dinheiro","Cartão de crédito","Cartão de débito"]),note:z.string().trim().max(500),coupon:z.string().trim().max(30),website:z.string().max(0).optional(),items:z.array(cartLineSchema).min(1).max(30)});
 export type OrderInput=z.infer<typeof orderInputSchema>;
 export type OrderSummary={items:PricedLine[];subtotal:number;discount:number;delivery:number;total:number;customer:string;phone:string;method:"delivery"|"pickup";address:string;payment:string;note:string;coupon:string};
 export function money(value:number){return new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(value/100);}
@@ -53,6 +59,14 @@ export function slugify(value:string){return value.normalize("NFD").replace(/[\u
 export const slugSchema=z.string().min(3).max(60).regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/).refine(s=>!["app","api","admin","calculadora","estudio","demo","signin","forno","pedido","pedido-on","conta","configuracao","entrar","cadastro","esqueci-senha","redefinir-senha","confirmar-email","sair","planos","layouts","media","pedido"].includes(s),"Esse endereço é reservado.");
 export function priceLine(data:RestaurantData,line:LineInput,now=Date.now()):PricedLine{
   if(!Number.isInteger(line.quantity)||line.quantity<1||line.quantity>20)throw new Error("Quantidade inválida.");
+  if(line.bundleId){
+    if(line.productIds.length||line.size||line.crustId)throw Error("Confira a composição do combo selecionado.");
+    const p=(data.promotions||[]).find(p=>p.id===line.bundleId&&p.kind==="bundle");
+    if(!p||p.kind!=="bundle"||!isActivePromotion(data,p,now))throw Error("Este combo encerrou ou ficou indisponível. Retire-o do pedido e escolha novamente.");
+    if(line.bundleVersion!==bundleVersion(p))throw Error("A composição deste combo mudou. Atualize o cardápio e escolha novamente.");
+    return {...line,promotionId:p.id,label:p.name,detail:"Inclui: "+bundleDescription(data,p,line.quantity),unitPrice:p.price,total:p.price*line.quantity};
+  }
+  if(line.bundleVersion)throw Error("Confira o item selecionado.");
   if(line.productIds.length<1||line.productIds.length>2||new Set(line.productIds).size!==line.productIds.length)throw new Error("Escolha um ou dois sabores diferentes.");
   const products=line.productIds.map(id=>data.products.find(p=>p.id===id&&p.enabled));
   if(products.some(p=>!p))throw new Error("Um dos produtos não está disponível. Atualize o cardápio.");

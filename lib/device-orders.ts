@@ -27,6 +27,10 @@ export function recentPrivateOrderLinks(storage:Pick<OrderStorage,"getItem">,slu
 }
 export function savedPrivateOrderToken(storage:Pick<OrderStorage,"getItem">,id:string) {
   if(!/^[a-f0-9]{8}-[a-f0-9-]{27}$/i.test(id))return "";
-  const token=storage.getItem("pedido-order-"+id.toLowerCase())||"";
-  return /^[a-f0-9]{64}$/.test(token)?token:"";
+  try{const token=storage.getItem("pedido-order-"+id.toLowerCase())||"";return /^[a-f0-9]{64}$/.test(token)?token:"";}catch{return "";}
+}
+/** The private link keeps working when even accessing localStorage is denied. */
+export function browserPrivateOrderToken(storage:()=>Pick<OrderStorage,"getItem">,id:string,fragment=""){
+ const link=parsePrivateOrderLink(`/pedido/${id}#${fragment}`);if(link)return link.token;
+ try{return savedPrivateOrderToken(storage(),id);}catch{return "";}
 }

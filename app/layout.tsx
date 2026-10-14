@@ -8,6 +8,7 @@ import "./pwa.css";
 import "./delivery-gate.css";
 import "./delivery-approvals.css";
 import "./order-chat.css";
+import "./first-run.css";
 import "./menu-productivity.css";
 import "./admin-analytics.css";
 export const metadata:Metadata={title:"pedido.on — Sua pizzaria, pronta para vender.",description:"Crie o cardápio digital da sua pizzaria. Cadastre seus sabores, receba pedidos com Pix e cuide da pizzaria pelo celular. Calculadora grátis de preço e lucro, sem cadastro.",manifest:"/manifest.webmanifest",applicationName:"pedido.on",appleWebApp:{capable:true,title:"pedido.on",statusBarStyle:"default"},icons:{icon:"/assets/pedido-symbol.png",apple:"/assets/pedido-symbol.png"}};

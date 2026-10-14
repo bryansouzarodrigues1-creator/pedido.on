@@ -3,6 +3,48 @@ on:
   pull_request:
     paths:
       - "lib/invite-policy.ts"
+      - "lib/account-access*.ts"
+      - "lib/assistant-help.ts"
+      - "lib/creation-request.ts"
+      - "app/api/restaurants/**/studio/**"
+      - "app/api/restaurants/**/ai/images/**"
+      - "lib/menu-photo-crops.ts"
+      - "lib/menu-reader-policy.ts"
+      - "lib/menu-reader-storage.ts"
+      - "lib/domain.ts"
+      - "lib/promotions.ts"
+      - "lib/menu-sales.ts"
+      - "components/daily-promotions.tsx"
+      - "scripts/check-promotions.test.mjs"
+      - "scripts/check-bundle-promotions.test.mjs"
+      - "lib/menu-source-links.ts"
+      - "components/menu-source-link.tsx"
+      - "scripts/check-menu-source-links.test.mjs"
+      - "scripts/check-menu-reader.test.mjs"
+      - "scripts/check-menu-storage.test.mjs"
+      - "scripts/check-menu-import-routes.test.mjs"
+      - "scripts/check-order-view.test.mjs"
+      - "app/pedido/**"
+      - "scripts/check-menu-photo-ocr.mjs"
+      - "components/ai-import.tsx"
+      - "components/product-photo-crop.tsx"
+      - "scripts/check-assistant-help.test.mjs"
+      - "scripts/check-product-photo-crops.test.mjs"
+      - "app/api/admin/access/**"
+      - "components/admin-access-control.tsx"
+      - "components/admin-report.tsx"
+      - "components/dashboard.tsx"
+      - "components/account-settings.tsx"
+      - "lib/billing.ts"
+      - "lib/asaas*.ts"
+      - "app/api/billing/**"
+      - "components/billing-controls.tsx"
+      - "scripts/check-asaas*.test.mjs"
+      - "app/api/account/route.ts"
+      - "db/schema.ts"
+      - "drizzle/**"
+      - "scripts/check-admin-access.test.mjs"
+      - "scripts/check-admin-access-worker.test.mjs"
       - "lib/trial-policy.ts"
       - "lib/device-orders.ts"
       - "lib/platform.ts"
@@ -38,10 +80,16 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Typecheck
         run: pnpm typecheck
+      - name: Schema metadata
+        run: node scripts/check-db-snapshot.mjs
       - name: Domain tests
         run: pnpm test
       - name: Production build
         run: pnpm build
+      - name: Local OCR and screenshot photo checks (no paid generation)
+        run: |
+          node --experimental-strip-types scripts/check-menu-ocr.mjs
+          node --experimental-strip-types scripts/check-menu-photo-ocr.mjs
       - name: Netlify preparation (no deploy)
         run: pnpm build:netlify
       - name: Gateway static checks

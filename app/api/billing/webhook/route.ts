@@ -8,7 +8,7 @@ import {paymentEntitlement} from "@/lib/billing-policy";
 import {readBody} from "@/lib/http";
 export const dynamic="force-dynamic";
 export async function POST(request:Request){try{
-  const config=billingConfig();if(!config.enabled)throw new HttpError(503,"A cobrança recorrente está desativada.");
+  const config=billingConfig();if(!config.enabled||config.provider!=="stripe")throw new HttpError(503,"A cobrança recorrente está desativada.");
   const payload=await readBody(request,1000000);
   if(!await verifyStripeSignature(payload,request.headers.get("stripe-signature")||"",config.webhook))throw new HttpError(400,"Assinatura inválida.");
   const event=JSON.parse(payload) as {id:string;type:string;data:{object:{id:string;subscription?:string;mode?:string;parent?:{subscription_details?:{subscription?:string}}}}};

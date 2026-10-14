@@ -6,7 +6,7 @@ export type ReaderLine={text:string;confidence?:number;box?:SourceBox};
 export type ReaderWord={text:string;confidence:number;box:SourceBox};
 export type ReaderPage={id:string;name:string;image:string;width:number;height:number;lines:ReaderLine[]};
 const amount=z.number().int().min(1).max(1000000).nullable();
-export const readerItemSchema=z.object({id:z.string().max(100),sourceId:z.string().max(100),sourceText:z.string().max(2000),box:z.object({x0:z.number(),y0:z.number(),x1:z.number(),y1:z.number()}).optional(),name:z.string().max(100),description:z.string().max(600),category:z.string().max(60),kind:z.enum(["pizza","simple","crust"]),price:amount,sizes:z.object({p:amount,m:amount,g:amount}),issues:z.array(z.string().max(180)).max(12),selected:z.boolean(),action:z.enum(["add","update"]),existingId:z.string().max(80).optional()});
+export const readerItemSchema=z.object({id:z.string().max(100),sourceId:z.string().max(100),sourceText:z.string().max(2000),box:z.object({x0:z.number(),y0:z.number(),x1:z.number(),y1:z.number()}).optional(),name:z.string().max(100),description:z.string().max(600),category:z.string().max(60),kind:z.enum(["pizza","simple","crust"]),price:amount,sizes:z.object({p:amount,m:amount,g:amount}),issues:z.array(z.string().max(180)).max(12),selected:z.boolean(),action:z.enum(["add","update"]),existingId:z.string().max(80).optional(),image:z.string().regex(/^\/media\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/).optional()});
 export type ReaderItem=z.infer<typeof readerItemSchema>;
 export type ReaderResult={items:ReaderItem[];unmatched:{sourceId:string;text:string}[];pages:number};
 export const normalizeMenuText=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
@@ -36,6 +36,21 @@ export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
     const y=(word.box.y0+word.box.y1)/2,height=word.box.y1-word.box.y0;
     let row=rows.findLast(r=>Math.abs(r.y-y)<=Math.max(6,Math.min(r.height,height)*.55));
     if(!row){row={y,height,words:[]};rows.push(row);}row.words.push(word);row.height=Math.max(row.height,height);
+  }
+  // Photos sometimes produce isolated low-confidence letters next to a good
+  // product row. Keep uncertain text and distant prices, but exclude those
+  // detached non-price fragments from the product text and its source box.
+  for(const row of rows){
+    const chunks:ReaderWord[][]=[];
+    for(const word of row.words.sort((a,b)=>a.box.x0-b.box.x0)){
+      const last=chunks.at(-1);
+      if(!last||word.box.x0-last.at(-1)!.box.x1>Math.max(32,width*.035))chunks.push([word]);else last.push(word);
+    }
+    if(chunks.some(chunk=>chunk.some(w=>w.confidence>=75)))row.words=chunks.flatMap(chunk=>{
+      const text=chunk.map(w=>w.text).join(" ");
+      const meaningfulPrice=!!text.match(priceRE)||/^[PMG]$/i.test(text.trim());
+      return chunk.every(w=>w.confidence<55)&&!meaningfulPrice?[]:chunk;
+    });
   }
   const boundaries:number[]=[];
   for(const row of rows){
@@ -97,7 +112,30 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
   return {items,unmatched,pages:pages.length};
 }
 export function readerItemReady(item:ReaderItem){return item.name.trim().length>=2&&item.category.trim().length>=2&&(item.kind==="pizza"?Object.values(item.sizes).some(v=>v!==null&&v>0):!!item.price&&item.price>0);}
-export function prepareReaderItems(items:ReaderItem[],data:RestaurantData){return items.map(item=>{const existing=item.kind==="crust"?data.crusts.find(v=>normalizeMenuText(v.name)===normalizeMenuText(item.name)):data.products.find(v=>normalizeMenuText(v.name)===normalizeMenuText(item.name));return {...item,...(existing?{existingId:existing.id,selected:false,action:"update" as const,issues:[...item.issues,"Já cadastrado: marque somente se quiser atualizar."]}:{})};});}
+export function prepareReaderItems(items:ReaderItem[],data:RestaurantData,options:{preserveSelection?:boolean}={}){
+ return items.map(item=>{
+  const entries=item.kind==="crust"?data.crusts:data.products;
+  const existing=item.existingId?entries.find(v=>v.id===item.existingId):entries.find(v=>normalizeMenuText(v.name)===normalizeMenuText(item.name));
+  const issues=[...new Set(item.issues)].slice(0,12);
+  if(item.existingId&&!existing)return {...item,selected:false,issues:[...new Set(["O item original mudou ou foi removido. Confira no editor antes de importar.",...issues])].slice(0,12)};
+  return {...item,issues,...(existing?{existingId:existing.id,selected:!!options.preserveSelection&&item.action==="update"&&item.existingId===existing.id&&item.selected,action:"update" as const,issues:[...new Set(["Já cadastrado: marque somente se quiser atualizar.",...issues])].slice(0,12)}:{})};
+ });
+}
+/** Leave every skipped item available, including valid prices and intentional updates. */
+export function remainingReaderItems(items:ReaderItem[],after:RestaurantData){return prepareReaderItems(items.filter(item=>!item.selected),after,{preserveSelection:true});}
+/** The reader may clear selected rows only after the draft write is acknowledged. */
+export async function importReaderItems(data:RestaurantData,items:ReaderItem[],persist:(patch:Partial<RestaurantData>)=>void|Promise<void>,makeId=()=>crypto.randomUUID()){
+ const patch=applyReaderItems(data,items,makeId);
+ await persist(patch);
+ return {patch,remaining:remainingReaderItems(items,{...data,...patch})};
+}
+export function reconcileReaderReview(previous:ReaderItem[],recognized:ReaderItem[],data:RestaurantData){
+ const restored=recognized.map(item=>{
+  const before=previous.find(v=>v.id===item.id&&v.sourceId===item.sourceId&&v.sourceText===item.sourceText);
+  return before?{...before,box:item.box,issues:[...new Set([...item.issues,...before.issues])].slice(0,12)}:item;
+ });
+ return prepareReaderItems(restored,data,{preserveSelection:true}).map(item=>({...item,selected:item.selected&&readerItemReady(item)}));
+}
 export function applyReaderItems(data:RestaurantData,items:ReaderItem[],makeId=()=>crypto.randomUUID()):Partial<RestaurantData>{
   const selected=items.filter(v=>v.selected);if(!selected.length)throw Error("Escolha pelo menos um item.");
   if(selected.some(v=>!readerItemReady(v)))throw Error("Confira os nomes, preços e tamanhos dos itens selecionados.");
@@ -116,7 +154,7 @@ export function applyReaderItems(data:RestaurantData,items:ReaderItem[],makeId=(
     if(current&&item.action!=="update")throw Error("Um produto já está cadastrado. Confira a atualização.");
     if(item.action==="update"&&!current)throw Error("O produto mudou durante a leitura. Confira novamente.");
     const fields={name:item.name.trim(),categoryId:category.id,description:item.description,kind:item.kind,price:item.kind==="simple"?item.price!:0,sizes:{p:item.sizes.p||0,m:item.sizes.m||0,g:item.sizes.g||0}};
-    if(current)Object.assign(current,fields);else products.push({id:makeId(),...fields,image:"",enabled:true,featured:false} as Product);
+    if(current){Object.assign(current,fields);if(item.image)current.image=item.image;}else products.push({id:makeId(),...fields,image:item.image||"",enabled:true,featured:false} as Product);
   }
   if(products.length>200)throw Error("Seu cardápio pode ter até 200 produtos. Selecione menos itens nesta importação.");
   if(categories.length>20)throw Error("Use até 20 categorias. Reaproveite as categorias cadastradas.");

@@ -3,8 +3,8 @@ import {useState,useEffect,useRef} from "react";
 import {Clock,Copy,Check,CheckCircle2,Upload,ShieldCheck,MessageCircle,ArrowUpRight,ChefHat,Truck,ShoppingBag,ArrowLeft,AlertCircle,RefreshCw} from "lucide-react";
 import {Brand,Spinner} from "./ui";
 import {money,phoneNumber} from "@/lib/domain";
-import {orderStatuses,trackingToken,MAX_PROOF_BYTES} from "@/lib/order-policy";
-import {savedPrivateOrderToken} from "@/lib/device-orders";
+import {orderStatuses,MAX_PROOF_BYTES} from "@/lib/order-policy";
+import {browserPrivateOrderToken} from "@/lib/device-orders";
 import OrderChat from "./order-chat";
 import type {CustomerOrder} from "@/lib/order-server";
 export function CustomerOrderView({order,busy=false,error="",onReceipt,onDemoReceipt}:{order:CustomerOrder;busy?:boolean;error?:string;onReceipt?:(file:File)=>void;onDemoReceipt?:()=>void}){
@@ -25,17 +25,18 @@ export function CustomerOrderView({order,busy=false,error="",onReceipt,onDemoRec
  {error&&<div className="field-error" role="alert">{error}</div>}
  <section className="tracking-summary"><h2>Seu pedido</h2>{order.summary.items.map((line,i)=><div key={i}><span><strong>{line.quantity}× {line.label}</strong><small>{line.detail}{line.note&&` · ${line.note}`}</small></span><b>{money(line.total)}</b></div>)}<div><span>Entrega</span><b>{money(order.summary.delivery)}</b></div>{order.summary.discount>0&&<div><span>Desconto</span><b>− {money(order.summary.discount)}</b></div>}<div className="tracking-total"><strong>Total</strong><strong>{money(order.summary.total)}</strong></div><p>{order.summary.method==='delivery'?order.summary.address:'Retirada no local'}<br/>Em nome de {order.summary.customer}</p></section>
  {order.events.length>0&&<section className="tracking-events"><h2>Últimas atualizações</h2>{order.events.slice(0,5).map((event,i)=><div key={event.createdAt+':'+i}><i/><p>{event.message}<small>{new Date(event.createdAt).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'})}</small></p></div>)}</section>}
- {typeof window!=="undefined"&&<OrderChat orderId={order.id} token={savedPrivateOrderToken(localStorage,order.id)||trackingToken(location.hash.slice(1))} closed={terminal}/>}
+ {typeof window!=="undefined"&&<OrderChat orderId={order.id} token={browserPrivateOrderToken(()=>localStorage,order.id,location.hash.slice(1))} closed={terminal}/>}
  {order.whatsapp&&<a className="order-whatsapp-secondary" href={`https://wa.me/${phoneNumber(order.whatsapp)}?text=${encodeURIComponent(`Olá! Gostaria de falar sobre meu pedido #${order.code}.`)}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={18}/>Preferir WhatsApp <ArrowUpRight size={14}/></a>}
  </div>;
 }
 export default function OrderTracking({id}:{id:string}){
  const [token,setToken]=useState<string|null>(null),[order,setOrder]=useState<CustomerOrder|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(""),[offline,setOffline]=useState(false),[loadError,setLoadError]=useState(""),[busy,setBusy]=useState(false),[copied,setCopied]=useState(false);
- useEffect(()=>{let key=trackingToken(location.hash.slice(1));try{
-   if(key){sessionStorage.setItem('pedido-order-'+id,key);localStorage.setItem('pedido-order-'+id,key);}
-   else key=savedPrivateOrderToken(localStorage,id)||trackingToken(sessionStorage.getItem('pedido-order-'+id));
-  }catch{/* Browser privacy restrictions can disable storage; link with fragment still works. */}
-  setToken(key);if(!key){setLoading(false);setError("Abra o link privado recebido ao finalizar seu pedido. Não é necessário criar conta.");}},[id]);
+ useEffect(()=>{
+  let key=browserPrivateOrderToken(()=>localStorage,id,location.hash.slice(1));
+  if(!key)key=browserPrivateOrderToken(()=>sessionStorage,id);
+  if(key)for(const getStorage of [()=>sessionStorage,()=>localStorage])try{getStorage().setItem('pedido-order-'+id,key);}catch{/* The private link still works when storage is restricted. */}
+  setToken(key);if(!key){setLoading(false);setError("Abra o link privado recebido ao finalizar seu pedido. Não é necessário criar conta.");}
+ },[id]);
  async function load(signal?:AbortSignal){if(!token)return;const res=await fetch(`/api/orders/${id}`,{headers:{'x-pedido-order-token':token},cache:'no-store',redirect:'error',signal});const data=await res.json() as {order:CustomerOrder;error?:string};if(!res.ok)throw new Error(data.error||'Não foi possível acompanhar seu pedido.');setOrder(old=>old&&old.version>data.order.version?old:data.order);setOffline(false);setLoadError("");return data.order;}
  useEffect(()=>{if(!token)return;let stopped=false,timer:ReturnType<typeof setTimeout>;const controller=new AbortController();async function poll(){try{if(!stopped&&document.visibilityState==='visible')await load(controller.signal);}catch(e){if(!stopped){setOffline(true);setLoadError(e instanceof Error?e.message:'Não foi possível atualizar o pedido.');}}finally{if(!stopped){setLoading(false);timer=setTimeout(poll,8000);}}}poll();const visible=()=>{if(document.visibilityState==='visible'){clearTimeout(timer);poll();}};document.addEventListener('visibilitychange',visible);return()=>{stopped=true;controller.abort();clearTimeout(timer);document.removeEventListener('visibilitychange',visible);};},[token,id]);
  async function upload(file:File){if(busy||!token)return;setError('');if(file.size>MAX_PROOF_BYTES){setError('O comprovante precisa ter até 5 MB.');return;}setBusy(true);try{const res=await fetch(`/api/orders/${id}/receipt`,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream','x-pedido-order-token':token},body:file,redirect:'error'}),data=await res.json() as {order:CustomerOrder;error?:string};if(!res.ok)throw new Error(data.error||'Não foi possível enviar o comprovante.');setOrder(old=>old&&old.version>data.order.version?old:data.order);setOffline(false);}catch(e){setError(e instanceof Error?e.message:'Não foi possível enviar.');try{await load();}catch{}}finally{setBusy(false);}}

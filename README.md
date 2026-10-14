@@ -1,10 +1,16 @@
 # pedido.on
 
+**Continuação — 13/10/2026:** integração Asaas preparada junto do admin/leitor/promoções na PR #13. A candidata inclui faturas mensais, webhook, conciliação, cancelamento e migração 0013; credenciais específicas ainda não estão configuradas. O executor ficou indisponível no fechamento, e o código foi recuperado no GitHub para validação pelo CI. Produção permanece v28, sem publicação/migração remota. Ler [Asaas](docs/ASAAS.md) e conferir o CI da última árvore antes de empacotar. Cadastro público, preços, cotas e chave de sessão preservados.
+
 Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criação de imagens e textos com IA e calculadora pública de preço e lucro.
 
 **Publicado:** [forno-cardapios.waves4845.chatgpt.site](https://forno-cardapios.waves4845.chatgpt.site) · [Calculadora sem cadastro](https://forno-cardapios.waves4845.chatgpt.site/calculadora) · [Meu painel](https://forno-cardapios.waves4845.chatgpt.site/app)
 
-## Estado atual — 12/10/2026
+## Estado atual — 13/10/2026
+
+Produção permanece na **v28**, com cadastro público, pedidos/Pix/chat, OCR local, PWA/Web Push e admin analítico. A **PR #13 continua em rascunho, sem merge nem publicação**: reúne controle administrativo de cortesia/suspensão, ajuda local no Estúdio e aproveitamento de fotografias de capturas. A candidata também preserva texto/itens e ajustes na retomada, salva o rascunho antes de concluir a importação e mantém o link do pedido utilizável com storage bloqueado. Reconhece referências iFood e transfere a mensagem do Estúdio ao leitor, sem geração paga; o conector automático ainda depende de homologação/autorização externa. Promoções permitem preço livre e combos completos; o painel cria/edita em janela curta e recolhe categorias/cupons. A validação local (234 testes) e os critérios de liberação estão em [Fechamento do MVP](docs/FECHAMENTO-MVP-2026-10-13.md). Trial fiscalizado, ampliação de cotas, Asaas e recuperação por e-mail continuam desativados.
+
+### Registro histórico — v21, 12/10/2026
 
 Última publicação confirmada: **versão 21**, fonte Sites `c2c1b9cf75615acf24e6189db6c3d82575b74e65`, ambiente revisão 6, PR #8 integrada. Em **Cardápio**, o dono pode enviar fotos, revisar itens/preços em lote e acrescentar produtos e bordas ao rascunho, com OCR no aparelho. Promoção do dia usa preço e validade aprovados pelo dono; a compra confirma novamente um total que mudou. Mensagem pronta é copiada sem modelos. Contas existentes, configurações e as quatro áreas do painel foram preservadas. A validação de câmera/toque/retomada no celular continua pendente. A correção adicional de cancelamento está guardada na PR #9 em rascunho, sem publicação, após queda do ambiente.
 
@@ -91,6 +97,7 @@ Passaram **134 testes**, typecheck e build nesta correção. Os testes locais ad
 - [Continuidade e validações pendentes](docs/CONTINUAR.md)
 - [Proposta de papel da IA no SaaS](docs/PAPEL-DA-IA.md)
 - [Leitor por foto e promoção do dia](docs/LEITOR-CARDAPIO.md)
+- [Referência por link iFood e requisitos do conector oficial](docs/IMPORTACAO-IFOOD.md)
 - [Preparação e implantação futura na Netlify](docs/NETLIFY.md)
 - [Configuração atual da IA](docs/ATIVAR_ESTUDIO.md)
 - [Criação com IA e proteção dos dados](STUDIO.md)
