@@ -2,14 +2,14 @@ function emailTemplate(title: string, introduction: string, path: string, button
   const link=path==="/redefinir-senha"?"{{ .ConfirmationURL }}":`{{ .SiteURL }}${path}?token_hash={{ .TokenHash }}`;
   return `<!doctype html>
 <html lang="pt-BR">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title} · pedido.on</title></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title} · pizzaria.on</title></head>
 <body style="margin:0;padding:0;background:#fbf7ee;font-family:Arial,Helvetica,sans-serif;color:#302117">
   <div style="display:none;max-height:0;overflow:hidden">${introduction}</div>
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fbf7ee">
     <tr><td align="center" style="padding:36px 16px">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#fffdf8;border:1px solid #e8dfd1;border-radius:16px">
         <tr><td style="padding:32px 32px 24px;border-bottom:1px solid #e8dfd1">
-          <span style="font-size:28px;letter-spacing:-1px;font-weight:bold;color:#302117">pedido.<span style="color:#bd391d">on</span></span>
+          <span style="font-size:28px;letter-spacing:-1px;font-weight:bold;color:#302117">pizzaria.<span style="color:#bd391d">on</span></span>
           <p style="margin:8px 0 0;font-size:12px;color:#736b62">O cardápio da sua pizzaria. Pronto para vender.</p>
         </td></tr>
         <tr><td style="padding:32px">
@@ -23,7 +23,7 @@ function emailTemplate(title: string, introduction: string, path: string, button
           <p style="margin:8px 0 0;font-size:11px;line-height:1.7;word-break:break-all"><a href="${link}" style="color:#bd391d">${link}</a></p>
         </td></tr>
       </table>
-      <p style="max-width:500px;margin:20px 0 0;font-size:11px;line-height:1.7;color:#736b62">pedido.on · Um jeito simples de receber mais pedidos.</p>
+      <p style="max-width:500px;margin:20px 0 0;font-size:11px;line-height:1.7;color:#736b62">pizzaria.on · Um jeito simples de receber mais pedidos.</p>
     </td></tr>
   </table>
 </body>
@@ -32,12 +32,12 @@ function emailTemplate(title: string, introduction: string, path: string, button
 
 export const authEmails = {
   confirmation: {
-    title: "Confirmação de cadastro", subject: "Confirme seu acesso à pedido.on",
+    title: "Confirmação de cadastro", subject: "Confirme seu acesso à pizzaria.on",
     dashboardLabel: "Confirm sign up",
     html: emailTemplate("Sua pizzaria começa aqui.", "Confirme seu e-mail para criar o cardápio da sua pizzaria e organizar os pedidos em um só lugar.", "/confirmar-email", "Confirmar meu e-mail", "Se você não criou uma conta, pode ignorar este e-mail. Não compartilhe este link."),
   },
   recovery: {
-    title: "Recuperação de senha", subject: "Escolha uma nova senha para a pedido.on",
+    title: "Recuperação de senha", subject: "Escolha uma nova senha para a pizzaria.on",
     dashboardLabel: "Reset password",
     html: emailTemplate("Vamos recuperar seu acesso.", "Recebemos um pedido para redefinir sua senha. Abra o link para escolher uma nova senha e voltar ao seu painel.", "/redefinir-senha", "Escolher nova senha", "Se você não solicitou a alteração, ignore este e-mail. Sua senha continuará a mesma. Não compartilhe este link."),
   },

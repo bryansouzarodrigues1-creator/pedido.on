@@ -1,14 +1,18 @@
-# pedido.on
+# pizzaria.on
 
-**Continuação — 13/10/2026:** integração Asaas preparada junto do admin/leitor/promoções na PR #13. A candidata inclui faturas mensais, webhook, conciliação, cancelamento e migração 0013; credenciais específicas ainda não estão configuradas. O executor ficou indisponível no fechamento, e o código foi recuperado no GitHub para validação pelo CI. Produção permanece v28, sem publicação/migração remota. Ler [Asaas](docs/ASAAS.md) e conferir o CI da última árvore antes de empacotar. Cadastro público, preços, cotas e chave de sessão preservados.
+**Atualização — 15/10/2026:** a marca passa a ser **pizzaria.on**. A produção confirmada está na v30, com Asaas próprio ativo, faturas mensais, histórico, webhook e cancelamento; PRs #13 e #14 integradas. Esta etapa aplica a nova marca e simplifica o pagamento. A publicação seguinte deve ser conferida no Sites. Fiscalização de assinatura/trial e recuperação por e-mail permanecem desativadas. Ler [Asaas](docs/ASAAS.md).
 
 Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criação de imagens e textos com IA e calculadora pública de preço e lucro.
 
 **Publicado:** [forno-cardapios.waves4845.chatgpt.site](https://forno-cardapios.waves4845.chatgpt.site) · [Calculadora sem cadastro](https://forno-cardapios.waves4845.chatgpt.site/calculadora) · [Meu painel](https://forno-cardapios.waves4845.chatgpt.site/app)
 
-## Estado atual — 13/10/2026
+## Estado atual — 15/10/2026
 
-Produção permanece na **v28**, com cadastro público, pedidos/Pix/chat, OCR local, PWA/Web Push e admin analítico. A **PR #13 continua em rascunho, sem merge nem publicação**: reúne controle administrativo de cortesia/suspensão, ajuda local no Estúdio e aproveitamento de fotografias de capturas. A candidata também preserva texto/itens e ajustes na retomada, salva o rascunho antes de concluir a importação e mantém o link do pedido utilizável com storage bloqueado. Reconhece referências iFood e transfere a mensagem do Estúdio ao leitor, sem geração paga; o conector automático ainda depende de homologação/autorização externa. Promoções permitem preço livre e combos completos; o painel cria/edita em janela curta e recolhe categorias/cupons. A validação local (234 testes) e os critérios de liberação estão em [Fechamento do MVP](docs/FECHAMENTO-MVP-2026-10-13.md). Trial fiscalizado, ampliação de cotas, Asaas e recuperação por e-mail continuam desativados.
+Cadastro público, painel, pedidos/Pix/chat, OCR local, PWA/Web Push e admin estão publicados. Promoções permitem preço livre e combos; o painel recolhe opções secundárias. Importação automática por link iFood ainda não está disponível.
+
+A assinatura Asaas está disponível em **Minha conta**: Essencial R$49/mês, Profissional R$89/mês e Rede R$149/mês. Webhook de produção habilitado e autenticado. Os 251 testes da v30 passaram, incluindo D1/workerd com identidade e Asaas simulados. Pagamento e ciclo financeiro externos ainda precisam de validação; consulta real da chave e teste do receptor não equivalem a pagamento real. O acesso comercial ainda não exige assinatura, e o trial não bloqueia contas. Contas, dados, URL atual e cotas de IA preservados.
+
+Os registros abaixo são históricos e não substituem este estado atual.
 
 ### Registro histórico — v21, 12/10/2026
 

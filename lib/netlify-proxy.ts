@@ -24,7 +24,7 @@ export async function forwardToBackend(request: Request, config: NetlifyProxyCon
     const secure = new URL(incoming); secure.protocol = "https:";
     return Response.redirect(secure, 308);
   }
-  if (incoming.origin !== publicOrigin) return unavailable(503, "Use o endereço principal do pedido.on.");
+  if (incoming.origin !== publicOrigin) return unavailable(503, "Use o endereço principal da pizzaria.on.");
   if (/^\/(?:signin-with-chatgpt|signout-with-chatgpt|callback)(?:\/|$)/.test(incoming.pathname)) {
     return Response.redirect(publicOrigin + "/entrar", 303);
   }

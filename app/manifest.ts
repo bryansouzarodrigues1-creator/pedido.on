@@ -1,7 +1,7 @@
 import type {MetadataRoute} from "next";
 export default function manifest():MetadataRoute.Manifest{
  return {
-  id:"/app",name:"pedido.on · Painel da pizzaria",short_name:"pedido.on",
+  id:"/app",name:"pizzaria.on · Painel da pizzaria",short_name:"pizzaria.on",
   description:"Receba pedidos e administre sua pizzaria pelo celular.",
   start_url:"/app",scope:"/",display:"standalone",display_override:["standalone"],
   background_color:"#faf8f2",theme_color:"#c73726",lang:"pt-BR",

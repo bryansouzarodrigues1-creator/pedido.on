@@ -1,4 +1,13 @@
-# Continuar o pedido.on
+# Continuar a pizzaria.on
+
+**Prioridade vigente — 15/10/2026:** marca **pizzaria.on**, com foco exclusivo desta etapa em pagamentos. V30 publicada, PR #14 integrada; Asaas próprio de produção configurado e webhook exclusivo habilitado. Planos mantidos em R$49/R$89/R$149 por mês. Em Minha conta ficam contratação, faturas, verificação e cancelamento. Testes locais usam Asaas/identidade simulados; não houve compra financeira real. Falta validar o ciclo externo e a primeira contratação pelo fluxo normal. [Estado e critérios do Asaas](ASAAS.md).
+
+Não renomear referências externas `pedido-on:`, cookies, storage, projeto, bindings, repositório ou URLs durante a troca da marca: são identidades técnicas existentes. Cadastro público aberto, dados, sessões, cotas e fiscalização desligada permanecem preservados. Não criar cobrança, estorno ou cancelamento real sem pagador/valor/operação específicos autorizados. Recuperação, importação automática e outras frentes ficam para etapas posteriores.
+
+## Registros históricos até 13/10/2026
+
+Os estados de cobrança desligada, v28 e PR #13 em rascunho abaixo foram superados pela atualização vigente.
+
 
 **Continuação — 13/10/2026:** integração Asaas preparada junto do admin/leitor/promoções na PR #13. A candidata inclui faturas mensais, webhook, conciliação, cancelamento e migração 0013; credenciais específicas ainda não estão configuradas. O executor ficou indisponível no fechamento, e o código foi recuperado no GitHub para validação pelo CI. Produção permanece v28, sem publicação/migração remota. Ler [Asaas](ASAAS.md) e conferir o CI da última árvore antes de empacotar. Cadastro público, preços, cotas e chave de sessão preservados.
 

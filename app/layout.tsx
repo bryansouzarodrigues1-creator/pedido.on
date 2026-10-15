@@ -11,5 +11,5 @@ import "./order-chat.css";
 import "./first-run.css";
 import "./menu-productivity.css";
 import "./admin-analytics.css";
-export const metadata:Metadata={title:"pedido.on — Sua pizzaria, pronta para vender.",description:"Crie o cardápio digital da sua pizzaria. Cadastre seus sabores, receba pedidos com Pix e cuide da pizzaria pelo celular. Calculadora grátis de preço e lucro, sem cadastro.",manifest:"/manifest.webmanifest",applicationName:"pedido.on",appleWebApp:{capable:true,title:"pedido.on",statusBarStyle:"default"},icons:{icon:"/assets/pedido-symbol.png",apple:"/assets/pedido-symbol.png"}};
+export const metadata:Metadata={title:"pizzaria.on — Sua pizzaria, pronta para vender.",description:"Crie o cardápio digital da sua pizzaria. Cadastre seus sabores, receba pedidos com Pix e cuide da pizzaria pelo celular. Calculadora grátis de preço e lucro, sem cadastro.",manifest:"/manifest.webmanifest",applicationName:"pizzaria.on",appleWebApp:{capable:true,title:"pizzaria.on",statusBarStyle:"default"},icons:{icon:"/assets/pedido-symbol.png",apple:"/assets/pedido-symbol.png"}};
 export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="pt-BR"><body>{children}</body></html>;}
