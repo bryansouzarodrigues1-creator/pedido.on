@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import urllib.error
 import urllib.request
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timezone
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -21,6 +21,9 @@ root = Path(__file__).resolve().parent.parent
 checks = [
     ('/', 200, 'text/html', None),
     ('/calculadora', 200, 'text/html', None),
+    ('/assinatura?plan=essencial', 200, 'text/html', None),
+    ('/assinatura?plan=profissional', 200, 'text/html', None),
+    ('/assinatura?plan=rede', 200, 'text/html', None),
     ('/demo/pedidos', 200, 'text/html', None),
     ('/offline', 200, 'text/html', None),
     ('/order-print.js', 200, 'text/javascript', 'public/order-print.js'),
@@ -68,6 +71,14 @@ def check(item):
             if source:
                 result['matches_source'] = hashlib.sha256((root / source).read_bytes()).hexdigest() == result['sha256']
                 assert result['matches_source'], 'Bytes publicados diferem do arquivo local.'
+            if path == '/':
+                for plan in ['essencial', 'profissional', 'rede']:
+                    assert ('href="/assinatura?plan=' + plan + '"').encode() in data, 'Plano sem acesso à contratação.'
+            if path.startswith('/assinatura?'):
+                destination = urlparse(response.geturl())
+                assert destination.path == '/entrar', 'Assinatura anônima não exige login.'
+                assert parse_qs(destination.query).get('next') == [path], 'Plano escolhido se perdeu no login.'
+                assert b'<form' in data, 'Formulário de acesso indisponível.'
             if path == '/manifest.webmanifest':
                 manifest = json.loads(data)
                 assert manifest['display'] == 'standalone'

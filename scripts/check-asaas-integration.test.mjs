@@ -16,6 +16,34 @@ function harness(){const f=fixture();Object.assign(f.env,{PEDIDO_BILLING_ENABLED
  return {...f,calls,customer,subscriptions,payments,input,webhook,setPause:p=>{pauseCustomer=p;},loseNextSubscription:()=>{loseSubscriptionResponse=true;},setRedirect:()=>{redirect=true;},close(){globalThis.fetch=original;f.close();}};
 }
 
+test('financial mutations reject absent or mismatched CSRF before changing records or calling Asaas',async()=>{
+ const f=harness();try{
+  for(const route of ['billingCheckout','billingCancel','billingSync','billingPortal']){
+   for(const headers of [{'x-pedido-csrf':'wrong'},{Cookie:''}]){
+    const response=await f.call(route,'POST',{},f.input(),headers);
+    assert.equal(response.status,403,route);assert.match(response.headers.get('Cache-Control'),/no-store/);
+   }
+  }
+  assert.equal(f.calls.length,0);assert.equal(f.db.prepare('SELECT count(*) n FROM asaas_intents').get().n,0);
+  assert.equal(f.db.prepare('SELECT count(*) n FROM asaas_subscriptions').get().n,0);
+  const portal=await f.call('billingPortal','POST',{},{});assert.equal(portal.status,200);
+  assert.equal((await portal.json()).url,'/assinatura');assert.equal(f.calls.length,0);
+ }finally{f.close();}
+});
+
+test('all three selected plans create the exact catalog monthly invoice without unpaid entitlement',async()=>{
+ for(const [plan,amount] of [['essencial',49],['profissional',89],['rede',149]]){
+  const f=harness();try{
+   const response=await f.call('billingCheckout','POST',{},f.input({plan}));assert.equal(response.status,200);
+   assert.match((await response.json()).url,/^https:\/\/asaas.com\//);
+   const remote=[...f.subscriptions.values()][0];assert.equal(remote.value,amount);assert.equal(remote.cycle,'MONTHLY');
+   const status=await (await f.call('billingStatus','GET')).json();
+   assert.equal(status.subscription.plan,plan);assert.equal(status.subscription.status,'pending');
+   assert.equal(status.invoices[0].amount,amount*100);assert.equal(status.subscription.paidThrough,0);
+  }finally{f.close();}
+ }
+});
+
 test('Asaas checkout uses fixed server prices, hosted invoice and durable reuse without releasing an unpaid plan',async()=>{const f=harness();try{const input=f.input(),before=f.db.prepare('SELECT data,published_data FROM restaurants').all();const first=await f.call('billingCheckout','POST',{},input);assert.equal(first.status,200,await first.clone().text());assert.match((await first.json()).url,/^https:\/\/asaas.com\/000\/i\//);assert.equal(f.customer.size,1);assert.equal(f.subscriptions.size,1);assert.equal([...f.subscriptions.values()][0].value,49);assert.equal([...f.subscriptions.values()][0].billingType,'UNDEFINED');assert.equal([...f.subscriptions.values()][0].description,'pizzaria.on · essencial');assert.match([...f.subscriptions.values()][0].externalReference,/^pedido-on:production:/);assert.equal(f.db.prepare('SELECT paid_through FROM asaas_subscriptions').get().paid_through,0);assert.equal(f.load('lib/billing.ts').billingEnforced(),false);
  const retry=await f.call('billingCheckout','POST',{},input);assert.equal(retry.status,200);const otherTab=await f.call('billingCheckout','POST',{},f.input());assert.equal(otherTab.status,200);assert.equal(f.calls.filter(c=>c.path.endsWith('/subscriptions')&&c.method==='POST').length,1);assert.equal(f.calls.filter(c=>c.path.endsWith('/customers')&&c.method==='POST').length,1);assert.deepEqual(f.db.prepare('SELECT data,published_data FROM restaurants').all(),before);assert.equal(f.db.prepare('SELECT count(*) n FROM subscriptions').get().n,0);
  const status=await (await f.call('billingStatus','GET')).json();assert.equal(status.subscription.status,'pending');assert.equal(status.invoices.length,1);assert.equal(status.provider,'asaas');assert.doesNotMatch(JSON.stringify(status),/00012345600|document_hash|aact_prod|webhook-fixture/);

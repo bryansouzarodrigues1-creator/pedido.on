@@ -8,9 +8,10 @@ import {subscriptions,billingCustomers} from "@/db/schema";
 import {owner,sameOrigin,errorResponse,HttpError} from "@/lib/server";
 import {billingConfig,billingPlans,stripeRequest} from "@/lib/billing";
 import {readJson} from "@/lib/http";
+import {assertCsrf} from "@/lib/auth";
 export const dynamic="force-dynamic";
 export async function POST(request:Request){try{
-  sameOrigin(request);const user=await owner(),raw=await readJson(request);
+  sameOrigin(request);assertCsrf(request);const user=await owner(),raw=await readJson(request);
   if(billingConfig().provider==="asaas"){const access=await accountAccess(user.userId);if(access.mode==="suspended")throw new HttpError(403,"Esta conta está suspensa. Fale com o suporte antes de assinar.");await throttle("billing-checkout:"+user.userId,8,300);const result=await asaasCheckout(user,asaasCheckoutSchema.parse(raw));return Response.json(result,{status:result.pending?202:200,headers:privateHeaders});}
   const input=z.object({plan:z.enum(["essencial","profissional","rede"]),requestId:z.string().uuid()}).parse(raw);
   const config=billingConfig();if(!config.enabled)throw new HttpError(503,"A cobrança ainda não foi ativada. Você pode montar seu cardápio no pré-lançamento.");
