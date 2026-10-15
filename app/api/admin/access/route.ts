@@ -31,9 +31,9 @@ export async function PATCH(request:Request){try{
  if((current?.version||0)!==input.expectedVersion)throw new HttpError(409,"A situação desta conta mudou. Atualize e confira antes de salvar.");
  const now=Math.floor(Date.now()/1000),expires=input.mode==="grant"?grantExpiry(input.durationDays,now):null,plan=input.mode==="grant"?input.plan!:null;
  const timestamp=new Date(now*1000).toISOString();
- const update=env.DB!.prepare(`INSERT INTO account_access(owner_id,mode,plan,expires_at,reason,updated_by,updated_at,version)
- VALUES(?,?,?,?,?,?,?,1)
- ON CONFLICT(owner_id) DO UPDATE SET mode=excluded.mode,plan=excluded.plan,expires_at=excluded.expires_at,reason=excluded.reason,updated_by=excluded.updated_by,updated_at=excluded.updated_at,version=account_access.version+1
+ const update=env.DB!.prepare(`INSERT INTO account_access(owner_id,mode,plan,expires_at,reason,updated_by,updated_at,version,catalog_version)
+ VALUES(?,?,?,?,?,?,?,1,2)
+ ON CONFLICT(owner_id) DO UPDATE SET catalog_version=CASE WHEN account_access.mode='grant' AND account_access.plan=excluded.plan THEN account_access.catalog_version ELSE 2 END,mode=excluded.mode,plan=excluded.plan,expires_at=excluded.expires_at,reason=excluded.reason,updated_by=excluded.updated_by,updated_at=excluded.updated_at,version=account_access.version+1
  WHERE account_access.version=?`).bind(ownerId,input.mode,plan,expires,input.reason,user.userId,timestamp,input.expectedVersion);
  const audit=env.DB!.prepare(`INSERT INTO account_access_events(id,owner_id,actor_id,action,plan,expires_at,reason,created_at)
  SELECT ?,owner_id,?,mode,plan,expires_at,reason,? FROM account_access WHERE owner_id=? AND version=? AND changes()=1`).bind(crypto.randomUUID(),user.userId,timestamp,ownerId,input.expectedVersion+1);

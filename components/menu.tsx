@@ -66,7 +66,8 @@ export default function Menu({ data, slug = "", demo = false, preview = false, a
   </>;
 
   return <div className={`customer-menu easy-menu theme-${data.theme}`} style={themeStyle(data)}>
-    {(demo || preview) && <div className="demo-banner"><a href={preview ? "#" : "/"} onClick={event => preview && event.preventDefault()}><ArrowLeft size={15} />{preview ? "Prévia do seu cardápio" : "Voltar à pizzaria.on"}</a><span>{preview ? "Rascunho · confira antes de publicar" : "Demonstração · preços ilustrativos"}</span>{demo && <a href={`/app?new=1&theme=${data.theme}`}>Usar este layout <ArrowUpRight size={15} /></a>}</div>}
+    {(demo || preview) && <div className="demo-banner"><a href={preview ? "#" : "/"} onClick={event => preview && event.preventDefault()}><ArrowLeft size={15} />{preview ? "Prévia do seu cardápio" : "Voltar à pizzaria.on"}</a><span>{preview ? "Rascunho · confira antes de publicar" : "Demonstração · preços ilustrativos"}</span>{demo && <a href={`/app?new=1&theme=${data.theme}`}>Criar meu cardápio <ArrowUpRight size={15} /></a>}</div>}
+    {demo&&!preview&&<div className="demo-create-menu"><strong>Quer um cardápio assim para sua pizzaria?</strong><a className="btn primary small" href={`/cadastro?next=${encodeURIComponent("/app?new=1&theme="+data.theme)}`}>Crie seu cardápio online também <ArrowRight size={16}/></a><small>7 dias de teste · sem cobrança automática</small></div>}
     {gated&&<div className="menu-delivery-confirmed"><Check size={15}/>{deliveryAccess?"Entrega aprovada para seu endereço":"Retirada na pizzaria"} <button type="button" onClick={()=>{setDeliveryAccess(null);setPickupBypass(false);setCheckout(false);setCartOpen(false);}}>Alterar</button></div>}
     <header className="menu-topbar"><div className="menu-container"><a className="restaurant-brand" href="#cardapio"><span>{data.logo ? <img src={data.logo} alt={`Logo de ${data.name}`} /> : <Pizza size={25} />}</span><strong>{data.name}</strong></a><div className="menu-top-links">{trackingLink&&<a className="track-existing-order" href={trackingLink}><Clock size={15}/>Meu pedido</a>}<span className={`open-pill ${data.isOpen ? "" : "closed"}`}><i />{data.isOpen ? "Aberto" : "Fechado"}</span><button className="icon-btn" aria-label={`Ver pedido com ${count} itens`} onClick={() => setCartOpen(true)}><ShoppingBag size={22} />{count > 0 && <b className="cart-badge">{count}</b>}</button></div></div></header>
     <section className={`menu-hero ${data.cover ? "has-cover" : ""}`}><div className="menu-container menu-hero-grid"><div className="menu-hero-copy"><span className="menu-eyebrow">ESCOLHA. MONTE. PEÇA.</span><h1>{data.tagline || data.name}</h1>{data.description && <p>{data.description}</p>}<div className="restaurant-meta"><span><Clock size={16} />{data.eta}</span>{data.deliveryEnabled && <span><Truck size={16} />{data.deliveryFee ? `Entrega ${money(data.deliveryFee)}` : "Entrega sem taxa"}</span>}{data.pickupEnabled && <span><Store size={16} />Retirada</span>}</div><details className="restaurant-info"><summary>Horários, endereço e pagamento <ChevronDown size={15} /></summary><div>{data.hours && <p><Clock size={16} />{data.hours}</p>}{data.address && <p><MapPin size={16} />{data.address}{data.city && ` · ${data.city}`}</p>}<p><Info size={16} />Pagamento na entrega ou retirada: {data.payments.join(", ")}</p>{data.minOrder > 0 && <p>Pedido mínimo em produtos: {money(data.minOrder)}</p>}{data.instagram && <a href={`https://www.instagram.com/${data.instagram.replace(/^@/, "")}/`} target="_blank" rel="noopener noreferrer"><AtSign size={16} />@{data.instagram.replace(/^@/, "")}</a>}</div></details></div>{data.cover ? <div className="menu-hero-image"><img src={data.cover} alt={`Capa de ${data.name}`} /></div> : <div className="menu-hero-illustration" aria-hidden="true"><Pizza size={100} strokeWidth={0.8} /><span>do seu<br /><em>jeito.</em></span></div>}</div></section>
@@ -101,12 +102,14 @@ export function Checkout({ data, slug, cart, demo, approvalRequired, deliveryAcc
   const [customer, setCustomer] = useState(initialDetails.customer), [phone, setPhone] = useState(initialDetails.phone), [address, setAddress] = useState(initialDetails.address);
   const [payment, setPayment] = useState(initialDetails.payment), [coupon, setCoupon] = useState(""), [appliedCoupon, setAppliedCoupon] = useState(""), [note, setNote] = useState(initialDetails.note);
   const [error, setError] = useState(""), [busy, setBusy] = useState(false), [success, setSuccess] = useState<{ code: string; total: number; trackingUrl?:string; whatsappUrl?: string } | null>(null);
+  const [whatsappLink,setWhatsappLink]=useState("");
+  const submitting=useRef(false);
   const [neighborhood,setNeighborhood]=useState(initialDetails.neighborhood||"");
   const deliveryQuote=useDeliveryQuote({slug,enabled:approvalRequired&&method==="delivery"&&!demo,phone,address,neighborhood,onRestore:value=>{setPhone(value.phone);setAddress(value.address);setNeighborhood(value.neighborhood);},onApproved:()=>{setReviewTotal(null);setStep(1);}});
   const deliveryAccess=deliveryQuote.record?.status==="approved"?{id:deliveryQuote.record.id,token:deliveryQuote.record.token,phone:deliveryQuote.record.phone,address:deliveryQuote.record.address}:legacyDelivery;
   const attempt = useRef({ signature: "", id: "", trackingToken:"" });
   const [reviewTotal,setReviewTotal]=useState<number|null>(null),[serverQuote,setServerQuote]=useState<OrderSummary|null>(null);
-  useEffect(()=>{setServerQuote(null);},[cart,method,appliedCoupon,phone,address,neighborhood,deliveryQuote.record?.deliveryFee]);
+  useEffect(()=>{setServerQuote(null);setWhatsappLink("");},[cart,method,appliedCoupon,phone,address,customer,payment,note,neighborhood,deliveryQuote.record?.deliveryFee]);
   useEffect(() => { onDetailsChange({ customer, phone, address, method, payment, note,neighborhood }); }, [customer, phone, address, method, payment, note,neighborhood]);
   const checked=reviewCart(data,cart);
   const items=serverQuote?.items||checked.lines,subtotal=serverQuote?.subtotal??items.reduce((a,b)=>a+b.total,0);
@@ -117,29 +120,33 @@ export function Checkout({ data, slug, cart, demo, approvalRequired, deliveryAcc
     if (!c.enabled || !coupon || c.code.toUpperCase() !== coupon.trim().toUpperCase() || subtotal < c.minTotal) { setError("Confira o cupom e o valor mínimo para usar."); setAppliedCoupon(""); return; }
     setAppliedCoupon(coupon.trim()); setError("");
   }
-  async function submit(event: FormEvent) {
-    event.preventDefault(); setError("");
+  async function submit(event: {preventDefault:()=>void}, channel:"site"|"whatsapp"="site") {
+    event.preventDefault();if(submitting.current)return;submitting.current=true;setError("");setWhatsappLink("");
     const values = { expectedTotal:total,neighborhood,customer, phone, address: method === "delivery" ? address : "", method, payment, coupon: appliedCoupon, note, items: cart, website: "", ...(method==="delivery"&&deliveryAccess?{deliveryCheckId:deliveryAccess.id,deliveryCheckToken:deliveryAccess.token}:{}) };
     const signature = JSON.stringify(values);
     if (signature !== attempt.current.signature) attempt.current = { signature, id: crypto.randomUUID(),trackingToken:[...crypto.getRandomValues(new Uint8Array(32))].map(v=>v.toString(16).padStart(2,"0")).join("") };
     const input = { ...values, requestId: attempt.current.id,trackingToken:attempt.current.trackingToken };
     try {
-      const summary = calculateOrder(data, input);
+      calculateOrder({...data,deliveryFee:delivery}, input);
       if (step === 0) { if(approvalRequired&&method==="delivery"&&!demo){if(!neighborhood.trim()){setError("Informe seu bairro.");return;}await deliveryQuote.request();return;}setReviewTotal(total);setStep(1); return; }
       if(approvalRequired&&method==="delivery"&&!demo&&!deliveryAccess){setStep(0);setError("Consulte o endereço de entrega antes de finalizar.");return;}
       if(reviewTotal!==null&&total!==reviewTotal){setReviewTotal(total);setError("A oferta foi atualizada. Confira o novo total e confirme novamente.");return;}
-      if (demo) { setSuccess({ code: "DEMO", total }); return; }
+      if (demo) { if(channel==="whatsapp"){setError("Demonstração: em um cardápio publicado, este botão abre o WhatsApp da pizzaria com o pedido preenchido.");return;}setSuccess({ code: "DEMO", total }); return; }
       setBusy(true);
-      const res = await fetch(`/api/menu/${slug}/order`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
+      const res = await fetch(`/api/menu/${slug}/${channel==="whatsapp"?"whatsapp":"order"}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
       const body = await res.json() as { code: string; total: number; trackingUrl:string; whatsappUrl: string; error?: string;quote?:OrderSummary };
       if(!res.ok){if(res.status===409&&body.quote){setServerQuote(body.quote);setReviewTotal(body.quote.total);}else if(res.status===403||res.status===409){deliveryQuote.clear();setStep(0);}throw new Error(body.error||"Não foi possível registrar o pedido.");}
+      if(channel==="whatsapp"){
+        if(!/^https:\/\/wa\.me\/[1-9]\d{9,14}\?text=/.test(body.whatsappUrl))throw Error("Não foi possível abrir o WhatsApp da pizzaria.");
+        setWhatsappLink(body.whatsappUrl);location.assign(body.whatsappUrl);return;
+      }
       setSuccess(body); onDone(body.trackingUrl);
     } catch (e) { setError(e instanceof Error ? e.message : "Confira os dados do pedido."); }
-    finally { setBusy(false); }
+    finally { submitting.current=false;setBusy(false); }
   }
   if(!success&&checked.invalid.length)return <section className="checkout-invalid" role="alert"><h3>Seu pedido precisa de revisão</h3>{checked.invalid.map(item=><p key={item.index}>{item.label}: {item.error}</p>)}<button type="button" className="btn menu-btn" onClick={onEditCart}>Voltar ao pedido</button></section>;
   if (success) return <div className="checkout-success"><span><CheckCircle2 size={46}/></span><h3>{demo?"Pronto. Seu pedido começa aqui.":payment==="Pix"&&data.pix?.enabled?"Agora faça o Pix e envie o comprovante.":"Pedido enviado para a pizzaria."}</h3><p>{demo?"Experimente o Pix, a aprovação da pizzaria e a previsão de entrega na demonstração.":payment==="Pix"&&data.pix?.enabled?"Abra o acompanhamento para ver a chave e enviar o comprovante. A pizzaria confere o banco antes de aprovar.":"A pizzaria vai aprovar e informar o prazo. Você acompanha tudo pelo seu link."}</p><div className="success-total"><span>Pedido #{success.code}</span><strong>{money(success.total)}</strong></div>{success.trackingUrl&&<a className="btn menu-btn full" href={success.trackingUrl}><Clock size={19}/>Acompanhar meu pedido <ArrowRight size={17}/></a>}{demo&&<a className="btn menu-btn" href="/demo/pedidos">Experimentar Pix e aprovação <ArrowRight size={17}/></a>}<small>{demo?"Demonstração: nenhum pedido ou pagamento foi realizado.":"Guarde o link para acompanhar. Você não precisa criar conta."}</small></div>;
-  return <form className="checkout-form easy-checkout" onSubmit={submit}>
+  return <form className="checkout-form easy-checkout" onSubmit={event=>void submit(event)}>
     <div className="checkout-steps"><span className={step === 0 ? "active" : "done"}><b>{step > 0 ? <Check size={14} /> : "1"}</b>Entrega e contato</span><i /><span className={step === 1 ? "active" : ""}><b>2</b>Confirmar pedido</span></div>
     <fieldset className="editor-fieldset" disabled={busy||deliveryQuote.busy}>
       {step === 0 ? <>
@@ -158,7 +165,9 @@ export function Checkout({ data, slug, cart, demo, approvalRequired, deliveryAcc
       </>}
     </fieldset>
     {error && <div className="field-error" role="alert">{error}</div>}
-    <button className="btn menu-btn full" disabled={busy||deliveryQuote.busy||method==="delivery"&&deliveryQuote.record?.status==="pending"} type="submit">{busy ? <Spinner /> : step === 1 ? <MessageCircle size={19} /> : <ArrowRight size={19} />}{step === 0 ? approvalRequired&&method==="delivery"?deliveryQuote.record?.status==="pending"?"Aguardando a pizzaria":"Confirmar endereço e taxa":"Continuar para confirmar" : demo ? "Experimentar pedido" : payment==="Pix"&&data.pix?.enabled?"Continuar para o Pix":"Enviar pedido à pizzaria"}{step === 1 && <strong>{money(total)}</strong>}</button>
-    <p className="checkout-disclosure">{demo ? "Demonstração: seus dados não serão enviados nem armazenados." : step === 0 ? "Sem cadastro. Seus dados serão usados por esta pizzaria para atender o pedido." : payment==="Pix"&&data.pix?.enabled?"Depois de registrar, faça o Pix e envie o comprovante no acompanhamento. O preparo começa após a aprovação da pizzaria.":"O pedido chega ao painel da pizzaria. Aguarde a aprovação e acompanhe o prazo pelo link."}</p>
+    {step===1&&(demo||!!data.whatsapp.trim())&&<button type="button" className="btn whatsapp-checkout full" disabled={busy} onClick={event=>void submit(event,"whatsapp")}>{busy?<Spinner/>:<MessageCircle size={19}/>}Finalizar pelo WhatsApp <strong>{money(total)}</strong></button>}
+    {whatsappLink&&<p className="whatsapp-checkout-notice" role="status">Envie a mensagem no WhatsApp para pedir a confirmação da pizzaria. <a href={whatsappLink}>Abrir WhatsApp novamente</a></p>}
+    <button className={`btn ${step===1&&data.whatsapp.trim()?"outline":"menu-btn"} full`} disabled={busy||deliveryQuote.busy||method==="delivery"&&deliveryQuote.record?.status==="pending"} type="submit">{busy ? <Spinner /> : <ArrowRight size={19} />}{step === 0 ? approvalRequired&&method==="delivery"?deliveryQuote.record?.status==="pending"?"Aguardando a pizzaria":"Confirmar endereço e taxa":"Continuar para confirmar" : demo ? "Experimentar pedido pelo site" : payment==="Pix"&&data.pix?.enabled?"Pedir pelo site e pagar com Pix":"Finalizar pelo site"}{step === 1 && <strong>{money(total)}</strong>}</button>
+    <p className="checkout-disclosure">{demo ? "Demonstração: seus dados não serão enviados nem armazenados." : step === 0 ? "Sem cadastro. Seus dados serão usados por esta pizzaria para atender o pedido." : data.whatsapp.trim()?"No WhatsApp, envie a mensagem e aguarde a confirmação. Pelo site, acompanhe o pedido e o pagamento pelo link privado.":payment==="Pix"&&data.pix?.enabled?"Depois de registrar, faça o Pix e envie o comprovante no acompanhamento. O preparo começa após a aprovação da pizzaria.":"O pedido chega ao painel da pizzaria. Aguarde a aprovação e acompanhe o prazo pelo link."}</p>
   </form>;
 }

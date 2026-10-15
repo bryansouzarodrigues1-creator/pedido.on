@@ -30,7 +30,7 @@ export default function AdminAccessControl({restaurantId}:{restaurantId:string})
    setReason("");setNotice("Acesso atualizado. Histórico registrado.");await load();
   }catch(e){setError(e instanceof Error?e.message:"Falha ao salvar.");}finally{setBusy(false);}
  }
- const label=access?.mode==="suspended"?"Suspenso":access?.mode==="grant"?`Cortesia ${access.plan==="profissional"?"Pro":access.plan==="rede"?"Rede":"Essencial"}`:"Padrão";
+ const label=access?.mode==="suspended"?"Suspenso":access?.mode==="grant"?`Cortesia ${access.plan==="profissional"?"Pro":access.plan==="rede"?"Divulgação":"Essencial"}`:"Padrão";
  return <details className="admin-special-access" onToggle={e=>{const next=e.currentTarget.open;setOpen(next);if(next&&!loaded&&!busy)void load();}}>
   <summary><ShieldCheck size={16}/> Gerenciar plano e acesso {access&&<small>· {label}</small>}</summary>
   {open&&<div className="admin-access-form">
@@ -39,7 +39,7 @@ export default function AdminAccessControl({restaurantId}:{restaurantId:string})
     <label>Situação<select value={choice} onChange={e=>setChoice(e.target.value)} disabled={busy}>
      <option value="normal">Padrão — seguir assinatura e trial</option>
      <option value="profissional">Liberar Pro (cortesia)</option>
-     <option value="rede">Liberar Rede (cortesia)</option>
+     <option value="rede">Liberar Divulgação (cortesia)</option>
      <option value="essencial">Liberar Essencial (cortesia)</option>
      <option value="suspended">Suspender acesso comercial</option>
     </select></label>

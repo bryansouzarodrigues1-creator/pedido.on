@@ -1,5 +1,8 @@
 # pizzaria.on
 
+**Atualização em preparação — 15/10/2026:** checkout alternativo pelo WhatsApp, artes da promoção com preço/validade escritos pelo aplicativo, planos Essencial/Pro/Divulgação para uma pizzaria e franquias por conta com orçamento estimado de beta. Migração aditiva 0014; Asaas e identidades técnicas preservados. [Fluxos, cotas, compatibilidade e validação](docs/WHATSAPP-PROMOCOES-PLANOS.md).
+
+
 **Atualização — 15/10/2026:** a marca passa a ser **pizzaria.on**. A produção confirmada está na v30, com Asaas próprio ativo, faturas mensais, histórico, webhook e cancelamento; PRs #13 e #14 integradas. Esta etapa aplica a nova marca e simplifica o pagamento. A publicação seguinte deve ser conferida no Sites. Fiscalização de assinatura/trial e recuperação por e-mail permanecem desativadas. Ler [Asaas](docs/ASAAS.md).
 
 Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criação de imagens e textos com IA e calculadora pública de preço e lucro.
