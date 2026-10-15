@@ -70,3 +70,5 @@ next-env.d.ts
 *.log
 public/pwa/
 public/pwa-release.js
+__pycache__/
+*.pyc
