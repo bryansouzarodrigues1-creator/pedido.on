@@ -1,0 +1,126 @@
+{
+  "checked_at": "2026-10-15T20:06:12.974182+00:00",
+  "origin": "https://forno-cardapios.waves4845.chatgpt.site",
+  "mode": "anonymous GET only",
+  "passed": 14,
+  "total": 14,
+  "checks": [
+    {
+      "path": "/",
+      "ok": true,
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 56820,
+      "sha256": "48713e4cabbd3720c491e024c1c0372c1ac47db24972aa7cee3efa264fd9158b"
+    },
+    {
+      "path": "/calculadora",
+      "ok": true,
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 19068,
+      "sha256": "a3883def52fe6cdb4c1bae28ff3d57acd71954bf5c979e08c3b2157a74e93855"
+    },
+    {
+      "path": "/demo/pedidos",
+      "ok": true,
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 20873,
+      "sha256": "131b66eead8e73589874b4b2d6f950f2b85370b658dbc260951b53b8d321f427"
+    },
+    {
+      "path": "/offline",
+      "ok": true,
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 12085,
+      "sha256": "fc672c1aaec2cb1f3446c3d834bb09906217db13e54fa7ff0aed3e33de5107fa"
+    },
+    {
+      "path": "/order-print.js",
+      "ok": true,
+      "status": 200,
+      "content_type": "text/javascript",
+      "bytes": 1467,
+      "sha256": "45feca81130fc976f8f1d7da6d5cbf10528bcf3ca69602ed1a149e5ebc3d53f7",
+      "matches_source": true
+    },
+    {
+      "path": "/sw.js",
+      "ok": true,
+      "status": 200,
+      "content_type": "text/javascript",
+      "bytes": 2497,
+      "sha256": "251cf0b9fa3b2eb30f9283880114f44aec70fbd3aa85adb2534c27027d82fa3e",
+      "matches_source": true
+    },
+    {
+      "path": "/pwa-release.js",
+      "ok": true,
+      "status": 200,
+      "content_type": "text/javascript",
+      "bytes": 40,
+      "sha256": "49fa5df1c07869b3a4dc2be08c1a4bd6e85d6f1635971e6b5823fa013b0277df",
+      "matches_source": true
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "ok": true,
+      "status": 200,
+      "content_type": "application/manifest+json",
+      "bytes": 881,
+      "sha256": "34dea7e2f3a85a786409ee4a3b32c890bb3487131900f4df8fc6d6a909c8389c"
+    },
+    {
+      "path": "/pwa/icon-192.png",
+      "ok": true,
+      "status": 200,
+      "content_type": "image/png",
+      "bytes": 4821,
+      "sha256": "3baa9518da981d47c335740eb7c8c41978f98caf8417e901d4cca668a18b1927",
+      "matches_source": true
+    },
+    {
+      "path": "/pwa/icon-512.png",
+      "ok": true,
+      "status": 200,
+      "content_type": "image/png",
+      "bytes": 17837,
+      "sha256": "5c5a99709adcec785289ab109b99a44356656e94ca9ddbfcbf2df3204c43a722",
+      "matches_source": true
+    },
+    {
+      "path": "/api/admin/status",
+      "ok": true,
+      "status": 401,
+      "content_type": "application/json",
+      "bytes": 46,
+      "sha256": "120c7de97896e255240936591793dbfa3f47a656e22b5aa5e31829e906a14ae2"
+    },
+    {
+      "path": "/api/restaurants",
+      "ok": true,
+      "status": 401,
+      "content_type": "application/json",
+      "bytes": 46,
+      "sha256": "120c7de97896e255240936591793dbfa3f47a656e22b5aa5e31829e906a14ae2"
+    },
+    {
+      "path": "/api/billing/status",
+      "ok": true,
+      "status": 401,
+      "content_type": "application/json",
+      "bytes": 46,
+      "sha256": "120c7de97896e255240936591793dbfa3f47a656e22b5aa5e31829e906a14ae2"
+    },
+    {
+      "path": "/api/restaurants/shop-qa/orders/00000000-0000-4000-8000-000000000000/print?copy=kitchen",
+      "ok": true,
+      "status": 401,
+      "content_type": "application/json",
+      "bytes": 46,
+      "sha256": "120c7de97896e255240936591793dbfa3f47a656e22b5aa5e31829e906a14ae2"
+    }
+  ]
+}

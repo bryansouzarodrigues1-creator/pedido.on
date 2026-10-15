@@ -1,6 +1,6 @@
 # Comandas e orientações operacionais — 15/10/2026
 
-Base publicada: v32, PR #16 integrada em `fcb42c0e878f2777c8b7d4a759e5b51a604e3e58`, fonte Sites `759dbe9720c9c60e4d05a5187896af25d6591bce`, implantação `appgdep_6ad10ae483148191b79092e1545606ce` às 14:19 de Brasília. Esta etapa acrescenta as vias operacionais solicitadas pelo proprietário e orientação visual somente em pontos de dúvida. A publicação seguinte deve ser confirmada pelo resultado nativo Sites e registrada na PR.
+Publicado na v33: PR #17 integrada em `3c80413943d52e2c75716bc338b47e3050f4dcb0`, fonte Sites `9293c3a068138e9a85a29be5fa300a932cde8fe7`, implantação `appgdep_6ad12f4c8b6c8191bb6d20b475585f26` em 15/10/2026 às 16:54:14 de Brasília, ambiente revisão 13. Esta etapa acrescentou as vias operacionais solicitadas pelo proprietário e orientação visual somente em pontos de dúvida. [Verificação ampliada após publicação](QA-COMANDAS-2026-10-15.md).
 
 ## Uso pelo dono
 

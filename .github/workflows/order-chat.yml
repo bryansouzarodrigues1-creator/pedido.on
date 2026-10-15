@@ -13,6 +13,10 @@ on:
       - "drizzle/**"
       - "db/schema.ts"
       - "scripts/check-order-chat-*.test.mjs"
+      - "scripts/check-order-ticket*.test.mjs"
+      - "lib/order-ticket.ts"
+      - "public/order-print.js"
+      - ".github/workflows/order-chat.yml"
 permissions:
   contents: read
 jobs:

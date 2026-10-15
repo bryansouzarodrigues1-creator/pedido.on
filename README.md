@@ -1,8 +1,10 @@
 # pizzaria.on
 
-**Publicado — v32, 15/10/2026:** checkout alternativo pelo WhatsApp, artes da promoção com preço/validade escritos pelo aplicativo e catálogo Essencial/Pro/Divulgação (R$49/R$89/R$149), para uma pizzaria. Franquias por conta, orçamento estimado de beta e migração aditiva 0014 aplicados. PR #16 integrada; 263 testes, typecheck, build e ambos CIs aprovados. [Fluxos e limites](docs/WHATSAPP-PROMOCOES-PLANOS.md).
+**Base funcional publicada — v33, 15/10/2026:** comanda da cozinha, resumo do motoboy e guias de Pix/entrega, em Pedidos → Detalhes → Comanda e entrega. PR #17 integrada, implantação confirmada às 16:54 de Brasília, ambiente revisão 13. [Uso e limites](docs/COMANDAS-E-ORIENTACOES.md).
 
-**Etapa atual:** comanda da cozinha, resumo do motoboy e guias visuais curtos para Pix/entrega. Impressão pelo navegador, sem geração paga e sem alteração de banco, assinatura ou cotas. [Comandas e verificação](docs/COMANDAS-E-ORIENTACOES.md).
+**Verificação ampliada:** 281 testes e typecheck aprovados; sete cenários novos com workerd/D1/R2 locais e sessões reais do aplicativo, dois de impressão/renderização e diagnóstico 14/14 de produção somente por GET. Provedor de identidade simulado; navegador, Pix bancário e impressão física ainda não homologados. [Evidências e reprodução](docs/QA-COMANDAS-2026-10-15.md).
+
+**Atualização anterior — v32:** checkout alternativo pelo WhatsApp, artes da promoção com preço/validade escritos pelo aplicativo e catálogo Essencial/Pro/Divulgação (R$49/R$89/R$149), para uma pizzaria. Franquias por conta, orçamento estimado de beta e migração aditiva 0014 aplicados. [Fluxos e limites](docs/WHATSAPP-PROMOCOES-PLANOS.md).
 
 Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criação de imagens e textos com IA e calculadora pública de preço e lucro.
 
