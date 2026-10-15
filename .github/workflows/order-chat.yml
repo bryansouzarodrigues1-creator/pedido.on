@@ -16,6 +16,11 @@ on:
       - "scripts/check-order-ticket*.test.mjs"
       - "lib/order-ticket.ts"
       - "public/order-print.js"
+      - "app/demo/pedidos/**"
+      - "components/order-demo.tsx"
+      - "lib/order-demo.ts"
+      - "public/order-demo-print.js"
+      - "scripts/check-order-demo.test.mjs"
       - ".github/workflows/order-chat.yml"
 permissions:
   contents: read
