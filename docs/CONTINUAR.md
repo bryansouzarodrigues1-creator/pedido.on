@@ -1,11 +1,12 @@
 # Continuar a pizzaria.on
 
-**Atualização em preparação — 15/10/2026:** checkout alternativo pelo WhatsApp, artes da promoção com preço/validade escritos pelo aplicativo, planos Essencial/Pro/Divulgação para uma pizzaria e franquias por conta com orçamento estimado de beta. Migração aditiva 0014; Asaas e identidades técnicas preservados. [Fluxos, cotas, compatibilidade e validação](WHATSAPP-PROMOCOES-PLANOS.md).
+**Base publicada — 15/10/2026:** v32, fonte Sites `759dbe9720c9c60e4d05a5187896af25d6591bce`, PR #16 integrada em `fcb42c0e878f2777c8b7d4a759e5b51a604e3e58`. Implantação `appgdep_6ad10ae483148191b79092e1545606ce` concluída às 14:19 de Brasília, ambiente revisão 13, audiência pública. Cadastro aberto preservado. WhatsApp no checkout, artes com texto/preço determinísticos e cotas por conta publicadas; 263 testes, typecheck, build e dois CIs passaram. [Fluxos e orçamento](WHATSAPP-PROMOCOES-PLANOS.md).
 
+**Etapa atual autorizada:** comanda da cozinha, resumo de entrega do motoboy e orientação visual curta para Pix/entrega; sem geração de imagem paga ou novo serviço. [Decisões, rotas, privacidade e limites](COMANDAS-E-ORIENTACOES.md). Corrigir o botão rápido de aceitar/verificar Pix para abrir detalhes e coletar os campos obrigatórios. Confirmar a implantação seguinte no Sites e na PR antes de declarar publicada.
 
-**Prioridade vigente — 15/10/2026:** marca **pizzaria.on**, com foco exclusivo desta etapa em pagamentos. V30 publicada, PR #14 integrada; Asaas próprio de produção configurado e webhook exclusivo habilitado. Planos mantidos em R$49/R$89/R$149 por mês. Em Minha conta ficam contratação, faturas, verificação e cancelamento. Testes locais usam Asaas/identidade simulados; não houve compra financeira real. Falta validar o ciclo externo e a primeira contratação pelo fluxo normal. [Estado e critérios do Asaas](ASAAS.md).
+Asaas próprio permanece configurado com faturas, histórico, verificação, webhook e cancelamento. A primeira contratação/pagamento externo ainda precisa ser validada; fiscalização comercial/trial e recuperação por e-mail continuam desligadas. Separação operacional entre planos Pro/Divulgação além da IA permanece proposta, ainda sem implementação. Não mudar valores ou retirar funções existentes para criar diferenças artificiais. Importação automática por link iFood continua indisponível; a bateria de capturas mais fiel é próxima validação, sem depender de loja própria no iFood.
 
-Não renomear referências externas `pedido-on:`, cookies, storage, projeto, bindings, repositório ou URLs durante a troca da marca: são identidades técnicas existentes. Cadastro público aberto, dados, sessões, cotas e fiscalização desligada permanecem preservados. Não criar cobrança, estorno ou cancelamento real sem pagador/valor/operação específicos autorizados. Recuperação, importação automática e outras frentes ficam para etapas posteriores.
+Preservar referências externas `pedido-on:`, cookies, bindings, URL, repositório e sessão. Não fazer cobrança, estorno ou cancelamento financeiro real sem pagador/valor/operação específicos autorizados.
 
 ## Registros históricos até 13/10/2026
 
