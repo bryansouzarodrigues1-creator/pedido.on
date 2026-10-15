@@ -6,6 +6,8 @@ Base funcional validada: **v33**, publicada às **16:54:14 de Brasília**, fonte
 
 **281 testes passaram**, sem falhas ou testes ignorados; `pnpm typecheck` aprovado. São nove casos novos além dos 272 da publicação: sete de integração no runtime Cloudflare e dois do controle de impressão/renderização. A publicação das comandas não apresentou falha funcional nos cenários exercitados. Nenhuma correção de comportamento, migração ou alteração de configuração foi necessária nesta verificação.
 
+Foi corrigida uma lacuna dos filtros do GitHub Actions: alterações somente nos testes de comanda ou no modelo/script da impressão não disparavam os dois workflows. Esses caminhos agora estão incluídos explicitamente; o guia operacional também aciona o workflow de validação do beta. O diagnóstico HTTPS continua opt-in e não roda no CI.
+
 | Cenário | Evidência |
 | --- | --- |
 | Login e sessão | Rotas reais de login em workerd criam cookies e sessões seladas no D1 local; transporte Supabase simulado |
