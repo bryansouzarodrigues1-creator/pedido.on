@@ -1,4 +1,9 @@
-# Asaas no pedido.on — pacote de integração
+# Asaas na pizzaria.on — pacote de integração
+
+**Marca — 15/10/2026:** pedido.on passa a se chamar **pizzaria.on** nas telas, no PWA e na descrição das novas assinaturas. Referências técnicas `pedido-on:` de clientes/assinaturas ficam intactas para preservar conciliação e evitar duplicidade. O endereço público e o webhook também permanecem iguais. O nome administrativo do webhook existente registra a marca anterior; não é necessário recriar a integração.
+
+**Produção confirmada — v30:** publicada em 15/10/2026, fonte `5c8a73ddd2f9ba349582b319bf223f9ac9fcd6c1`, ambiente revisão 12. PR #14 integrada. Webhook habilitado, não interrompido, com 19 eventos e envio sequencial. Sem token e com token errado: HTTP 401; com token correto e ID composto sem recurso financeiro: HTTP 200. Repetição aceita. Esses testes não criaram fatura nem comprovaram entrega de pagamento real. A etapa da nova marca simplifica as ações de pagamento e corrige mensagens antigas que diziam que o Asaas estava desligado.
+
 
 A PR #13 foi integrada e publicada na v29 em 14/10/2026. Ela implementa assinatura mensal, fatura hospedada, webhook autenticado, conciliação, histórico e cancelamento.
 
@@ -10,7 +15,7 @@ O receptor aceita IDs oficiais de evento com `&`, mantendo a validação restrit
 
 Planos preservados: Essencial R$49/mês, Profissional R$89/mês e Rede R$149/mês. O servidor decide o valor. O Pix das pizzas continua direto na pizzaria; não existe split nesta integração.
 
-O documento do pagador é conferido em formato e validado pelo provedor. O pedido.on guarda uma impressão vinculada à conta/chave interna, não CPF/CNPJ puro ou cartão. Clientes, intenções, assinaturas, faturas e eventos Asaas têm tabelas próprias e ambientes separados. Não usar chaves do JurisAuto nem reativar Stripe simultaneamente.
+O documento do pagador é conferido em formato e validado pelo provedor. A pizzaria.on guarda uma impressão vinculada à conta/chave interna, não CPF/CNPJ puro ou cartão. Clientes, intenções, assinaturas, faturas e eventos Asaas têm tabelas próprias e ambientes separados. Não usar chaves do JurisAuto nem reativar Stripe simultaneamente.
 
 A criação usa billingType UNDEFINED e ciclo MONTHLY. Pagamento na fatura não implica débito automático de cartão ou Pix Automático; esses fluxos dependem de autorização/tokenização próprias. Notificações do cadastro criado ficam desabilitadas, sem envio de e-mail por esta integração.
 
@@ -18,14 +23,14 @@ Intenção e fases duráveis impedem dois POSTs de criação concorrentes. Timeo
 
 Somente CONFIRMED/RECEIVED do cliente/assinatura corretos e valor mensal exato concedem período. Estorno/chargeback retira a respectiva mensalidade, preservando uma posterior já paga. O período de uso da plataforma termina um mês civil após o vencimento, à meia-noite de Brasília; não é o saldo bancário do Asaas.
 
-Cancelar exige confirmação explícita e remove novas cobranças/pêndencias no provedor, preservando período pago e histórico. Faturas anteriores permanecem consultáveis após nova contratação. Uma nova assinatura após cancelamento inicia outra mensalidade, sem prorrateio automático.
+Cancelar exige confirmação explícita e remove novas cobranças/pendências no provedor, preservando período pago e histórico. Faturas anteriores permanecem consultáveis após nova contratação. Uma nova assinatura após cancelamento inicia outra mensalidade, sem prorrateio automático.
 
 ## Configuração e rotas
 
 - PEDIDO_BILLING_PROVIDER=asaas
 - PEDIDO_BILLING_ENABLED=true somente após preparar credenciais, receptor e webhook; false desliga novas operações
 - ASAAS_ENV=production para a chave de produção fornecida pelo proprietário; homologação usa conta/chave Sandbox separadas
-- ASAAS_API_KEY e ASAAS_WEBHOOK_TOKEN: segredos distintos, específicos do pedido.on e do ambiente
+- ASAAS_API_KEY e ASAAS_WEBHOOK_TOKEN: segredos distintos, específicos da pizzaria.on e do ambiente
 - PEDIDO_BILLING_ENFORCED=false e PEDIDO_TRIAL_ENFORCED=false durante configuração
 - Webhook final: https://forno-cardapios.waves4845.chatgpt.site/api/billing/asaas/webhook
 - Rotas checkout/status/sync/cancel em /api/billing; webhook Stripe legado isolado e selecionado por provedor

@@ -2,7 +2,7 @@
 import {useEffect,useRef,useId,type ReactNode,type CSSProperties} from "react";
 import {X,Loader2,Pizza,ArrowUpRight} from "lucide-react";
 import {themes,money,type RestaurantData} from "@/lib/domain";
-export function Brand({small=false}:{small?:boolean}){return <a href="/" className={`brand pedido-brand ${small?"small":""}`} aria-label="pedido.on, início"><span className="pedido-mark"><img src="/assets/pedido-symbol.png" width="50" height="50" alt=""/></span><span>pedido<span className="brand-on">.on</span></span></a>;}
+export function Brand({small=false}:{small?:boolean}){return <a href="/" className={`brand pedido-brand ${small?"small":""}`} aria-label="pizzaria.on, início"><span className="pedido-mark"><img src="/assets/pedido-symbol.png" width="50" height="50" alt=""/></span><span>pizzaria<span className="brand-on">.on</span></span></a>;}
 export function Spinner(){return <Loader2 size={18} className="spin"/>;}
 export function Modal({open,onClose,title,children,wide=false}:{open:boolean;onClose:()=>void;title:string;children:ReactNode;wide?:boolean}){
   const ref=useRef<HTMLDivElement>(null),close=useRef(onClose),id=useId();close.current=onClose;

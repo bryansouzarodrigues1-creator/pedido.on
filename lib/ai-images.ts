@@ -38,7 +38,7 @@ export async function generateImage(ownerId:string,restaurantId:string,name:stri
   if(!response.ok)throw new HttpError(503,response.status===401?"A autorização da geração falhou entre os serviços.":response.status===404?"O serviço de imagens não foi encontrado.":response.status===429?"O serviço de imagens está temporariamente limitado.":response.status>=500?"O gerador respondeu com erro. Confira a conexão e tente mais tarde.":"A IA não concluiu a imagem. Confira seu limite antes de tentar novamente.");
   phase="read";
   const bytes=await readBytes(new Request("https://image.invalid",{method:"POST",body:response.body,headers:{"content-length":response.headers.get("content-length")||""},duplex:"half"} as RequestInit),imageLimits.maxBytes),format=imageFormat(bytes,response.headers.get("content-type")||"");
-  const state=await env.DB!.prepare("SELECT state FROM image_jobs WHERE id=?").bind(id).first<{state:string}>();if(state?.state!=="claimed")throw new HttpError(502,"A geração não foi autorizada pelo pedido.on.");
+  const state=await env.DB!.prepare("SELECT state FROM image_jobs WHERE id=?").bind(id).first<{state:string}>();if(state?.state!=="claimed")throw new HttpError(502,"A geração não foi autorizada pela pizzaria.on.");
   phase="store";
   const key=`${restaurantId}/${crypto.randomUUID()}.${format.ext}`,url=`/media/${key}`;
   await env.BUCKET!.put(key,bytes,{httpMetadata:{contentType:format.mime,cacheControl:"public, max-age=86400"}});

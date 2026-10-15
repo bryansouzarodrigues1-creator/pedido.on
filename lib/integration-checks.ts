@@ -23,7 +23,7 @@ export async function checkSupabase(
     validOrigin = url.protocol === "https:" && !url.username && !url.password && url.pathname === "/" && !url.search && !url.hash;
   } catch { /* An absent or malformed configuration cannot trigger a request. */ }
   if (!validOrigin || !config.key) {
-    checks.push({ id: "supabase", label: "Conexão com Supabase", state: "pending", message: "Selecione o projeto do pedido.on e configure sua URL e chave publicável na hospedagem." });
+    checks.push({ id: "supabase", label: "Conexão com Supabase", state: "pending", message: "Selecione o projeto da pizzaria.on e configure sua URL e chave publicável na hospedagem." });
   } else {
     try {
       const response = await fetcher(config.origin.replace(/\/$/, "") + "/auth/v1/settings", {
@@ -51,7 +51,7 @@ export async function checkSupabase(
   }
   checks.push({ id: "google-login", label: "Acesso com Google", state: googleProvider === true ? config.googleEnabled ? "review" : "pending" : googleProvider === false && config.googleEnabled ? "error" : "pending", message: googleProvider === true
     ? config.googleEnabled ? "O Google está habilitado no provedor e no site. Esta consulta não executa o login: confira o ciclo completo, a URL de retorno e a conta criada." : "O Google está habilitado no Supabase. Teste o ciclo completo e ative PEDIDO_GOOGLE_ENABLED na hospedagem."
-    : googleProvider === false ? "Configure o cliente OAuth no provedor Google do Supabase e teste o retorno ao pedido.on." : "Conecte o projeto Supabase e confira seu provedor Google. A conexão não foi confirmada." });
+    : googleProvider === false ? "Configure o cliente OAuth no provedor Google do Supabase e teste o retorno aa pizzaria.on." : "Conecte o projeto Supabase e confira seu provedor Google. A conexão não foi confirmada." });
   checks.push({ id: "smtp", label: "Entrega dos e-mails", state: config.prototype || config.emailReady ? "review" : "pending", message: config.prototype
     ? "Acesso restrito às contas autorizadas. O SMTP padrão do Supabase permite testar recuperação com os e-mails da equipe, sem domínio próprio. Esta consulta não comprova recebimento: desative o SMTP personalizado e teste Esqueci minha senha. O cadastro não envia e-mail."
     : config.emailReady
