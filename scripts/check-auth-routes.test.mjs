@@ -305,6 +305,20 @@ test('the standard recovery email exchanges a single-use PKCE code only in the i
   }finally{globalThis.fetch=originalFetch;f.close();}
 });
 
+test('registration and login preserve the chosen real subscription plan',async()=>{
+ const f=fixture(),original=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
+ try{
+  const next='/assinatura?plan=rede';
+  const registered=await f.call('auth','POST',{action:'register'},{name:'Dono A',email:'owner@example.test',password:initialPassword,next});
+  assert.equal(registered.status,200,await registered.clone().text());assert.equal((await registered.json()).next,next);
+  for(const plan of ['essencial','profissional','rede']){
+   const target='/assinatura?plan='+plan;
+   const {response}=await login(f,'owner@example.test',initialPassword,target);
+   assert.equal((await response.json()).next,target);
+  }
+ }finally{globalThis.fetch=original;f.close();}
+});
+
 test('email login normalizes input, rejects unsafe redirects, persists across requests and logout removes the session',async()=>{
   const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
   try{

@@ -1,5 +1,8 @@
 # pizzaria.on
 
+**Contratação real — atualização de 15/10/2026:** página `/assinatura`, acesso direto pelos planos, plano preservado após login/cadastro e gestão centralizada das faturas Asaas. Os valores continuam R$49/R$89/R$149 por mês. [Uso e limites](docs/ASSINATURA-REAL.md). A publicação exata e a validação HTTPS devem ser conferidas na PR da atualização. Nenhuma cobrança foi criada por esta implementação; primeiro pagamento externo e domínio de recuperação continuam pendentes.
+
+
 **Ponto de partida confirmado — v35:** PR #18 integrada, fonte Sites `a83fdda612418f121d4ee95566d49dc7113552e3`, publicação em 15/10/2026 às 17:18:48 de Brasília, ambiente revisão 13. A continuação prepara Pix/dinheiro e comandas fictícias na demonstração para facilitar o ensaio no celular; [uso e isolamento](docs/DEMONSTRACAO-OPERACAO.md). Confirmar a nova publicação na PR antes de anunciá-la.
 
 **Base funcional publicada — v33, 15/10/2026:** comanda da cozinha, resumo do motoboy e guias de Pix/entrega, em Pedidos → Detalhes → Comanda e entrega. PR #17 integrada, implantação confirmada às 16:54 de Brasília, ambiente revisão 13. [Uso e limites](docs/COMANDAS-E-ORIENTACOES.md).
@@ -16,7 +19,7 @@ Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criaçã
 
 Cadastro público, painel, pedidos/Pix/chat, OCR local, PWA/Web Push e admin estão publicados. Promoções permitem preço livre e combos; o painel recolhe opções secundárias. Importação automática por link iFood ainda não está disponível.
 
-A assinatura Asaas está disponível em **Minha conta**: Essencial R$49/mês, Pro R$89/mês e Divulgação R$149/mês. Webhook de produção habilitado e autenticado. Os 263 testes da v32 passaram, incluindo D1/workerd com identidade e Asaas simulados. Pagamento e ciclo financeiro externos ainda precisam de validação; consulta real da chave e teste do receptor não equivalem a pagamento real. O acesso comercial ainda não exige assinatura, e o trial não bloqueia contas. Contas, dados e URL preservados. As cotas da v32 e o teto estimado constam no guia de planos.
+A assinatura Asaas está disponível em **Assinatura**, com atalho em Minha conta: Essencial R$49/mês, Pro R$89/mês e Divulgação R$149/mês. Webhook de produção habilitado e autenticado. Os 263 testes da v32 passaram, incluindo D1/workerd com identidade e Asaas simulados. Pagamento e ciclo financeiro externos ainda precisam de validação; consulta real da chave e teste do receptor não equivalem a pagamento real. O acesso comercial ainda não exige assinatura, e o trial não bloqueia contas. Contas, dados e URL preservados. As cotas da v32 e o teto estimado constam no guia de planos.
 
 Os registros abaixo são históricos e não substituem este estado atual.
 

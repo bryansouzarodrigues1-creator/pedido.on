@@ -1,5 +1,8 @@
 # Continuar a pizzaria.on
 
+**Contratação real — atualização de 15/10/2026:** página `/assinatura`, acesso direto pelos planos, plano preservado após login/cadastro e gestão centralizada das faturas Asaas. Os valores continuam R$49/R$89/R$149 por mês. [Uso e limites](ASSINATURA-REAL.md). A publicação exata e a validação HTTPS devem ser conferidas na PR da atualização. Nenhuma cobrança foi criada por esta implementação; primeiro pagamento externo e domínio de recuperação continuam pendentes.
+
+
 **Retomada confirmada — v35:** fonte Sites `a83fdda612418f121d4ee95566d49dc7113552e3`, PR #18 integrada em `67b960557aac5d0bd2ac14434994e2702dfd64f3`, implantação `appgdep_6ad13510d4a08191ad5bc8f5e6fafd74` às 17:18:48 de Brasília em 15/10/2026, ambiente revisão 13, público. Os 281 testes e ambos CIs passaram. A continuação facilita o ensaio operacional na demonstração existente: Pix ou dinheiro na entrega, vias fictícias e isolamento de chat/WhatsApp reais. [Detalhes, testes e limites](DEMONSTRACAO-OPERACAO.md). A publicação dessa continuação deve ser registrada na PR após confirmação Sites.
 
 **Base funcional publicada — 15/10/2026:** v33, fonte Sites `9293c3a068138e9a85a29be5fa300a932cde8fe7`, PR #17 integrada em `3c80413943d52e2c75716bc338b47e3050f4dcb0`. Implantação `appgdep_6ad12f4c8b6c8191bb6d20b475585f26` concluída às 16:54:14 de Brasília, ambiente revisão 13, audiência pública. Cadastro aberto, contas, cotas, WhatsApp e Asaas preservados. Comanda da cozinha, resumo do motoboy e guias curtos de Pix/entrega publicados, incluindo correção do botão rápido que abre os detalhes para aceitar/conferir Pix.
