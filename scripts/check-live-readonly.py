@@ -24,6 +24,9 @@ checks = [
     ('/demo/pedidos', 200, 'text/html', None),
     ('/offline', 200, 'text/html', None),
     ('/order-print.js', 200, 'text/javascript', 'public/order-print.js'),
+    ('/order-demo-print.js', 200, 'text/javascript', 'public/order-demo-print.js'),
+    ('/demo/pedidos/comanda?copy=kitchen&mode=pix&status=awaiting_payment&paymentStatus=pending', 200, 'text/html', None),
+    ('/demo/pedidos/comanda?copy=delivery&mode=cash&status=confirmed&paymentStatus=pay_on_delivery', 200, 'text/html', None),
     ('/sw.js', 200, 'text/javascript', 'public/sw.js'),
     ('/pwa-release.js', 200, 'text/javascript', 'public/pwa-release.js'),
     ('/manifest.webmanifest', 200, 'application/manifest+json', None),
@@ -71,6 +74,10 @@ def check(item):
                 assert manifest['start_url'].startswith('/app')
             if path == '/order-print.js':
                 assert b'cache:"no-store"' in data and b'window.print()' in data
+            if path.startswith('/demo/pedidos/comanda?'):
+                assert 'DEMONSTRAÇÃO · SEM VALOR'.encode() in data
+                assert b'data-order-demo="true"' in data and b'/order-demo-print.js' in data
+                assert 'frame-ancestors'.encode() in response.headers.get('Content-Security-Policy', '').encode()
             result['ok'] = True
     except Exception as error:
         result['error'] = type(error).__name__ + ': ' + str(error)

@@ -1,5 +1,7 @@
 # pizzaria.on
 
+**Ponto de partida confirmado — v35:** PR #18 integrada, fonte Sites `a83fdda612418f121d4ee95566d49dc7113552e3`, publicação em 15/10/2026 às 17:18:48 de Brasília, ambiente revisão 13. A continuação prepara Pix/dinheiro e comandas fictícias na demonstração para facilitar o ensaio no celular; [uso e isolamento](docs/DEMONSTRACAO-OPERACAO.md). Confirmar a nova publicação na PR antes de anunciá-la.
+
 **Base funcional publicada — v33, 15/10/2026:** comanda da cozinha, resumo do motoboy e guias de Pix/entrega, em Pedidos → Detalhes → Comanda e entrega. PR #17 integrada, implantação confirmada às 16:54 de Brasília, ambiente revisão 13. [Uso e limites](docs/COMANDAS-E-ORIENTACOES.md).
 
 **Verificação ampliada:** 281 testes e typecheck aprovados; sete cenários novos com workerd/D1/R2 locais e sessões reais do aplicativo, dois de impressão/renderização e diagnóstico 14/14 de produção somente por GET. Provedor de identidade simulado; navegador, Pix bancário e impressão física ainda não homologados. [Evidências e reprodução](docs/QA-COMANDAS-2026-10-15.md).
