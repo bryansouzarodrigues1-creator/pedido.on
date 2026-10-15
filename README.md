@@ -1,9 +1,8 @@
 # pizzaria.on
 
-**Atualização em preparação — 15/10/2026:** checkout alternativo pelo WhatsApp, artes da promoção com preço/validade escritos pelo aplicativo, planos Essencial/Pro/Divulgação para uma pizzaria e franquias por conta com orçamento estimado de beta. Migração aditiva 0014; Asaas e identidades técnicas preservados. [Fluxos, cotas, compatibilidade e validação](docs/WHATSAPP-PROMOCOES-PLANOS.md).
+**Publicado — v32, 15/10/2026:** checkout alternativo pelo WhatsApp, artes da promoção com preço/validade escritos pelo aplicativo e catálogo Essencial/Pro/Divulgação (R$49/R$89/R$149), para uma pizzaria. Franquias por conta, orçamento estimado de beta e migração aditiva 0014 aplicados. PR #16 integrada; 263 testes, typecheck, build e ambos CIs aprovados. [Fluxos e limites](docs/WHATSAPP-PROMOCOES-PLANOS.md).
 
-
-**Atualização — 15/10/2026:** a marca passa a ser **pizzaria.on**. A produção confirmada está na v30, com Asaas próprio ativo, faturas mensais, histórico, webhook e cancelamento; PRs #13 e #14 integradas. Esta etapa aplica a nova marca e simplifica o pagamento. A publicação seguinte deve ser conferida no Sites. Fiscalização de assinatura/trial e recuperação por e-mail permanecem desativadas. Ler [Asaas](docs/ASAAS.md).
+**Etapa atual:** comanda da cozinha, resumo do motoboy e guias visuais curtos para Pix/entrega. Impressão pelo navegador, sem geração paga e sem alteração de banco, assinatura ou cotas. [Comandas e verificação](docs/COMANDAS-E-ORIENTACOES.md).
 
 Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criação de imagens e textos com IA e calculadora pública de preço e lucro.
 
@@ -13,7 +12,7 @@ Cardápio digital para pizzarias, com pedidos, Pix conferido pela loja, criaçã
 
 Cadastro público, painel, pedidos/Pix/chat, OCR local, PWA/Web Push e admin estão publicados. Promoções permitem preço livre e combos; o painel recolhe opções secundárias. Importação automática por link iFood ainda não está disponível.
 
-A assinatura Asaas está disponível em **Minha conta**: Essencial R$49/mês, Profissional R$89/mês e Rede R$149/mês. Webhook de produção habilitado e autenticado. Os 251 testes da v30 passaram, incluindo D1/workerd com identidade e Asaas simulados. Pagamento e ciclo financeiro externos ainda precisam de validação; consulta real da chave e teste do receptor não equivalem a pagamento real. O acesso comercial ainda não exige assinatura, e o trial não bloqueia contas. Contas, dados, URL atual e cotas de IA preservados.
+A assinatura Asaas está disponível em **Minha conta**: Essencial R$49/mês, Pro R$89/mês e Divulgação R$149/mês. Webhook de produção habilitado e autenticado. Os 263 testes da v32 passaram, incluindo D1/workerd com identidade e Asaas simulados. Pagamento e ciclo financeiro externos ainda precisam de validação; consulta real da chave e teste do receptor não equivalem a pagamento real. O acesso comercial ainda não exige assinatura, e o trial não bloqueia contas. Contas, dados e URL preservados. As cotas da v32 e o teto estimado constam no guia de planos.
 
 Os registros abaixo são históricos e não substituem este estado atual.
 

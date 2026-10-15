@@ -1,6 +1,6 @@
 "use client";
 import {useState,useEffect,useRef} from "react";
-import {Bell,BellRing,Check,Clock,Download,FileText,MessageCircle,ArrowUpRight,Truck,ChefHat,CheckCircle2} from "lucide-react";
+import {Bell,BellRing,Check,Clock,Download,FileText,MessageCircle,ArrowUpRight,Truck,ChefHat,CheckCircle2,Printer} from "lucide-react";
 import {money,type OrderSummary} from "@/lib/domain";
 import {orderStatuses,type ManagedOrder,type OrderAction,type OrderStatus} from "@/lib/order-policy";
 import {Spinner} from "./ui";
@@ -16,7 +16,15 @@ export function nextOrderAction(order:OrderRecord):ActionDetails["action"]|null{
  if(order.status==="out_for_delivery")return "complete";return null;
 }
 export const actionLabels={accept:"Aceitar pedido",verify_payment:"Confirmar Pix recebido",confirm:"Conferir e aprovar",prepare:"Começar preparo",dispatch:"Saiu para entrega",complete:"Concluir pedido",eta:"Atualizar prazo",reject_receipt:"Recusar comprovante",cancel:"Cancelar pedido"};
+export function OrderPrimaryAction({order,busy,onReview,onAdvance}:{order:OrderRecord;busy:boolean;onReview:()=>void;onAdvance:(action:ActionDetails["action"])=>void}){
+ const next=nextOrderAction(order);if(!next)return null;
+ return <button type="button" className="btn primary small" disabled={busy} onClick={()=>["confirm","accept","verify_payment"].includes(next)?onReview():onAdvance(next)}>{busy?<Spinner/>:<Check size={16}/>} {actionLabels[next]}</button>;
+}
 export function PaymentBadge({order}:{order:OrderRecord}){return <span className={`payment-badge ${order.paymentStatus}`}>{order.paymentStatus==="approved"?"Pix conferido pela loja":order.paymentStatus==="proof_sent"?"Comprovante para conferir":order.paymentStatus==="pending"?"Cliente ainda vai enviar Pix":order.paymentStatus==="rejected"?"Comprovante recusado":"Pagamento na entrega ou retirada"}</span>;}
+export function OrderPrintActions({order,demo=false}:{order:OrderRecord;demo?:boolean}){
+ const summary=JSON.parse(order.data) as OrderSummary,ready=["confirmed","preparing","out_for_delivery","delivered"].includes(order.status)&&(["pay_on_delivery"].includes(order.paymentStatus)||order.paymentStatus==="approved"&&summary.payment==="Pix"),base=`/api/restaurants/${order.restaurantId}/orders/${order.id}/print`;
+ return <details className="order-print-options"><summary><Printer size={17}/>Comanda e entrega</summary><p>Abra a via, confira os dados e imprima ou salve como PDF.</p>{demo?<p className="field-hint">As vias ficam disponíveis para os pedidos reais registrados no seu painel.</p>:<div className="order-print-actions"><a className="btn outline small" href={base+"?copy=kitchen"} target="_blank" rel="noopener noreferrer"><ChefHat size={16}/>Comanda da cozinha</a>{summary.method==="delivery"&&(ready?<a className="btn outline small" href={base+"?copy=delivery"} target="_blank" rel="noopener noreferrer"><Truck size={16}/>Resumo do motoboy</a>:<span className="field-hint">O resumo de entrega fica disponível após o aceite e a conferência do pagamento.</span>)}</div>}<small>Cozinha: itens e observações. Entrega: contato, endereço e cobrança. Disponível em bobina de 80 mm ou A4, conforme sua impressora.</small></details>;
+}
 export function OrderAlerts({orders,loaded,onOpen}:{orders:OrderRecord[];loaded:boolean;onOpen:()=>void}){
  const [enabled,setEnabled]=useState(false),[notice,setNotice]=useState("");
  const seen=useRef(new Set<string>()),initialized=useRef(false),audio=useRef<AudioContext|null>(null),callback=useRef(onOpen);callback.current=onOpen;
@@ -36,6 +44,7 @@ export function OrderDetails({order,onAction,busy,error="",demo=false}:{order:Or
  {order.receiptId&&<section className="receipt-review"><h3><FileText size={19}/>Comprovante do cliente</h3>{demo?<div className="demo-receipt"><b>DEMONSTRAÇÃO · SEM VALOR</b><strong>{money(order.total)}</strong><p>Exemplo de comprovante. Nenhuma transferência foi realizada.</p></div>:order.receiptMime?.startsWith('image/')?<a href={receipt+"?download=1"} target="_blank" rel="noopener noreferrer"><img src={receipt} alt="Comprovante Pix enviado pelo cliente"/></a>:<p>Comprovante em PDF. Baixe o arquivo para conferir.</p>}{!demo&&<a className="btn outline small" href={receipt+"?download=1"} target="_blank" rel="noopener noreferrer"><Download size={16}/>Baixar comprovante</a>}<p>Compare o valor e o recebimento no aplicativo do banco da pizzaria. O comprovante sozinho não confirma o dinheiro.</p></section>}
  {order.decisionReason&&<div className="field-error">{order.decisionReason}</div>}
  {order.estimatedAt&&<p className="order-eta"><Clock size={17}/>Previsão: {new Date(order.estimatedAt).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'})}</p>}
+ <OrderPrintActions order={order} demo={demo}/>
  {active&&<fieldset className="editor-fieldset" disabled={busy}>
  {(["confirm","accept","verify_payment"].includes(next||"")||['confirmed','preparing','out_for_delivery'].includes(order.status))&&<label className="field"><span>{["confirm","accept","verify_payment"].includes(next||"")?"Prazo para entrega ou retirada":"Novo prazo a partir de agora"}</span><div className="eta-input"><input type="number" min={5} max={240} step={5} value={eta} onChange={e=>setEta(Number(e.target.value))}/><span>minutos</span></div></label>}
  {["confirm","accept","verify_payment"].includes(next||"")&&next!=="accept"&&order.paymentStatus==="proof_sent"&&<label className="bank-confirmation"><input type="checkbox" checked={received} onChange={e=>setReceivedReceipt(e.target.checked?order.receiptId:null)}/><span>Conferi no banco e recebi os <b>{money(order.total)}</b> deste pedido.</span></label>}
