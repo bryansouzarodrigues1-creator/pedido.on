@@ -1,6 +1,10 @@
 # Asaas no pedido.on — pacote de integração
 
-A candidata da PR #13 incorpora a base da PR #1 e implementa assinatura mensal, fatura hospedada, webhook autenticado, conciliação, histórico e cancelamento. Produção segue v28 enquanto o ambiente de execução está indisponível. Nenhuma cobrança foi criada no Asaas real.
+A PR #13 foi integrada e publicada na v29 em 14/10/2026. Ela implementa assinatura mensal, fatura hospedada, webhook autenticado, conciliação, histórico e cancelamento.
+
+Em 15/10/2026, a chave própria de produção foi aceita pela API real e armazenada como segredo no Sites. O webhook exclusivo `pedido.on - Assinaturas (producao)`, ID `0f42a7a4-4308-4837-ae11-a51dfadf88e6`, foi cadastrado com token distinto, 19 eventos e envio sequencial, inicialmente desativado para a publicação segura do receptor. As duas integrações anteriores da conta permaneceram iguais. Não registrar os valores dos segredos neste documento.
+
+O receptor aceita IDs oficiais de evento com `&`, mantendo a validação restrita de IDs de cobrança/assinatura. O teste de regressão reproduziu HTTP 400 antes da correção; após o ajuste passaram 251 testes e typecheck, incluindo idempotência com esse formato em D1/workerd real. Identidade e transporte financeiro dos testes continuam simulados. A validação autenticada da chave é real e não gerou cobrança.
 
 ## Comportamento
 
@@ -19,8 +23,8 @@ Cancelar exige confirmação explícita e remove novas cobranças/pêndencias no
 ## Configuração e rotas
 
 - PEDIDO_BILLING_PROVIDER=asaas
-- PEDIDO_BILLING_ENABLED=false até credenciais e webhook estarem prontos
-- ASAAS_ENV=sandbox inicialmente
+- PEDIDO_BILLING_ENABLED=true somente após preparar credenciais, receptor e webhook; false desliga novas operações
+- ASAAS_ENV=production para a chave de produção fornecida pelo proprietário; homologação usa conta/chave Sandbox separadas
 - ASAAS_API_KEY e ASAAS_WEBHOOK_TOKEN: segredos distintos, específicos do pedido.on e do ambiente
 - PEDIDO_BILLING_ENFORCED=false e PEDIDO_TRIAL_ENFORCED=false durante configuração
 - Webhook final: https://forno-cardapios.waves4845.chatgpt.site/api/billing/asaas/webhook
@@ -38,7 +42,9 @@ A indisponibilidade do executor interrompeu o fechamento local. A candidata foi 
 
 Cópia privada de 16 tabelas de negócio salva antes da publicação: 30.514 bytes, SHA-256 07b9a002728e1ec68c02a0870b3d5751454599ec5740e4790c17f698bba783aa. Não inclui sessões, rate buckets, assinaturas push, segredos runtime ou binários R2; não é backup integral. Não enviar essa cópia ao GitHub. Reversão de combos/preços livres exige código compatível ou a adaptação documentada no fechamento do MVP.
 
-Pendentes: restabelecer executor para empacotamento/publicação; chave própria e webhook Asaas; pagamento/renovação/atraso/estorno/cancelamento no Sandbox; recuperação de senha e QA em dois celulares. Não anunciar assinaturas completas com base apenas em mocks. Qualquer compra controlada real exige pagador, valor e autorização específicos.
+Na ativação, publicar a versão com os segredos, verificar HTTP 401 sem token, HTTP 200 com token e ID composto sem recurso financeiro, habilitar o webhook e conferir a configuração novamente pela API. Essa prova de recepção não substitui entrega financeira real do Asaas.
+
+Pendentes: pagamento/renovação/atraso/estorno/cancelamento no Sandbox; primeira contratação real pelo fluxo normal; recuperação de senha e QA em dois celulares. Não anunciar o ciclo financeiro integral como validado com base apenas em mocks. Qualquer compra controlada real exige pagador, valor e autorização específicos.
 
 ## Referências oficiais consultadas em 13/10/2026
 
