@@ -38,6 +38,7 @@ checks = [
     ('/api/admin/status', 401, 'application/json', None),
     ('/api/restaurants', 401, 'application/json', None),
     ('/api/billing/status', 401, 'application/json', None),
+    ('/api/auth/config', 200, 'application/json', None),
     ('/api/restaurants/shop-qa/orders/00000000-0000-4000-8000-000000000000/print?copy=kitchen', 401, 'application/json', None),
 ]
 
@@ -78,7 +79,15 @@ def check(item):
                 destination = urlparse(response.geturl())
                 assert destination.path == '/entrar', 'Assinatura anônima não exige login.'
                 assert parse_qs(destination.query).get('next') == [path], 'Plano escolhido se perdeu no login.'
-                assert b'<form' in data, 'Formulário de acesso indisponível.'
+                assert 'Sua pizzaria está on.'.encode() in data, 'Página de acesso indisponível.'
+                # AuthForm waits for /api/auth/config in the browser before
+                # rendering a form. GET checks do not execute hydration.
+                assert 'Verificando as opções de acesso'.encode() in data, 'Carregamento do acesso indisponível.'
+            if path == '/api/auth/config':
+                config = json.loads(data)
+                assert config.get('enabled') is True, 'Acesso à plataforma desativado.'
+                assert config.get('registrationEnabled') is True, 'Cadastro público desativado.'
+                assert config.get('inviteRequired') is False, 'Cadastro exige convite.'
             if path == '/manifest.webmanifest':
                 manifest = json.loads(data)
                 assert manifest['display'] == 'standalone'
