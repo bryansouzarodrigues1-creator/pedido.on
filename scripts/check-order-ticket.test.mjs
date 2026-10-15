@@ -52,3 +52,25 @@ test('a bundle delivery slip preserves component quantities, coupon discount and
  const {order}=await f.create(f.input({payment:'Dinheiro',coupon:'CASA',expectedTotal:29860,items:[{productIds:[],bundleId:p.id,bundleVersion:bundleVersion(p),quantity:2,note:'Sem cortar a segunda pizza'},{productIds:['refri'],quantity:1,note:''}]}));assert.equal((await f.call('admin','PATCH',{id:'shop-a'},{orderId:order.id,version:1,action:'accept',etaMinutes:40})).status,200);f.db.prepare('UPDATE restaurants SET published_data=? WHERE id=?').run(JSON.stringify({...f.data,products:[]}), 'shop-a');
  const ticket=buildOrderTicket('Teste',row(f,order.id),'delivery'),html=await (await print(f,order.id,'delivery')).text();assert.equal(ticket.collect,29860);assert.equal(ticket.discount,140);assert.equal(ticket.delivery,600);assert.match(html,/4× Margherita/);assert.match(html,/2× Refrigerante/);assert.match(html,/Sem cortar a segunda pizza/);assert.ok(html.includes(money(29860)));assert.ok(html.includes(money(140)));
 }finally{f.close();}});
+
+test('print double clicks share a single pending verification and an HTML login response cannot open printing',async()=>{
+ let click,resolveFetch,requests=0,prints=0;const button={disabled:false,addEventListener(_event,fn){click=fn;}},message={textContent:''};
+ const context={URL,Error,String,location:{href:'https://pedido.example/api/restaurants/shop-a/orders/id/print?copy=delivery',replace(){throw Error('Unexpected navigation');}},document:{body:{dataset:{orderVersion:'3'}},getElementById:id=>id==='print-button'?button:message},window:{print:()=>prints++},fetch:()=>{requests++;return new Promise(resolve=>{resolveFetch=resolve;});}};
+ vm.runInNewContext(readFileSync(new URL('../public/order-print.js',import.meta.url),'utf8'),context);
+ const first=click();await click();assert.equal(requests,1);assert.equal(prints,0);assert.equal(button.disabled,true);resolveFetch({ok:true,json:async()=>({version:3})});await first;assert.equal(prints,1);assert.equal(button.disabled,false);
+ context.fetch=async()=>({ok:false,json:async()=>{throw Error('HTML login page');}});await click();assert.equal(prints,1);assert.match(message.textContent,/Atualize a página/);
+ context.fetch=async()=>({ok:true,json:async()=>({version:3})});delete context.window.print;await click();assert.match(message.textContent,/Abra esta página no navegador/);assert.equal(button.disabled,false);
+});
+
+test('the largest supported order retains every item and its notes in A4/80 mm with private copy links and accessible actions',()=>{
+ const f=fixture();try{
+  const items=Array.from({length:30},(_,i)=>({quantity:20,label:'Pizza '+i+' '+('Á'.repeat(200)),detail:'Grande · Meio a meio · Borda recheada',note:'Observação '+i+' '+('ç'.repeat(250)),unitPrice:1,total:20}));
+  const summary={items,subtotal:600,discount:0,delivery:600,total:1200,customer:'Pessoa fictícia',phone:'5511999999999',method:'delivery',address:'Rua Exemplo, 100, Centro',payment:'Dinheiro',note:'Separar os itens por caixa'};
+  const order={id:crypto.randomUUID(),restaurantId:'shop-a',data:JSON.stringify(summary),customer:summary.customer,phone:summary.phone,total:1200,status:'confirmed',paymentStatus:'pay_on_delivery',version:2,createdAt:new Date().toISOString(),updatedAt:null};
+  for(const paper of ['80','a4']){const html=renderOrderTicket(buildOrderTicket('Pizzaria fictícia',order,'delivery'),paper,'https://pedido.example/api/restaurants/shop-a/orders/'+order.id+'/print?copy=delivery');assert.equal((html.match(/<li>/g)||[]).length,30);for(let i=0;i<30;i++){assert.ok(html.includes('Pizza '+i+' '));assert.ok(html.includes('Observação '+i+' '));}assert.match(html,/overflow-wrap:anywhere/);assert.match(html,/<button type="button" id="print-button"/);assert.match(html,/role="status"/);assert.doesNotMatch(html,/<img|https:\/\/[^< ]+\.(png|jpg|css)/);}
+  const Actions=f.load('components/order-admin.tsx').OrderPrintActions;
+  for(const [status,method,paymentStatus,allowed] of [['awaiting_payment','delivery','pending',false],['awaiting','delivery','proof_sent',false],['confirmed','delivery','approved',true],['confirmed','delivery','pay_on_delivery',true],['preparing','pickup','pay_on_delivery',false],['canceled','delivery','approved',false],['delivered','delivery','approved',true]]){
+   const html=renderToStaticMarkup(createElement(Actions,{order:{...order,status,paymentStatus,data:JSON.stringify({...summary,method,payment:paymentStatus==='approved'?'Pix':'Dinheiro'})}}));assert.equal(html.includes('copy=delivery'),allowed,[status,method,paymentStatus].join('/'));assert.match(html,/copy=kitchen/);assert.match(html,/target="_blank" rel="noopener noreferrer"/);
+  }
+ }finally{f.close();}
+});
