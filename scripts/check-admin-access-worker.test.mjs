@@ -41,7 +41,7 @@ async function runtime({billing=false,migrate=true}={}){
   await db.prepare('INSERT INTO account_profiles(owner_id,name,email,provider,created_at,updated_at) VALUES(?,?,?,?,?,?)').bind('owner-b','Local test','local@example.test','chatgpt',stamp,stamp).run();
   await db.prepare('INSERT INTO auth_sessions(id,owner_id,email,display_name,scope,sealed_tokens,token_expires_at,expires_at,created_at) VALUES(?,?,?,?,?,?,?,?,?)').bind('local-session','owner-b','local@example.test','Local test','account','test-sealed-sentinel',2000000000,2000000000,stamp).run();
   await db.prepare('INSERT INTO account_trials(owner_id,registered_at,started_at,ends_at) VALUES(?,?,?,?)').bind('owner-b',stamp,1700000000,1700604800).run();
-  if(migrate)await migration('0012_admin_account_access.sql');
+  if(migrate){for(const file of readdirSync('drizzle').filter(name=>name.endsWith('.sql')&&Number(name.slice(0,4))>=12).sort())await migration(file);}
   const call=(method='PATCH',body,owner='owner-admin',extra={})=>mf.dispatchFetch(origin+'/api/admin/access?restaurantId=shop-b-1',{method,headers:{origin,'x-local-owner':owner,cookie:'__Host-pedido-csrf='+csrf,'x-pedido-csrf':csrf,...(body?{'content-type':'application/json'}:{}),...extra},body:body?JSON.stringify(body):undefined});
   const action=(mode,version=0,extra={})=>({restaurantId:'shop-b-1',mode,reason,expectedVersion:version,...extra});
   const serve=async(owner,shop)=>(await (await mf.dispatchFetch(origin+`/serve?owner=${owner}&shop=${shop}`)).json()).available;

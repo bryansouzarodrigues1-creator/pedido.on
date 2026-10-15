@@ -1,5 +1,8 @@
 # Continuar a pizzaria.on
 
+**Atualização em preparação — 15/10/2026:** checkout alternativo pelo WhatsApp, artes da promoção com preço/validade escritos pelo aplicativo, planos Essencial/Pro/Divulgação para uma pizzaria e franquias por conta com orçamento estimado de beta. Migração aditiva 0014; Asaas e identidades técnicas preservados. [Fluxos, cotas, compatibilidade e validação](WHATSAPP-PROMOCOES-PLANOS.md).
+
+
 **Prioridade vigente — 15/10/2026:** marca **pizzaria.on**, com foco exclusivo desta etapa em pagamentos. V30 publicada, PR #14 integrada; Asaas próprio de produção configurado e webhook exclusivo habilitado. Planos mantidos em R$49/R$89/R$149 por mês. Em Minha conta ficam contratação, faturas, verificação e cancelamento. Testes locais usam Asaas/identidade simulados; não houve compra financeira real. Falta validar o ciclo externo e a primeira contratação pelo fluxo normal. [Estado e critérios do Asaas](ASAAS.md).
 
 Não renomear referências externas `pedido-on:`, cookies, storage, projeto, bindings, repositório ou URLs durante a troca da marca: são identidades técnicas existentes. Cadastro público aberto, dados, sessões, cotas e fiscalização desligada permanecem preservados. Não criar cobrança, estorno ou cancelamento real sem pagador/valor/operação específicos autorizados. Recuperação, importação automática e outras frentes ficam para etapas posteriores.
