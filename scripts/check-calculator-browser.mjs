@@ -39,7 +39,7 @@ const { chromium, devices } = require(process.env.QA_PLAYWRIGHT_MODULE || 'playw
         checks.push({ name: 'download de cópia ' + (blocked ? 'sem armazenamento' : 'com armazenamento'), ok: true });
         await c.close();
     }
-    await fs.writeFile(path.join(dir, 'calculator-browser.json'), JSON.stringify({ checks, changed: 'somente candidata; produção permanece na v41' }, null, 2));
+    await fs.writeFile(path.join(dir, 'calculator-browser.json'), JSON.stringify({ base, host: process.platform, device: 'Chrome / Pixel 7 emulado', checks, scope: 'cópia local isolada; nenhum dado de produção' }, null, 2));
     console.log('PASS ' + JSON.stringify(checks));
 }
 finally {

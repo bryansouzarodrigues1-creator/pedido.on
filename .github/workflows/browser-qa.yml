@@ -1,0 +1,61 @@
+name: Chrome browser QA (isolated local data)
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "public/**"
+      - "scripts/*browser*.mjs"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "vite.config.ts"
+      - "build/**"
+      - ".github/workflows/browser-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chrome-qa-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install application dependencies
+        run: |
+          npm install -g pnpm@11.25.0
+          pnpm install --frozen-lockfile
+      - name: Prepare browser test tools (outside application dependencies)
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pizzaria-browser-tools" --no-audit --no-fund --save-exact playwright-core@1.64.1
+          command -v google-chrome
+          google-chrome --version
+          echo "QA_CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          echo "QA_PLAYWRIGHT_MODULE=$RUNNER_TEMP/pizzaria-browser-tools/node_modules/playwright-core" >> "$GITHUB_ENV"
+      - name: Guest creation and calculator in real Chrome
+        env:
+          QA_HEADLESS: "true"
+        run: node scripts/run-browser-qa-ci.mjs
+      - name: Preserve screenshots and reports, including failures
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            .sites-runtime/browser-ci/*.json
+            .sites-runtime/browser-ci/*.log
+            .sites-runtime/browser-ci/guest/evidence/
+            .sites-runtime/browser-ci/calculator/
