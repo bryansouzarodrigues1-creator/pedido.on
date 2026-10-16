@@ -1,0 +1,132 @@
+{
+  "date": "2026-10-16",
+  "regression": "Atualizar prévias depois de refinar e anexar uma fonte não pode apagar o modelo e os pedidos escritos.",
+  "realAndroid": false,
+  "before": {
+    "base": "https://forno-cardapios.waves4845.chatgpt.site",
+    "device": "Chrome Windows / Pixel 7 emulated",
+    "checks": [
+      {
+        "name": "entrada direta sem conta",
+        "ok": true
+      },
+      {
+        "name": "prompt longo e controles em tela estreita",
+        "ok": true
+      },
+      {
+        "name": "oito propostas com estruturas distintas e nome reconhecido",
+        "ok": true
+      },
+      {
+        "name": "navegação horizontal até o último modelo",
+        "ok": true
+      },
+      {
+        "name": "refinamentos sequenciais gratuitos",
+        "ok": true
+      },
+      {
+        "name": "limite honesto para pedidos fora dos modelos",
+        "ok": true
+      },
+      {
+        "name": "anexos TXT e CSV sem confusão com a marca",
+        "ok": true
+      },
+      {
+        "name": "logo e capa separados; adicionar, remover e recuperar",
+        "ok": true
+      },
+      {
+        "name": "foto do cardápio adicionada e removida separadamente",
+        "ok": true
+      },
+      {
+        "name": "recuperação após fechar e reabrir o Chrome",
+        "ok": true
+      },
+      {
+        "name": "atualizar a leitura preserva o modelo e os pedidos escritos",
+        "ok": false,
+        "error": "Atualizar os produtos não pode apagar o modelo escolhido.\n\n0 !== 1\n"
+      },
+      {
+        "name": "roteamento para cadastro preserva o projeto",
+        "ok": true
+      },
+      {
+        "name": "IndexedDB recupera com localStorage bloqueado",
+        "ok": true
+      },
+      {
+        "name": "dois armazenamentos bloqueados impedem perda no cadastro",
+        "ok": true
+      }
+    ],
+    "errors": []
+  },
+  "after": {
+    "base": "http://localhost:5173",
+    "device": "Chrome Windows / Pixel 7 emulated",
+    "checks": [
+      {
+        "name": "entrada direta sem conta",
+        "ok": true
+      },
+      {
+        "name": "prompt longo e controles em tela estreita",
+        "ok": true
+      },
+      {
+        "name": "oito propostas com estruturas distintas e nome reconhecido",
+        "ok": true
+      },
+      {
+        "name": "navegação horizontal até o último modelo",
+        "ok": true
+      },
+      {
+        "name": "refinamentos sequenciais gratuitos",
+        "ok": true
+      },
+      {
+        "name": "limite honesto para pedidos fora dos modelos",
+        "ok": true
+      },
+      {
+        "name": "anexos TXT e CSV sem confusão com a marca",
+        "ok": true
+      },
+      {
+        "name": "logo e capa separados; adicionar, remover e recuperar",
+        "ok": true
+      },
+      {
+        "name": "foto do cardápio adicionada e removida separadamente",
+        "ok": true
+      },
+      {
+        "name": "recuperação após fechar e reabrir o Chrome",
+        "ok": true
+      },
+      {
+        "name": "atualizar a leitura preserva o modelo e os pedidos escritos",
+        "ok": true
+      },
+      {
+        "name": "roteamento para cadastro preserva o projeto",
+        "ok": true
+      },
+      {
+        "name": "IndexedDB recupera com localStorage bloqueado",
+        "ok": true
+      },
+      {
+        "name": "dois armazenamentos bloqueados impedem perda no cadastro",
+        "ok": true
+      }
+    ],
+    "errors": []
+  }
+}

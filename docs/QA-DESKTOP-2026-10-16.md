@@ -1,5 +1,7 @@
 # QA no Desktop Commander — 16/10/2026
 
+Registro histórico da rodada anterior à publicação. O proprietário confirmou permissão integral para integração e publicação na continuação desta conversa. A integração das PRs #24/#26, a v42 e a regressão adicional encontrada na URL real estão registradas em [LANCAMENTO-IA-FIRST-2026-10-16.md](LANCAMENTO-IA-FIRST-2026-10-16.md). As referências abaixo à v41 e à autorização pendente descrevem o estado daquela rodada, não uma restrição atual.
+
 Esta rodada substitui o bloqueio de navegador registrado na [auditoria inicial](AUDITORIA-IA-FIRST-2026-10-16.md). O Rodrigues ficou online e os testes foram executados no Chrome instalado no Windows. O código da PR #26 foi aberto em uma cópia isolada do repositório original, com Workers, D1 e R2 locais. Não foi criado outro repositório remoto nem outro Site.
 
 Base auditada: `20f1f15024487680f7d4673229871a34f0f6696d`, com as correções desta revisão. Produção continua na v41 e main em `b5b58ea9471f241b4b39f1a2675e160edb4e0a01`. As evidências sanitizadas estão em [QA-DESKTOP-2026-10-16.json](QA-DESKTOP-2026-10-16.json).
