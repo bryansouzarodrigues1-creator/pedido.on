@@ -35,6 +35,7 @@ export default function DeliveryApprovals({restaurantId,defaultFee=0}:{restauran
  }
  if(!enabled)return null;
  const pending=rows.filter(row=>row.status==="pending");
+ if(!pending.length&&!error)return null;
  return <section className="panel-card delivery-approvals"><div className="delivery-approvals-title"><div><span className="eyebrow">CONFIRMAR ANTES DO PIX</span><h2><Truck size={21}/> Verificar locais de entrega {pending.length>0&&<b>{pending.length}</b>}</h2><p>O cliente já montou o carrinho. Confirme o endereço e a taxa antes do Pix.</p></div><button className="btn outline small" type="button" onClick={()=>load().catch(()=>setError("Não foi possível atualizar."))}><RefreshCw size={15}/>Atualizar</button></div>
   {error&&<p className="field-error" role="alert">{error}</p>}
   {pending.length===0?<p className="delivery-approvals-empty">Nenhum endereço aguardando resposta.</p>:pending.map(row=><article key={row.id} className="delivery-approval-item">

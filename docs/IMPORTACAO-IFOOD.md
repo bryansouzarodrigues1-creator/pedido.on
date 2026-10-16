@@ -1,6 +1,16 @@
-# Referência de loja iFood no leitor do pedido.on
+# Importação de cardápio iFood na pizzaria.on
 
-## Estado — candidata da PR #13, 13/10/2026
+## Atualização de 16/10/2026
+
+A entrada pública pela ideia e o painel **Cardápio → Importar cardápio** aceitam link iFood, texto completo, TXT/CSV e fotos. O link pode iniciar uma consulta controlada à página pública, sem credenciais e sem redirecionamentos. Apenas dados estruturados `MenuItem`/`MenuSection` com preço BRL inequívoco são levados à revisão. A rota `/api/menu-source` impõe timeout, limite de 1,5 MB e limites de tentativas em D1; não contorna autenticação, CAPTCHA ou bloqueios.
+
+O link real da Aione abaixo respondeu **HTTP 403** na tentativa desta sessão. Isso não comprova importação automática dessa loja. O aplicativo informa o bloqueio e aceita o texto completo ou arquivo TXT/CSV; fotos continuam como alternativa. O conector oficial segue dependente de aplicação homologada e autorização por loja. [Implementação, evidências e limites](IDEIA-CARDAPIO-2026-10-16.md).
+
+A leitura local remove ruído de capturas e distingue o produto de avaliações, taxas, botões e adicionais. Preços personalizados/promocionais exigem revisão individual. A tentativa inicial e seus arquivos continuam após o cadastro, sem redigitar o briefing.
+
+## Histórico — candidata da PR #13, 13/10/2026
+
+O registro abaixo documenta o estado daquela candidata; as referências de versão e a ausência de consulta pública foram superadas pelo pacote de 16/10.
 
 A candidata aceita a mensagem compartilhada inteira ou o link público da loja em **Cardápio → Enviar foto do cardápio → Colar texto ou link da loja**. A produção continua na v28; esta mudança ainda não foi publicada.
 

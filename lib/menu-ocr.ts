@@ -29,6 +29,8 @@ export async function recognizeMenuPhotos(pages:ReaderPage[],signal:AbortSignal,
     const result:ReaderPage[]=[];
     for(index=0;index<pages.length;index++){
       signal.throwIfAborted();const page=pages[index];
+      // Automatic segmentation suppresses the food-photo texture on phone screenshots.
+      await abortable(worker.setParameters({tessedit_pageseg_mode:page.height/page.width>1.6?PSM.AUTO:PSM.SINGLE_BLOCK}),signal);
       const {data}=await abortable(worker.recognize(page.image,{rotateAuto:true},{text:true,blocks:true}),signal);signal.throwIfAborted();
       const words=data.blocks?.flatMap(block=>block.paragraphs.flatMap(paragraph=>paragraph.lines.flatMap(line=>line.words.map(word=>({text:word.text,confidence:word.confidence,box:word.bbox})))));
       const lines:ReaderLine[]=words?.length?arrangeMenuWords(words,page.width):data.text.split("\n").map(text=>({text}));
