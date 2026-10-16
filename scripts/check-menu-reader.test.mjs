@@ -97,3 +97,24 @@ test('a high pizza price without cents needs review without inventing a decimal'
  assert.equal(pizza.sizes.g,55000);assert.equal(pizza.selected,false);
  assert.match(pizza.issues.join(' '),/separador decimal/);
 });
+
+
+test('real dark pizza menu bullets and incomplete headers cannot pollute names',()=>{
+ const result=read('PIZZAS\nSALGADAS\nCLASSICAS\nx Milho verde M: 151 | G: 199 R$ 43 R$ 49\n• Alho crocante M: 152 | G: 200 R$ 42 R$ 50');
+ assert.equal(result.items.length,2);
+ assert.deepEqual(result.items.map(i=>i.name),['Milho verde','Alho crocante']);
+ assert.deepEqual(result.items[0].sizes,{p:null,m:4300,g:4900});
+ assert.deepEqual(result.items[1].sizes,{p:null,m:4200,g:5000});
+ assert.ok(result.items.every(readerItemReady));
+ assert.equal(result.items.some(i=>i.name==='SALGADAS'||i.name==='CLASSICAS'),false);
+});
+test('a pizza section bullet must not remove a legitimate X Tudo sandwich name',()=>{
+ const [item]=read('Pizzas\nX Tudo R$ 24,00').items;
+ assert.equal(item.name,'X Tudo');assert.equal(item.kind,'simple');assert.equal(item.price,2400);
+});
+test('menus do not treat service charges and split beverage headings as products',()=>{
+ const result=read('Bebidas\n10% Opcional\nSUCOS E\nVITAMINAS\nSuco de laranja R$ 11,50');
+ assert.equal(result.items.length,1);assert.equal(result.items[0].name,'Suco de laranja');
+ assert.equal(result.items[0].price,1150);assert.equal(readerItemReady(result.items[0]),true);
+ assert.equal(result.unmatched.length,3);
+});
