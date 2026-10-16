@@ -5,18 +5,18 @@ import assert from 'node:assert/strict';
 import {mkdir, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 
-if (process.env.GITHUB_ACTIONS !== 'true' || process.env.CI !== 'true' || process.env.SITES_MANAGED_LINUX_CONTAINER === '1' || process.env.QA_PRODUCTION_HANDOFF_ONCE !== 'v45-20261016')
+if (process.env.GITHUB_ACTIONS !== 'true' || process.env.CI !== 'true' || process.env.SITES_MANAGED_LINUX_CONTAINER === '1' || process.env.QA_PRODUCTION_HANDOFF_ONCE !== 'v45-20261016-r2')
     throw Error('Teste de produção disponível somente no slot de QA explicitamente autorizado.');
 const require = createRequire(import.meta.url);
 const {chromium, devices} = require(process.env.QA_PLAYWRIGHT_MODULE);
 const base = 'https://forno-cardapios.waves4845.chatgpt.site';
 // Fixed reserved address prevents retries from creating more accounts.
-const email = 'qa-v45-completo-20261016@example.test';
+const email = 'qa-v45-retomada-20261016@example.test';
 const password = randomBytes(28).toString('base64url') + 'aA1!'; // Memory only.
 const root = path.resolve('.sites-runtime/production-handoff-once');
 const output = path.join(root, 'evidence'), profile = path.join(root, 'guest/guest-profile');
 await mkdir(output, {recursive: true});
-const proof = {base, slot: 'v45-20261016', phase: 'start', registered: false, registrationSent: false, draftCreated: false, checks: [], errors: [], forbiddenRequests: [], applicationWrites: {register: 0, create: 0, media: 0, save: 0}};
+const proof = {base, slot: 'v45-20261016-r2', phase: 'start', registered: false, registrationSent: false, draftCreated: false, checks: [], errors: [], forbiddenRequests: [], applicationWrites: {register: 0, create: 0, media: 0, save: 0}};
 let context, page, restaurantId;
 async function save() {await writeFile(path.join(output, 'production-handoff.json'), JSON.stringify(proof, null, 2));}
 async function phase(value) {proof.phase = value; await save();}
@@ -82,7 +82,7 @@ try {
     assert.equal((await shops()).length, 0);
     proof.checks.push({name: 'cadastro Supabase por e-mail abre diretamente o rascunho com nome e briefing preservados', ok: true});
     await page.locator('.create-link-options summary').click();
-    await page.getByRole('textbox', {name: 'Endereço do cardápio', exact: true}).fill('qa-v45-handoff-20261016');
+    await page.getByRole('textbox', {name: 'Endereço do cardápio', exact: true}).fill('qa-v45-retomada-20261016');
     const creation = page.waitForResponse(response => response.url() === base + '/api/restaurants' && response.request().method() === 'POST');
     await page.getByRole('button', {name: 'Criar meu rascunho', exact: true}).click();
     const created = await creation;
@@ -120,7 +120,8 @@ try {
     await page.screenshot({path: path.join(output, 'brand-saved.png'), fullPage: true});
     await phase('studio-preservation'); await tab('Criar com IA');
     const studio = await page.locator('.creation-field textarea').inputValue();
-    assert.ok(studio.includes(launch.idea)); assert.match(studio, /3D/);
+    // The form trims outer whitespace, preserving all substantive text.
+    assert.ok(studio.includes(launch.idea.trim())); assert.ok(studio.includes(launch.refinement.trim()));
     proof.checks.push({name: 'briefing longo e pedido fora do motor local chegam inteiros ao Estúdio sem geração', ok: true});
     await phase('reopen-session'); await context.close(); await start();
     await page.goto(base + '/app?loja=' + row.id, {waitUntil: 'networkidle', timeout: 90_000});

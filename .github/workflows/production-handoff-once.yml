@@ -1,7 +1,7 @@
-name: One-time v45 production signup and private handoff
+name: Controlled v45 production signup and private handoff
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize]
     paths:
       - ".github/workflows/production-handoff-once.yml"
       - "scripts/check-production-handoff-browser.mjs"
@@ -9,7 +9,7 @@ permissions:
   contents: read
 jobs:
   production-handoff:
-    # Explicit, single QA slot. Never run signup on ordinary PRs or on sync.
+    # Explicit fixed QA slot. Only this branch and these test files can start it.
     if: github.head_ref == 'qa/real-handoff-v45-20261016'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -32,7 +32,7 @@ jobs:
         run: node scripts/check-guest-browser.mjs
       - name: One real QA signup and one private draft, no publish or billing
         env:
-          QA_PRODUCTION_HANDOFF_ONCE: v45-20261016
+          QA_PRODUCTION_HANDOFF_ONCE: v45-20261016-r2
           QA_HEADLESS: "true"
         run: node scripts/check-production-handoff-browser.mjs
       - uses: actions/upload-artifact@v4
