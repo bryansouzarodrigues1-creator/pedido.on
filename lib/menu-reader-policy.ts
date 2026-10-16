@@ -48,11 +48,15 @@ export function readProductDetail(page:Pick<ReaderPage,"id"|"lines">):ReaderItem
  const content=lines.slice(start,priceIndex).filter(line=>(line.confidence===undefined||line.confidence>=60)&&!interfaceText.test(normalizeMenuText(line.text))&&!storeStats.test(normalizeMenuText(line.text)));
  const ingredientIndex=content.findIndex(line=>line.text.includes(",")||/^(pao|molho|ingredientes?|massa)\b/.test(normalizeMenuText(line.text)));
  const headings=(ingredientIndex>=0?content.slice(0,ingredientIndex):content).filter(l=>validProductName(l.text)&&!l.text.match(priceRE));
- const title=headings.at(-1);if(!title)return null;
+ const title=start>0?headings[0]:headings.at(-1);if(!title)return null;
  const titleIndex=content.indexOf(title),description=content.slice(titleIndex+1).map(l=>l.text).join(" ").slice(0,600),prices=[...lines[priceIndex].text.matchAll(priceRE)].map(m=>menuAmount(m[0]));
- const kind:ReaderItem["kind"]=/pizza|brotinho/.test(normalizeMenuText(title.text))?"pizza":"simple",promotional=norms.some(n=>/voltar a pedir|cupons|preco com desconto/.test(n))||prices.length!==1||(prices[0]||0)<300;
+ const titleNorm=normalizeMenuText(title.text),productNorm=normalizeMenuText(title.text+" "+description),merchantNorm=norms.slice(0,start).join(" ");
+ const combo=/^(combo|kit|porcao|dupla)\b/.test(titleNorm),drink=!combo&&/\b(refrigerante|guarana|coca[ -]?cola|pepsi|fanta|sprite|suco|agua|cerveja|heineken|brahma|vinho)\b/.test(titleNorm)&&!/^pizza\b/.test(titleNorm);
+ const explicitPizza=/^pizza\b|\bbrotinho\b/.test(titleNorm),burger=!explicitPizza&&/hamburguer|burguer|burger|sanduiche|pao artesanal|\bx[ -]?(tudo|salada|bacon)/.test(productNorm);
+ const pizzaContext=explicitPizza||/pizz/.test(merchantNorm)||/\b(margherita|marguerita|calabresa|portuguesa|quatro queijos|frango com catupiry)\b/.test(titleNorm);
+ const kind:ReaderItem["kind"]=!combo&&!drink&&!burger&&pizzaContext?"pizza":"simple",promotional=norms.some(n=>/voltar a pedir|cupons|preco com desconto/.test(n))||prices.length!==1||(prices[0]||0)<300;
  const relevant=[title,...content.slice(titleIndex+1),lines[priceIndex]],box=relevant.reduce<SourceBox|undefined>((box,line)=>union(box,line.box),undefined);
- return {id:page.id+"-detail",sourceId:page.id,sourceText:relevant.map(l=>l.text).join("\n").slice(0,2000),box,name:title.text.slice(0,100),description,category:kind==="pizza"?"Pizzas":/hamburg|burguer|\bx[ -]?(tudo|salada|bacon)/.test(normalizeMenuText(title.text+" "+description))?"Lanches":"Produtos",kind,price:prices[0]||null,sizes:{p:null,m:null,g:null},issues:[...(promotional?["Este print mostra uma oferta do aplicativo. Defina o preço que sua loja realmente vai praticar."]:[]),...(optional>=0?["Bebidas e adicionais opcionais não foram incluídos no produto."]:[]),...(kind==="pizza"?["Escolha o tamanho desse preço."]:[])],reviewRequired:promotional,selected:!promotional&&kind!=="pizza",action:"add"};
+ return {id:page.id+"-detail",sourceId:page.id,sourceText:relevant.map(l=>l.text).join("\n").slice(0,2000),box,name:title.text.slice(0,100),description,category:kind==="pizza"?"Pizzas":drink?"Bebidas":combo?"Combos":burger?"Lanches":"Produtos",kind,price:prices[0]||null,sizes:{p:null,m:null,g:null},issues:[...(promotional?["Este print mostra uma oferta do aplicativo. Defina o preço que sua loja realmente vai praticar."]:[]),...(optional>=0?["Bebidas e adicionais opcionais não foram incluídos no produto."]:[]),...(kind==="pizza"?["Escolha o tamanho desse preço."]:[])],reviewRequired:promotional,selected:!promotional&&kind!=="pizza",action:"add"};
 }
 export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
   // Keep prices with their row and preserve parallel menu columns using word positions.
