@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - "scripts/benchmark-public-menu-pdf.mjs"
+      - "lib/menu-reader-policy.ts"
+      - "lib/menu-ocr.ts"
+      - "scripts/check-menu-reader.test.mjs"
       - ".github/workflows/ocr-real-menu-benchmark.yml"
   workflow_dispatch:
 permissions:
