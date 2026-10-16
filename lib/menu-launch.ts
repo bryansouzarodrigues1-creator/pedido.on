@@ -1,7 +1,7 @@
 import {z} from "zod";
 import {galleryStyleId} from "./gallery-styles.ts";
 export const launchKey="pizzaria-menu-idea-v1",guestReadingId="pizzaria-menu-guest-v1";
-export const launchSchema=z.object({id:z.string().uuid(),savedAt:z.number().finite(),idea:z.string().max(1600),sourceText:z.string().max(60000),hasPhotos:z.boolean().default(false),hasAssets:z.boolean().optional(),styleId:galleryStyleId.optional(),refinement:z.string().max(600).optional(),previewReady:z.boolean().optional()}).strict();
+export const launchSchema=z.object({id:z.string().uuid(),savedAt:z.number().finite(),idea:z.string().max(1600),brandName:z.string().trim().min(2).max(100).optional(),sourceText:z.string().max(60000),hasPhotos:z.boolean().default(false),hasAssets:z.boolean().optional(),styleId:galleryStyleId.optional(),refinement:z.string().max(600).optional(),previewReady:z.boolean().optional()}).strict();
 export type MenuLaunch=z.infer<typeof launchSchema>;
 type StorageLike=Pick<Storage,"getItem"|"setItem"|"removeItem">;
 export function readMenuLaunch(storage:StorageLike,now=Date.now()):MenuLaunch|null{
