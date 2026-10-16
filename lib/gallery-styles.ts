@@ -35,7 +35,7 @@ export function suggestedGalleryStyles(briefing:string,feedback=""){
  const first:GalleryStyleId[]=[];
  for(const {s} of weighted)if(!first.some(id=>galleryStyles.find(row=>row.id===id)!.presentation.layout===s.presentation.layout))first.push(s.id);
  const remainder=weighted.map(row=>row.s.id).filter(id=>!first.includes(id));
- return [first,...remainder] as GalleryStyleId[];
+ return [...first,...remainder];
 }
 export function galleryStyle(id:GalleryStyleId){return galleryStyles.find(s=>s.id===id)!;}
 /** Preserves all pricing, product, Pix, and checkout data. */
@@ -48,7 +48,7 @@ export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:str
  const words=normalized(feedback);
  const presentation=extras.presentation?{...base.presentation,
   ...(/lista|colunas?|cartoes|cards|grade|fotos? grandes?|em destaque|vitrine|compact|sem fotos?/.test(words)?{layout:extras.presentation.layout}:{}),
-  ...(/sem capa|cabecalho|capa grande|capa inteira|foto de fundo/.test(words)?{hero:extras.presentation.hero}:{}),
+  ...(/sem capa|cabecalho|capa grande|capa inteira|foto de fundo|compact|sem fotos?/.test(words)?{hero:extras.presentation.hero}:{}),
   ...(/serifa|elegant|italia|artesanal|letras?|fonte|tipografia/.test(words)?{font:extras.presentation.font}:{}),
   ...(/cantos?|arredond|quadrad/.test(words)?{corners:extras.presentation.corners}:{})
  }:base.presentation;
