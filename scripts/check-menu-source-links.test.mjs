@@ -143,7 +143,7 @@ test('public iFood Next hydration yields only simple categorical items for owner
  for(const forbidden of ['Quatro queijos','Mussarela promoção','Taxa de entrega','Suco importado','Água indisponível'])assert.equal(result.text.includes(forbidden),false);
  const parsed=readMenuPages([{id:'text',lines:result.text.split('\n').map(text=>({text}))}]);
  assert.deepEqual(parsed.items.map(i=>i.name),['Calabresa','Refrigerante lata']);
- assert.equal(parsed.items[0].sizes.g,0,'A pizza must not silently inherit the single known price as size G');
+ assert.equal(parsed.items[0].sizes.g,null,'A pizza must remain unpriced at size G until the owner confirms its size');
  assert.equal(parsed.items[1].price,850);
 });
 
