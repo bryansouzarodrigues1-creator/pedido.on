@@ -66,3 +66,10 @@
 .guest-brand-list article>img{width:64px;height:64px;object-fit:contain;background:#f3f3f0;border:1px solid #eee;border-radius:8px}
 .guest-brand-list article>div{min-width:100px;flex:1;display:grid;gap:4px}.guest-brand-list strong{font-size:12px}.guest-brand-list small{font-size:10px;color:#7a7b7b;word-break:break-all}
 .guest-brand-list button{font-size:11px}.guest-brand-status{font-size:11px;margin:12px 0 0;color:#3a6b49}
+
+/* Ask for missing business information after showing value, without opening a separate wizard. */
+.ai-gallery .ai-brand-name{display:grid;gap:7px;margin:8px 0 16px;font-size:12px;font-weight:750;color:#f5eeeb}
+.ai-gallery .ai-brand-name small{font-weight:400;color:#bcb4b5;margin-left:5px}
+.ai-gallery .ai-brand-name input{width:100%;max-width:480px;border:1px solid #5a555a;color:#fff;background:#27262e;padding:13px 15px;border-radius:12px;font:inherit;font-size:16px;outline-offset:3px}
+.ai-gallery .ai-brand-name input:focus-visible{outline:2px solid #ec8f62}
+.ai-gallery .ai-gallery-sample{border:1px solid #665d4e;background:#34312d;color:#f2d6af;padding:12px 14px;border-radius:10px;font-size:11px;line-height:1.7;margin:0 0 15px}
