@@ -8,6 +8,7 @@ Implementação de 16/10/2026 sobre a produção v39. A PR deste pacote registra
 - A prévia inicial é gratuita e determinística, identificada na interface como composição pronta. Nenhum modelo é chamado anonimamente. No painel, a IA já conectada continua disponível para interpretação e textos, mediante solicitação do dono.
 - Há quatro composições implementadas no cardápio público: lista artesanal, fotos em destaque, lista compacta sem fotografias de produtos e cartões. Capa, tipografia e cantos também podem mudar. O editor usa as mesmas propriedades que a página publicada.
 - O briefing fica no navegador por até sete dias. Fotos e leitura usam um checkpoint próprio por tentativa; só são removidos depois de gravar a cópia da pizzaria criada. O prompt não vai na URL de cadastro. Texto continua utilizável quando IndexedDB estiver indisponível.
+- Continuar a prévia consulta a sessão existente: dono já conectado segue ao painel; visitante novo segue ao cadastro. Se a consulta falhar, a própria página protegida decide o acesso, preservando a ideia.
 - A criação pede primeiro a ideia, depois o nome. WhatsApp e pagamento ficam para a configuração da loja. O rascunho já recebe o visual escolhido e continua sem produtos fictícios ou publicação automática. Após criar, a URL deixa de pedir outra loja ao recarregar.
 - Alertas de primeira ativação não ocupam o topo de lojas ainda não publicadas; a fila de entrega vazia não ocupa um cartão. Alertas de lojas publicadas e solicitações reais continuam ativos.
 
@@ -35,7 +36,7 @@ O link real da Aione fornecido pelo proprietário respondeu **403** na consulta 
 
 ## Validação e limites
 
-- **312 testes do aplicativo e typecheck aprovados** no checkout oficial. Build e empacotamento seguem o fluxo Sites; os resultados finais constam na PR. As verificações incluem cadastro, cobrança, preços, combos, WhatsApp, autorização e pedidos existentes.
+- **314 testes do aplicativo e typecheck aprovados** no checkout oficial, incluindo a continuação que verifica a sessão ao entrar pela ideia e distingue sabores de pizza sem o termo pizza no nome de bebidas, hambúrgueres e combos. O resultado final de build e CI consta na PR. As verificações incluem cadastro, cobrança, preços, combos, WhatsApp, autorização e pedidos existentes.
 - Testes novos de estruturas reais em SSR, contrato da IA, criação a partir da ideia, handoff/retomada em IndexedDB, CSV, ruído e preços promocionais.
 - Rota nova executada em **workerd com D1 local**, com transporte iFood simulado: bloqueio, catálogo estruturado, limite de tentativas, cabeçalhos isolados e redirecionamento recusado.
 - OCR Tesseract real da captura de hambúrguer enviada: **um produto, X tudo**, ingredientes preservados, tipo simples, R$ 0,90 apenas para revisão, não selecionado. Três modos de segmentação produziram o mesmo produto após o filtro. O modo automático descartou ruído da fotografia.

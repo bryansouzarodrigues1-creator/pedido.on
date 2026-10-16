@@ -14,6 +14,13 @@ test('screenshot product detail excludes the merchant rating, delivery fee, opti
 });
 test('unpriced OCR rubbish and interface prices never become product cards',()=>{const result=read('Sa\nF: ese. sê\nne\n*4,7 40-50 min * R$ 9,00\nBebidas\nSuco R$ 8,00\nAdicionar R$ 8,00');assert.deepEqual(result.items.map(i=>i.name),['Suco']);assert.ok(result.unmatched.length>=4);});
 test('a low-confidence priced row needs explicit review before bulk selection can import it',()=>{const result=readMenuPages([{id:'p',lines:[{text:'Bebidas'},{text:'Suco R$ 8,00',confidence:62}]}]);assert.equal(result.items.length,1);assert.equal(result.items[0].selected,false);assert.equal(readerItemReady(result.items[0]),false);assert.equal(readerItemReady({...result.items[0],reviewRequired:false}),true);});
+test('a named pizza in a pizzeria stays sized, while beverages and burgers keep a single price',()=>{
+ const detail=(name,description)=>read(['Pizzaria Forno de Teste','4,7 (376) · 40-50 min · R$ 9,00',name,description,'R$ 49,90','Deseja uma bebida gelada?','Escolha até 6 opções','Adicionar R$ 49,90'].join('\n')).items[0];
+ const pizza=detail('Margherita','Molho, muçarela e manjericão');assert.equal(pizza.kind,'pizza');assert.equal(pizza.category,'Pizzas');assert.equal(pizza.price,4990);assert.deepEqual(pizza.sizes,{p:null,m:null,g:null});assert.equal(readerItemReady(pizza),false);
+ const drink=detail('Guaraná Antártica lata','Bebida gelada');assert.equal(drink.kind,'simple');assert.equal(drink.category,'Bebidas');
+ const burger=detail('X tudo','Pão artesanal, carne de hambúrguer e queijo');assert.equal(burger.kind,'simple');assert.equal(burger.category,'Lanches');
+ const combo=detail('Combo 2 pizzas e refrigerante','Uma refeição para compartilhar');assert.equal(combo.kind,'simple');assert.equal(combo.category,'Combos');
+});
 test('the CSV template and quoted custom categories preserve prices, sizes and descriptions',()=>{
  const text=menuFileText('modelo.csv',readFileSync(new URL('../public/modelo-cardapio.csv',import.meta.url),'utf8')),items=read(text).items;assert.equal(items.length,2);assert.deepEqual(items[0].sizes,{p:2990,m:3990,g:4990});assert.equal(items[1].price,1200);assert.equal(items[1].kind,'simple');
  const custom=read(menuFileText('menu.csv','nome;categoria;tipo;descricao;preco\n"Combo; da casa";Promoções especiais;simple;"Pizza, bebida";79,90')).items;assert.equal(custom.length,1);assert.equal(custom[0].name,'Combo; da casa');assert.equal(custom[0].category,'Promoções especiais');assert.equal(custom[0].price,7990);

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import 'fake-indexeddb/auto';
 import {saveMenuLaunch,readMenuLaunch,clearMenuLaunch,guestReadingKey,launchKey,launchSignup} from '../lib/menu-launch.ts';
 import {adoptMenuLaunch} from '../lib/menu-launch-storage.ts';
+import {menuLaunchAccountPath} from '../lib/menu-launch-client.ts';
 import {saveReading,loadReading} from '../lib/menu-reader-storage.ts';
 const storage=()=>{const values=new Map();return {getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)};};
 const launch=patch=>({id:crypto.randomUUID(),savedAt:Date.now(),idea:'Lista artesanal verde italiana',sourceText:'Bebidas\nSuco R$ 8,00',hasPhotos:false,...patch});
@@ -15,3 +16,11 @@ test('a guest reading moves to exactly one restaurant only after its durable cop
 test('missing guest photos keep the original idea for recovery rather than silently dropping them',async()=>{const store=storage(),value=launch({hasPhotos:true});saveMenuLaunch(store,value);await assert.rejects(adoptMenuLaunch(value,'launch-missing',store),/fotos iniciais/);assert.deepEqual(readMenuLaunch(store),value);assert.equal(await loadReading('launch-missing'),null);});
 test('text-only intake remains usable without a photo checkpoint and unrelated guest drafts stay separate',async()=>{const store=storage(),a=launch(),b=launch();saveMenuLaunch(store,a);await saveReading({restaurantId:guestReadingKey(b.id),savedAt:Date.now(),pages:[],items:[],unmatched:[],text:'Outro cardápio'});assert.deepEqual(await adoptMenuLaunch(a,'launch-text-only',store),{hasSource:true,sourceText:a.sourceText});assert.equal((await loadReading(guestReadingKey(b.id))).text,'Outro cardápio');});
 test('text-only intake can fall back to its local text when IndexedDB is unavailable',async()=>{const store=storage(),value=launch(),original=globalThis.indexedDB;saveMenuLaunch(store,value);globalThis.indexedDB=undefined;try{assert.deepEqual(await adoptMenuLaunch(value,'launch-no-idb',store),{hasSource:true,sourceText:value.sourceText});assert.equal(readMenuLaunch(store),null);}finally{globalThis.indexedDB=original;}});
+test('continuing a preview sends existing owners directly to the guarded app and new visitors to signup',async()=>{
+ let calls=0;const fetcher=value=>async(url,options)=>{calls++;assert.equal(url,'/api/auth/session');assert.equal(options.cache,'no-store');return Response.json(value);};
+ assert.equal(await menuLaunchAccountPath(fetcher({user:{name:'Dono',provider:'supabase'}})),'/app?new=1&setup=1');
+ assert.equal(await menuLaunchAccountPath(fetcher({user:null})),launchSignup);
+ assert.equal(await menuLaunchAccountPath(async()=>new Response('',{status:503})),'/app?new=1&setup=1');
+ assert.equal(await menuLaunchAccountPath(async()=>{throw Error('offline');}),'/app?new=1&setup=1');
+ assert.equal(await menuLaunchAccountPath(fetcher({unexpected:true})),'/app?new=1&setup=1');assert.equal(calls,3);
+});

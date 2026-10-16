@@ -4,7 +4,8 @@ import {ArrowRight,ArrowUpRight,Check,Link2,Paperclip,Sparkles,X,FileText,ImageP
 import {demoRestaurant,defaultRestaurant,type RestaurantData} from "@/lib/domain";
 import {localStudio,proposalPatch} from "@/lib/studio-policy";
 import {layoutNames,menuPresentation} from "@/lib/menu-design";
-import {readMenuLaunch,saveMenuLaunch,guestReadingKey,launchSignup,type MenuLaunch} from "@/lib/menu-launch";
+import {readMenuLaunch,saveMenuLaunch,guestReadingKey,type MenuLaunch} from "@/lib/menu-launch";
+import {menuLaunchAccountPath} from "@/lib/menu-launch-client";
 import {inspectMenuSourceText} from "@/lib/menu-source-links";
 import {menuFileText} from "@/lib/menu-file";
 import {fetchMenuSource} from "@/lib/menu-source-client";
@@ -52,7 +53,7 @@ export default function IdeaStart(){
    const value={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,sourceText,hasPhotos:!!pages.length};saveMenuLaunch(localStorage,value);launch.current=value;
    if(pages.length)await saveReading({...reading.current,restaurantId:guestReadingKey(value.id),savedAt:Date.now(),pages,items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText});
    else if(sourceText)await saveReading({restaurantId:guestReadingKey(value.id),savedAt:Date.now(),pages:[],items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText}).catch(()=>{});
-   location.assign(launchSignup);
+   location.assign(await menuLaunchAccountPath());
   }catch{setError("O navegador não conseguiu guardar sua ideia. Libere o armazenamento deste site para levar o conteúdo até o cadastro.");setSaving(false);}
  }
  return <section className="idea-start" id="ideia"><div className="saas-container">
