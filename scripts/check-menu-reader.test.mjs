@@ -41,3 +41,36 @@ test('reading again preserves owner corrections only for unchanged source text a
  const [fresh]=reconcileReaderReview(previous,changed,data);
  assert.equal(fresh.name,'Calabresa');assert.equal(fresh.sizes.g,5990);assert.equal(fresh.image,undefined);
 });
+
+
+test('real menu pattern: pizza variant catalog codes never become the product name or prices',()=>{
+ const rows='PIZZAS SALGADAS\nMédia Grande\nDois queijos M: 118 | G: 218 R$ 42 R$ 47\nMussarela M:101 | G:201 R$ 42 R$ 47';
+ const result=read(rows);
+ assert.deepEqual(result.items.map(i=>i.name),['Dois queijos','Mussarela']);
+ assert.ok(result.items.every(i=>i.category==='Pizzas'&&i.kind==='pizza'));
+ assert.deepEqual(result.items[0].sizes,{p:null,m:4200,g:4700});
+ assert.deepEqual(result.items[1].sizes,{p:null,m:4200,g:4700});
+ assert.ok(result.items.every(readerItemReady));
+ assert.ok(result.items.every(i=>i.sourceText.includes('M:')));
+});
+test('size SKU IDs may precede a detached price row but a bare amount cannot be invented',()=>{
+ const parsed=read('PIZZAS\nDois queijos M:118 | G:218\nR$ 42 R$ 47\nMussarela M:101 | G:201\nR$ 42 R$ 47');
+ assert.equal(parsed.items.length,2);
+ assert.deepEqual(parsed.items.map(i=>i.name),['Dois queijos','Mussarela']);
+ assert.deepEqual(parsed.items[0].sizes,{p:null,m:4200,g:4700});
+ assert.ok(parsed.items.every(readerItemReady));
+ const noPrice=read('PIZZAS\nDois queijos M:118 | G:218');
+ assert.equal(noPrice.items.filter(readerItemReady).length,0);
+ assert.equal(noPrice.items.some(i=>i.sizes.m===11800||i.sizes.g===21800),false);
+});
+test('unsupported GG SKU and ambiguous amount remain pending rather than inventing a size',()=>{
+ const result=read('PIZZAS\nCalabresa M:102 | GG:202 R$ 44 R$ 55');
+ assert.equal(result.items.length,1);
+ assert.equal(result.items[0].name,'Calabresa');
+ assert.equal(result.items[0].sizes.m,4400);
+ assert.equal(result.items[0].sizes.g,null);
+ assert.equal(readerItemReady(result.items[0]),false);
+ assert.match(result.items[0].issues.join(' '),/P\/M\/G/);
+ const unlabeled=read('PIZZAS\nCalabresa R$ 44 R$ 55');
+ assert.equal(readerItemReady(unlabeled.items[0]),false);
+});

@@ -19,6 +19,14 @@ export function menuAmount(s:string){
 }
 const priceRE=/(?:R\s*\$\s*[-+−]?\s*\d(?:[\d.,]*\d)?(?![\d.,a-z])|(?<![\d.,+−-])[-+−]?\d{1,6}(?:\.\d{3})*[,.]\d{2}(?![\d.,a-z]))/gi;
 const sizesIn=(s:string)=>[...normalizeMenuText(s).matchAll(/\b(pequena|pequeno|media|medio|grande|gg|familia|gigante|brotinho|p|m|g)\b/g)].map(m=>({size:({pequena:"p",pequeno:"p",media:"m",medio:"m",grande:"g",p:"p",m:"m",g:"g"} as Record<string,Size>)[m[1]]||null,index:m.index!}));
+// Public dark-menu examples use catalog SKU IDs such as "M: 118 | G: 218".
+ // Those numbers identify variants; they are not amounts and must not enter the product name.
+const skuMarker=/(?:^|\s)(?:(?:GG|P|M|G)\s*:\s*\d{3,5})(?:\s*(?:[|/]\s*|\s+)(?:GG|P|M|G)\s*:\s*\d{3,5})*/gi;
+function skuSizes(text:string):(Size|null)[]{
+ const matches=[...text.matchAll(skuMarker)].flatMap(match=>[...match[0].matchAll(/\b(GG|P|M|G)\s*:\s*\d{3,5}\b/gi)]);
+ return matches.map(match=>match[1].toLowerCase()==="gg"?null:match[1].toLowerCase() as Size);
+}
+function withoutSku(text:string){return text.replace(skuMarker," ").replace(/\s+/g," ").trim();}
 function categoryFor(s:string):{category:string;kind:ReaderItem["kind"]}|null{
   const explicit=s.match(/^Categoria:\s*(.{2,60})\s+\[(pizza|simple|crust)\]$/i);if(explicit)return {category:explicit[1].trim(),kind:explicit[2].toLowerCase() as ReaderItem["kind"]};
   const n=normalizeMenuText(s).replace(/[^a-z ]/g,"").trim();
@@ -154,7 +162,7 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
         flush();shared={};if(!unsupported&&labels.length===prices.length)labels.forEach((v,i)=>{if(v.size&&prices[i])shared[v.size]=prices[i]!;});else unmatched.push({sourceId:page.id,text:"Preço compartilhado a conferir: "+text});continue;
       }
       const before=matches.length?text.slice(0,matches[0].index).replace(/\b(?:GG|P|M|G|pequena|média|grande|família|gigante|brotinho)\s*[-:·]?\s*$/i,"").replace(/[.\-:·|\s]+$/g,""):text;
-      const name=before.replace(/^\d{1,3}\s*[.)\-:]\s*/,"").trim();
+      const name=withoutSku(before.replace(/^\d{1,3}\s*[.)\-:]\s*/,"")).trim();
       const ingredients=/^(ingredientes?\s*:|molho\b|mucarela\b|mozzarella\b|queijo\b|tomate\b|massa\b)/.test(norm)||!matches.length&&text.includes(",");
       if(pending&&ingredients&&!matches.length){pending.description=(pending.description?pending.description+" ":"")+text.replace(/^ingredientes?\s*:\s*/i,"");pending.description=pending.description.slice(0,600);pending.sourceText=(pending.sourceText+"\n"+text).slice(0,2000);pending.box=union(pending.box,raw.box);continue;}
       if(matches.length&&!name&&pending){
@@ -173,6 +181,7 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
         if(mixed)requireReview(pending!,"A linha mistura produtos ou condições de preço. Confira os trechos separados na fonte.");
         else if(pending!.kind!=="pizza"){if(prices.length===1)assignPrice(pending!,"price",prices[0]);else{pending!.price=null;requireReview(pending!,"Vários preços para este produto: confira o valor na fonte.");}}
         else if(labels.length===prices.length)labels.forEach((v,i)=>{if(v.size)assignPrice(pending!,v.size,prices[i]);else if(prices.length===1)assignPrice(pending!,"price",prices[i]);});
+        else if(!labels.length&&skuSizes(pending!.sourceText).length===prices.length&&prices.length>0)skuSizes(pending!.sourceText).forEach((v,i)=>{if(v)assignPrice(pending!,v,prices[i]);else requireReview(pending!,"Tamanho fora de P/M/G: confirme o tamanho no editor.");});
         else if(!labels.length&&header.length===prices.length)header.forEach((v,i)=>{if(v)assignPrice(pending!,v,prices[i]);});
         else if(prices.length===1&&!labels.length)assignPrice(pending!,"price",prices[0]);
         else requireReview(pending!,"Vários preços sem tamanhos claros: confira na foto.");
