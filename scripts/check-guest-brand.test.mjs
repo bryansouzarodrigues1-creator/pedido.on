@@ -13,8 +13,8 @@ test("validated logo and cover are separate from menu OCR and cannot be replaced
   assert.deepEqual((await loadBrandAssets(key)).logo,fixture);
   await saveBrandAssets({key,logo:fixture,cover:{...fixture,name:"cover.png"}});
   const restored=await loadBrandAssets(key);assert.equal(restored.cover.name,"cover.png");
-  await assert.rejects(saveBrandAssets({key,logo:{...fixture,data:"javascript:alert(1)"}}));
-  await assert.rejects(saveBrandAssets({key,cover:{...fixture,name:"x",type:"image/svg+xml"}}));
+  assert.throws(()=>saveBrandAssets({key,logo:{...fixture,data:"javascript:alert(1)"}}));
+  assert.throws(()=>saveBrandAssets({key,cover:{...fixture,name:"x",type:"image/svg+xml"}}));
   assert.equal((await loadBrandAssets(key)).logo.data,fixture.data);
  }finally{await removeBrandAssets(key);assert.equal(await loadBrandAssets(key),null);}
 });
