@@ -56,3 +56,10 @@ export function mergeMenuSourceText(current:string,incoming:string){
  if(merged.length>60000)throw Error("Sua leitura está cheia. Importe uma parte ou reduza o texto para acrescentar o link sem cortar o conteúdo guardado.");
  return merged;
 }
+
+export function mergeReaderSource(current:string,incoming:string){
+ if(inspectMenuSourceText(incoming).links.length)return mergeMenuSourceText(current,incoming);
+ const text=incoming.trim();if(!text||current.includes(text))return current;
+ const merged=current+(current&&!current.endsWith("\n")?"\n":"")+text;
+ if(merged.length>60000)throw Error("Importe uma parte antes de acrescentar mais texto. Sua leitura atual foi mantida.");return merged;
+}

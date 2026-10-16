@@ -11,8 +11,8 @@ export default async function AppPage({searchParams}:{searchParams:Promise<Recor
   const query=await searchParams;
   const theme=typeof query.theme==="string"&&themes.some(t=>t.id===query.theme)?query.theme as ThemeId:"editorial";
   const plan=typeof query.plan==="string"&&["essencial","profissional","rede"].includes(query.plan)?query.plan:"essencial";
-  const startNew=query.new==="1",qs=new URLSearchParams({...(startNew?{new:"1"}:{}),theme,plan,...(typeof query.loja==="string"&&/^[a-f0-9-]{36}$/i.test(query.loja)?{loja:query.loja}:{}),...(typeof query.pedido==="string"&&/^[a-f0-9-]{36}$/i.test(query.pedido)?{pedido:query.pedido}:{})});
+  const startSetup=query.setup==="1",startNew=query.new==="1",qs=new URLSearchParams({...(startNew?{new:"1"}:{}),...(startSetup?{setup:"1"}:{}),theme,plan,...(typeof query.loja==="string"&&/^[a-f0-9-]{36}$/i.test(query.loja)?{loja:query.loja}:{}),...(typeof query.pedido==="string"&&/^[a-f0-9-]{36}$/i.test(query.pedido)?{pedido:query.pedido}:{})});
   const user=await requireAccountUser(`/app?${qs}`);
   const rows=await getDb().select().from(restaurants).where(eq(restaurants.ownerId,user.userId));
-  return <Dashboard initialRestaurants={rows.map(safeRecord)} user={{name:user.displayName,email:user.email,admin:platformAdmin(user)}} signOutUrl="/sair" initialTheme={theme} initialPlan={plan} startNew={startNew} initialRestaurantId={typeof query.loja==="string"?query.loja:undefined} initialOrderId={typeof query.pedido==="string"?query.pedido:undefined}/>;
+  return <Dashboard initialRestaurants={rows.map(safeRecord)} user={{name:user.displayName,email:user.email,admin:platformAdmin(user)}} signOutUrl="/sair" initialTheme={theme} initialPlan={plan} startNew={startNew} startSetup={startSetup} initialRestaurantId={typeof query.loja==="string"?query.loja:undefined} initialOrderId={typeof query.pedido==="string"?query.pedido:undefined}/>;
 }

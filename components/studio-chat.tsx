@@ -5,6 +5,7 @@ import {localStudio,proposalPatch,studioImagePatch,studioProposal,type StudioPro
 import {creationTarget,defaultCreationTarget,imageLabels,type CreationTarget} from "@/lib/creation-intent";
 import {creationRequest} from "@/lib/creation-request";
 import {assistantAnswer,type AssistantScreen} from "@/lib/assistant-help";
+import {presentationForTheme,menuPresentation,layoutNames,type MenuPresentation} from "@/lib/menu-design";
 import {themes,type RestaurantData} from "@/lib/domain";
 import {MiniMenu,Spinner} from "./ui";
 import {z} from "zod";
@@ -17,13 +18,13 @@ type Target=CreationTarget;
 type Generated={url:string;asset:string;productId?:string};
 type Attempt={path:string;body:Record<string,unknown>;base:string;target:Exclude<Target,"image">};
 const usageSchema=z.object({enabled:z.boolean(),used:z.number().int().min(0),limit:z.number().int().min(0)});
-const options=[{id:"image",label:"Imagem para a pizzaria"},{id:"logo",label:"Logo da pizzaria"},{id:"cover",label:"Capa do cardápio"},{id:"profile",label:"Imagem de perfil"},{id:"product",label:"Foto de um produto"},{id:"visual",label:"Cores e textos do cardápio"}] as const;
-const hints:Record<Target,string>={image:"Gere algo marcante de pizza de queijo, com queijo derretido e luz quente.",visual:"Quero um cardápio escuro, com vermelho e descrições mais apetitosas.",logo:"Um logo com forno a lenha, o nome da minha pizzaria e letras fáceis de ler.",cover:"Pizza saindo do forno, luz quente e espaço para o título do cardápio.",profile:"Um símbolo de pizza com fundo escuro, fácil de reconhecer no WhatsApp.",product:"Pizza vista de cima, sobre uma mesa de madeira, com luz natural."};
+const options=[{id:"visual",label:"Design e textos do cardápio"},{id:"image",label:"Imagem para a pizzaria"},{id:"logo",label:"Logo da pizzaria"},{id:"cover",label:"Capa do cardápio"},{id:"profile",label:"Imagem de perfil"},{id:"product",label:"Foto de um produto"}] as const;
+const hints:Record<Target,string>={image:"Gere algo marcante de pizza de queijo, com queijo derretido e luz quente.",visual:"Quero uma lista artesanal, com letras elegantes, verde italiano e fotos ao lado dos sabores.",logo:"Um logo com forno a lenha, o nome da minha pizzaria e letras fáceis de ler.",cover:"Pizza saindo do forno, luz quente e espaço para o título do cardápio.",profile:"Um símbolo de pizza com fundo escuro, fácil de reconhecer no WhatsApp.",product:"Pizza vista de cima, sobre uma mesa de madeira, com luz natural."};
 async function responseBody(r:Response){const raw=await r.json();return raw&&typeof raw==="object"&&!Array.isArray(raw)?raw as Record<string,unknown>:{};}
 
 export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onClose,onPrepare,onNavigate,demo=false,initialMessage=""}:{data:RestaurantData;restaurantId?:string;restaurantSlug?:string;onApply?:(patch:Partial<RestaurantData>)=>void;onClose?:()=>void;onPrepare?:()=>Promise<RestaurantData|null>;onNavigate?:(screen:AssistantScreen,sourceText?:string)=>void;demo?:boolean;initialMessage?:string}){
  const [guide,setGuide]=useState<{reply:string;screen?:AssistantScreen;action?:string;sourceText?:string}|null>(null);
- const [message,setMessage]=useState(initialMessage),[target,setTarget]=useState<Target>(demo||!!initialMessage?"visual":defaultCreationTarget),[mode,setMode]=useState<"local"|"ai">("ai"),[usage,setUsage]=useState<Usage|null>(null),[imageUsage,setImageUsage]=useState<Usage|null>(null),[productId,setProductId]=useState(""),[proposal,setProposal]=useState<StudioProposal|null>(null),[base,setBase]=useState(""),[generated,setGenerated]=useState<Generated|null>(null),[resultMode,setResultMode]=useState<"local"|"text"|"image"|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[applied,setApplied]=useState(false),[pending,setPending]=useState(false);
+ const [message,setMessage]=useState(initialMessage),[target,setTarget]=useState<Target>("visual"),[mode,setMode]=useState<"local"|"ai">("ai"),[usage,setUsage]=useState<Usage|null>(null),[imageUsage,setImageUsage]=useState<Usage|null>(null),[productId,setProductId]=useState(""),[proposal,setProposal]=useState<StudioProposal|null>(null),[base,setBase]=useState(""),[generated,setGenerated]=useState<Generated|null>(null),[resultMode,setResultMode]=useState<"local"|"text"|"image"|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[applied,setApplied]=useState(false),[pending,setPending]=useState(false);
  const attempt=useRef<Attempt|null>(null),current=useRef(data),mounted=useRef(true),modeChosen=useRef(false);current.current=data;
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  useEffect(()=>{
@@ -34,12 +35,13 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
   }
   return()=>controller.abort();
  },[restaurantId,demo]);
+ useEffect(()=>{if(!initialMessage.trim())return;try{const next=localStudio(initialMessage,current.current);setProposal(next);setBase(JSON.stringify(current.current));setGenerated(null);setResultMode("local");setApplied(false);}catch{}},[initialMessage]);
  const source=base?JSON.parse(base) as RestaurantData:data;
  const patch=proposal?proposalPatch(proposal,source):{};
  const textPreview={...source,...patch};
  const preview={...textPreview,...studioImagePatch(textPreview,generated)};
  const stale=!!base&&JSON.stringify(data)!==base&&!applied;
- const changes=proposal?[proposal.name&&"Nome da pizzaria",proposal.theme&&"Estilo do cardápio",proposal.accent&&"Cor da pizzaria",proposal.tagline!==undefined&&"Frase de destaque",proposal.description!==undefined&&"Apresentação da pizzaria",proposal.productDescriptions.length>0&&"Descrições dos produtos",generated&&options.find(o=>o.id===generated.asset)?.label].filter(Boolean) as string[]:[];
+ const changes=proposal?[proposal.name&&"Nome da pizzaria",proposal.theme&&"Estilo do cardápio",proposal.accent&&"Cor da pizzaria",proposal.presentation&&"Composição, letras e formato",proposal.tagline!==undefined&&"Frase de destaque",proposal.description!==undefined&&"Apresentação da pizzaria",proposal.productDescriptions.length>0&&"Descrições dos produtos",generated&&options.find(o=>o.id===generated.asset)?.label].filter(Boolean) as string[]:[];
  const quickAnswer=assistantAnswer(message);
  const {target:resolvedTarget,intent,needsChoice}=creationTarget(target,message,mode);
  const isImage=resolvedTarget!=="visual";
@@ -105,11 +107,12 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
   }
  }
  function apply(){if(stale){setError("O cardápio mudou. Prepare uma nova ideia antes de usar.");return;}if(!proposal||!changes.length)return;const text=proposalPatch(proposal,current.current);onApply?.({...text,...studioImagePatch({...current.current,...text},generated)});setApplied(true);}
- function readyStyle(theme:typeof themes[number]){if(busy||pending)return;setGuide(null);setProposal({reply:"Veja como sua pizzaria fica neste estilo.",theme:theme.id,accent:theme.color,productDescriptions:[]});setBase(JSON.stringify(current.current));setGenerated(null);setResultMode("local");setApplied(false);setError("");}
+ function readyStyle(theme:typeof themes[number]){if(busy||pending)return;setGuide(null);setProposal({reply:"Veja como sua pizzaria fica neste estilo.",theme:theme.id,accent:theme.color,presentation:presentationForTheme(theme.id),productDescriptions:[]});setBase(JSON.stringify(current.current));setGenerated(null);setResultMode("local");setApplied(false);setError("");}
+ function adjustPresentation(value:Partial<MenuPresentation>){if(busy||pending||stale)return;setProposal(old=>({...old,reply:old?.reply||"Confira a composição do seu cardápio.",productDescriptions:old?.productDescriptions||[],presentation:{...menuPresentation(preview),...value}}));if(!base)setBase(JSON.stringify(current.current));setApplied(false);setResultMode(resultMode||"local");}
  function prepareImage(){const brief=proposal?.imageBrief;if(!brief)return;setTarget(brief.asset);setMessage(brief.description);setProductId(brief.productId||"");setError("");}
- return <><div className="pizza-studio-promotion">{restaurantId&&!demo&&<PromotionStudio data={data} restaurantId={restaurantId} slug={restaurantSlug||""} onPrepare={onPrepare} onMenu={()=>onNavigate?.("menu")}/>}</div><div className="pizza-studio">
+ return <><div className="pizza-studio">
   <section className="creation-form">
-   <div className="creation-heading"><span className="creation-icon"><Sparkles size={23}/></span><div><h2>Sua assistente para montar a pizzaria.</h2><p>{quickAnswer?"Esta dúvida ou alteração simples pode ser resolvida aqui, sem consumir créditos.":isImage?"Descreva a imagem que você quer criar. Confira a arte antes de usar.":"Peça cores, frases e descrições para o cardápio."}</p></div></div>
+   <div className="creation-heading"><span className="creation-icon"><Sparkles size={23}/></span><div><h2>Sua assistente para montar a pizzaria.</h2><p>{quickAnswer?"Esta dúvida ou alteração simples pode ser resolvida aqui, sem consumir créditos.":isImage?"Descreva a imagem que você quer criar. Confira a arte antes de usar.":"Peça outro layout, fotos maiores, uma lista mais simples, letras e cores."}</p></div></div>
    <form onSubmit={e=>send(e)}>
     <fieldset disabled={busy||pending}>
      <label className="creation-field">O que você quer criar?<select value={target} onChange={e=>choose(e.target.value as Target)}>{options.map(o=><option key={o.id} value={o.id}>{o.label}</option>)}</select></label>
@@ -117,7 +120,7 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
      {!quickAnswer&&resolvedTarget==="product"&&!data.products.length&&<p className="creation-note">Cadastre um produto no Cardápio antes de criar a foto.</p>}
      <label className="creation-field">Conte sua ideia<textarea rows={4} value={message} maxLength={quickAnswer?1600:isImage?600:1600} onChange={e=>setMessage(e.target.value)} placeholder={hints[target]} /></label>
      <button className="creation-example" type="button" onClick={()=>setMessage(hints[target])}>Usar esta ideia <ArrowRight size={13}/></button>
-     {!isImage&&<label className="creation-mode"><input type="checkbox" checked={mode==="ai"&&!demo} disabled={demo||!usage?.enabled} onChange={e=>{modeChosen.current=true;setMode(e.target.checked?"ai":"local");}}/><span>Usar inteligência artificial<small>{demo?"Aqui você experimenta os estilos prontos.":usage?.enabled?"Sugestões de visual e descrições.":"Os estilos prontos estão disponíveis abaixo."}</small></span></label>}
+     {!isImage&&<label className="creation-mode"><input type="checkbox" checked={mode==="ai"&&!demo} disabled={demo||!usage?.enabled} onChange={e=>{modeChosen.current=true;setMode(e.target.checked?"ai":"local");}}/><span>Usar inteligência artificial<small>{demo?"Aqui você experimenta os estilos prontos.":usage?.enabled?"Interpretação da ideia e descrições com IA.":"Os estilos prontos estão disponíveis abaixo."}</small></span></label>}
      {!quickAnswer&&isImage&&(target==="image"||target==="visual"&&intent)&&<p className="creation-note" role="status">{resolvedTarget==="cover"?"Vamos criar uma imagem horizontal que você poderá usar como capa.":`Vamos criar ${imageLabels[resolvedTarget as keyof typeof imageLabels]} com sua ideia.`}</p>}
      {!quickAnswer&&needsChoice&&<p className="creation-note" role="status">Escolha Logo, Capa, Perfil ou Foto em “O que você quer criar?” para gerar sua imagem.</p>}
     </fieldset>
@@ -134,6 +137,7 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
    {!proposal?<div className="creation-empty"><img src="/assets/pizza.webp" alt="Pizza artesanal com mozzarella e manjericão"/><div>{busy?<><Spinner/><h3>{isImage?"Criando sua imagem…":"Preparando sua prévia…"}</h3><p>O resultado aparece aqui quando estiver pronto.</p></>:<><span>FEITO PARA A SUA PIZZARIA</span><h3>Sua próxima ideia<br/>começa aqui.</h3><p>Escreva o que imagina. O resultado aparece aqui para você conferir.</p></>}</div></div>:<>
     <header><span><Eye size={17}/> {resultMode==="image"?"Imagem criada com IA":resultMode==="local"?"Prévia com estilo pronto":"Visual e textos com IA"}</span>{generated&&<a className="text-button" href={generated.url} target="_blank" rel="noopener noreferrer"><Download size={14}/> Abrir imagem</a>}</header>
     {generated?<div className={`creation-image ${generated.asset==="cover"?"is-cover":""}`}><img src={generated.url} alt={options.find(o=>o.id===generated.asset)?.label||"Imagem criada para sua pizzaria"}/></div>:<div className="creation-menu-preview"><MiniMenu data={preview} large/></div>}
+    {!generated&&<details className="creation-layout-options"><summary>Ajustar composição</summary><div className="creation-layout-buttons">{(Object.keys(layoutNames) as MenuPresentation["layout"][]).map(layout=><button type="button" key={layout} disabled={busy||pending||stale} aria-pressed={menuPresentation(preview).layout===layout} onClick={()=>adjustPresentation({layout,hero:layout==="poster"?"cover":layout==="compact"?"compact":"split"})}>{layoutNames[layout]}</button>)}</div><div className="creation-layout-fields"><label>Letras<select value={menuPresentation(preview).font} disabled={busy||pending||stale} onChange={e=>adjustPresentation({font:e.target.value as MenuPresentation["font"]})}><option value="modern">Modernas</option><option value="serif">Elegantes</option><option value="bold">Fortes</option></select></label><label>Cantos<select value={menuPresentation(preview).corners} disabled={busy||pending||stale} onChange={e=>adjustPresentation({corners:e.target.value as MenuPresentation["corners"]})}><option value="soft">Suaves</option><option value="square">Retos</option></select></label></div></details>}
     <p className="creation-reply">{proposal.reply}</p>
     {proposal.productDescriptions.map(p=><div className="creation-copy" key={p.id}><b>{source.products.find(item=>item.id===p.id)?.name}</b><p>{p.description}</p></div>)}
     {!generated&&proposal.imageBrief&&<div className="creation-copy"><b>Ideia para {imageLabels[proposal.imageBrief.asset]}</b><p>{proposal.imageBrief.description}</p><button className="text-button" type="button" disabled={busy||pending} onClick={prepareImage}>Usar esta ideia para criar uma imagem <ArrowRight size={14}/></button></div>}
@@ -142,5 +146,5 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
     <footer><p>{generated?.asset==="product"?"Imagem ilustrativa. Confira se representa o produto que você vende.":"Só entra no cardápio depois de você publicar."}</p>{onApply?<button className="btn dark full" type="button" disabled={busy||!changes.length||applied||stale} onClick={apply}>{applied?<><Check size={17}/> Usando no rascunho</>:<>Usar no cardápio <ArrowRight size={17}/></>}</button>:<a className="btn primary" href="/cadastro?next=%2Fapp%3Fnew%3D1">Criar minha pizzaria <ArrowRight size={17}/></a>}{applied&&<small>Agora use Publicar ou Atualizar no painel.</small>}{onClose&&<button className="text-button" onClick={onClose}>Voltar ao painel</button>}</footer>
    </>}
   </section>
- </div></>;
+ </div>{restaurantId&&!demo&&data.products.length>0&&<div className="pizza-studio-promotion"><PromotionStudio data={data} restaurantId={restaurantId} slug={restaurantSlug||""} onPrepare={onPrepare} onMenu={()=>onNavigate?.("menu")}/></div>}</>;
 }

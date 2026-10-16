@@ -49,7 +49,7 @@ test("renaming the shop is a local preview validated by existing restaurant rule
 
 test("iFood link and CNPJ help describes the local source reference without promising an active connector",()=>{
  const link=assistantAnswer("Como importar o link do iFood com fotos e preços?");
- assert.equal(link.kind,"guide");assert.equal(link.screen,"menu");assert.match(link.reply,/mensagem compartilhada inteira/);assert.match(link.reply,/importação automática ainda não está disponível/);
+ assert.equal(link.kind,"guide");assert.equal(link.screen,"menu");assert.match(link.reply,/mensagem compartilhada inteira/);assert.match(link.reply,/catálogo público/);assert.match(link.reply,/bloquear o acesso/);
  const cnpj=assistantAnswer("Como importar pelo CNPJ do iFood?");assert.match(cnpj.reply,/CNPJ sozinho não importa/);assert.match(cnpj.reply,/ainda não está ativa/);
 });
 
