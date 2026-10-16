@@ -30,7 +30,7 @@ function withoutSku(text:string){return text.replace(skuMarker," ").replace(/\s+
 function categoryFor(s:string):{category:string;kind:ReaderItem["kind"]}|null{
   const explicit=s.match(/^Categoria:\s*(.{2,60})\s+\[(pizza|simple|crust)\]$/i);if(explicit)return {category:explicit[1].trim(),kind:explicit[2].toLowerCase() as ReaderItem["kind"]};
   const n=normalizeMenuText(s).replace(/[^a-z ]/g,"").trim();
-  if(/^(pizzas? (salgadas?|tradicionais?|especiais?)|pizzas?|sabores)$/.test(n))return {category:"Pizzas",kind:"pizza"};
+  if(/^(pizzas? (salgadas?|tradicionais?|especiais?|classicas?)|pizzas?|sabores|salgadas?|classicas?)$/.test(n))return {category:"Pizzas",kind:"pizza"};
   if(/^(pizzas? doces?|doces)$/.test(n))return {category:"Pizzas doces",kind:"pizza"};
   if(/^(bebidas?|refrigerantes?|sucos?|cervejas?)$/.test(n))return {category:"Bebidas",kind:"simple"};
   if(/^(combos?|combos? da casa)$/.test(n))return {category:"Combos",kind:"simple"};
@@ -155,6 +155,8 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
       const section=categoryFor(text);
       if(section){flush();({category,kind}=section);categoryExplicit=true;header=[];headerUnsupported=false;shared={};continue;}
       if(/\b(promocao|promocoes|oferta|ofertas)\b/.test(norm)){flush();unmatched.push({sourceId:page.id,text:"Oferta da foto: "+text});continue;}
+       if(!matches.length&&(/^(?:10%\s*opcional|taxa\s*(?:de\s*)?servico|sucos?\s+e|vitaminas?)$/.test(norm)||/\bbordas especiais\b/.test(norm))){flush();unmatched.push({sourceId:page.id,text});continue;}
+       
       if(/^(whatsapp|telefone|contato|endereco|rua |av\.|avenida|pix|delivery|entrega|frete\b|taxa |horario|funcionamento|aberto|peca|pedido|minimo|instagram|www\.|@)/.test(norm)||/\(?\d{2}\)?\s*9?\d{4}[- ]\d{4}/.test(norm)){flush();unmatched.push({sourceId:page.id,text});continue;}
       const unsupported=/\b(gg|familia|gigante|brotinho)\b|\b\d{2}\s*cm\b/.test(norm);
       if(!matches.length&&labels.length&&/^(sabores?|tamanhos?|pequena|pequeno|media|medio|grande|gg\b|familia\b|gigante\b|brotinho\b|p\b|m\b|g\b)/.test(norm)){flush();header=labels.map(v=>v.size);headerUnsupported=unsupported;if(unsupported)unmatched.push({sourceId:page.id,text:"Tamanho a conferir: "+text});continue;}
@@ -162,7 +164,8 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
         flush();shared={};if(!unsupported&&labels.length===prices.length)labels.forEach((v,i)=>{if(v.size&&prices[i])shared[v.size]=prices[i]!;});else unmatched.push({sourceId:page.id,text:"Preço compartilhado a conferir: "+text});continue;
       }
       const before=matches.length?text.slice(0,matches[0].index).replace(/\b(?:GG|P|M|G|pequena|média|grande|família|gigante|brotinho)\s*[-:·]?\s*$/i,"").replace(/[.\-:·|\s]+$/g,""):text;
-      const name=withoutSku(before.replace(/^\d{1,3}\s*[.)\-:]\s*/,"")).trim();
+      const bare=withoutSku(before.replace(/^\d{1,3}\s*[.)\-:]\s*/,"")).trim();
+       const name=kind==="pizza"?bare.replace(/^(?:[•●▪»*]|x)\s+(?!tudo\b|salada\b|bacon\b|burger\b)/i,"").trim():bare;
       const ingredients=/^(ingredientes?\s*:|molho\b|mucarela\b|mozzarella\b|queijo\b|tomate\b|massa\b)/.test(norm)||!matches.length&&text.includes(",");
       if(pending&&ingredients&&!matches.length){pending.description=(pending.description?pending.description+" ":"")+text.replace(/^ingredientes?\s*:\s*/i,"");pending.description=pending.description.slice(0,600);pending.sourceText=(pending.sourceText+"\n"+text).slice(0,2000);pending.box=union(pending.box,raw.box);continue;}
       if(matches.length&&!name&&pending){
