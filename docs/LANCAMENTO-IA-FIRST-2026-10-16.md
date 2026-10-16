@@ -27,6 +27,14 @@ Nesta revisão, a suíte do aplicativo passou novamente em **331 testes, zero fa
 
 A rodada no Chrome com a correção passou nos **14 cenários, sem falhas ou erros de JavaScript**, incluindo recuperação, atualização da fonte e ida ao cadastro. As provas de antes/depois estão em [QA-PREVIAS-2026-10-16.json](QA-PREVIAS-2026-10-16.json). O resultado local não substitui a verificação com Supabase na URL publicada.
 
+## Publicação da correção
+
+- PR #27: `d57958bd4fa709161173eea06bd5690f27c973fe`, integrada em `9c70dbc931a40f94ed7ef57d1bc4f50f940096bd` após CI `38968675814` concluído com sucesso.
+- **v43 publicada com sucesso às 21:26 UTC**, fonte Sites `3ba75bf93b09190177ddbc55a2bd785b171d61e4`, árvore `4fc23c88cbc7af9ec1dff8192d4e59ebb2e168b2`; ambiente revisão 13 e audiência pública preservados.
+- O primeiro arquivo de publicação estava truncado e foi recusado pelo serviço, sem implantação. O pacote foi refeito pelo helper oficial, passou na verificação gzip e gerou a v43; não se removeu nenhuma proteção de validação.
+- O Rodrigues ficou offline antes da conferência final na v43. As consultas diretas do executor às páginas publicadas retornaram 403 e não comprovaram o funcionamento. Não houve tentativa de contornar esse bloqueio. A publicação é confirmada pelo Sites; a homologação completa do cadastro e dos anexos com Supabase na versão final continua pendente.
+- Nenhum terceiro cadastro foi enviado nessa tentativa, e nenhum rascunho adicional foi criado. As duas contas e o rascunho privado descritos no relatório anterior continuam sendo os testes reais de produção dessa rodada.
+
 ## Limites que continuam válidos
 
 - Viewport móvel no Windows não comprova teclado, memória, bateria, câmera ou instalação em Android físico.
