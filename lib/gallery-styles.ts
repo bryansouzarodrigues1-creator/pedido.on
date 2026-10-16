@@ -45,7 +45,14 @@ export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:str
  const base={...data,theme:preset.theme,accent:requested.accent||preset.accent,presentation:{...preset.presentation}};
  const extras=feedback.trim()?designFromMessage(feedback,base):{};
  // Refinement can explicitly change composition, type, colours and corners, never sales data.
- const next={...base,...extras,presentation:extras.presentation||base.presentation};
+ const words=normalized(feedback);
+ const presentation=extras.presentation?{...base.presentation,
+  ...(/lista|colunas?|cartoes|cards|grade|fotos? grandes?|em destaque|vitrine|compact|sem fotos?/.test(words)?{layout:extras.presentation.layout}:{}),
+  ...(/sem capa|cabecalho|capa grande|capa inteira|foto de fundo/.test(words)?{hero:extras.presentation.hero}:{}),
+  ...(/serifa|elegant|italia|artesanal|letras?|fonte|tipografia/.test(words)?{font:extras.presentation.font}:{}),
+  ...(/cantos?|arredond|quadrad/.test(words)?{corners:extras.presentation.corners}:{})
+ }:base.presentation;
+ const next={...base,...extras,presentation};
  const brand=nameFromBriefing(briefing);
  const tagline=(briefing+"\n"+feedback).match(/(?:slogan|frase|chamada)\s*[:=]\s*["“]?([^\n"”]{2,120})/i)?.[1]?.trim();
  if(brand)next.name=brand;
