@@ -74,3 +74,26 @@ test('unsupported GG SKU and ambiguous amount remain pending rather than inventi
  const unlabeled=read('PIZZAS\nCalabresa R$ 44 R$ 55');
  assert.equal(readerItemReady(unlabeled.items[0]),false);
 });
+
+
+test('OCR flags a missing decimal separator in an implausibly high drink value',()=>{
+ const [drink]=read('Bebidas\nRefrigerante Coca cola Lt R$ 1150').items;
+ assert.equal(drink.price,115000);
+ assert.equal(drink.reviewRequired,true);
+ assert.equal(drink.selected,false);
+ assert.equal(readerItemReady(drink),false);
+ assert.match(drink.issues.join(' '),/separador decimal/);
+ assert.throws(()=>applyReaderItems(defaultRestaurant('QA'),[drink]),/Escolha pelo menos um item/i);
+});
+test('a truly high price with explicit cents remains supported; ordinary integer prices stay valid',()=>{
+ const data=read('Bebidas\nVinho premium R$ 150,00\nÁgua 350ml R$ 9\nPizzas\nFrango da casa R$ 350,00');
+ const wine=data.items.find(i=>i.name==='Vinho premium'),water=data.items.find(i=>i.name==='Água 350ml');
+ assert.equal(wine.price,15000);assert.equal(wine.reviewRequired,undefined);assert.equal(readerItemReady(wine),true);
+ assert.equal(water.price,900);assert.equal(water.reviewRequired,undefined);assert.equal(readerItemReady(water),true);
+ const pizza=data.items.find(i=>i.name==='Frango da casa');assert.equal(pizza.price,35000);assert.equal(pizza.reviewRequired,undefined);assert.equal(readerItemReady(pizza),false);
+});
+test('a high pizza price without cents needs review without inventing a decimal',()=>{
+ const [pizza]=read('Pizzas\nCalabresa G R$ 550').items;
+ assert.equal(pizza.sizes.g,55000);assert.equal(pizza.selected,false);
+ assert.match(pizza.issues.join(' '),/separador decimal/);
+});
