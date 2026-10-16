@@ -35,7 +35,14 @@ A rodada no Chrome com a correção passou nos **14 cenários, sem falhas ou err
 - O Rodrigues ficou offline antes da conferência final na v43. As consultas diretas do executor às páginas publicadas retornaram 403 e não comprovaram o funcionamento. Não houve tentativa de contornar esse bloqueio. A publicação é confirmada pelo Sites; a homologação completa do cadastro e dos anexos com Supabase na versão final continua pendente.
 - Nenhum terceiro cadastro foi enviado nessa tentativa, e nenhum rascunho adicional foi criado. As duas contas e o rascunho privado descritos no relatório anterior continuam sendo os testes reais de produção dessa rodada.
 
-## Limites que continuam válidos
+## Publicação das correções do OCR
+
+- PR #28 integrada em `6af785a6144758dd7a107b5d66d3efd059bc472f`, candidata `db53921eaecba6281a4526ef3130a3b41b9055a7`, após CI `38971079784` concluído com sucesso.
+- **v44 publicada com sucesso às 21:47 UTC**, fonte Sites `2d8005972b9fa315a3c4c6768d6a62dde03781ab`, árvore `bcbfa94bacda9bb0e796458f57bab3a5757aadf0`; ambiente revisão 13 e audiência pública preservados.
+- Passaram 348 testes do aplicativo, TypeScript, build oficial e oito imagens reproduzíveis de Tesseract. Ver [escopo e métricas](OCR-CONFIANCA-2026-10-16.md).
+- O Rodrigues continua offline. Não houve rodada final de navegador/Supabase na v44, Android físico, novo pedido de produção, cobrança ou geração paga. A assinatura comercial ainda depende da homologação registrada em [HOMOLOGACAO-COMERCIAL-2026-10-16.md](HOMOLOGACAO-COMERCIAL-2026-10-16.md).
+
+## Limites que continuam válidos após a v44
 
 - Viewport móvel no Windows não comprova teclado, memória, bateria, câmera ou instalação em Android físico.
 - Google e recuperação de senha estão desativados na configuração efetiva; não foram ativados nesta publicação.

@@ -1,5 +1,7 @@
 # OCR: associação de preços e revisão — 16/10/2026
 
+Atualização de liberação: PR #28 integrada em `6af785a6144758dd7a107b5d66d3efd059bc472f` após CI `38971079784` aprovado; **v44 publicada** em 16/10 às 21:47 UTC. A rodada final de navegador continua pendente porque o Rodrigues está offline. Os limites das imagens reproduzíveis e de Android abaixo permanecem válidos.
+
 Continuação sobre main `9c70dbc931a40f94ed7ef57d1bc4f50f940096bd`, com a v43 publicada. Reaproveita Tesseract local, coordenadas das palavras, armazenamento IndexedDB e a revisão já existente. Não há novo provedor, geração paga, migração ou mudança de dados publicados.
 
 ## Problemas reproduzidos e corrigidos
