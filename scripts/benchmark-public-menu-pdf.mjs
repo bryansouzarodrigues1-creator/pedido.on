@@ -42,25 +42,41 @@ try{
  assert.equal(checksum,expectedSha,'The public benchmark PDF has changed; re-review the reference before proceeding.');
  const pdfFile=path.join(temp,'reference.pdf');await writeFile(pdfFile,pdf);
  worker=await createWorker('por',OEM.LSTM_ONLY,{langPath:path.resolve('public/ocr/v7'),cachePath:temp});
- await worker.setParameters({tessedit_pageseg_mode:PSM.SINGLE_BLOCK,preserve_interword_spaces:'1'});
  for(const page of [11,19]){
    const dest=path.join(temp,'page-'+page);
    await run('pdftoppm',['-f',String(page),'-l',String(page),'-scale-to-y','2200','-png','-singlefile',pdfFile,dest],{timeout:60000});
-   const metadata=await sharp(dest+'.png').metadata(),started=performance.now();
-   const {data}=await worker.recognize(dest+'.png',{rotateAuto:true},{text:true,blocks:true});
-   const words=data.blocks?.flatMap(block=>block.paragraphs.flatMap(p=>p.lines.flatMap(line=>line.words.map(w=>({text:w.text,confidence:w.confidence,box:w.bbox})))))||[];
-   const lines=words.length?arrangeMenuWords(words,metadata.width):data.text.split('\n').map(text=>({text}));
-   const parsed=readMenuPages([{id:'public-'+page,lines}]),ready=parsed.items.filter(readerItemReady);
-   const comparisons=references[page].map(([name,value])=>{
-     const item=parsed.items.find(i=>normalizeMenuText(i.name)===normalizeMenuText(name));
-     const good=!!item&&readerItemReady(item)&&(typeof value==='number'?item.price===value:Object.entries(value).every(([key,price])=>item.sizes[key]===price));
-     return {name,found:!!item,ready:!!item&&readerItemReady(item),priceExact:good};
-   });
-   const pageReport={page,imageSize:[metadata.width,metadata.height],durationMs:Math.round(performance.now()-started),recognized:parsed.items.length,ready:ready.length,unmatched:parsed.unmatched.length,exactNameMatches:comparisons.filter(c=>c.found).length,exactPriceMatches:comparisons.filter(c=>c.priceExact).length,expected:comparisons.length,checks:comparisons,issueSamples:parsed.items.slice(0,18).map(i=>({name:i.name,kind:i.kind,review:i.reviewRequired||false,issueCount:i.issues.length,price:i.price,sizes:i.sizes}))};
-   report.pages.push(pageReport);report.ready+=ready.length;report.matched+=pageReport.exactPriceMatches;
+   const original=dest+'.png',inverted=dest+'-max-inverse.png';
+   const {data:raster,info}=await sharp(original).removeAlpha().raw().toBuffer({resolveWithObject:true});
+   // Black backgrounds with red/gold lettering: using the maximum RGB channel
+   // retains saturated headings that ordinary grayscale inversion can lose.
+   const inverse=Buffer.allocUnsafe(raster.length);
+   for(let i=0;i<raster.length;i+=3){const value=255-Math.max(raster[i],raster[i+1],raster[i+2]);inverse[i]=value;inverse[i+1]=value;inverse[i+2]=value;}
+   await sharp(inverse,{raw:{width:info.width,height:info.height,channels:3}}).png().toFile(inverted);
+   const variants=[];
+   for(const [name,image,psm] of [
+      ['original-block',original,PSM.SINGLE_BLOCK],
+      ['original-auto',original,PSM.AUTO],
+      ['max-inverse-block',inverted,PSM.SINGLE_BLOCK],
+      ['max-inverse-auto',inverted,PSM.AUTO],
+   ]){
+     await worker.setParameters({tessedit_pageseg_mode:psm,preserve_interword_spaces:'1'});
+     const started=performance.now(),{data}=await worker.recognize(image,{rotateAuto:true},{text:true,blocks:true});
+     const words=data.blocks?.flatMap(block=>block.paragraphs.flatMap(p=>p.lines.flatMap(line=>line.words.map(w=>({text:w.text,confidence:w.confidence,box:w.bbox})))))||[];
+     const lines=words.length?arrangeMenuWords(words,info.width):data.text.split('\n').map(text=>({text}));
+     const parsed=readMenuPages([{id:'public-'+page,lines}]),ready=parsed.items.filter(readerItemReady);
+     const checks=references[page].map(([target,value])=>{
+       const item=parsed.items.find(i=>normalizeMenuText(i.name)===normalizeMenuText(target));
+       const correct=!!item&&readerItemReady(item)&&(typeof value==='number'?item.price===value:Object.entries(value).every(([key,price])=>item.sizes[key]===price));
+       return {name:target,found:!!item,ready:!!item&&readerItemReady(item),priceExact:correct};
+     });
+     variants.push({name,durationMs:Math.round(performance.now()-started),recognized:parsed.items.length,ready:ready.length,unmatched:parsed.unmatched.length,exactNameMatches:checks.filter(c=>c.found).length,exactPriceMatches:checks.filter(c=>c.priceExact).length,expected:checks.length,checks,issueSamples:parsed.items.slice(0,18).map(i=>({name:i.name,kind:i.kind,review:i.reviewRequired||false,issueCount:i.issues.length,price:i.price,sizes:i.sizes}))});
+   }
+   const best=[...variants].sort((a,b)=>b.exactPriceMatches-a.exactPriceMatches||b.exactNameMatches-a.exactNameMatches||a.recognized-b.recognized)[0];
+   report.pages.push({page,imageSize:[info.width,info.height],baseline:variants[0].name,bestVariant:best.name,variants});
+   report.ready+=variants[0].ready;report.matched+=variants[0].exactPriceMatches;
  }
  await writeFile(path.join(directory,'report.json'),JSON.stringify(report,null,2));
- console.log(JSON.stringify({expected:report.expected,exactPriceMatches:report.matched,ready:report.ready,pages:report.pages.map(p=>({page:p.page,ready:p.ready,recognized:p.recognized,matched:p.exactPriceMatches,expected:p.expected,durationMs:p.durationMs}))}));
+ console.log(JSON.stringify({expected:report.expected,baselineMatches:report.matched,baselineReady:report.ready,comparison:report.pages.map(p=>({page:p.page,bestVariant:p.bestVariant,variants:p.variants.map(v=>({name:v.name,recognized:v.recognized,ready:v.ready,exactNameMatches:v.exactNameMatches,exactPriceMatches:v.exactPriceMatches,durationMs:v.durationMs}))}))}));
 }finally{
  await worker?.terminate().catch(()=>{});
  await rm(temp,{recursive:true,force:true});
