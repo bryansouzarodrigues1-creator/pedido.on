@@ -171,3 +171,10 @@ test('public importer remains read-only: no bypass of 403, no redirects, no auth
  const block=await importIfoodLink(url,async()=>new Response('Access denied',{status:403}));assert.equal(block.status,'needs_content');assert.equal(block.count,0);assert.equal(block.text,'');
  const redirect=await importIfoodLink(url,async()=>new Response(null,{status:302,headers:{Location:'https://outside.example'}}));assert.equal(redirect.status,'needs_content');assert.equal(requests,1);
 });
+
+test('a flat schema entry cannot override a hydration item with mandatory modifiers',()=>{
+ const flat={'@type':'Menu',hasMenuSection:{'@type':'MenuSection',name:'Pizzas',hasMenuItem:{'@type':'MenuItem',name:'Calabresa',offers:{price:49.9,priceCurrency:'BRL'}}}};
+ const hydration={props:{pageProps:{catalog:{categories:[{name:'Pizzas',items:[{name:'Calabresa',price:49.9,optionGroups:[{name:'Tamanhos',options:['P','G']}]}]}]}}}};
+ const html='<script type="application/ld+json">'+JSON.stringify(flat)+'</script><script id="__NEXT_DATA__" type="application/json">'+JSON.stringify(hydration)+'</script>';
+ assert.equal(structuredIfoodMenu(html).count,0,'A complex item must remain pending manual review');
+});
