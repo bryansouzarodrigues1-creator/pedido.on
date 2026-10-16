@@ -11,8 +11,9 @@ export async function adoptMenuLaunch(launch:MenuLaunch,restaurantId:string,stor
  const source=guest&&(guest.pages.length||guest.items.length||guest.text)?guest:null;
  if(assets)await saveBrandAssets({...assets,key:restaurantId});
  if(source)await saveReading({...source,restaurantId,savedAt:Date.now()});
- if(source)await removeReading(key);
- if(assets)await removeBrandAssets(key);
- clearMenuLaunch(storage,launch.id);
+ clearMenuLaunch(storage,launch.id); // All destination copies are durable before this clear.
+ // Cleanup is best effort. A failed guest cleanup cannot undo the completed handoff.
+ if(source)await removeReading(key).catch(()=>{});
+ if(assets)await removeBrandAssets(key).catch(()=>{});
  return {hasSource:!!source||!!launch.sourceText,sourceText:source?"":launch.sourceText};
 }
