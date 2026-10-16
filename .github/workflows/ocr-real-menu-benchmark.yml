@@ -1,0 +1,39 @@
+name: Real public menu OCR benchmark (read-only)
+on:
+  pull_request:
+    paths:
+      - "scripts/benchmark-public-menu-pdf.mjs"
+      - ".github/workflows/ocr-real-menu-benchmark.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Prepare one-time public OCR tools
+        run: |
+          npm install -g pnpm@11.25.0
+          pnpm install --frozen-lockfile
+          node scripts/prepare-ocr.mjs
+          if ! command -v pdftoppm >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y poppler-utils
+          fi
+      - name: Check syntax without executing the PDF
+        run: node --check scripts/benchmark-public-menu-pdf.mjs
+      - name: Measure published real menu (no AI, no app writes)
+        run: node --experimental-strip-types scripts/benchmark-public-menu-pdf.mjs
+      - name: Preserve sanitized OCR measurements, never the PDF/images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-ocr-measurement-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: .sites-runtime/public-ocr-benchmark/report.json
