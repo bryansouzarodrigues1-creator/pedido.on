@@ -53,7 +53,7 @@ async function tab(name) {
 }
 try {
     await start();
-    await page.goto(base + '/cadastro?next=' + encodeURIComponent('/app?new=1&setup=1'), {waitUntil: 'networkidle', timeout: 90_000});
+    await page.goto(base + '/cadastro?next=' + encodeURIComponent('/app?new=1&setup=1'), {waitUntil: 'domcontentloaded', timeout: 90_000});
     const launch = await page.evaluate(() => JSON.parse(localStorage.getItem('pizzaria-menu-idea-v1')));
     assert.ok(launch?.styleId && launch.hasAssets && /3D/.test(launch.refinement));
     assert.match(launch.sourceText, /Suco natural/);
@@ -124,7 +124,8 @@ try {
     assert.ok(studio.includes(launch.idea.trim())); assert.ok(studio.includes(launch.refinement.trim()));
     proof.checks.push({name: 'briefing longo e pedido fora do motor local chegam inteiros ao Estúdio sem geração', ok: true});
     await phase('reopen-session'); await context.close(); await start();
-    await page.goto(base + '/app?loja=' + row.id, {waitUntil: 'networkidle', timeout: 90_000});
+    await page.goto(base + '/app?loja=' + row.id, {waitUntil: 'domcontentloaded', timeout: 90_000});
+    await page.locator('.dashboard').waitFor();
     const session = await page.evaluate(async () => (await fetch('/api/auth/session', {cache: 'no-store'})).json());
     assert.equal(session.user?.provider, 'supabase'); assert.equal(session.user?.loginMethod, 'email');
     const reopened = await shops();

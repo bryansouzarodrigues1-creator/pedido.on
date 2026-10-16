@@ -23,7 +23,7 @@ catch (e) {
 } await fs.writeFile(path.join(dir, 'guest-browser.json'), JSON.stringify({ base, device: 'Chrome / Pixel 7 emulado', host: process.platform, checks: results, errors }, null, 2)); }
 async function screenshot(name) { await page.screenshot({ path: path.join(dir, name + '.png'), fullPage: true }); }
 async function start(profile = 'guest-profile') { context = await chromium.launchPersistentContext(path.join(runRoot, profile), { executablePath: process.env.QA_CHROME_PATH, headless: process.env.QA_HEADLESS === 'true', ...devices['Pixel 7'], locale: 'pt-BR', serviceWorkers: publicReadOnly ? 'block' : 'allow' }); await guardPublicGuestContext(context, errors); page = await context.newPage(); page.setDefaultTimeout(15000); page.on('pageerror', e => errors.push(e.message)); }
-async function load() { await page.goto(base + '/criar', { waitUntil: 'networkidle', timeout: 90000 }); await page.locator('#pizzeria-idea').waitFor({ state: 'visible' }); await page.waitForFunction(() => !document.querySelector('#pizzeria-idea').disabled); }
+async function load() { await page.goto(base + '/criar', { waitUntil: 'domcontentloaded', timeout: 90000 }); await page.locator('#pizzeria-idea').waitFor({ state: 'visible' }); await page.waitForFunction(() => !document.querySelector('#pizzeria-idea').disabled); }
 (async () => {
     await fs.mkdir(dir, { recursive: true });
     await start();
