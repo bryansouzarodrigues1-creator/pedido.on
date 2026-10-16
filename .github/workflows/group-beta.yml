@@ -17,6 +17,25 @@ on:
       - "components/daily-promotions.tsx"
       - "scripts/check-promotions.test.mjs"
       - "scripts/check-bundle-promotions.test.mjs"
+      - "lib/gallery-styles.ts"
+      - "lib/guest-brand-assets.ts"
+      - "components/guest-brand-panel.tsx"
+      - "components/profit-calculator.tsx"
+      - "scripts/check-guest-browser.mjs"
+      - "scripts/check-calculator-browser.mjs"
+      - "scripts/check-creation-intent.test.mjs"
+      - "lib/menu-launch-storage.ts"
+      - "lib/menu-launch-checkpoint.ts"
+      - "scripts/check-guest-checkpoint.test.mjs"
+      - "scripts/check-guest-brand.test.mjs"
+      - "lib/menu-launch.ts"
+      - "components/idea-start.tsx"
+      - "components/saas-landing.tsx"
+      - "app/criar/**"
+      - "app/ai-first.css"
+      - "app/layout.tsx"
+      - "scripts/check-gallery-first.test.mjs"
+      - "app/api/restaurants/route.ts"
       - "lib/menu-source-links.ts"
       - "components/menu-source-link.tsx"
       - "scripts/check-menu-source-links.test.mjs"
@@ -99,6 +118,10 @@ jobs:
         run: node scripts/check-db-snapshot.mjs
       - name: Domain tests
         run: pnpm test
+      - name: Browser QA scripts syntax (interactive QA is run separately)
+        run: |
+          node --check scripts/check-guest-browser.mjs
+          node --check scripts/check-calculator-browser.mjs
       - name: Production build
         run: pnpm build
       - name: Local OCR and screenshot photo checks (no paid generation)
