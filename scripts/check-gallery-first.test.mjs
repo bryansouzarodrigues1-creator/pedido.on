@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {fixture} from "./test-backend-fixture.mjs";
-import {galleryStyles,suggestedGalleryStyles,galleryDesign,chosenGalleryDraft,galleryStyleId} from "../lib/gallery-styles.ts";
+import {galleryStyles,suggestedGalleryStyles,galleryDesign,chosenGalleryDraft,galleryStyleId,supportsLocalRefinement} from "../lib/gallery-styles.ts";
 import {defaultRestaurant,demoRestaurant,restaurantSchema} from "../lib/domain.ts";
 import {saveMenuLaunch,readMenuLaunch,launchKey} from "../lib/menu-launch.ts";
 const makeStore=()=>{const values=new Map();return {getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};};
@@ -17,6 +17,8 @@ test("eight visual presets provide four distinct compositions per discovery roun
  }
  assert.ok(result.slice(0,4).includes("noite-premium")||result.slice(0,4).includes("urbano"));
  assert.deepEqual(suggestedGalleryStyles("pizza artesanal"),suggestedGalleryStyles("pizza artesanal"));
+ assert.equal(supportsLocalRefinement("Quero fotos grandes e cantos quadrados"),true);
+ assert.equal(supportsLocalRefinement("Quero um cardápio giratório em formato tridimensional de lua"),false);
 });
 test("a guest can freely refine composition without touching prices or personal data",()=>{
  const original=demoRestaurant("dark"),copy=structuredClone(original);
