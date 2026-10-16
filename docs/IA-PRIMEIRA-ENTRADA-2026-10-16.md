@@ -13,7 +13,7 @@
 
 - Nenhuma imagem/texto é gerado por modelo pago na etapa pública, para impedir abuso de gerações sem conta. As prévias são renderizadas pelo produto e refinadas por regras. **Nunca chamar isso de geração generativa livre.** Depois da conta, o Estúdio de IA existente permanece disponível, condicionado a cotas.
 - A string de briefing não aparece na URL; session/token não são colocados no prompt. O backend valida os oito IDs e rejeita atributos financeiros extras do schema.
-- Fotos de cardápio são lidas pelo OCR já existente; referências/arquivo de logo não entram silenciosamente como produtos. Upload de logo/capa se faz na loja depois do cadastro.
+- Fotos de cardápio são lidas pelo OCR já existente. Logo e capa são recebidos **separadamente**, com validação de formato/até 2 MB, e guardados em IndexedDB por sessão. A escolha altera a prévia, mas nunca cria produto por OCR. Após criar a conta, os arquivos são transferidos para a nova pizzaria no mesmo aparelho e podem ser **aplicados explicitamente** em Pizzaria → Arquivos trazidos na criação. O upload vai à mídia da própria loja, a alteração entra no rascunho e não publica automaticamente.
 - Não confundir com a melhoria ainda pendente do leitor iFood na PR #25 nem com a integração oficial, que requer homologação.
 
 ## Dependências e pronto
