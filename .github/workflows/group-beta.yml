@@ -40,6 +40,7 @@ on:
       - "components/menu-source-link.tsx"
       - "scripts/check-menu-source-links.test.mjs"
       - "scripts/check-menu-reader.test.mjs"
+      - "scripts/check-menu-price-confidence.test.mjs"
       - "scripts/check-menu-storage.test.mjs"
       - "scripts/check-menu-import-routes.test.mjs"
       - "scripts/check-order-view.test.mjs"

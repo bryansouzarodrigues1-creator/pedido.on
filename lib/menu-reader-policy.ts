@@ -2,7 +2,7 @@ import {z} from "zod";
 import {restaurantSchema,type RestaurantData,type Product,type Size} from "./domain.ts";
 
 export type SourceBox={x0:number;y0:number;x1:number;y1:number};
-export type ReaderLine={text:string;confidence?:number;box?:SourceBox};
+export type ReaderLine={text:string;confidence?:number;priceConfidence?:number;box?:SourceBox};
 export type ReaderWord={text:string;confidence:number;box:SourceBox};
 export type ReaderPage={id:string;name:string;image:string;width:number;height:number;lines:ReaderLine[]};
 const amount=z.number().int().min(1).max(1000000).nullable();
@@ -17,8 +17,8 @@ export function menuAmount(s:string){
   const cents=Math.round(Number(decimal)*100);
   return Number.isInteger(cents)&&cents>0&&cents<=1000000?cents:null;
 }
-const priceRE=/(?:R\s*\$\s*\d{1,6}(?:\.\d{3})*(?:[,.]\d{2})?|\b\d{1,6}(?:\.\d{3})*[,.]\d{2}\b)/gi;
-const sizesIn=(s:string)=>[...normalizeMenuText(s).matchAll(/\b(pequena|pequeno|media|medio|grande|p|m|g)\b/g)].map(m=>({size:({pequena:"p",pequeno:"p",media:"m",medio:"m",grande:"g",p:"p",m:"m",g:"g"} as const)[m[1] as "p"],index:m.index!}));
+const priceRE=/(?:R\s*\$\s*[-+−]?\s*\d(?:[\d.,]*\d)?(?![\d.,a-z])|(?<![\d.,+−-])[-+−]?\d{1,6}(?:\.\d{3})*[,.]\d{2}(?![\d.,a-z]))/gi;
+const sizesIn=(s:string)=>[...normalizeMenuText(s).matchAll(/\b(pequena|pequeno|media|medio|grande|gg|familia|gigante|brotinho|p|m|g)\b/g)].map(m=>({size:({pequena:"p",pequeno:"p",media:"m",medio:"m",grande:"g",p:"p",m:"m",g:"g"} as Record<string,Size>)[m[1]]||null,index:m.index!}));
 function categoryFor(s:string):{category:string;kind:ReaderItem["kind"]}|null{
   const explicit=s.match(/^Categoria:\s*(.{2,60})\s+\[(pizza|simple|crust)\]$/i);if(explicit)return {category:explicit[1].trim(),kind:explicit[2].toLowerCase() as ReaderItem["kind"]};
   const n=normalizeMenuText(s).replace(/[^a-z ]/g,"").trim();
@@ -32,7 +32,8 @@ function categoryFor(s:string):{category:string;kind:ReaderItem["kind"]}|null{
   return null;
 }
 function union(a?:SourceBox,b?:SourceBox){return !a?b:!b?a:{x0:Math.min(a.x0,b.x0),y0:Math.min(a.y0,b.y0),x1:Math.max(a.x1,b.x1),y1:Math.max(a.y1,b.y1)};}
-const interfaceText=/^(?:pra voltar a pedir|nao aceito com|o preco com desconto|adicionar\b|\d+\s*[+−-]?\s*adicionar\b|deseja (?:uma?|alguma?)|escolha ate|favorit|compartilhar|voltar\b|ver sacola|sacola\b|avaliacoes|mais vendidos)/;
+const interfaceText=/^(?:pra voltar a pedir|nao aceito com|o preco com desconto|adicionar\b|\d+\s*[+−-]?\s*adicionar\b|deseja (?:uma?|alguma?)|escolha ate|favorit|compartilhar|voltar\b|ver (?:sacola|mais|todos)\b|sacola\b|avaliacoes|mais vendidos)/;
+function requireReview(item:ReaderItem,issue:string){item.reviewRequired=true;item.selected=false;if(!item.issues.includes(issue)&&item.issues.length<12)item.issues.push(issue);}
 const storeStats=/(?:\b\d+\s*[-–]\s*\d+\s*min\b|\b\d+[,.]\d\s*\(\d+\)|\b\d+\s*avaliacoes\b)/;
 const validProductName=(name:string)=>{
  const letters=name.match(/[\p{L}]/gu)?.length||0;
@@ -56,7 +57,8 @@ export function readProductDetail(page:Pick<ReaderPage,"id"|"lines">):ReaderItem
  const pizzaContext=explicitPizza||/pizz/.test(merchantNorm)||/\b(margherita|marguerita|calabresa|portuguesa|quatro queijos|frango com catupiry)\b/.test(titleNorm);
  const kind:ReaderItem["kind"]=!combo&&!drink&&!burger&&pizzaContext?"pizza":"simple",promotional=norms.some(n=>/voltar a pedir|cupons|preco com desconto/.test(n))||prices.length!==1||(prices[0]||0)<300;
  const relevant=[title,...content.slice(titleIndex+1),lines[priceIndex]],box=relevant.reduce<SourceBox|undefined>((box,line)=>union(box,line.box),undefined);
- return {id:page.id+"-detail",sourceId:page.id,sourceText:relevant.map(l=>l.text).join("\n").slice(0,2000),box,name:title.text.slice(0,100),description,category:kind==="pizza"?"Pizzas":drink?"Bebidas":combo?"Combos":burger?"Lanches":"Produtos",kind,price:prices[0]||null,sizes:{p:null,m:null,g:null},issues:[...(promotional?["Este print mostra uma oferta do aplicativo. Defina o preço que sua loja realmente vai praticar."]:[]),...(optional>=0?["Bebidas e adicionais opcionais não foram incluídos no produto."]:[]),...(kind==="pizza"?["Escolha o tamanho desse preço."]:[])],reviewRequired:promotional,selected:!promotional&&kind!=="pizza",action:"add"};
+ const weakPrice=(lines[priceIndex].priceConfidence??lines[priceIndex].confidence??100)<75;
+ return {id:page.id+"-detail",sourceId:page.id,sourceText:relevant.map(l=>l.text).join("\n").slice(0,2000),box,name:title.text.slice(0,100),description,category:kind==="pizza"?"Pizzas":drink?"Bebidas":combo?"Combos":burger?"Lanches":"Produtos",kind,price:prices[0]||null,sizes:{p:null,m:null,g:null},issues:[...(promotional?["Este print mostra uma oferta do aplicativo. Defina o preço que sua loja realmente vai praticar."]:[]),...(weakPrice?["Confira o preço: a leitura desse valor tem baixa confiança."]:[]),...(optional>=0?["Bebidas e adicionais opcionais não foram incluídos no produto."]:[]),...(kind==="pizza"?["Escolha o tamanho desse preço."]:[])],reviewRequired:promotional||weakPrice,selected:!promotional&&!weakPrice&&kind!=="pizza",action:"add"};
 }
 export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
   // Keep prices with their row and preserve parallel menu columns using word positions.
@@ -77,12 +79,29 @@ export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
     }
     if(chunks.some(chunk=>chunk.some(w=>w.confidence>=75)))row.words=chunks.flatMap(chunk=>{
       const text=chunk.map(w=>w.text).join(" ");
-      const meaningfulPrice=!!text.match(priceRE)||/^[PMG]$/i.test(text.trim());
+      const meaningfulPrice=!!text.match(priceRE)||/^(?:[PMG]|GG|[-+−])$/i.test(text.trim());
       return chunk.every(w=>w.confidence<55)&&!meaningfulPrice?[]:chunk;
     });
   }
   const boundaries:number[]=[];
+  // Require repeated rows with a named, priced product on both sides. A gap
+  // between P/M/G prices alone is not evidence of another menu column.
+  const gutters:{left:number;right:number;rows:Set<typeof rows[number]>}[]=[];
+  const pricedName=(part:ReaderWord[])=>{
+    const text=part.map(w=>w.text).join(" "),price=[...text.matchAll(priceRE)][0];if(!price)return false;
+    const name=text.slice(0,price.index).trim();
+    return validProductName(name)&&normalizeMenuText(name).replace(/\b(pequena|pequeno|media|medio|grande|gg|familia|gigante|brotinho|p|m|g)\b/g,"").replace(/[^a-z]/g,"").length>=3;
+  };
   for(const row of rows){
+    const words=row.words.sort((a,b)=>a.box.x0-b.box.x0);
+    for(let i=1;i<words.length;i++){
+      const left=words[i-1].box.x1,right=words[i].box.x0;if(right-left<Math.max(60,width*.05)||!pricedName(words.slice(0,i))||!pricedName(words.slice(i)))continue;
+      const group=gutters.find(g=>Math.max(g.left,left)<Math.min(g.right,right)&&Math.abs(g.left+g.right-left-right)<width*.24);
+      if(group){group.left=Math.max(group.left,left);group.right=Math.min(group.right,right);group.rows.add(row);}else gutters.push({left,right,rows:new Set([row])});
+    }
+  }
+  for(const gutter of gutters)if(gutter.rows.size>=2)boundaries.push((gutter.left+gutter.right)/2);
+  if(!boundaries.length)for(const row of rows){
     const chunks:ReaderWord[][]=[];
     for(const word of row.words.sort((a,b)=>a.box.x0-b.box.x0)){const last=chunks.at(-1);if(!last||word.box.x0-last.at(-1)!.box.x1>Math.max(80,width*.09))chunks.push([word]);else last.push(word);}
     const headings=chunks.filter(chunk=>!!categoryFor(chunk.map(w=>w.text).join(" ")));
@@ -93,15 +112,23 @@ export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
   for(const row of rows){
     const segments:ReaderWord[][]=Array.from({length:columns.length},()=>[]);
     for(const word of row.words){const x=(word.box.x0+word.box.x1)/2;segments[boundaries.filter(b=>x>b).length].push(word);}
-    for(let i=0;i<segments.length;i++){const segment=segments[i].sort((a,b)=>a.box.x0-b.box.x0);if(!segment.length)continue;columns[i].push({text:segment.map(w=>w.text).join(" "),confidence:segment.reduce((sum,w)=>sum+w.confidence,0)/segment.length,box:segment.reduce<SourceBox|undefined>((box,w)=>union(box,w.box),undefined)});}
+    for(let i=0;i<segments.length;i++){const segment=segments[i].sort((a,b)=>a.box.x0-b.box.x0);if(!segment.length)continue;const prices=segment.filter(w=>w.text.match(priceRE)||/^[-+−]$/.test(w.text.trim()));columns[i].push({text:segment.map(w=>w.text).join(" "),confidence:segment.reduce((sum,w)=>sum+w.confidence,0)/segment.length,...(prices.length?{priceConfidence:Math.min(...prices.map(w=>w.confidence))}:{}),box:segment.reduce<SourceBox|undefined>((box,w)=>union(box,w.box),undefined)});}
   }
   return columns.flat();
 }
 export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResult{
   const items:ReaderItem[]=[],unmatched:ReaderResult["unmatched"]=[];
+  const conflicts=new WeakMap<ReaderItem,Set<Size|"price">>();
+  function assignPrice(item:ReaderItem,key:Size|"price",value:number|null){
+    const blocked=conflicts.get(item)||new Set<Size|"price">();
+    const current=key==="price"?item.price:item.sizes[key];
+    if(blocked.has(key))return;
+    if(current!==null&&current!==value){blocked.add(key);conflicts.set(item,blocked);requireReview(item,"Preços conflitantes para "+(key==="price"?"este produto":key.toUpperCase())+": confira o valor na fonte.");if(key==="price")item.price=null;else item.sizes[key]=null;return;}
+    if(key==="price")item.price=value;else item.sizes[key]=value;
+  }
   for(const page of pages){
     const detail=readProductDetail(page);if(detail){items.push(detail);continue;}
-    let categoryExplicit=false,category="Pizzas",kind:ReaderItem["kind"]="pizza",header:Size[]=[],shared:Partial<Record<Size,number>>={},pending:ReaderItem|null=null;
+    let categoryExplicit=false,category="Pizzas",kind:ReaderItem["kind"]="pizza",header:(Size|null)[]=[],headerUnsupported=false,shared:Partial<Record<Size,number>>={},pending:ReaderItem|null=null;
     const flush=()=>{if(pending){if(!validProductName(pending.name)||!pending.price&&!Object.values(pending.sizes).some(Boolean)&&!pending.sourceText.match(priceRE)&&!(categoryExplicit&&pending.name.split(/\s+/).length<=5&&!/[.!?:]/.test(pending.name)&&!pending.reviewRequired))unmatched.push({sourceId:page.id,text:pending.sourceText});else{if(pending.kind==="pizza"&&!Object.values(pending.sizes).some(Boolean))pending.issues.push(pending.price?"Escolha o tamanho desse preço.":"Confira o preço e o tamanho.");if(pending.kind!=="pizza"&&!pending.price)pending.issues.push("Informe o preço.");items.push(pending);}pending=null;}};
     for(const raw of page.lines){
       const text=raw.text.replace(/\s+/g," ").trim();if(!text)continue;
@@ -109,15 +136,15 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
       if(interfaceText.test(norm)||storeStats.test(norm)){flush();unmatched.push({sourceId:page.id,text});continue;}
       if(raw.confidence!==undefined&&raw.confidence<45&&!matches.length){unmatched.push({sourceId:page.id,text});continue;}
       const section=categoryFor(text);
-      if(section){flush();({category,kind}=section);categoryExplicit=true;header=[];shared={};continue;}
+      if(section){flush();({category,kind}=section);categoryExplicit=true;header=[];headerUnsupported=false;shared={};continue;}
       if(/\b(promocao|promocoes|oferta|ofertas)\b/.test(norm)){flush();unmatched.push({sourceId:page.id,text:"Oferta da foto: "+text});continue;}
-      if(/^(whatsapp|telefone|contato|endereco|rua |av\.|avenida|pix|delivery|entrega|taxa |horario|funcionamento|aberto|peca|pedido|minimo|instagram|www\.|@)/.test(norm)||/\(?\d{2}\)?\s*9?\d{4}[- ]\d{4}/.test(norm)){flush();unmatched.push({sourceId:page.id,text});continue;}
+      if(/^(whatsapp|telefone|contato|endereco|rua |av\.|avenida|pix|delivery|entrega|frete\b|taxa |horario|funcionamento|aberto|peca|pedido|minimo|instagram|www\.|@)/.test(norm)||/\(?\d{2}\)?\s*9?\d{4}[- ]\d{4}/.test(norm)){flush();unmatched.push({sourceId:page.id,text});continue;}
       const unsupported=/\b(gg|familia|gigante|brotinho)\b|\b\d{2}\s*cm\b/.test(norm);
-      if(!matches.length&&labels.length&&/^(sabores?|tamanhos?|pequena|pequeno|media|medio|grande|p\b|m\b|g\b)/.test(norm)){flush();header=labels.map(v=>v.size);if(unsupported)unmatched.push({sourceId:page.id,text:"Tamanho a conferir: "+text});continue;}
+      if(!matches.length&&labels.length&&/^(sabores?|tamanhos?|pequena|pequeno|media|medio|grande|gg\b|familia\b|gigante\b|brotinho\b|p\b|m\b|g\b)/.test(norm)){flush();header=labels.map(v=>v.size);headerUnsupported=unsupported;if(unsupported)unmatched.push({sourceId:page.id,text:"Tamanho a conferir: "+text});continue;}
       if(matches.length&&/^(todas|todos|qualquer sabor|preco unico|pizzas? (grandes?|medias?|pequenas?))/.test(norm)){
-        flush();shared={};if(labels.length===prices.length)labels.forEach((v,i)=>{if(prices[i])shared[v.size]=prices[i]!;});else unmatched.push({sourceId:page.id,text:"Preço compartilhado a conferir: "+text});continue;
+        flush();shared={};if(!unsupported&&labels.length===prices.length)labels.forEach((v,i)=>{if(v.size&&prices[i])shared[v.size]=prices[i]!;});else unmatched.push({sourceId:page.id,text:"Preço compartilhado a conferir: "+text});continue;
       }
-      const before=matches.length?text.slice(0,matches[0].index).replace(/\b(?:P|M|G|pequena|média|grande)\s*[-:·]?\s*$/i,"").replace(/[.\-:·|\s]+$/g,""):text;
+      const before=matches.length?text.slice(0,matches[0].index).replace(/\b(?:GG|P|M|G|pequena|média|grande|família|gigante|brotinho)\s*[-:·]?\s*$/i,"").replace(/[.\-:·|\s]+$/g,""):text;
       const name=before.replace(/^\d{1,3}\s*[.)\-:]\s*/,"").trim();
       const ingredients=/^(ingredientes?\s*:|molho\b|mucarela\b|mozzarella\b|queijo\b|tomate\b|massa\b)/.test(norm)||!matches.length&&text.includes(",");
       if(pending&&ingredients&&!matches.length){pending.description=(pending.description?pending.description+" ":"")+text.replace(/^ingredientes?\s*:\s*/i,"");pending.description=pending.description.slice(0,600);pending.sourceText=(pending.sourceText+"\n"+text).slice(0,2000);pending.box=union(pending.box,raw.box);continue;}
@@ -129,18 +156,28 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
         const itemKind=kind==="pizza"&&/^(x[ -]?(tudo|salada|bacon|burguer)|hamburguer|sanduiche)\b/.test(normalizeMenuText(name))?"simple":kind;
         pending={id:`${page.id}-${items.length}`,sourceId:page.id,sourceText:text.slice(0,2000),box:raw.box,name:name.slice(0,100),description:"",category:itemKind!==kind?"Lanches":category,kind:itemKind,price:null,sizes:{p:shared.p??null,m:shared.m??null,g:shared.g??null},issues:[],selected:true,action:"add"};
       }
-      if(raw.confidence!==undefined&&raw.confidence<75){pending!.issues.push("Confira a leitura deste trecho.");pending!.reviewRequired=true;pending!.selected=false;}
-      if(unsupported){pending!.issues.push("Tamanho fora de P/M/G: confirme o tamanho no editor.");pending!.selected=false;}
+      if(raw.confidence!==undefined&&raw.confidence<75)requireReview(pending!,"Confira a leitura deste trecho.");
+      if(matches.length&&raw.priceConfidence!==undefined&&raw.priceConfidence<75)requireReview(pending!,"Confira o preço: a leitura desse valor tem baixa confiança.");
+      if(unsupported||pending!.kind==="pizza"&&headerUnsupported)requireReview(pending!,"Tamanho fora de P/M/G: confirme o tamanho no editor.");
       if(matches.length){
-        if(pending!.kind!=="pizza")pending!.price=prices.length===1?prices[0]:null;
-        else if(labels.length===prices.length)labels.forEach((v,i)=>{pending!.sizes[v.size]=prices[i];});
-        else if(header.length===prices.length)header.forEach((v,i)=>{pending!.sizes[v]=prices[i];});
-        else if(prices.length===1)pending!.price=prices[0];
-        else pending!.issues.push("Vários preços sem tamanhos claros: confira na foto.");
+        const mixed=matches.some((match,i)=>i>0&&/[\p{L}]{3}/u.test(normalizeMenuText(text.slice(matches[i-1].index!+matches[i-1][0].length,match.index)).replace(/\b(pequena|pequeno|media|medio|grande|gg|familia|gigante|brotinho|p|m|g)\b/g,"")));
+        if(mixed)requireReview(pending!,"A linha mistura produtos ou condições de preço. Confira os trechos separados na fonte.");
+        else if(pending!.kind!=="pizza"){if(prices.length===1)assignPrice(pending!,"price",prices[0]);else{pending!.price=null;requireReview(pending!,"Vários preços para este produto: confira o valor na fonte.");}}
+        else if(labels.length===prices.length)labels.forEach((v,i)=>{if(v.size)assignPrice(pending!,v.size,prices[i]);else if(prices.length===1)assignPrice(pending!,"price",prices[i]);});
+        else if(!labels.length&&header.length===prices.length)header.forEach((v,i)=>{if(v)assignPrice(pending!,v,prices[i]);});
+        else if(prices.length===1&&!labels.length)assignPrice(pending!,"price",prices[0]);
+        else requireReview(pending!,"Vários preços sem tamanhos claros: confira na foto.");
         if(prices.some(v=>v===null))pending!.issues.push("Há um preço ilegível.");
       }
     }
     flush();
+  }
+  const groups=new Map<string,ReaderItem[]>();
+  for(const item of items){const key=JSON.stringify([item.kind,normalizeMenuText(item.category),normalizeMenuText(item.name)]);const group=groups.get(key)||[];group.push(item);groups.set(key,group);}
+  for(const group of groups.values())if(group.length>1){
+    const same=group.every(item=>item.price===group[0].price&&(["p","m","g"] as const).every(size=>item.sizes[size]===group[0].sizes[size]));
+    const canonical=group.find(readerItemReady)||group[0];
+    for(const item of same?group.filter(item=>item!==canonical):group)requireReview(item,same?"Duplicado: este produto já aparece em outro trecho da leitura.":"Mesmo produto com valores diferentes em outros trechos: escolha a versão correta.");
   }
   return {items,unmatched,pages:pages.length};
 }
