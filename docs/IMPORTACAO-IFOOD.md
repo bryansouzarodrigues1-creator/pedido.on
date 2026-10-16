@@ -1,5 +1,28 @@
 # Importação de cardápio iFood na pizzaria.on
 
+## Continuação de 16/10/2026 — dados JSON públicos e API oficial
+
+A consulta por link público foi ampliada para reconhecer **JSON-LD Schema.org** e também scripts **JSON válidos** de hidratação Next.js (`__NEXT_DATA__`), *somente quando já forem retornados na página pública*. Não executa JavaScript da loja, não segue redirecionamentos, não envia cookies nem extrai endpoints privados. Se a página retornar 403, CAPTCHA, HTML sem catálogo estruturado ou preços ambíguos, o resultado continua `needs_content`, com entrada por texto/TXT/CSV/fotos. Isso não garante que o site atual do iFood disponibilize `__NEXT_DATA__`; os testes da mudança usam amostras sintéticas.
+
+A leitura de JSON de hidratação exige caminho explícito de catálogo/menu e categoria com nome. Só propõe itens com **preço único positivo em BRL**, sem opções/tamanhos complexos, desconto alternativo ou preço conflitante de mesmo produto. Nunca supõe tamanho G. O dono revisa cada item antes de gravar no rascunho e publica separadamente. Não afirmar que um item complexo foi importado completamente.
+
+O endereço oficial documentado para listar catálogos (API v2.0) é:
+
+```http
+GET https://merchant-api.ifood.com.br/catalog/v2.0/merchants/{merchantId}/catalogs
+Authorization: Bearer <access_token>
+```
+
+O endereço `https://ifood.com.br/{merchantId}/catalogs` divulgado em uma resposta externa **não é o endpoint oficial**. Para importar dados de lojas autorizadas, precisamos criar/homologar **nossa aplicação**, solicitar os módulos Merchant/Catalog e obter autorização de cada pizzaria. Em uma aplicação centralizada, o proprietário da loja **não precisa criar uma conta de desenvolvedor própria**: o Pizzaria.on detém as credenciais técnicas; o dono autoriza o acesso no Portal do Parceiro. O `merchantId` autorizado deve vir do fluxo/listagem oficial, não ser presumido a partir do UUID do link público.
+
+Referências:
+- https://developer.ifood.com.br/en-US/docs/food/guides/modules/catalog/endpoints
+- https://developer.ifood.com.br/en-US/docs/food/guides/modules/authentication/centralized
+- https://developer.ifood.com.br/en-US/docs/getting-started/first-steps/request-access
+
+**Não concluído por esta PR:** homologação, sincronização oficial, importação da Aione Pizzas (403 anterior), importação de complementos/tamanhos complexos, QA em celular e implantação. Nenhuma chave/credencial foi criada, e nenhum gasto ou chamada paga foi feito.
+
+
 ## Atualização de 16/10/2026
 
 A entrada pública pela ideia e o painel **Cardápio → Importar cardápio** aceitam link iFood, texto completo, TXT/CSV e fotos. O link pode iniciar uma consulta controlada à página pública, sem credenciais e sem redirecionamentos. Apenas dados estruturados `MenuItem`/`MenuSection` com preço BRL inequívoco são levados à revisão. A rota `/api/menu-source` impõe timeout, limite de 1,5 MB e limites de tentativas em D1; não contorna autenticação, CAPTCHA ou bloqueios.
