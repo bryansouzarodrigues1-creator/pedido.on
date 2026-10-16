@@ -1,9 +1,10 @@
 "use client";
 import {useEffect,useRef,useState,type ChangeEvent,type FormEvent} from "react";
-import {ArrowRight,ArrowUpRight,Check,Link2,Paperclip,Sparkles,X,FileText,ImagePlus} from "lucide-react";
+import {ArrowRight,Check,Link2,Paperclip,Sparkles,X,FileText,ImagePlus,RefreshCw} from "lucide-react";
 import {demoRestaurant,defaultRestaurant,type RestaurantData} from "@/lib/domain";
-import {localStudio,proposalPatch} from "@/lib/studio-policy";
-import {layoutNames,menuPresentation} from "@/lib/menu-design";
+import type {ReaderItem} from "@/lib/menu-reader-policy";
+import {galleryDesign,galleryStyle,suggestedGalleryStyles,type GalleryStyleId} from "@/lib/gallery-styles";
+
 import {readMenuLaunch,saveMenuLaunch,guestReadingKey,type MenuLaunch} from "@/lib/menu-launch";
 import {menuLaunchAccountPath} from "@/lib/menu-launch-client";
 import {inspectMenuSourceText} from "@/lib/menu-source-links";
@@ -13,14 +14,16 @@ import {loadReading,saveReading,type Reading} from "@/lib/menu-reader-storage";
 import {prepareMenuPhoto,recognizeMenuPhotos} from "@/lib/menu-ocr";
 import {applyReaderItems,readMenuPages,readerItemReady,type ReaderPage} from "@/lib/menu-reader-policy";
 import {MiniMenu,Spinner} from "./ui";
-const ideas=["Artesanal italiano, verde e uma lista elegante","Escuro com fotos grandes e letras fortes","Claro, compacto e sem fotos"];
+
+function makePreview(items:ReaderItem[]):RestaurantData{const sample=demoRestaurant("editorial");if(!items.length)return sample;const base=defaultRestaurant("Sua pizzaria");const ready=items.map(item=>({...item,selected:item.selected&&readerItemReady(item)}));return ready.some(item=>item.selected)?{...base,...applyReaderItems(base,ready)}:base;}
 export default function IdeaStart(){
  const [initialized,setInitialized]=useState(false);
+ const [styleId,setStyleId]=useState<GalleryStyleId|null>(null),[round,setRound]=useState(0),[refinement,setRefinement]=useState(""),[feedback,setFeedback]=useState(""),[chatOpen,setChatOpen]=useState(false);
  const [idea,setIdea]=useState(""),[sourceOpen,setSourceOpen]=useState(false),[sourceText,setSourceText]=useState(""),[pages,setPages]=useState<ReaderPage[]>([]),[preview,setPreview]=useState<RestaurantData|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[readingLabel,setReadingLabel]=useState(""),[imported,setImported]=useState(0),[saving,setSaving]=useState(false);
  const abort=useRef<AbortController|null>(null),alive=useRef(true),reading=useRef<Reading|null>(null),launch=useRef<MenuLaunch|null>(null);
- useEffect(()=>{alive.current=true;try{const saved=readMenuLaunch(localStorage);if(saved){launch.current=saved;setIdea(saved.idea);setSourceText(saved.sourceText);if(saved.sourceText||saved.hasPhotos)setSourceOpen(true);void loadReading(guestReadingKey(saved.id)).then(v=>{if(alive.current&&v){setPages(v.pages);reading.current=v;}}).catch(()=>{}).finally(()=>{if(alive.current)setInitialized(true);});}else setInitialized(true);}catch{setInitialized(true);}return()=>{alive.current=false;abort.current?.abort();};},[]);
- useEffect(()=>{if(!initialized||!idea&&!sourceText&&!pages.length)return;const timer=setTimeout(()=>{try{const value={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,sourceText,hasPhotos:!!pages.length};saveMenuLaunch(localStorage,value);launch.current=value;}catch{}},350);return()=>clearTimeout(timer);},[idea,sourceText,pages.length,initialized]);
- useEffect(()=>{if(!initialized||!pages.length&&!sourceText)return;const timer=setTimeout(()=>{const value={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,sourceText,hasPhotos:!!pages.length};launch.current=value;try{saveMenuLaunch(localStorage,value);}catch{}const checkpoint={restaurantId:guestReadingKey(value.id),savedAt:Date.now(),pages,items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText};void saveReading(checkpoint).catch(()=>{});},400);return()=>clearTimeout(timer);},[initialized,pages,sourceText]);
+ useEffect(()=>{alive.current=true;try{const saved=readMenuLaunch(localStorage);if(saved){launch.current=saved;setIdea(saved.idea);setSourceText(saved.sourceText);if(saved.sourceText||saved.hasPhotos)setSourceOpen(true);setStyleId(saved.styleId||null);setRefinement(saved.refinement||"");void loadReading(guestReadingKey(saved.id)).then(v=>{if(alive.current&&v){setPages(v.pages);reading.current=v;}if(alive.current&&saved.previewReady){const restored=v?.items||[];setPreview(makePreview(restored));}}).catch(()=>{}).finally(()=>{if(alive.current)setInitialized(true);});}else setInitialized(true);}catch{setInitialized(true);}return()=>{alive.current=false;abort.current?.abort();};},[]);
+ useEffect(()=>{if(!initialized||!idea&&!sourceText&&!pages.length)return;const timer=setTimeout(()=>{try{const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,sourceText,hasPhotos:!!pages.length,styleId:styleId||undefined,refinement,previewReady:!!preview};saveMenuLaunch(localStorage,value);launch.current=value;}catch{}},350);return()=>clearTimeout(timer);},[idea,sourceText,pages.length,styleId,refinement,preview,initialized]);
+ useEffect(()=>{if(!initialized||!pages.length&&!sourceText)return;const timer=setTimeout(()=>{const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,sourceText,hasPhotos:!!pages.length,styleId:styleId||undefined,refinement,previewReady:!!preview};launch.current=value;try{saveMenuLaunch(localStorage,value);}catch{}const checkpoint={restaurantId:guestReadingKey(value.id),savedAt:Date.now(),pages,items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText};void saveReading(checkpoint).catch(()=>{});},400);return()=>clearTimeout(timer);},[initialized,pages,sourceText,idea,styleId,refinement,preview]);
  async function files(e:ChangeEvent<HTMLInputElement>){const files=Array.from(e.target.files||[]);e.target.value="";if(!files.length)return;setError("");setBusy(true);try{
   const photos=files.filter(f=>f.type.startsWith("image/"));if(pages.length+photos.length>8)throw Error("Envie até oito fotos por vez.");
   const added:ReaderPage[]=[];let text=sourceText;
@@ -39,10 +42,7 @@ export default function IdeaStart(){
    const input=ready.map(p=>({id:p.id,lines:p.lines}));if(source.menuText.trim())input.push({id:"text",lines:source.menuText.split("\n").map(text=>({text}))});
    const result=input.length?readMenuPages(input):{items:[],unmatched:[]};
    if(input.length&&!result.items.length)setNotice("A fonte não trouxe produtos com preço legível. Cole o texto com os preços ou tente uma imagem mais nítida.");
-   let example=demoRestaurant("editorial");
-   if(result.items.length){const base=defaultRestaurant("Sua pizzaria"),items=result.items.map(item=>({...item,selected:item.selected&&readerItemReady(item)}));if(items.some(p=>p.selected))example={...base,...applyReaderItems(base,items)};else example=base;setImported(result.items.length);}
-   else setImported(0);
-   const proposal=localStudio(idea.trim()||"Cardápio artesanal em lista com verde italiano",example);setPreview({...example,...proposalPatch(proposal,example)});
+   setPreview(makePreview(result.items));setStyleId(null);setRound(0);setRefinement("");setChatOpen(false);setImported(result.items.length);
    if(!launch.current)launch.current={id:crypto.randomUUID(),savedAt:Date.now(),idea,sourceText:text,hasPhotos:!!ready.length};
    reading.current={restaurantId:guestReadingKey(launch.current.id),savedAt:Date.now(),pages:ready,items:result.items,unmatched:result.unmatched,text};
    await saveReading(reading.current).catch(()=>{});
@@ -50,24 +50,43 @@ export default function IdeaStart(){
  }
  async function continueSetup(){
   if(busy||saving)return;setSaving(true);setError("");try{
-   const value={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,sourceText,hasPhotos:!!pages.length};saveMenuLaunch(localStorage,value);launch.current=value;
+   if(!styleId){setError("Escolha um dos modelos antes de continuar.");setSaving(false);return;}
+   const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,sourceText,hasPhotos:!!pages.length,styleId,refinement,previewReady:true};saveMenuLaunch(localStorage,value);launch.current=value;
    if(pages.length)await saveReading({...reading.current,restaurantId:guestReadingKey(value.id),savedAt:Date.now(),pages,items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText});
    else if(sourceText)await saveReading({restaurantId:guestReadingKey(value.id),savedAt:Date.now(),pages:[],items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText}).catch(()=>{});
    location.assign(await menuLaunchAccountPath());
   }catch{setError("O navegador não conseguiu guardar sua ideia. Libere o armazenamento deste site para levar o conteúdo até o cadastro.");setSaving(false);}
  }
- return <section className="idea-start" id="ideia"><div className="saas-container">
-  <div className="idea-intro"><span className="idea-eyebrow"><span/> O SEU PRÓXIMO CARDÁPIO COMEÇA AQUI</span><h1>Sua pizzaria.<br/><em>Do seu jeito.</em></h1><p>Descreva a ideia. Traga seus sabores. Veja o cardápio ganhar a cara da sua marca.</p></div>
-  <div className={`idea-workspace ${preview?"has-preview":""}`}><div className="idea-composer-wrap"><form className="idea-composer" onSubmit={generate}>
-   <label htmlFor="pizzeria-idea"><Sparkles size={19}/>Como você imagina sua pizzaria?</label>
-   <textarea id="pizzeria-idea" rows={4} maxLength={1600} value={idea} onChange={e=>{setIdea(e.target.value);setPreview(null);}} placeholder="Uma pizzaria artesanal, verde italiano, letras elegantes e os sabores em uma lista com fotos ao lado…" disabled={busy||saving||!initialized}/>
-   <div className="idea-composer-bottom"><button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>setSourceOpen(!sourceOpen)}><Paperclip size={17}/>Trazer do iFood</button><button className="btn primary" disabled={busy||saving||!initialized}>{busy?<Spinner/>:<Sparkles size={17}/>} {busy?"Preparando…":"Criar prévia"}<ArrowRight size={17}/></button></div>
-  </form>
-  <div className="idea-examples" aria-label="Ideias para experimentar">{ideas.map((v,i)=><button key={v} type="button" disabled={busy||saving||!initialized} onClick={()=>{setIdea(v);setPreview(null);setError("");}}>{["Artesanal italiano","Fotos em destaque","Simples e direto"][i]}<ArrowUpRight size={12}/></button>)}</div>
-  {sourceOpen&&<div className="idea-source"><div><strong><Link2 size={17}/>Traga o cardápio que você já tem</strong><button className="icon-btn" type="button" aria-label="Recolher importação" onClick={()=>setSourceOpen(false)}><X size={16}/></button></div><label htmlFor="idea-source-text">Link da loja no iFood ou texto dos produtos</label><textarea id="idea-source-text" rows={4} maxLength={60000} value={sourceText} disabled={busy||saving||!initialized} onChange={e=>{setSourceText(e.target.value);setPreview(null);reading.current=null;}} placeholder={'Cole o link do iFood ou os produtos com preços.\nEx.: Calabresa G R$ 49,90'}/><div className="idea-file-actions"><label><ImagePlus size={16}/>Fotos<input type="file" hidden multiple accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={files}/></label><label><FileText size={16}/>Arquivo TXT/CSV<input type="file" hidden accept=".txt,.csv,text/plain,text/csv" disabled={busy||saving||!initialized} onChange={files}/></label><a href="/modelo-cardapio.csv" download>Modelo CSV</a></div>{pages.length>0&&<div className="idea-photos">{pages.map(page=><div key={page.id}><img src={page.image} alt={page.name}/><button type="button" disabled={busy||saving||!initialized} aria-label={`Remover ${page.name}`} onClick={()=>{setPages(old=>old.filter(p=>p.id!==page.id));setPreview(null);reading.current=null;}}><X size={13}/></button></div>)}</div>}<small>O link depende do acesso liberado pelo iFood. Texto, arquivo e fotos são lidos aqui, sem geração paga.</small></div>}
-  {notice&&<p className="idea-notice" role="status">{notice}</p>}{error&&<p className="idea-error" role="alert">{error}</p>}{busy&&readingLabel&&<p className="idea-notice" role="status">{readingLabel}</p>}
-  {preview?<div className="idea-next"><span><Check size={16}/>{imported?`${imported} produtos para conferir no painel`:"Sua direção visual está pronta"}</span><button type="button" className="btn dark" disabled={busy||saving||!initialized} onClick={()=>void continueSetup()}>{saving?<Spinner/>:<>Continuar com esta ideia<ArrowRight size={17}/></>}</button><small>Crie a conta para guardar, ajustar e publicar. Você decide quando colocar no ar.</small></div>:<p className="idea-footnote">Experimente antes de criar a conta. A prévia usa composições prontas; no painel, a IA ajuda a refinar a ideia e os textos.</p>}
-  </div>{preview&&<aside className="idea-preview"><header><span className="idea-preview-dot"/><span>{layoutNames[menuPresentation(preview).layout]}</span><small>PRÉVIA</small></header><MiniMenu data={preview} large/><footer>{imported?"Itens e valores sujeitos à sua conferência.":"Produtos e preços de exemplo. Seus sabores entram na importação."}</footer></aside>}</div>
-  <div className="idea-proof"><span><Check size={14}/>Cliente pede sem cadastro</span><span><Check size={14}/>Pix direto para a pizzaria</span><span><Check size={14}/>Você confere antes de publicar</span></div>
+ const styles=suggestedGalleryStyles(idea,refinement),visible=styles.slice(round*4,round*4+4);
+ function refine(e:FormEvent){e.preventDefault();if(!feedback.trim()){setError("Descreva com suas palavras o que você quer mudar.");return;}
+  const combined=(refinement?refinement+". ":"")+feedback.trim();
+  if(combined.length>600){setError("Resuma as mudanças em até 600 caracteres.");return;}
+  setRefinement(combined);setFeedback("");setError("");setChatOpen(false);
+  if(!styleId)setRound(0);
+ }
+ return <section className="idea-start ai-landing" id="ideia"><div className="saas-container">
+   <div className="idea-intro"><span className="idea-eyebrow"><span/> CRIADOR DE CARDÁPIOS · PIZZARIA.ON</span><h1>Imagine sua pizzaria.<br/><em>Veja ela ganhar forma.</em></h1><p>Descreva o visual e anexe seu cardápio. Explore opções reais antes de criar uma conta.</p></div>
+   <div className={"idea-workspace"+(preview?" has-gallery":"")}><div className="idea-composer-wrap">
+     <form className="idea-composer" onSubmit={generate}><label htmlFor="pizzeria-idea"><Sparkles size={19}/>O que você imagina para a sua pizzaria?</label>
+       <textarea id="pizzeria-idea" rows={4} maxLength={1600} value={idea} onChange={e=>{setIdea(e.target.value);setPreview(null);setStyleId(null);}} placeholder="Quero uma pizzaria artesanal com cardápio elegante, verde escuro, fotos de pizzas grandes e preços bem organizados…" disabled={busy||saving||!initialized}/>
+       <div className="idea-composer-bottom"><button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>setSourceOpen(!sourceOpen)}><Paperclip size={17}/>Anexar arquivos / Trazer do iFood {pages.length>0?"("+pages.length+")":""}</button><button className="btn primary" disabled={busy||saving||!initialized}>{busy?<Spinner/>:<Sparkles size={17}/>} {busy?"Preparando…":preview?"Atualizar prévias":"Criar opções"}<ArrowRight size={17}/></button></div>
+     </form>
+     {sourceOpen&&<div className="idea-source"><div><strong><Link2 size={17}/>Seu cardápio atual</strong><button className="icon-btn" type="button" aria-label="Recolher importação" onClick={()=>setSourceOpen(false)}><X size={16}/></button></div><label htmlFor="idea-source-text">Link do iFood ou texto dos produtos</label>
+       <textarea id="idea-source-text" rows={4} maxLength={60000} value={sourceText} disabled={busy||saving||!initialized} onChange={e=>{setSourceText(e.target.value);setPreview(null);reading.current=null;}} placeholder={"Cole o link do iFood ou os nomes e preços dos produtos.\nCalabresa P R$ 29,90 · G R$ 49,90"}/>
+       <div className="idea-file-actions"><label><ImagePlus size={16}/>Fotos do cardápio<input type="file" hidden multiple accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={files}/></label><label><FileText size={16}/>TXT / CSV<input type="file" hidden accept=".txt,.csv,text/plain,text/csv" disabled={busy||saving||!initialized} onChange={files}/></label><a href="/modelo-cardapio.csv" download>Modelo CSV</a></div>
+       {pages.length>0&&<div className="idea-photos">{pages.map(page=><div key={page.id}><img src={page.image} alt={page.name}/><button type="button" disabled={busy||saving||!initialized} aria-label={"Remover "+page.name} onClick={()=>{setPages(old=>old.filter(p=>p.id!==page.id));setPreview(null);reading.current=null;}}><X size={13}/></button></div>)}</div>}
+       <small>Leitura de fotos e arquivos sem consumo de geração paga. Preços e tamanhos precisam de conferência antes de publicar. Logo, capa e referências visuais podem ser enviados no painel.</small>
+     </div>}
+     {notice&&<p className="idea-notice" role="status">{notice}</p>}{error&&<p className="idea-error" role="alert">{error}</p>}{busy&&readingLabel&&<p className="idea-notice" role="status">{readingLabel}</p>}
+   </div>
+   {preview&&<section className="ai-gallery" aria-label="Escolha o visual do seu cardápio">
+     <div className="ai-gallery-heading"><div><span>SEU PRIMEIRO RASCUNHO</span><h2>{styleId?"Este é o seu modelo":"Escolha uma direção visual"}</h2><p>{imported?imported+" itens reconhecidos para conferir depois. ":""}O desenho é real, não uma imagem de uma tela. Seu cliente vai conseguir pedir por ele.</p></div><span className="ai-round-count">{styleId?"MODELO ESCOLHIDO":"4 DE 8 ESTILOS"}</span></div>
+     {styleId?<div className="ai-selected"><div className="ai-selected-bar"><div><strong>{galleryStyle(styleId).title}</strong><small>{galleryStyle(styleId).summary}</small></div><button type="button" onClick={()=>{setStyleId(null);setChatOpen(false);}}>Escolher outro</button></div><div className="ai-selected-preview"><MiniMenu data={galleryDesign(preview,styleId,idea,refinement)} large/></div><div className="ai-selected-actions"><button type="button" className="btn primary" disabled={busy||saving} onClick={()=>void continueSetup()}>{saving?<Spinner/>:<><Check size={17}/>Continuar com este cardápio</>}</button><button type="button" className="btn outline" onClick={()=>setChatOpen(true)}>Quero ajustar o design</button></div></div>:
+       <><div className="ai-style-grid">{visible.map(id=>{const style=galleryStyle(id);return <article key={id} className="ai-style-card"><div className="ai-style-screen"><MiniMenu data={galleryDesign(preview,id,idea,refinement)} large/></div><div className="ai-style-footer"><div><strong>{style.title}</strong><span>{style.summary}</span></div><button type="button" disabled={busy||saving} onClick={()=>{setStyleId(id);setChatOpen(false);}} aria-label={"Escolher "+style.title}>Escolher<ArrowRight size={16}/></button></div></article>;})}</div><div className="ai-gallery-commands"><button type="button" onClick={()=>{setRound(round===0?1:0);setChatOpen(false);}}><RefreshCw size={16}/>{round===0?"Ver os outros quatro estilos":"Voltar aos primeiros estilos"}</button><button type="button" onClick={()=>setChatOpen(true)}><Sparkles size={16}/>Gerar outro modelo com minhas instruções</button></div></>}
+     {chatOpen&&<form className="ai-refine" onSubmit={refine}><label htmlFor="gallery-feedback">O que você quer diferente?</label><textarea id="gallery-feedback" required rows={3} maxLength={600} value={feedback} onChange={e=>setFeedback(e.target.value)} placeholder="Escreva livremente como você quer o design, as cores, a geometria, o tamanho das fotos e os textos."/><div><small>O ajuste local é gratuito. Geração paga de imagens e textos fica para a conta, com cota informada antes de usar.</small><button type="submit" className="btn dark">Aplicar meu pedido <ArrowRight size={15}/></button></div></form>}
+     <p className="ai-gallery-note">Você pode explorar os estilos sem cadastro. Para guardar e publicar, criamos a conta somente depois da sua escolha.</p>
+   </section>}
+   </div>
+   <div className="idea-proof"><span><Check size={14}/>Sem cadastro para experimentar</span><span><Check size={14}/>Modelos com carrinho de verdade</span><span><Check size={14}/>Você aprova os preços antes de publicar</span></div>
  </div></section>;
 }
