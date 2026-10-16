@@ -15,7 +15,7 @@ const expectedSha='437c75008bda1d024215f2adcce0ce97fccbabb42e237a330219cc8f34081
 const directory=path.resolve('.sites-runtime/public-ocr-benchmark');
 const temp=await import('node:fs/promises').then(fs=>fs.mkdtemp(path.join(tmpdir(),'pizzaria-public-ocr-')));
 const run=promisify(execFile);
-const require=createRequire(import.meta.url),wrangler=require(require.resolve('wrangler/package.json')),miniflare=createRequire(wrangler.resolve('miniflare/package.json')),sharp=miniflare('sharp');
+const require=createRequire(import.meta.url),wranglerRequire=createRequire(require.resolve('wrangler/package.json')),miniflareRequire=createRequire(wranglerRequire.resolve('miniflare/package.json')),sharp=miniflareRequire('sharp');
 await mkdir(directory,{recursive:true});
 const references={
  11:[
