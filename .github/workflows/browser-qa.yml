@@ -43,6 +43,10 @@ jobs:
           google-chrome --version
           echo "QA_CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
           echo "QA_PLAYWRIGHT_MODULE=$RUNNER_TEMP/pizzaria-browser-tools/node_modules/playwright-core" >> "$GITHUB_ENV"
+      - name: Prepare local PWA and OCR assets (no paid service)
+        run: |
+          node scripts/prepare-pwa.mjs
+          node scripts/prepare-ocr.mjs
       - name: Guest creation and calculator in real Chrome
         env:
           QA_HEADLESS: "true"
@@ -63,6 +67,8 @@ jobs:
             .sites-runtime/browser-ci/guest/evidence/
             .sites-runtime/browser-ci/calculator/
             .sites-runtime/browser-ci/handoff/
+            .sites-runtime/browser-ci/ocr/
             .sites-runtime/browser-ci/public/summary.json
             .sites-runtime/browser-ci/public/guest/evidence/
             .sites-runtime/browser-ci/public/calculator/
+            .sites-runtime/browser-ci/public/ocr/

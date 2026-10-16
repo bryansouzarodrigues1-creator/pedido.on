@@ -90,7 +90,7 @@ try {
     for (const kind of ['logo', 'capa']) {
         const media = page.waitForResponse(response => response.url() === base + '/api/restaurants/' + row.id + '/media' && response.request().method() === 'POST');
         await page.getByRole('button', {name: 'Aplicar ' + kind, exact: true}).click();
-        assert.equal((await media).status(), 200);
+        assert.equal((await media).status(), 201);
         await page.locator('.guest-brand-status').filter({hasText: kind === 'logo' ? 'Logo adicionado' : 'Capa adicionada'}).waitFor();
     }
     const saved = page.waitForResponse(response => response.url() === base + '/api/restaurants/' + row.id && response.request().method() === 'PUT');

@@ -11,10 +11,13 @@ export function browserQaTarget() {
 export async function guardPublicGuestContext(context, violations) {
     if (!browserQaTarget().publicReadOnly) return;
     // These guest tests never submit account, order, payment or generation forms.
-    // Block unexpected mutation methods before any bytes reach the public site.
+    // Block application mutations. Let the site's normal Cloudflare security
+    // verification run; it is not an account/order/payment/generation request.
     await context.route('**/*', async route => {
         const request = route.request();
-        if (['GET', 'HEAD', 'OPTIONS'].includes(request.method())) return route.continue();
+        const url = new URL(request.url());
+        const securityCheck = request.method() === 'POST' && url.origin === publicOrigin && url.pathname.startsWith('/cdn-cgi/challenge-platform/');
+        if (['GET', 'HEAD', 'OPTIONS'].includes(request.method()) || securityCheck) return route.continue();
         violations.push('Método bloqueado no QA público: ' + request.method() + ' ' + new URL(request.url()).pathname);
         await route.abort('blockedbyclient');
     });

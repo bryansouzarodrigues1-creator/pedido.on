@@ -1,4 +1,5 @@
-// Read-only public UI QA. The shared context guard denies all mutation methods.
+// Public UI QA. The shared context guard denies application mutation methods;
+// the site's normal same-origin Cloudflare security verification remains active.
 import {spawn} from 'node:child_process';
 import {mkdir, writeFile} from 'node:fs/promises';
 import path from 'node:path';
@@ -7,7 +8,7 @@ const base = 'https://forno-cardapios.waves4845.chatgpt.site';
 const output = path.resolve('.sites-runtime/browser-ci/public');
 await mkdir(output, {recursive: true});
 const checks = [];
-for (const [name, script] of [['guest', 'scripts/check-guest-browser.mjs'], ['calculator', 'scripts/check-calculator-browser.mjs']]) {
+for (const [name, script] of [['guest', 'scripts/check-guest-browser.mjs'], ['calculator', 'scripts/check-calculator-browser.mjs'], ['ocr', 'scripts/check-ocr-browser.mjs']]) {
     const child = spawn(process.execPath, [script], {stdio: 'inherit', env: {...process.env, QA_BASE_URL: base, QA_PUBLIC_GUEST_QA: 'true', QA_BROWSER_OUTPUT: path.join(output, name), QA_HEADLESS: 'true'}});
     const result = await new Promise((resolve, reject) => {child.once('error', reject); child.once('close', (code, signal) => resolve({code, signal}));});
     checks.push({name, ...result});

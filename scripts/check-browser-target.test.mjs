@@ -40,5 +40,10 @@ test('public browser guard stops mutation methods before remote dispatch', async
             assert.equal(aborted, !continued);
         }
         assert.equal(violations.length, 4);
+        for (const [url, expected] of [[publicOrigin + '/cdn-cgi/challenge-platform/h/b/jsd/oneshot/check', true], ['https://example.test/cdn-cgi/challenge-platform/check', false], [publicOrigin + '/api/auth/register', false]]) {
+            let continued = false;
+            await handler({request: () => ({method: () => 'POST', url: () => url}), continue: async () => {continued = true;}, abort: async () => {}});
+            assert.equal(continued, expected, 'Somente a verificação normal de segurança na mesma origem é permitida.');
+        }
     });
 });
