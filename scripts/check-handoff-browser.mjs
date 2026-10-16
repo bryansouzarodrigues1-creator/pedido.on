@@ -107,13 +107,15 @@ try {
     checks.push({name: 'logo e capa são enviados ao R2 local e guardados no rascunho', ok: true});
 
     await context.close(); await start();
-    await page.goto(base + '/app?loja=' + row.id, {waitUntil: 'networkidle', timeout: 90_000});
+    // The official preview identity is a session cookie, deliberately cleared
+    // when Chrome closes. Re-enter that mock; do not claim Supabase persistence.
+    await page.goto(base + '/signin-with-chatgpt?return_to=' + encodeURIComponent('/app?loja=' + row.id), {waitUntil: 'networkidle', timeout: 90_000});
     const reopened = await rows();
     assert.equal(reopened.length, 1); assert.equal(reopened[0].id, row.id); assert.equal(reopened[0].published, false);
     assert.deepEqual(JSON.parse(reopened[0].data), savedData);
     assert.equal(await page.locator('.create-shop').count(), 0);
     await page.screenshot({path: path.join(output, 'handoff-reopened.png'), fullPage: true});
-    checks.push({name: 'fechar e reabrir preserva sessão, dados e o mesmo rascunho sem duplicação', ok: true});
+    checks.push({name: 'fechar, reabrir e entrar novamente preserva dados e o mesmo rascunho sem duplicação', ok: true});
     assert.deepEqual(errors, []);
 } catch (error) {
     checks.push({name: 'handoff local', ok: false, error: error.message});

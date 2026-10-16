@@ -12,6 +12,12 @@ on:
       - "pnpm-lock.yaml"
       - "vite.config.ts"
       - "build/**"
+      - "db/**"
+      - "drizzle/**"
+      - "scripts/run-framework.mjs"
+      - "scripts/prepare-*.mjs"
+      - "scripts/execution-profile.mjs"
+      - ".openai/hosting.json"
       - ".github/workflows/browser-qa.yml"
   workflow_dispatch:
 
