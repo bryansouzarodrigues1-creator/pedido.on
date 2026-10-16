@@ -175,6 +175,13 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
       }
       if(raw.confidence!==undefined&&raw.confidence<75)requireReview(pending!,"Confira a leitura deste trecho.");
       if(matches.length&&raw.priceConfidence!==undefined&&raw.priceConfidence<75)requireReview(pending!,"Confira o preço: a leitura desse valor tem baixa confiança.");
+      // An OCR scan may lose the comma in "R$ 11,50" and show "R$ 1150".
+      // Do not infer the intended decimal; flag suspicious high integer prices.
+      if(matches.some((match,i)=>{
+        const token=match[0].replace(/R\s*\$/ig,"").trim();
+        const cents=prices[i];
+        return cents!==null&&!/[,.]\d{2}$/.test(token)&&cents >= (pending!.kind==="simple"||pending!.kind==="crust"?10000:30000);
+      }))requireReview(pending!,"Preço alto sem centavos claros: confira o separador decimal na foto.");
       if(unsupported||pending!.kind==="pizza"&&headerUnsupported)requireReview(pending!,"Tamanho fora de P/M/G: confirme o tamanho no editor.");
       if(matches.length){
         const mixed=matches.some((match,i)=>i>0&&/[\p{L}]{3}/u.test(normalizeMenuText(text.slice(matches[i-1].index!+matches[i-1][0].length,match.index)).replace(/\b(pequena|pequeno|media|medio|grande|gg|familia|gigante|brotinho|p|m|g)\b/g,"")));
