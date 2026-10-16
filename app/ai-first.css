@@ -73,3 +73,8 @@
 .ai-gallery .ai-brand-name input{width:100%;max-width:480px;border:1px solid #5a555a;color:#fff;background:#27262e;padding:13px 15px;border-radius:12px;font:inherit;font-size:16px;outline-offset:3px}
 .ai-gallery .ai-brand-name input:focus-visible{outline:2px solid #ec8f62}
 .ai-gallery .ai-gallery-sample{border:1px solid #665d4e;background:#34312d;color:#f2d6af;padding:12px 14px;border-radius:10px;font-size:11px;line-height:1.7;margin:0 0 15px}
+
+.ai-personalize{margin:17px auto 0;padding:17px;border:1px solid #57515b;border-radius:15px;background:#242228;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.ai-personalize p{flex:1;font-size:11px;line-height:1.75;color:#d6c9c7;margin:0}
+.ai-personalize .btn{border-radius:10px;font-size:11px;min-height:44px;white-space:normal;text-align:center;max-width:285px}
+@media(max-width:680px){.ai-personalize{flex-direction:column;align-items:stretch}.ai-personalize .btn{width:100%;max-width:none}}
