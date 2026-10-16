@@ -4,6 +4,7 @@ import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import 'fake-indexeddb/auto';
 import {parseIfoodStoreLink,inspectMenuSourceText,mergeMenuSourceText} from '../lib/menu-source-links.ts';
+import {structuredIfoodMenu,importIfoodLink} from '../lib/ifood-import.ts';
 import {assistantAnswer} from '../lib/assistant-help.ts';
 import {creationRequest} from '../lib/creation-request.ts';
 import {readMenuPages,prepareReaderItems,importReaderItems} from '../lib/menu-reader-policy.ts';
@@ -120,4 +121,53 @@ test('both real AI routes reject links and local-help questions before reserving
   assert.equal(calls,0);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM studio_jobs').get().n,0);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM image_jobs').get().n,0);assert.equal(f.objects.size,0);
   assert.deepEqual(f.db.prepare("SELECT data,published_data FROM restaurants WHERE id='shop-a'").get(),before);
  }finally{globalThis.fetch=originalFetch;f.close();}
+});
+
+test('public iFood Next hydration yields only simple categorical items for owner review',()=>{
+ const catalog={props:{pageProps:{initialState:{catalog:{categories:[
+  {name:'Pizzas',items:[
+   {name:'Calabresa',price:{value:49.9,currency:'BRL'},description:'Muçarela e calabresa'},
+   {name:'Quatro queijos',price:{value:55},optionGroups:[{name:'Tamanho',options:['P','G']}]},
+   {name:'Mussarela promoção',price:49,discountedPrice:39},
+  ]},
+  {name:'Bebidas',items:[
+   {name:'Refrigerante lata',price:8.5,status:'AVAILABLE'},
+   {name:'Taxa de entrega',price:5},
+   {name:'Suco importado',price:{value:10,currency:'USD'}},
+   {name:'Água indisponível',price:5,status:'UNAVAILABLE'},
+  ]}
+ ]}}}}};
+ const html='<script id="__NEXT_DATA__" type="application/json">'+JSON.stringify(catalog)+'</script>';
+ const result=structuredIfoodMenu(html);
+ assert.equal(result.count,2);assert.match(result.text,/Calabresa R\$ 49,90/);assert.match(result.text,/Refrigerante lata R\$ 8,50/);
+ for(const forbidden of ['Quatro queijos','Mussarela promoção','Taxa de entrega','Suco importado','Água indisponível'])assert.equal(result.text.includes(forbidden),false);
+ const parsed=readMenuPages([{id:'text',lines:result.text.split('\n').map(text=>({text}))}]);
+ assert.deepEqual(parsed.items.map(i=>i.name),['Calabresa','Refrigerante lata']);
+ assert.equal(parsed.items[0].sizes.g,0,'A pizza must not silently inherit the single known price as size G');
+ assert.equal(parsed.items[1].price,850);
+});
+
+test('hydration ignores arbitrary app/cart metadata and does not execute initial-state JavaScript',()=>{
+ const fake={props:{pageProps:{initialState:{orders:{items:[{name:'Cart item',price:1}]},profile:{name:'Customer',price:55},catalog:{categories:[{name:'Bebidas',items:[{name:'Água',price:5.5}]}]}}}}};
+ const content='<script type="application/json" id="__NEXT_DATA__">'+JSON.stringify(fake)+'</script>'+
+  '<script>window.__INITIAL_STATE__ = {items:[{name:"Injected",price:0.01}]};</script>';
+ const result=structuredIfoodMenu(content);assert.equal(result.count,1);assert.match(result.text,/Água R\$ 5,50/);assert.doesNotMatch(result.text,/Cart item|Customer|Injected/);
+ assert.equal(structuredIfoodMenu('<script id="__NEXT_DATA__" type="application/json">{bad</script>').count,0);
+});
+test('conflicting prices for the same public item are rejected instead of choosing a random offer',()=>{
+ const schema=(price)=>JSON.stringify({'@type':'Menu',hasMenuSection:{'@type':'MenuSection',name:'Bebidas',hasMenuItem:{'@type':'MenuItem',name:'Suco',offers:{price,priceCurrency:'BRL'}}}});
+ const html='<script type="application/ld+json">'+schema('8.00')+'</script><script type="application/ld+json">'+schema('12.00')+'</script>';
+ assert.equal(structuredIfoodMenu(html).count,0);
+ const ok='<script data-x="foo" type="application/ld+json">'+schema('8.00')+'</script>';
+ assert.match(structuredIfoodMenu(ok).text,/Suco R\$ 8,00/);
+ const double='<script type="application/ld+json">'+JSON.stringify({'@type':'MenuItem',name:'Suco',offers:[{price:8},{price:12}]})+'</script>';
+ assert.equal(structuredIfoodMenu(double).count,0);
+});
+test('public importer remains read-only: no bypass of 403, no redirects, no authenticated network',async()=>{
+ const html='<script id="__NEXT_DATA__" type="application/json">'+JSON.stringify({props:{pageProps:{menu:{categories:[{name:'Bebidas',items:[{name:'Suco',price:8}]}]}}}})+'</script>';
+ let requests=0;
+ const fetcher=async(target,options)=>{requests++;assert.equal(target,url);assert.equal(options.redirect,'manual');assert.equal(options.headers.Accept,'text/html');return new Response(html,{status:200,headers:{'content-type':'text/html'}});};
+ const success=await importIfoodLink(url,fetcher);assert.equal(success.status,'imported');assert.equal(success.count,1);assert.match(success.text,/Suco/);
+ const block=await importIfoodLink(url,async()=>new Response('Access denied',{status:403}));assert.equal(block.status,'needs_content');assert.equal(block.count,0);assert.equal(block.text,'');
+ const redirect=await importIfoodLink(url,async()=>new Response(null,{status:302,headers:{Location:'https://outside.example'}}));assert.equal(redirect.status,'needs_content');assert.equal(requests,1);
 });
