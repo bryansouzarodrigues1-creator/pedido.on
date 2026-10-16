@@ -65,7 +65,7 @@ export default function IdeaStart(){
   if(!styleId)setRound(0);
  }
  return <section className="idea-start ai-landing" id="ideia"><div className="saas-container">
-   <div className="idea-intro"><span className="idea-eyebrow"><span/> CRIADOR DE CARDÁPIOS · PIZZARIA.ON</span><h1>Imagine sua pizzaria.<br/><em>Veja ela ganhar forma.</em></h1><p>Descreva o visual e anexe seu cardápio. Explore opções reais antes de criar uma conta.</p></div>
+   <div className="idea-intro"><span className="idea-eyebrow"><span/> CRIADOR DE CARDÁPIOS · PIZZARIA.ON</span><h1>Imagine sua pizzaria.<br/><em>Veja ela ganhar forma.</em></h1><p>Descreva o visual e anexe seu cardápio. Explore opções reais antes de criar a conta.</p></div>
    <div className={"idea-workspace"+(preview?" has-gallery":"")}><div className="idea-composer-wrap">
      <form className="idea-composer" onSubmit={generate}><label htmlFor="pizzeria-idea"><Sparkles size={19}/>O que você imagina para a sua pizzaria?</label>
        <textarea id="pizzeria-idea" rows={4} maxLength={1600} value={idea} onChange={e=>{setIdea(e.target.value);setPreview(null);setStyleId(null);}} placeholder="Quero uma pizzaria artesanal com cardápio elegante, verde escuro, fotos de pizzas grandes e preços bem organizados…" disabled={busy||saving||!initialized}/>
