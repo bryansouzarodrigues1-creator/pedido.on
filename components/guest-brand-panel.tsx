@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import {ImagePlus,Upload,X} from "lucide-react";
-import {loadBrandAssets,saveBrandAssets,type BrandAssets,type BrandImage} from "@/lib/guest-brand-assets";
+import {loadBrandAssets,saveBrandAssets,type BrandAssets} from "@/lib/guest-brand-assets";
 export default function GuestBrandPanel({restaurantId,onApply}:{restaurantId:string;onApply:(kind:"logo"|"cover",url:string)=>void}){
  const [assets,setAssets]=useState<BrandAssets|null>(null),[busy,setBusy]=useState<"logo"|"cover"|null>(null),[error,setError]=useState(""),[message,setMessage]=useState("");
  useEffect(()=>{let alive=true;setAssets(null);void loadBrandAssets(restaurantId).then(v=>{if(alive)setAssets(v);}).catch(()=>{});return()=>{alive=false;};},[restaurantId]);
