@@ -3,7 +3,7 @@ import {useEffect,useRef,useState,type ChangeEvent,type FormEvent} from "react";
 import {ArrowRight,Check,Link2,Paperclip,Sparkles,X,FileText,ImagePlus,RefreshCw} from "lucide-react";
 import {demoRestaurant,defaultRestaurant,type RestaurantData} from "@/lib/domain";
 import type {ReaderItem} from "@/lib/menu-reader-policy";
-import {galleryDesign,galleryStyle,suggestedGalleryStyles,type GalleryStyleId} from "@/lib/gallery-styles";
+import {galleryDesign,galleryStyle,suggestedGalleryStyles,supportsLocalRefinement,type GalleryStyleId} from "@/lib/gallery-styles";
 
 import {readMenuLaunch,saveMenuLaunch,guestReadingKey,type MenuLaunch} from "@/lib/menu-launch";
 import {menuLaunchAccountPath} from "@/lib/menu-launch-client";
@@ -20,7 +20,7 @@ import {nameFromBriefing} from "@/lib/studio-policy";
 function makePreview(items:ReaderItem[]):RestaurantData{const sample=demoRestaurant("editorial");if(!items.length)return sample;const base=defaultRestaurant("Sua pizzaria");const ready=items.map(item=>({...item,selected:item.selected&&readerItemReady(item)}));return ready.some(item=>item.selected)?{...base,...applyReaderItems(base,ready)}:base;}
 export default function IdeaStart(){
  const [initialized,setInitialized]=useState(false),[brandAssets,setBrandAssets]=useState<BrandAssets|null>(null),[brandName,setBrandName]=useState("");
- const [styleId,setStyleId]=useState<GalleryStyleId|null>(null),[round,setRound]=useState(0),[refinement,setRefinement]=useState(""),[feedback,setFeedback]=useState(""),[chatOpen,setChatOpen]=useState(false);
+ const [styleId,setStyleId]=useState<GalleryStyleId|null>(null),[round,setRound]=useState(0),[refinement,setRefinement]=useState(""),[feedback,setFeedback]=useState(""),[localFeedbackNote,setLocalFeedbackNote]=useState(""),[chatOpen,setChatOpen]=useState(false);
  const [idea,setIdea]=useState(""),[sourceOpen,setSourceOpen]=useState(false),[sourceText,setSourceText]=useState(""),[pages,setPages]=useState<ReaderPage[]>([]),[preview,setPreview]=useState<RestaurantData|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[readingLabel,setReadingLabel]=useState(""),[imported,setImported]=useState(0),[saving,setSaving]=useState(false);
  const abort=useRef<AbortController|null>(null),alive=useRef(true),reading=useRef<Reading|null>(null),launch=useRef<MenuLaunch|null>(null);
  useEffect(()=>{alive.current=true;try{const saved=readMenuLaunch(localStorage);if(saved){launch.current=saved;setIdea(saved.idea);setSourceText(saved.sourceText);setBrandName(saved.brandName||"");if(saved.sourceText||saved.hasPhotos||saved.hasAssets)setSourceOpen(true);setStyleId(saved.styleId||null);setRefinement(saved.refinement||"");void Promise.all([loadReading(guestReadingKey(saved.id)).catch(()=>null),loadBrandAssets(guestReadingKey(saved.id)).catch(()=>null)]).then(([v,images])=>{if(!alive.current)return;if(v){setPages(v.pages);reading.current=v;setImported(v.items.length);}if(images)setBrandAssets(images);if(saved.previewReady)setPreview(makePreview(v?.items||[]));}).finally(()=>{if(alive.current)setInitialized(true);});}else setInitialized(true);}catch{setInitialized(true);}return()=>{alive.current=false;abort.current?.abort();};},[]);
@@ -49,7 +49,7 @@ export default function IdeaStart(){
    const input=ready.map(p=>({id:p.id,lines:p.lines}));if(source.menuText.trim())input.push({id:"text",lines:source.menuText.split("\n").map(text=>({text}))});
    const result=input.length?readMenuPages(input):{items:[],unmatched:[]};
    if(input.length&&!result.items.length)setNotice("A fonte não trouxe produtos com preço legível. Cole o texto com os preços ou tente uma imagem mais nítida.");
-   setPreview(makePreview(result.items));setStyleId(null);setRound(0);setRefinement("");setChatOpen(false);setImported(result.items.length);
+   setPreview(makePreview(result.items));setStyleId(null);setRound(0);setRefinement("");setLocalFeedbackNote("");setChatOpen(false);setImported(result.items.length);
    if(!launch.current)launch.current={id:crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,sourceText:text,hasPhotos:!!ready.length};
    reading.current={restaurantId:guestReadingKey(launch.current.id),savedAt:Date.now(),pages:ready,items:result.items,unmatched:result.unmatched,text};
    await saveReading(reading.current).catch(()=>{});
@@ -72,6 +72,7 @@ export default function IdeaStart(){
   const combined=(refinement?refinement+". ":"")+feedback.trim();
   if(combined.length>600){setError("Resuma as mudanças em até 600 caracteres.");return;}
   setRefinement(combined);setFeedback("");setError("");setChatOpen(false);
+  setLocalFeedbackNote(supportsLocalRefinement(feedback)?"A prévia incorporou as alterações compatíveis com os modelos disponíveis. Confira antes de escolher.":"Esse pedido vai além das alterações gratuitas destes modelos. Guardamos suas palavras para continuar no Estúdio de IA depois do cadastro.");
   if(!styleId)setRound(0);
  }
  return <section className="idea-start ai-landing" id="ideia"><div className="saas-container">
@@ -98,6 +99,7 @@ export default function IdeaStart(){
        <><div className="ai-style-grid">{visible.map(id=>{const style=galleryStyle(id);return <article key={id} className="ai-style-card"><div className="ai-style-screen"><MiniMenu data={design(id)} large/></div><div className="ai-style-footer"><div><strong>{style.title}</strong><span>{style.summary}</span></div><button type="button" disabled={busy||saving} onClick={()=>{setStyleId(id);setChatOpen(false);}} aria-label={"Escolher "+style.title}>Escolher<ArrowRight size={16}/></button></div></article>;})}</div><div className="ai-gallery-commands"><button type="button" onClick={()=>{setRound(round===0?1:0);setChatOpen(false);}}><RefreshCw size={16}/>{round===0?"Ver os outros quatro estilos":"Voltar aos primeiros estilos"}</button><button type="button" onClick={()=>setChatOpen(true)}><Sparkles size={16}/>Ajustar modelos com minhas instruções</button></div></>}
      {!styleId&&<div className="ai-personalize"><p>Nenhum modelo ficou do seu jeito? Podemos levar seu pedido livre ao Estúdio de IA. A geração só acontece depois do cadastro e da informação sobre a cota disponível.</p><button className="btn dark" type="button" disabled={saving||busy} onClick={()=>void continueSetup(true)}><Sparkles size={16}/>Quero criar um design exclusivo com IA <ArrowRight size={15}/></button></div>}
      {chatOpen&&<form className="ai-refine" onSubmit={refine}><label htmlFor="gallery-feedback">O que você quer diferente?</label><textarea id="gallery-feedback" required rows={3} maxLength={600} value={feedback} onChange={e=>setFeedback(e.target.value)} placeholder="Escreva livremente como você quer o design, as cores, a geometria, o tamanho das fotos e os textos."/><div><small>Ajustes disponíveis nos oito modelos são gratuitos. Ideias fora dessas estruturas podem precisar do Estúdio de IA após o cadastro.</small><button type="submit" className="btn dark">Aplicar meu pedido <ArrowRight size={15}/></button></div></form>}
+     {localFeedbackNote&&<p className="ai-gallery-feedback" role="status">{localFeedbackNote}</p>}
      <p className="ai-gallery-note">Você pode explorar os estilos sem cadastro. Para guardar e publicar, criamos a conta somente depois da sua escolha.</p>
    </section>}
    </div>
