@@ -27,6 +27,12 @@ const signals:Record<GalleryStyleId,RegExp>={
  trattoria:/sofistic|italia|serif|refinad|organizado/,
  festival:/promoc|oferta|combo|chamativ|alegre|festa/,
 };
+/** Indicates whether the free local style engine understands at least one explicit design instruction.
+ * Unrecognized requests should be retained for the authenticated AI studio, never treated as applied. */
+export function supportsLocalRefinement(message:string){
+ const m=normalized(message);
+ return /(?:#(?:[a-f0-9]{6})\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|lista|coluna|cart[aõo]|grade|fotos?|imagem|capa|serifa|elegant|italia|artesanal|letras?|fonte|tipografia|arredond|cantos?|quadrad|compact|minimal|sem fotos?|premium|slogan|frase|chamada|delivery)/.test(m);
+}
 /** Stable ordering, four distinct geometries in each of two rounds, zero provider calls. */
 export function suggestedGalleryStyles(briefing:string,feedback=""){
  const prompt=normalized((briefing+" "+feedback).slice(0,2200));
