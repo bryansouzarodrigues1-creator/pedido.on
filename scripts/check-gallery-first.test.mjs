@@ -29,7 +29,7 @@ test("a guest can freely refine composition without touching prices or personal 
  assert.throws(()=>galleryStyleId.parse("inject-css"));
 });
 test("the chosen style and feedback remain after signup, are schema-validated and never enter the URL",()=>{
- const store=makeStore(),value={id:crypto.randomUUID(),savedAt:Date.now(),idea:"Minha pizzaria se chama Bella Massa. Quero um visual premium",sourceText:"Bebidas\nSuco R$ 9,00",hasPhotos:false,styleId:"atelier",refinement:"Capa clara, com letras elegantes",brandName:"Bella Massa",previewReady:true};
+ const store=makeStore(),value={id:crypto.randomUUID(),savedAt:Date.now(),idea:"Minha pizzaria se chama Bella Massa. Quero um visual premium",sourceText:"Bebidas\nSuco R$ 9,00",hasPhotos:false,styleId:"atelier",refinement:"Capa clara, com letras elegantes",brandName:"Bella Massa",previewReady:true,aiRequested:true};
  saveMenuLaunch(store,value);assert.deepEqual(readMenuLaunch(store),value);
  assert.equal(store.getItem(launchKey).includes("Bella Massa"),true);
  assert.throws(()=>saveMenuLaunch(store,{...value,styleId:"evil"}));
