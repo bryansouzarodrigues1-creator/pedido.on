@@ -20,6 +20,16 @@ test("eight visual presets provide four distinct compositions per discovery roun
  assert.equal(supportsLocalRefinement("Quero fotos grandes e cantos quadrados"),true);
  assert.equal(supportsLocalRefinement("Quero um cardápio giratório em formato tridimensional de lua"),false);
 });
+test("later refinements replace earlier colours and composition while keeping unrelated choices",()=>{
+ const original=demoRestaurant();
+ const next=galleryDesign(original,"forno-classico","","Quero verde com cantos arredondados\nAgora azul e uma lista compacta");
+ assert.equal(next.accent,"#296bac");
+ assert.equal(next.presentation.corners,"soft");
+ assert.equal(next.presentation.layout,"compact");
+ assert.deepEqual(next.products,original.products);
+ assert.equal(supportsLocalRefinement("Crie uma foto de pizza em formato de lua"),false);
+ assert.equal(supportsLocalRefinement("Uma animação 3D da pizza"),false);
+});
 test("a guest can freely refine composition without touching prices or personal data",()=>{
  const original=demoRestaurant("dark"),copy=structuredClone(original);
  const id=galleryStyleId.parse("noite-premium");

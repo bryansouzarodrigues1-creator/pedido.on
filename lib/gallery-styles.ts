@@ -31,7 +31,7 @@ const signals:Record<GalleryStyleId,RegExp>={
  * Unrecognized requests should be retained for the authenticated AI studio, never treated as applied. */
 export function supportsLocalRefinement(message:string){
  const m=normalized(message);
- return /(?:#(?:[a-f0-9]{6})\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|lista|coluna|cart[aõo]|grade|fotos?|imagem|capa|serifa|elegant|italia|artesanal|letras?|fonte|tipografia|arredond|cantos?|quadrad|compact|minimal|sem fotos?|premium|slogan|frase|chamada|delivery)/.test(m);
+ return /(?:#[a-f0-9]{6}\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|lista|uma coluna|duas colunas|cartoes|cards|grade|fotos? grandes?|fotos? em destaque|vitrine|sem capa|capa grande|capa inteira|foto de fundo|sem serifa|serifa|elegante|italia|artesanal|letras? (?:fortes?|grandes?)|fonte (?:forte|grossa)|arredond|cantos? (?:retos?|suaves?)|quadrad|compact|minimal|sem fotos?|(?:slogan|frase|chamada)\s*[:=])/.test(m);
 }
 /** Stable ordering, four distinct geometries in each of two rounds, zero provider calls. */
 export function suggestedGalleryStyles(briefing:string,feedback=""){
@@ -49,18 +49,22 @@ export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:str
  const preset=galleryStyle(id);
  const requested=designFromMessage(briefing,data);
  const base={...data,theme:preset.theme,accent:requested.accent||preset.accent,presentation:{...preset.presentation}};
- const extras=feedback.trim()?designFromMessage(feedback,base):{};
- // Refinement can explicitly change composition, type, colours and corners, never sales data.
- const words=normalized(feedback);
- const presentation=extras.presentation?{...base.presentation,
-  ...(/lista|colunas?|cartoes|cards|grade|fotos? grandes?|em destaque|vitrine|compact|sem fotos?/.test(words)?{layout:extras.presentation.layout}:{}),
-  ...(/sem capa|cabecalho|capa grande|capa inteira|foto de fundo|compact|sem fotos?/.test(words)?{hero:extras.presentation.hero}:{}),
-  ...(/serifa|elegant|italia|artesanal|letras?|fonte|tipografia/.test(words)?{font:extras.presentation.font}:{}),
-  ...(/cantos?|arredond|quadrad/.test(words)?{corners:extras.presentation.corners}:{})
- }:base.presentation;
- const next={...base,...extras,presentation};
+ let next:RestaurantData=base;
+ // Each turn is applied to the previous result: a later colour must replace an earlier one.
+ for(const turn of feedback.split(/\r?\n+|[.;]\s+/).filter(Boolean)){
+  const extras=designFromMessage(turn,next),words=normalized(turn);
+  const colours=[...turn.matchAll(/#[a-fA-F0-9]{6}\b|\b(?:vermelho|laranja|amarelo|verde|azul|dourado)\b/gi)];
+  const last=colours.at(-1);if(last){if(/\b(?:sem|nao|não)\s*$/.test(turn.slice(0,last.index).toLowerCase()))delete extras.accent;else extras.accent=designFromMessage(last[0],next).accent;}
+  const presentation=extras.presentation?{...next.presentation!,
+   ...(/lista|colunas?|cartoes|cards|grade|fotos? grandes?|em destaque|vitrine|compact|sem fotos?/.test(words)?{layout:extras.presentation.layout}:{}),
+   ...(/sem capa|cabecalho|capa grande|capa inteira|foto de fundo|compact|sem fotos?/.test(words)?{hero:extras.presentation.hero}:{}),
+   ...(/serifa|elegant|italia|artesanal|letras?|fonte|tipografia|moderno/.test(words)?{font:extras.presentation.font}:{}),
+   ...(/cantos?|arredond|quadrad/.test(words)?{corners:extras.presentation.corners}:{})
+  }:next.presentation;
+  next={...next,...extras,presentation};
+ }
  const brand=nameFromBriefing(briefing);
- const tagline=(briefing+"\n"+feedback).match(/(?:slogan|frase|chamada)\s*[:=]\s*["“]?([^\n"”]{2,120})/i)?.[1]?.trim();
+ const tagline=[...(briefing+"\n"+feedback).matchAll(/(?:slogan|frase|chamada)\s*[:=]\s*["“]?([^\n"”]{2,120})/gi)].at(-1)?.[1]?.trim();
  if(brand)next.name=brand;
  if(tagline)next.tagline=tagline;
  return next;

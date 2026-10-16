@@ -21,6 +21,8 @@ on:
       - "lib/guest-brand-assets.ts"
       - "components/guest-brand-panel.tsx"
       - "lib/menu-launch-storage.ts"
+      - "lib/menu-launch-checkpoint.ts"
+      - "scripts/check-guest-checkpoint.test.mjs"
       - "scripts/check-guest-brand.test.mjs"
       - "lib/menu-launch.ts"
       - "components/idea-start.tsx"
