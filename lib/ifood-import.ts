@@ -9,21 +9,28 @@ const bridgeKeys=new Set(["props","pageProps","initialState","state","data","pay
 function exactPrice(value:unknown,currency?:unknown):number|null{
  if(currency!==undefined&&currency!=="BRL")return null;
  const raw=value&&typeof value==="object"&&!Array.isArray(value)?value as Record<string,unknown>:null;
- if(raw)return exactPrice(raw.value,raw.currency??raw.priceCurrency??currency);
+ if(raw){
+  if(Object.keys(raw).some(key=>!["value","currency","priceCurrency"].includes(key))||typeof raw.value!=="number"&&typeof raw.value!=="string"||raw.currency!==undefined&&raw.currency!=="BRL"||raw.priceCurrency!==undefined&&raw.priceCurrency!=="BRL")return null;
+  return exactPrice(raw.value,raw.currency??raw.priceCurrency??currency);
+ }
  const number=typeof value==="number"?value:typeof value==="string"&&/^\d+(?:\.\d{1,2})?$/.test(value)?Number(value):NaN;
  return Number.isFinite(number)&&number>0&&number<=10000&&Math.abs(number*100-Math.round(number*100))<0.000001?Math.round(number*100):null;
 }
 function complexOptions(v:Record<string,unknown>){
- return ["optionGroups","garnishGroups","options","variants","variations","sizes","priceOptions"].some(key=>Array.isArray(v[key])&&(v[key] as unknown[]).length>0);
+ return ["optionGroups","garnishGroups","optionGroupIds","garnishGroupIds","options","variants","variations","sizes","priceOptions"].some(key=>{
+  const value=v[key];if(Array.isArray(value))return value.length>0;if(value&&typeof value==="object")return Object.keys(value).length>0;
+  return typeof value==="string"?!!value.trim():value===true||typeof value==="number"&&value>0;
+ });
 }
+function unavailable(v:Record<string,unknown>){return ["available","isAvailable","enabled","active"].some(key=>v[key]===false)||["UNAVAILABLE","DISABLED","INACTIVE","PAUSED","SUSPENDED","DELETED","OUT_OF_STOCK"].includes(String(v.status||"").toUpperCase())||v.availability===false||/(?:^|[/#])(OutOfStock|Discontinued|SoldOut)$/i.test(String(v.availability||""));}
 /** Only parse clear public menu entries. No JavaScript execution, login, third-party redirects, or inferred prices. */
-export function structuredIfoodMenu(html:string){
+export function structuredIfoodMenu(html:string,textLimit=60000){
  const candidates=new Map<string,Candidate>(),blockedKeys=new Set<string>();let visited=0;
  function collect(value:Record<string,unknown>,category:string,source:"schema"|"hydration"){
   const name=clean(value.name,100),description=clean(value.description);
   if(name.length<2||!category||/^(?:taxa|frete|entrega|avalia[cç][aã]o)\b/i.test(name))return;
   const key=category.toLocaleLowerCase("pt-BR")+":"+name.toLocaleLowerCase("pt-BR");
-  if(complexOptions(value)||["UNAVAILABLE","DISABLED","INACTIVE"].includes(String(value.status||"").toUpperCase())
+  if(complexOptions(value)||unavailable(value)
    ||value.promotionalPrice!==undefined||value.discountedPrice!==undefined||value.discountPrice!==undefined){
    blockedKeys.add(key);return; // A simpler duplicate cannot override a complex or unavailable item.
   }
@@ -31,7 +38,7 @@ export function structuredIfoodMenu(html:string){
   if(source==="schema"){
    const offers=Array.isArray(value.offers)?value.offers:[value.offers];
    for(const offer of offers)if(offer&&typeof offer==="object"&&!Array.isArray(offer)){
-    const obj=offer as Record<string,unknown>,price=exactPrice(obj.price,obj.priceCurrency);
+    const obj=offer as Record<string,unknown>;if(unavailable(obj)){blockedKeys.add(key);return;}const price=exactPrice(obj.price,obj.priceCurrency);
     if(price!==null)prices.push(price);
    }
   }else{
@@ -45,21 +52,23 @@ export function structuredIfoodMenu(html:string){
   if(!candidate.description)candidate.description=description;
   candidates.set(key,candidate);
  }
- function visitSchema(value:unknown,category="Pizzas",depth=0){
+ function visitSchema(value:unknown,category="Pizzas",depth=0,parentUnavailable=false){
   if(depth>12||++visited>5000||!value||typeof value!=="object")return;
-  if(Array.isArray(value)){for(const child of value)visitSchema(child,category,depth+1);return;}
+  if(Array.isArray(value)){for(const child of value)visitSchema(child,category,depth+1,parentUnavailable);return;}
   const v=value as Record<string,unknown>,types=Array.isArray(v["@type"])?v["@type"]:[v["@type"]];
   if(types.includes("MenuSection"))category=clean(v.name,60)||category;
-  if(types.includes("MenuItem"))collect(v,category,"schema");
-  for(const key of keys)if(v[key])visitSchema(v[key],category,depth+1);
+  const blocked=parentUnavailable||unavailable(v);
+  if(types.includes("MenuItem"))collect(blocked?{...v,available:false}:v,category,"schema");
+  for(const key of keys)if(v[key])visitSchema(v[key],category,depth+1,blocked);
  }
- function visitCatalog(value:unknown,category="",parent="",depth=0){
+ function visitCatalog(value:unknown,category="",parent="",depth=0,parentUnavailable=false){
   if(depth>12||++visited>5000||!value||typeof value!=="object")return;
-  if(Array.isArray(value)){for(const item of value)visitCatalog(item,category,parent,depth+1);return;}
+  if(Array.isArray(value)){for(const item of value)visitCatalog(item,category,parent,depth+1,parentUnavailable);return;}
   const v=value as Record<string,unknown>;
   if((parent==="categories"||parent==="sections")&&v.name)category=clean(v.name,60);
-  if((parent==="items"||parent==="products")&&category)collect(v,category,"hydration");
-  for(const key of hydrationKeys)if(v[key])visitCatalog(v[key],category,key,depth+1);
+  const blocked=parentUnavailable||unavailable(v);
+  if((parent==="items"||parent==="products")&&category)collect(blocked?{...v,available:false}:v,category,"hydration");
+  for(const key of hydrationKeys)if(v[key])visitCatalog(v[key],category,key,depth+1,blocked);
  }
  function findCatalog(value:unknown,depth=0){
   if(depth>10||++visited>5000||!value||typeof value!=="object")return;
@@ -80,15 +89,16 @@ export function structuredIfoodMenu(html:string){
   if(!isLd&&!isNext)continue;
   try{const value=JSON.parse(body);if(isLd)visitSchema(value);if(isNext)findCatalog(value);}catch{/* Invalid/foreign scripts must not become product data. */}
  }
- const lines:string[]=[];
+ const lines:string[]=[];let count=0,length=0,partial=false;
  for(const candidate of candidates.values()){
   if(blockedKeys.has(candidate.category.toLocaleLowerCase("pt-BR")+":"+candidate.name.toLocaleLowerCase("pt-BR"))||candidate.uncertain||candidate.prices.size!==1)continue;
   const cents=[...candidate.prices][0],price=(cents/100).toFixed(2).replace(".",",");
-  const kind=/bebida|refri|suco|cerveja|combo|lanche|hamburg/i.test(candidate.category)?"simple":"pizza";
-  lines.push("Categoria: "+candidate.category+" ["+kind+"]",candidate.name+" R$ "+price,...(candidate.description?["Ingredientes: "+candidate.description]:[]));
-  if(lines.length>=600)break;
+  const kind=/borda/i.test(candidate.category)?"crust":/bebida|refri|suco|cerveja|combo|lanche|hamburg/i.test(candidate.category)?"simple":"pizza";
+  const entry=["Categoria: "+candidate.category+" ["+kind+"]",candidate.name+" R$ "+price,...(candidate.description?["Ingredientes: "+candidate.description]:[])],size=entry.join("\n").length+(lines.length?1:0);
+  if(count>=200||length+size>textLimit){partial=true;break;}
+  lines.push(...entry);count++;length+=size;
  }
- return {text:lines.join("\n"),count:lines.filter(line=>line.startsWith("Categoria: ")).length};
+ return {text:lines.join("\n"),count,...(partial?{partial:true}:{})};
 }
 export async function importIfoodLink(raw:string,fetcher:typeof fetch=fetch):Promise<IfoodImportResult>{
  const link=parseIfoodStoreLink(raw);if(!link)throw Error("Cole o link completo da loja no iFood.");
@@ -101,7 +111,7 @@ export async function importIfoodLink(raw:string,fetcher:typeof fetch=fetch):Pro
   const reader=response.body?.getReader();if(!reader)return fallback();let size=0;const parts:Uint8Array[]=[];
   try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>1500000){await reader.cancel();return fallback();}parts.push(value);}}finally{reader.releaseLock();}
   const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length;}
-  const menu=structuredIfoodMenu(new TextDecoder().decode(bytes));
-  return menu.count?{status:"imported",url:link.url,...menu,message:menu.count+" produtos encontrados em dados públicos estruturados. Confira os preços, tamanhos e complementos antes de importar; itens complexos podem exigir foto ou texto."}:fallback();
+  const menu=structuredIfoodMenu(new TextDecoder().decode(bytes),60000-link.url.length-1);
+  return menu.count?{status:"imported",url:link.url,...menu,message:(menu.partial?"Trouxemos uma parte do catálogo: ":"")+menu.count+" produtos encontrados em dados públicos estruturados. Confira os preços, tamanhos e complementos antes de importar; itens complexos podem exigir foto ou texto."}:fallback();
  }catch{return fallback("Não foi possível acessar esse catálogo agora. Você pode colar o texto completo ou enviar um arquivo TXT/CSV.");}
 }

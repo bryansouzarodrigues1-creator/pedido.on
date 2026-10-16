@@ -1,0 +1,645 @@
+{
+  "checkedAt": "2026-10-16T17:06:02.543Z",
+  "sourceHead": "20f1f15024487680f7d4673229871a34f0f6696d + correções desta auditoria",
+  "browser": "Chrome instalado no Rodrigues, Windows, Pixel 7 emulado",
+  "reports": {
+    "production-probe.json": [
+      {
+        "label": "home",
+        "url": "https://forno-cardapios.waves4845.chatgpt.site/",
+        "status": 200,
+        "ms": 14022,
+        "title": "pizzaria.on — Sua pizzaria, pronta para vender.",
+        "headings": [
+          "Sua pizzaria.Do seu jeito.",
+          "Sua pizza está dando lucro?",
+          "Menos complicação.Mais pizza saindo.",
+          "Deu vontade?É só pedir.",
+          "Comece simples.Crie mais quando precisar.",
+          "Coloque sua pizzariano próximo pedido."
+        ],
+        "buttons": [
+          "Trazer do iFood",
+          " Criar prévia",
+          "Artesanal italiano",
+          "Fotos em destaque",
+          "Simples e direto"
+        ],
+        "overflow": {
+          "width": 412,
+          "doc": 412
+        },
+        "errors": []
+      },
+      {
+        "label": "create",
+        "url": "https://forno-cardapios.waves4845.chatgpt.site/criar",
+        "status": 404,
+        "ms": 1715,
+        "title": "pizzaria.on — Sua pizzaria, pronta para vender.",
+        "headings": [
+          "Esse endereço aindanão está on."
+        ],
+        "buttons": [],
+        "overflow": {
+          "width": 412,
+          "doc": 412
+        },
+        "errors": []
+      },
+      {
+        "label": "signup",
+        "url": "https://forno-cardapios.waves4845.chatgpt.site/cadastro",
+        "status": 200,
+        "ms": 2147,
+        "title": "Criar conta · pizzaria.on",
+        "headings": [
+          "Boa pizza.Pedido fácil.Pizzaria on.",
+          "Comece pela sua conta."
+        ],
+        "buttons": [
+          "",
+          "Criar minha conta"
+        ],
+        "overflow": {
+          "width": 412,
+          "doc": 412
+        },
+        "errors": []
+      },
+      {
+        "label": "demo",
+        "url": "https://forno-cardapios.waves4845.chatgpt.site/demo/pedidos",
+        "status": 200,
+        "ms": 2436,
+        "title": "Pix, comanda e entrega · demonstração pizzaria.on",
+        "headings": [
+          "Do pedido à entrega.",
+          "Pedido #EXEMPLO",
+          "Aguardando Pix",
+          "Pix direto para a pizzaria",
+          "Seu pedido"
+        ],
+        "buttons": [
+          "Pix antecipado",
+          "Pagamento na entrega",
+          "Recomeçar demonstração",
+          " Simular envio de comprovante",
+          " Aceitar pedido"
+        ],
+        "overflow": {
+          "width": 412,
+          "doc": 412
+        },
+        "errors": []
+      },
+      {
+        "label": "auth-config-real",
+        "status": 200,
+        "enabled": true,
+        "registrationEnabled": true,
+        "directSignup": true,
+        "googleEnabled": false,
+        "recoveryEnabled": false,
+        "inviteRequired": false,
+        "prototype": false
+      }
+    ],
+    "calculator-before-production.json": {
+      "message": "Cálculo salvo. Você pode voltar a ele abaixo.",
+      "stored": false
+    },
+    "real-auth-validated.json": {
+      "checks": [
+        {
+          "name": "cadastro anterior criou sessão Supabase real e a preservou ao reabrir o Chrome",
+          "ok": true,
+          "detail": {
+            "provider": "supabase",
+            "loginMethod": "email",
+            "browserRestart": true
+          }
+        },
+        {
+          "name": "conta nova isolada e criação de rascunho real privado",
+          "ok": true,
+          "detail": {
+            "published": false,
+            "products": 0,
+            "pix": false
+          }
+        },
+        {
+          "name": "segundo cadastro por e-mail conclui diretamente no painel",
+          "ok": true,
+          "detail": {
+            "provider": "Supabase real",
+            "confirmationEmailRequired": false
+          }
+        },
+        {
+          "name": "logout e login com senha real preservam o destino",
+          "ok": true,
+          "detail": {
+            "login": "email/senha reais",
+            "nextPreserved": true
+          }
+        }
+      ],
+      "blocked": [],
+      "testAccounts": 2,
+      "reservedTestEmails": true
+    },
+    "real-isolation-financial.json": {
+      "isolation": {
+        "read": 404,
+        "write": 404,
+        "privateDraftUnchanged": true,
+        "otherOwnerSeesZero": true
+      },
+      "financial": {
+        "provider": "asaas",
+        "mode": "production",
+        "enabled": true,
+        "enforced": false,
+        "subscriptionPresent": false
+      },
+      "actualCharges": 0,
+      "paidGenerations": 0
+    },
+    "styles-visual.json": {
+      "styles": [
+        {
+          "title": "Forno clássico",
+          "width": 354,
+          "scroll": 354
+        },
+        {
+          "title": "Noite premium",
+          "width": 354,
+          "scroll": 354
+        },
+        {
+          "title": "Essencial",
+          "width": 354,
+          "scroll": 354
+        },
+        {
+          "title": "Casa da família",
+          "width": 354,
+          "scroll": 354
+        },
+        {
+          "title": "Ateliê da pizza",
+          "width": 354,
+          "scroll": 354
+        },
+        {
+          "title": "Delivery urbano",
+          "width": 354,
+          "scroll": 354
+        },
+        {
+          "title": "Trattoria",
+          "width": 354,
+          "scroll": 354
+        },
+        {
+          "title": "Festival de sabores",
+          "width": 354,
+          "scroll": 354
+        }
+      ],
+      "desktop": {
+        "width": 1440,
+        "scroll": 1440,
+        "columns": "392px 392px"
+      }
+    },
+    "local-handoff.json": {
+      "auth": "mock local oficial Sites; Supabase real testado separadamente",
+      "restaurantId": "1c51dd65-d1cd-4409-ad40-56c9d609731c",
+      "name": "Bella Massa QA",
+      "published": false,
+      "products": 0,
+      "pix": false,
+      "accent": "#296bac",
+      "presentation": {
+        "layout": "compact",
+        "hero": "compact",
+        "font": "serif",
+        "corners": "soft"
+      },
+      "brandFiles": 2,
+      "appliedToPrivateDraft": true,
+      "checkpointCleared": true,
+      "draftsCreated": 1
+    },
+    "handoff-retry-browser.json": {
+      "simulatedFailure": "quota IndexedDB somente na cópia para o rascunho",
+      "afterReloadRetryAvailable": true,
+      "created": 1,
+      "duplicateDrafts": 0,
+      "logoRecovered": true,
+      "published": false
+    },
+    "ocr-browser.json": {
+      "fixture": "imagem sintética reproduzível; não substitui cardápio real",
+      "runtime": "Chrome no Windows, viewport Pixel 7; não é medição em Android",
+      "ms": 928,
+      "products": 4,
+      "invented": 0,
+      "items": [
+        {
+          "name": "Calabresa",
+          "kind": "pizza",
+          "category": "Pizzas",
+          "price": null,
+          "sizes": {
+            "p": 2990,
+            "m": 3990,
+            "g": 4990
+          }
+        },
+        {
+          "name": "Mussarela",
+          "kind": "pizza",
+          "category": "Pizzas",
+          "price": null,
+          "sizes": {
+            "p": 2890,
+            "m": 3890,
+            "g": 4890
+          }
+        },
+        {
+          "name": "Agua mineral",
+          "kind": "simple",
+          "category": "Bebidas",
+          "price": 400,
+          "sizes": {
+            "p": null,
+            "m": null,
+            "g": null
+          }
+        },
+        {
+          "name": "Refrigerante 2L",
+          "kind": "simple",
+          "category": "Bebidas",
+          "price": 1200,
+          "sizes": {
+            "p": null,
+            "m": null,
+            "g": null
+          }
+        }
+      ],
+      "unmatched": [
+        "PIZZARIA QA"
+      ],
+      "apiWrites": 0,
+      "jsErrors": []
+    },
+    "local-operation.json": {
+      "environment": "Workers e D1 locais, mock oficial Sites para o dono; cliente anônimo em segundo contexto",
+      "browserFlow": "Fluxo anterior atingiu o acompanhamento delivered antes da checagem de comanda; esta retomada confirma os registros sem criar outro pedido.",
+      "total": 14200,
+      "status": "delivered",
+      "paymentStatus": "pay_on_delivery",
+      "orders": 1,
+      "tickets": [
+        {
+          "copy": "kitchen",
+          "status": 200,
+          "historical": true,
+          "noNewCharge": true
+        },
+        {
+          "copy": "delivery",
+          "status": 200,
+          "historical": true,
+          "noNewCharge": true
+        }
+      ],
+      "menuUnpublishedAfterTest": true,
+      "productionOrders": 0,
+      "realTransactions": 0
+    },
+    "production-pwa-trial.json": {
+      "environment": "produção v41 em Chrome Windows, viewport celular",
+      "manifest": {
+        "status": 200,
+        "display": "standalone",
+        "startUrl": "/app"
+      },
+      "worker": {
+        "active": true,
+        "scope": "https://forno-cardapios.waves4845.chatgpt.site/",
+        "permission": "default"
+      },
+      "offlineHeadings": [
+        "Vamos reconectar."
+      ],
+      "sessionRestoredAfterConnection": true,
+      "trial": {
+        "status": "active",
+        "endsAt": 1792773824,
+        "daysRemaining": 7,
+        "enforced": false
+      },
+      "usage": {
+        "images": 0,
+        "studio": 0
+      },
+      "androidInstalled": false,
+      "realPushDeliveryTested": false
+    },
+    "ifood-baseline-browser.json": {
+      "branch": "PR26; não inclui ampliação da PR25",
+      "transport": "consulta pública real pelo servidor local; bloqueios respeitados",
+      "http": 200,
+      "result": {
+        "status": "needs_content",
+        "url": "https://www.ifood.com.br/delivery/cabo-frio-rj/aione-pizzas-jardim-pero/900caad5-258e-4bf7-9458-353cb0bffe60",
+        "text": "",
+        "count": 0,
+        "message": "O iFood não liberou o catálogo por esse link. Cole o texto completo do cardápio ou envie um arquivo TXT/CSV para continuar. Não é preciso cadastrar os produtos um a um."
+      },
+      "notice": [
+        "O iFood não liberou o catálogo por esse link. Cole o texto completo do cardápio ou envie um arquivo TXT/CSV para continuar. Não é preciso cadastrar os produtos um a um."
+      ],
+      "fallbackGallery": 4,
+      "linkPreserved": true
+    },
+    "guest-browser.json": {
+      "base": "http://localhost:5173",
+      "device": "Chrome Windows / Pixel 7 emulated",
+      "checks": [
+        {
+          "name": "entrada direta sem conta",
+          "ok": true,
+          "detail": {
+            "url": "http://localhost:5173/criar",
+            "promptEnabled": true
+          }
+        },
+        {
+          "name": "prompt longo e controles em tela estreita",
+          "ok": true,
+          "detail": {
+            "characters": 1570,
+            "widths": [
+              320,
+              360,
+              412
+            ],
+            "shortViewportHeight": 480
+          }
+        },
+        {
+          "name": "oito propostas com estruturas distintas e nome reconhecido",
+          "ok": true,
+          "detail": [
+            {
+              "title": "Forno clássico",
+              "classes": "mini-menu theme-editorial layout-list hero-split font-serif corners-square large",
+              "name": "Bella Massa QA",
+              "cardWidth": 240,
+              "cover": {
+                "height": 105,
+                "display": "grid",
+                "columns": "92.0156px 121.969px"
+              },
+              "product": {
+                "height": 96,
+                "direction": "row"
+              }
+            },
+            {
+              "title": "Ateliê da pizza",
+              "classes": "mini-menu theme-editorial layout-poster hero-split font-serif corners-soft large",
+              "name": "Bella Massa QA",
+              "cardWidth": 240,
+              "cover": {
+                "height": 105,
+                "display": "grid",
+                "columns": "92.0156px 121.969px"
+              },
+              "product": {
+                "height": 185,
+                "direction": "column"
+              }
+            },
+            {
+              "title": "Essencial",
+              "classes": "mini-menu theme-classic layout-compact hero-compact font-modern corners-square large",
+              "name": "Bella Massa QA",
+              "cardWidth": 240,
+              "cover": {
+                "height": 77.25,
+                "display": "block",
+                "columns": "none"
+              },
+              "product": {
+                "height": 90,
+                "direction": "row"
+              }
+            },
+            {
+              "title": "Casa da família",
+              "classes": "mini-menu theme-playful layout-cards hero-split font-bold corners-soft large",
+              "name": "Bella Massa QA",
+              "cardWidth": 240,
+              "cover": {
+                "height": 105,
+                "display": "grid",
+                "columns": "92.0156px 121.969px"
+              },
+              "product": {
+                "height": 85,
+                "direction": "row"
+              }
+            },
+            {
+              "title": "Noite premium",
+              "classes": "mini-menu theme-dark layout-poster hero-cover font-bold corners-square large",
+              "name": "Bella Massa QA",
+              "cardWidth": 240,
+              "cover": {
+                "height": 157,
+                "display": "block",
+                "columns": "none"
+              },
+              "product": {
+                "height": 185,
+                "direction": "column"
+              }
+            },
+            {
+              "title": "Delivery urbano",
+              "classes": "mini-menu theme-dark layout-list hero-compact font-bold corners-square large",
+              "name": "Bella Massa QA",
+              "cardWidth": 240,
+              "cover": {
+                "height": 77.25,
+                "display": "block",
+                "columns": "none"
+              },
+              "product": {
+                "height": 98,
+                "direction": "row"
+              }
+            },
+            {
+              "title": "Trattoria",
+              "classes": "mini-menu theme-classic layout-compact hero-split font-serif corners-soft large",
+              "name": "Bella Massa QA",
+              "cardWidth": 240,
+              "cover": {
+                "height": 105,
+                "display": "grid",
+                "columns": "92.0156px 121.969px"
+              },
+              "product": {
+                "height": 87,
+                "direction": "row"
+              }
+            },
+            {
+              "title": "Festival de sabores",
+              "classes": "mini-menu theme-playful layout-cards hero-cover font-modern corners-soft large",
+              "name": "Bella Massa QA",
+              "cardWidth": 240,
+              "cover": {
+                "height": 157,
+                "display": "block",
+                "columns": "none"
+              },
+              "product": {
+                "height": 85,
+                "direction": "row"
+              }
+            }
+          ]
+        },
+        {
+          "name": "navegação horizontal até o último modelo",
+          "ok": true,
+          "detail": {
+            "client": 380,
+            "scroll": 996,
+            "left": 616
+          }
+        },
+        {
+          "name": "refinamentos sequenciais gratuitos",
+          "ok": true,
+          "detail": {
+            "class": "mini-menu theme-classic layout-compact hero-compact font-modern corners-soft large",
+            "accent": "",
+            "style": "--menu-accent: #296bac; --menu-ink: #ffffff;"
+          }
+        },
+        {
+          "name": "limite honesto para pedidos fora dos modelos",
+          "ok": true,
+          "detail": "Esse pedido vai além das alterações gratuitas destes modelos. Guardamos suas palavras para continuar no Estúdio de IA depois do cadastro."
+        },
+        {
+          "name": "anexos TXT e CSV sem confusão com a marca",
+          "ok": true,
+          "detail": {
+            "sourceText": "BEBIDAS\nRefrigerante lata R$ 6,00\nÁgua mineral R$ 4,00\nCategoria: Bebidas [simple]\nSuco natural R$ 8,00"
+          }
+        },
+        {
+          "name": "logo e capa separados; adicionar, remover e recuperar",
+          "ok": true,
+          "detail": {
+            "brand": 2,
+            "ocrPhotos": 0
+          }
+        },
+        {
+          "name": "foto do cardápio adicionada e removida separadamente",
+          "ok": true
+        },
+        {
+          "name": "recuperação após fechar e reabrir o Chrome",
+          "ok": true,
+          "detail": {
+            "briefing": true,
+            "source": true,
+            "brand": true
+          }
+        },
+        {
+          "name": "roteamento para cadastro preserva o projeto",
+          "ok": true,
+          "detail": {
+            "url": "http://localhost:5173/cadastro?next=%2Fapp%3Fnew%3D1%26setup%3D1",
+            "title": "Forno clássico",
+            "styleId": "forno-classico",
+            "characters": 1570,
+            "hasAssets": true
+          }
+        },
+        {
+          "name": "IndexedDB recupera com localStorage bloqueado",
+          "ok": true,
+          "detail": {
+            "scenario": "local-only-blocked"
+          }
+        },
+        {
+          "name": "dois armazenamentos bloqueados impedem perda no cadastro",
+          "ok": true,
+          "detail": {
+            "scenario": "both-blocked"
+          }
+        }
+      ],
+      "errors": []
+    },
+    "calculator-browser.json": {
+      "checks": [
+        {
+          "name": "salvar e recarregar imediatamente preserva cálculo",
+          "ok": true,
+          "profit": 600000
+        },
+        {
+          "name": "download de cópia com armazenamento",
+          "ok": true
+        },
+        {
+          "name": "armazenamento bloqueado não informa sucesso falso",
+          "ok": true,
+          "message": "O cálculo está nesta página, mas seu navegador não permitiu guardar. Baixe o resultado antes de sair."
+        },
+        {
+          "name": "download de cópia sem armazenamento",
+          "ok": true
+        }
+      ],
+      "changed": "somente candidata; produção permanece na v41"
+    },
+    "studio-length-browser.json": {
+      "initialCharacters": 1693,
+      "initialTextPreserved": true,
+      "overLimitDisabled": true,
+      "validMessageEnabled": true,
+      "quotaNotice": "Usa 1 criação de texto da cota · 5 disponíveis",
+      "providerCalls": 0,
+      "availability": "GET de franquia simulado: 2 de 7 usados; sem geração"
+    }
+  },
+  "applicationTests": {
+    "passed": 331,
+    "failed": 0,
+    "skipped": 0,
+    "typecheck": "passed",
+    "build": "official Sites helper passed"
+  }
+}

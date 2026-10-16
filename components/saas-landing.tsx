@@ -3,13 +3,13 @@ import {ArrowRight,ArrowUpRight,Check,Calculator,Pizza,ClipboardList,Sparkles,St
 import PlanCards from "./plan-cards";
 import {Brand,MiniMenu} from "./ui";
 import {demoRestaurant} from "@/lib/domain";
-const signup="#ideia";
+const signup="/criar";
 export default function SaasLanding(){
  const example={...demoRestaurant("dark"),name:"Forno da Vila",tagline:"Quentinha. Caprichada. Sua.",accent:"#dc3828",cover:"/assets/pizza.webp"};
  return <div className="pizza-home">
   <header className="pizza-home-header"><div className="saas-container"><Brand/><nav aria-label="Navegação principal"><a className="public-calculator-link" href="/calculadora"><Calculator size={16}/>Calculadora grátis</a><a href="#planos">Planos</a><a href="/entrar">Entrar</a><a className="btn primary small desktop-signup" href={signup}>Criar cardápio <ArrowRight size={15}/></a></nav></div></header>
   <main>
-   <IdeaStart/>
+   <section className="landing-creator-shortcut"><IdeaStart/></section>
    <section className="saas-container pizza-free-tool"><div className="pizza-calculator-icon"><Calculator size={29}/></div><div><span className="pizza-eyebrow">GRÁTIS E SEM CADASTRO</span><h2>Sua pizza está dando lucro?</h2><p>Calcule o preço, veja quanto sobra e salve suas contas para voltar depois.</p></div><a className="btn dark" href="/calculadora">Calcular agora <ArrowRight size={17}/></a></section>
    <section className="saas-container pizza-workflow" id="como-funciona"><div className="pizza-section-heading"><span className="pizza-eyebrow">DA COZINHA AO CLIENTE</span><h2>Menos complicação.<br/>Mais pizza saindo.</h2><p>O que você precisa para vender, no mesmo lugar.</p></div><div className="pizza-feature-row"><article><Pizza size={25}/><h3>Seu cardápio</h3><p>Sabores, tamanhos, meio a meio, bordas e bebidas. Seus preços, do seu jeito.</p></article><article><ClipboardList size={25}/><h3>Seus pedidos</h3><p>Confira o pagamento, acompanhe o preparo e avise quando sair para entrega.</p></article><article><Sparkles size={25}/><h3>Sua marca</h3><p>Crie logo, capa e descrições com IA. Confira o resultado e escolha o que usar.</p></article></div></section>
    <section className="pizza-menu-showcase"><div className="saas-container"><div className="pizza-menu-copy"><span className="pizza-eyebrow">UM LINK COM A SUA CARA</span><h2>Deu vontade?<br/><em>É só pedir.</em></h2><p>O cliente abre o link, escolhe a pizza e monta o pedido. Você compartilha no WhatsApp, no Instagram ou na embalagem.</p><a className="btn primary" href="/demo/dark">Experimentar o cardápio <ArrowUpRight size={17}/></a><div className="pizza-menu-detail"><Store size={19}/><span>Layout, letras, cores e sabores da sua pizzaria.<br/>Funciona no celular e no computador.</span></div></div><div className="pizza-menu-device"><div><span/><small>Cardápio de exemplo</small><span/></div><MiniMenu data={example} large/></div></div></section>

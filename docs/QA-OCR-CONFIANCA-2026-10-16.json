@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-16",
+  "baseCommit": "9c70dbc931a40f94ed7ef57d1bc4f50f940096bd",
+  "applicationTests": {
+    "passed": 348,
+    "failed": 0,
+    "skipped": 0
+  },
+  "realAndroid": false,
+  "realCustomerMenus": false,
+  "paidAiCalls": 0,
+  "source": "reproducible SVG layouts plus existing pizza photo; real local Tesseract",
+  "setupMs": 252,
+  "layouts": [
+    {
+      "name": "table",
+      "ms": 561,
+      "items": 4,
+      "ready": 4,
+      "names": [
+        "Calabresa",
+        "Frango",
+        "Refrigerante 2L",
+        "Catupiry"
+      ],
+      "priceFieldsChecked": 8
+    },
+    {
+      "name": "columns",
+      "ms": 367,
+      "items": 5,
+      "ready": 5,
+      "names": [
+        "Calabresa",
+        "Frango",
+        "Refrigerante 2L",
+        "Suco",
+        "Catupiry"
+      ],
+      "priceFieldsChecked": 5
+    },
+    {
+      "name": "staggered-columns",
+      "ms": 355,
+      "items": 5,
+      "ready": 5,
+      "names": [
+        "Calabresa",
+        "Frango",
+        "Refrigerante 2L",
+        "Suco",
+        "Catupiry"
+      ],
+      "priceFieldsChecked": 5
+    },
+    {
+      "name": "photo",
+      "ms": 440,
+      "items": 4,
+      "ready": 4,
+      "names": [
+        "Calabresa",
+        "Frango",
+        "Refrigerante 2L",
+        "Catupiry"
+      ],
+      "priceFieldsChecked": 8
+    }
+  ],
+  "photoLayouts": [
+    {
+      "name": "right",
+      "ms": 609,
+      "items": 3,
+      "pricesChecked": 3,
+      "photoCoverage": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "left",
+      "ms": 459,
+      "items": 3,
+      "pricesChecked": 3,
+      "photoCoverage": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "close",
+      "ms": 647,
+      "items": 3,
+      "pricesChecked": 3,
+      "photoCoverage": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "no-photo",
+      "ms": 360,
+      "items": 3,
+      "pricesChecked": 3,
+      "photoCoverage": [
+        null,
+        null,
+        null
+      ]
+    }
+  ],
+  "expectedItemsRecognized": 30,
+  "priceFieldsChecked": 38,
+  "unexpectedItems": 0,
+  "missingItems": 0
+}

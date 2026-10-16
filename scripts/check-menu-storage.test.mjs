@@ -6,6 +6,14 @@ import {readMenuPages,prepareReaderItems,remainingReaderItems,applyReaderItems} 
 import {defaultRestaurant,demoRestaurant} from '../lib/domain.ts';
 const item=readMenuPages([{id:'photo',lines:[{text:'Bebidas'},{text:'Suco R$ 8,00'}]}]).items[0];
 test('readings resume from IndexedDB and stay separated by restaurant',async()=>{const reading={restaurantId:'shop-reader-a',savedAt:Date.now(),pages:[],items:[item],unmatched:[],text:''};await saveReading(reading);assert.deepEqual(await loadReading(reading.restaurantId),reading);assert.equal(await loadReading('shop-reader-b'),null);await removeReading(reading.restaurantId);assert.equal(await loadReading(reading.restaurantId),null);});
+test('weak price confidence survives reload so another OCR pass cannot silently approve it',async()=>{
+ const source={id:'photo',name:'Photo',image:'data:image/jpeg;base64,AA==',width:100,height:100,lines:[{text:'Bebidas'},{text:'Suco R$ 8,00',confidence:95,priceConfidence:24}]};
+ const reading={restaurantId:'weak-price-reader',savedAt:Date.now(),pages:[source],items:readMenuPages([source]).items,unmatched:[]};
+ await saveReading(reading);const restored=await loadReading(reading.restaurantId);
+ assert.equal(restored.pages[0].lines[1].priceConfidence,24);
+ const [item]=readMenuPages(restored.pages).items;assert.equal(item.reviewRequired,true);assert.equal(item.selected,false);
+ await removeReading(reading.restaurantId);
+});
 test('expired or malformed readings cannot bypass re-review or restore unsafe images',async()=>{for(const reading of [{restaurantId:'expired',savedAt:Date.now()-8*86400000,pages:[],items:[item],unmatched:[]},{restaurantId:'invalid-price',savedAt:Date.now(),pages:[],items:[{...item,price:-500}],unmatched:[]},{restaurantId:'invalid-photo',savedAt:Date.now(),pages:[{id:'photo',image:'data:image/svg+xml,<svg onload="danger"/>',width:100,height:100,lines:[]}],items:[item],unmatched:[]}]){await saveReading(reading);assert.equal(await loadReading(reading.restaurantId),null);await removeReading(reading.restaurantId);}});
 
 test('pasted text survives a text-only checkpoint and older checkpoints without text remain readable',async()=>{

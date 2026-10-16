@@ -2,6 +2,10 @@
 
 ## Continuação de 16/10/2026 — dados JSON públicos e API oficial
 
+A revisão desta PR foi reconciliada com a main após a correção do OCR. Sete testes adicionais cobrem disponibilidade explícita, categorias pausadas, grupos de opções como objeto/referência, unidade/valores alternativos, bordas e o limite de texto. Catálogo ou item indisponível não pode reaparecer por uma cópia JSON-LD simplificada. Objetos de preço com unidade ou campos alternativos desconhecidos são recusados, sem inferir centavos. A saída respeita 200 produtos e reserva o espaço do link dentro dos 60 mil caracteres; um recorte parcial é avisado. Isso continua sem comprovar o formato de catálogos reais do iFood.
+
+**Validação desta revisão:** 360 testes locais aprovados, zero falhas/ignorados; TypeScript e build oficial Sites aprovados. O transporte externo é simulado nos testes. Não houve nova importação de catálogo real, geração paga ou cobrança. A PR permanece separada da produção v44 enquanto aguarda o CI e a validação com conteúdo público real acessível; 403 não é contornado e a API oficial não foi conectada.
+
 A consulta por link público foi ampliada para reconhecer **JSON-LD Schema.org** e também scripts **JSON válidos** de hidratação Next.js (`__NEXT_DATA__`), *somente quando já forem retornados na página pública*. Não executa JavaScript da loja, não segue redirecionamentos, não envia cookies nem extrai endpoints privados. Se a página retornar 403, CAPTCHA, HTML sem catálogo estruturado ou preços ambíguos, o resultado continua `needs_content`, com entrada por texto/TXT/CSV/fotos. Isso não garante que o site atual do iFood disponibilize `__NEXT_DATA__`; os testes da mudança usam amostras sintéticas.
 
 A leitura de JSON de hidratação exige caminho explícito de catálogo/menu e categoria com nome. Só propõe itens com **preço único positivo em BRL**, sem opções/tamanhos complexos, desconto alternativo ou preço conflitante de mesmo produto. Nunca supõe tamanho G. O dono revisa cada item antes de gravar no rascunho e publica separadamente. Não afirmar que um item complexo foi importado completamente.
