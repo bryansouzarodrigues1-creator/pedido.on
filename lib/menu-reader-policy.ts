@@ -84,8 +84,8 @@ export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
     });
   }
   const boundaries:number[]=[];
-  // Require repeated rows with a named, priced product on both sides. A gap
-  // between P/M/G prices alone is not evidence of another menu column.
+  // Require repeated named price evidence on both sides. Products in different
+  // columns can have staggered baselines; P/M/G prices alone are not evidence.
   const gutters:{left:number;right:number;rows:Set<typeof rows[number]>}[]=[];
   const pricedName=(part:ReaderWord[])=>{
     const text=part.map(w=>w.text).join(" "),price=[...text.matchAll(priceRE)][0];if(!price)return false;
@@ -100,7 +100,16 @@ export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
       if(group){group.left=Math.max(group.left,left);group.right=Math.min(group.right,right);group.rows.add(row);}else gutters.push({left,right,rows:new Set([row])});
     }
   }
-  for(const gutter of gutters)if(gutter.rows.size>=2)boundaries.push((gutter.left+gutter.right)/2);
+  for(const gutter of gutters){
+    const boundary=(gutter.left+gutter.right)/2;
+    let left=0,right=0;
+    if(gutter.rows.size<2)for(const row of rows){
+      if(pricedName(row.words.filter(w=>(w.box.x0+w.box.x1)/2<boundary)))left++;
+      if(pricedName(row.words.filter(w=>(w.box.x0+w.box.x1)/2>=boundary)))right++;
+      if(left>=2&&right>=2)break;
+    }
+    if(gutter.rows.size>=2||left>=2&&right>=2)boundaries.push(boundary);
+  }
   if(!boundaries.length)for(const row of rows){
     const chunks:ReaderWord[][]=[];
     for(const word of row.words.sort((a,b)=>a.box.x0-b.box.x0)){const last=chunks.at(-1);if(!last||word.box.x0-last.at(-1)!.box.x1>Math.max(80,width*.09))chunks.push([word]);else last.push(word);}

@@ -94,3 +94,25 @@ test('a single mixed row cannot use a table header to turn another product into 
  const [item]=read('Pizzas\nP G\nCalabresa 49,90 Água mineral 5,00').items;
  assert.equal(readerItemReady(item),false);assert.equal(item.reviewRequired,true);assert.deepEqual(item.sizes,{p:null,m:null,g:null});
 });
+test('columns remain independent when only one pair of products shares a baseline',()=>{
+ const word=(text,x,y,w=110)=>({text,confidence:96,box:{x0:x,y0:y,x1:x+w,y1:y+26}});
+ const product=(name,x,y,price)=>[word(name,x,y,150),word('R$',x+190,y,40),word(price,x+240,y,90)];
+ const words=[word('Pizzas',60,20),word('Bebidas',1010,70),
+  word('Calabresa',60,120,160),word('G',240,120,20),word('R$',280,120,40),word('49,90',340,120,90),
+  ...product('Refrigerante 2L',1010,155,'12,00'),word('Molho, queijo e calabresa',60,190,400),
+  word('Frango',60,300,130),word('G',220,300,20),word('R$',270,300,40),word('52,90',330,300,90),
+  ...product('Suco',1010,300,'8,00'),word('Molho, queijo e frango',60,360,360),word('Bordas',1010,420),...product('Catupiry',1010,480,'8,00')];
+ const result=readMenuPages([{id:'staggered-browser',lines:arrangeMenuWords(words,1700)}]);
+ assert.deepEqual(result.items.map(v=>v.name),['Calabresa','Frango','Refrigerante 2L','Suco','Catupiry']);
+ assert.deepEqual(result.items.map(v=>v.kind),['pizza','pizza','simple','simple','crust']);
+ assert.deepEqual(result.items.slice(0,2).map(v=>v.sizes.g),[4990,5290]);
+ assert.deepEqual(result.items.slice(2).map(v=>v.price),[1200,800,800]);
+ assert.match(result.items[0].description,/calabresa/);assert.equal(result.items[2].description,'');
+ assert.ok(result.items.every(readerItemReady));
+});
+test('one mixed baseline without repeated named price evidence does not invent columns',()=>{
+ const word=(text,x,y)=>({text,confidence:96,box:{x0:x,y0:y,x1:x+80,y1:y+25}});
+ const words=[word('Pizzas',30,10),word('P',450,60),word('G',850,60),word('Calabresa',30,120),word('49,90',250,120),word('Suco',700,120),word('8,00',900,120),word('29,90',700,180)];
+ const result=readMenuPages([{id:'uncertain-columns',lines:arrangeMenuWords(words,1200)}]);
+ assert.ok(result.items.every(item=>!readerItemReady(item)&&!item.selected));
+});

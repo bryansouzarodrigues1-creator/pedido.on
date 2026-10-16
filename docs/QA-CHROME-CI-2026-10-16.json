@@ -1,0 +1,309 @@
+{
+  "date": "2026-10-16",
+  "applicationCommit": "edc0dfe23afa74958dbb3d74bccbf31cf3959b2e",
+  "sourceCommit": "912223a732c851d8ca3c1be80ccd8c3d86b26f8c",
+  "sourceTree": "b3d998cdb80a70f2b904c045f24172b36585f740",
+  "publishedVersion": 45,
+  "environmentRevision": 13,
+  "domainTests": {
+    "passed": 354,
+    "failed": 0,
+    "skipped": 0
+  },
+  "ci": {
+    "domainRun": 38975573687,
+    "browserRun": 38975573660,
+    "browserAttempt": 2,
+    "browserArtifact": 12079376413,
+    "conclusion": "success"
+  },
+  "realAndroid": false,
+  "paidAiCalls": 0,
+  "realFinancialCharges": 0,
+  "handoffIdentity": "official Sites local mock; not Supabase signup",
+  "local": {
+    "guest": {
+      "passed": 14,
+      "failed": 0,
+      "javascriptErrors": [],
+      "checks": [
+        {
+          "name": "entrada direta sem conta",
+          "ok": true
+        },
+        {
+          "name": "prompt longo e controles em tela estreita",
+          "ok": true
+        },
+        {
+          "name": "oito propostas com estruturas distintas e nome reconhecido",
+          "ok": true
+        },
+        {
+          "name": "navegação horizontal até o último modelo",
+          "ok": true
+        },
+        {
+          "name": "refinamentos sequenciais gratuitos",
+          "ok": true
+        },
+        {
+          "name": "limite honesto para pedidos fora dos modelos",
+          "ok": true
+        },
+        {
+          "name": "anexos TXT e CSV sem confusão com a marca",
+          "ok": true
+        },
+        {
+          "name": "logo e capa separados; adicionar, remover e recuperar",
+          "ok": true
+        },
+        {
+          "name": "foto do cardápio adicionada e removida separadamente",
+          "ok": true
+        },
+        {
+          "name": "recuperação após fechar e reabrir o Chrome",
+          "ok": true
+        },
+        {
+          "name": "atualizar a leitura preserva o modelo e os pedidos escritos",
+          "ok": true
+        },
+        {
+          "name": "roteamento para cadastro preserva o projeto",
+          "ok": true
+        },
+        {
+          "name": "IndexedDB recupera com localStorage bloqueado",
+          "ok": true
+        },
+        {
+          "name": "dois armazenamentos bloqueados impedem perda no cadastro",
+          "ok": true
+        }
+      ]
+    },
+    "calculator": {
+      "passed": 4,
+      "failed": 0,
+      "javascriptErrors": [],
+      "checks": [
+        {
+          "name": "salvar e recarregar imediatamente preserva cálculo",
+          "ok": true
+        },
+        {
+          "name": "download de cópia com armazenamento",
+          "ok": true
+        },
+        {
+          "name": "armazenamento bloqueado não informa sucesso falso",
+          "ok": true
+        },
+        {
+          "name": "download de cópia sem armazenamento",
+          "ok": true
+        }
+      ]
+    },
+    "ocr": {
+      "passed": 2,
+      "failed": 0,
+      "javascriptErrors": [],
+      "checks": [
+        {
+          "name": "table",
+          "ok": true
+        },
+        {
+          "name": "staggered-columns",
+          "ok": true
+        }
+      ],
+      "timings": [
+        {
+          "name": "table",
+          "ok": true,
+          "items": 4,
+          "priceFields": 8,
+          "ms": 880,
+          "maxMainThreadGapMs": 99,
+          "jsHeapBytes": 25179077
+        },
+        {
+          "name": "staggered-columns",
+          "ok": true,
+          "items": 5,
+          "priceFields": 5,
+          "ms": 913,
+          "maxMainThreadGapMs": 133,
+          "jsHeapBytes": 25325717
+        }
+      ]
+    },
+    "handoff": {
+      "passed": 4,
+      "failed": 0,
+      "checks": [
+        {
+          "name": "login local recupera o nome e a ideia sem nova pergunta",
+          "ok": true
+        },
+        {
+          "name": "um rascunho privado recebe estilo, refinamentos, texto e marca sem cadastrar produtos ilustrativos",
+          "ok": true
+        },
+        {
+          "name": "logo e capa são enviados ao R2 local e guardados no rascunho",
+          "ok": true
+        },
+        {
+          "name": "fechar, reabrir e entrar novamente preserva dados e o mesmo rascunho sem duplicação",
+          "ok": true
+        }
+      ],
+      "javascriptErrors": []
+    }
+  },
+  "public": {
+    "guest": {
+      "passed": 14,
+      "failed": 0,
+      "javascriptErrors": [],
+      "checks": [
+        {
+          "name": "entrada direta sem conta",
+          "ok": true
+        },
+        {
+          "name": "prompt longo e controles em tela estreita",
+          "ok": true
+        },
+        {
+          "name": "oito propostas com estruturas distintas e nome reconhecido",
+          "ok": true
+        },
+        {
+          "name": "navegação horizontal até o último modelo",
+          "ok": true
+        },
+        {
+          "name": "refinamentos sequenciais gratuitos",
+          "ok": true
+        },
+        {
+          "name": "limite honesto para pedidos fora dos modelos",
+          "ok": true
+        },
+        {
+          "name": "anexos TXT e CSV sem confusão com a marca",
+          "ok": true
+        },
+        {
+          "name": "logo e capa separados; adicionar, remover e recuperar",
+          "ok": true
+        },
+        {
+          "name": "foto do cardápio adicionada e removida separadamente",
+          "ok": true
+        },
+        {
+          "name": "recuperação após fechar e reabrir o Chrome",
+          "ok": true
+        },
+        {
+          "name": "atualizar a leitura preserva o modelo e os pedidos escritos",
+          "ok": true
+        },
+        {
+          "name": "roteamento para cadastro preserva o projeto",
+          "ok": true
+        },
+        {
+          "name": "IndexedDB recupera com localStorage bloqueado",
+          "ok": true
+        },
+        {
+          "name": "dois armazenamentos bloqueados impedem perda no cadastro",
+          "ok": true
+        }
+      ]
+    },
+    "calculator": {
+      "passed": 4,
+      "failed": 0,
+      "javascriptErrors": [],
+      "checks": [
+        {
+          "name": "salvar e recarregar imediatamente preserva cálculo",
+          "ok": true
+        },
+        {
+          "name": "download de cópia com armazenamento",
+          "ok": true
+        },
+        {
+          "name": "armazenamento bloqueado não informa sucesso falso",
+          "ok": true
+        },
+        {
+          "name": "download de cópia sem armazenamento",
+          "ok": true
+        }
+      ]
+    },
+    "ocr": {
+      "passed": 2,
+      "failed": 0,
+      "javascriptErrors": [],
+      "checks": [
+        {
+          "name": "table",
+          "ok": true
+        },
+        {
+          "name": "staggered-columns",
+          "ok": true
+        }
+      ],
+      "timings": [
+        {
+          "name": "table",
+          "ok": true,
+          "items": 4,
+          "priceFields": 8,
+          "ms": 1367,
+          "maxMainThreadGapMs": 86,
+          "jsHeapBytes": 19041305
+        },
+        {
+          "name": "staggered-columns",
+          "ok": true,
+          "items": 5,
+          "priceFields": 5,
+          "ms": 1364,
+          "maxMainThreadGapMs": 102,
+          "jsHeapBytes": 13851559
+        }
+      ]
+    }
+  },
+  "publicMenuBaseline": {
+    "url": "https://4estylos.com.br/public/archives/CARDAPIO_PIZZARIA_2025.pdf",
+    "sha256": "437c75008bda1d024215f2adcce0ce97fccbabb42e237a330219cc8f340816c1",
+    "pages": [
+      11,
+      19
+    ],
+    "manuallyInspectedSimpleTargets": 21,
+    "rawPipelineReady": 0,
+    "candidateCounts": [
+      2,
+      19
+    ],
+    "commercialOcrApproved": false,
+    "scope": "PDF rasterized locally at 2200px height, JPEG92, real local Tesseract; source and images not committed"
+  }
+}
