@@ -5,7 +5,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {fixture} from './test-backend-fixture.mjs';
 import {defaultRestaurant,demoRestaurant,restaurantSchema} from '../lib/domain.ts';
 import {menuPresentation,designFromMessage,presentationForTheme} from '../lib/menu-design.ts';
-import {localStudio,proposalPatch,normalizeStudioResponse,studioInput} from '../lib/studio-policy.ts';
+import {localStudio,proposalPatch,normalizeStudioResponse,studioInput,nameFromBriefing} from '../lib/studio-policy.ts';
 
 test('design commands change composition, typography and hero while preserving selling data',()=>{
  const data=demoRestaurant(),before=structuredClone(data);
@@ -36,3 +36,22 @@ test('real studio route tolerates only the incomplete optional photo, reuses the
  try{const data=defaultRestaurant('Nova loja'),body={requestId:crypto.randomUUID(),mode:'ai',message:'Itália, cores e fotos',snapshot:data,history:[]},before=f.db.prepare('SELECT data,published_data FROM restaurants WHERE id=?').get('shop-a'),response=await f.call('studio','POST',{id:'shop-a'},body);assert.equal(response.status,200,await response.clone().text());const result=await response.json();assert.equal(result.proposal.imageBrief,undefined);assert.equal(result.proposal.presentation.layout,'list');assert.equal(result.usage.used,1);assert.equal((await f.call('studio','POST',{id:'shop-a'},body)).status,200);assert.equal(calls,1);assert.deepEqual(f.db.prepare('SELECT data,published_data FROM restaurants WHERE id=?').get('shop-a'),before);}finally{globalThis.fetch=original;f.close();}
 });
 test('creating from the idea saves its design without requiring WhatsApp or creating AI jobs',async()=>{const f=fixture();try{const response=await f.call('restaurants','POST',{}, {name:'Forno das Ideias',slug:'forno-das-ideias',theme:'editorial',plan:'essencial',vision:'Quero um cardápio escuro com fotos grandes e letras fortes'});assert.equal(response.status,201,await response.clone().text());const {restaurant}=await response.json(),data=JSON.parse(restaurant.data);assert.equal(data.presentation.layout,'poster');assert.equal(data.presentation.font,'bold');assert.equal(data.whatsapp,'');assert.deepEqual(data.products,[]);assert.equal(data.pix.enabled,false);assert.equal(restaurant.published,false);assert.equal(f.db.prepare('SELECT COUNT(*) n FROM studio_jobs').get().n,0);assert.equal(f.db.prepare('SELECT COUNT(*) n FROM image_jobs').get().n,0);}finally{f.close();}});
+
+test('an explicit pizzeria name reaches the free preview and is reusable at signup without inventing a brand',()=>{
+ const cases=[
+  ['Minha pizzaria se chama Forno da Vila, quero fotos grandes','Forno da Vila'],
+  ['A pizzaria se chama Bella Roma e quero um cardápio escuro','Bella Roma'],
+  ['Nome da pizzaria: Sabor & Arte','Sabor & Arte'],
+  ['Nome da minha pizzaria é Massa Fina','Massa Fina'],
+  ['Quero um cardápio artesanal vermelho para minha pizzaria',undefined],
+  ['Tenho uma pizzaria de bairro com foco em delivery',undefined],
+ ];
+ const data=demoRestaurant();
+ for(const [brief,name] of cases){
+  assert.equal(nameFromBriefing(brief),name);
+  const proposal=localStudio(brief,data),patch=proposalPatch(proposal,data);
+  assert.equal(patch.name,name);
+  assert.deepEqual(data.products.map(p=>p.prices),demoRestaurant().products.map(p=>p.prices));
+ }
+ assert.equal(localStudio(cases[0][0],data).presentation.layout,'poster');
+});
