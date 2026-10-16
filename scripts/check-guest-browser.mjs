@@ -1,11 +1,10 @@
 import { createRequire } from 'node:module';
+import {browserQaTarget, guardPublicGuestContext} from './browser-qa-target.mjs';
 const require = createRequire(import.meta.url);
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises'), path = require('node:path');
 const { chromium, devices } = require(process.env.QA_PLAYWRIGHT_MODULE || 'playwright-core');
-const base = (process.env.QA_BASE_URL || 'http://localhost:5173').replace(/\/$/, ''), key = 'pizzaria-menu-idea-v1';
-if (!['localhost', '127.0.0.1', '[::1]'].includes(new URL(base).hostname))
-    throw Error('Este teste grava dados locais: use um preview em loopback.');
+const {base, publicReadOnly} = browserQaTarget(), key = 'pizzaria-menu-idea-v1';
 if (!process.env.QA_CHROME_PATH)
     throw Error('Informe QA_CHROME_PATH para usar um Chrome já instalado.');
 const runRoot = path.resolve(process.env.QA_BROWSER_OUTPUT || ('.sites-runtime/browser-qa/' + Date.now()));
@@ -23,7 +22,7 @@ catch (e) {
     await page?.screenshot({path: path.join(dir, 'failure-' + results.length + '.png'), fullPage: true}).catch(() => {});
 } await fs.writeFile(path.join(dir, 'guest-browser.json'), JSON.stringify({ base, device: 'Chrome / Pixel 7 emulado', host: process.platform, checks: results, errors }, null, 2)); }
 async function screenshot(name) { await page.screenshot({ path: path.join(dir, name + '.png'), fullPage: true }); }
-async function start(profile = 'guest-profile') { context = await chromium.launchPersistentContext(path.join(runRoot, profile), { executablePath: process.env.QA_CHROME_PATH, headless: process.env.QA_HEADLESS === 'true', ...devices['Pixel 7'], locale: 'pt-BR' }); page = await context.newPage(); page.setDefaultTimeout(15000); page.on('pageerror', e => errors.push(e.message)); }
+async function start(profile = 'guest-profile') { context = await chromium.launchPersistentContext(path.join(runRoot, profile), { executablePath: process.env.QA_CHROME_PATH, headless: process.env.QA_HEADLESS === 'true', ...devices['Pixel 7'], locale: 'pt-BR', serviceWorkers: publicReadOnly ? 'block' : 'allow' }); await guardPublicGuestContext(context, errors); page = await context.newPage(); page.setDefaultTimeout(15000); page.on('pageerror', e => errors.push(e.message)); }
 async function load() { await page.goto(base + '/criar', { waitUntil: 'networkidle', timeout: 90000 }); await page.locator('#pizzeria-idea').waitFor({ state: 'visible' }); await page.waitForFunction(() => !document.querySelector('#pizzeria-idea').disabled); }
 (async () => {
     await fs.mkdir(dir, { recursive: true });
@@ -94,8 +93,10 @@ async function load() { await page.goto(base + '/criar', { waitUntil: 'networkid
     await context.close();
     const browser = await chromium.launch({ executablePath: process.env.QA_CHROME_PATH, headless: process.env.QA_HEADLESS === 'true' });
     for (const type of ['local-only-blocked', 'both-blocked']) {
-        context = await browser.newContext({ ...devices['Pixel 7'], locale: 'pt-BR' });
+        context = await browser.newContext({ ...devices['Pixel 7'], locale: 'pt-BR', serviceWorkers: publicReadOnly ? 'block' : 'allow' });
+        await guardPublicGuestContext(context, errors);
         page = await context.newPage();
+        page.on('pageerror', e => errors.push(e.message));
         await context.addInitScript(({ both }) => { Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('QA storage denied', 'SecurityError'); } }); if (both)
             Object.defineProperty(window, 'indexedDB', { get() { throw new DOMException('QA storage denied', 'SecurityError'); } }); }, { both: type === 'both-blocked' });
         await record(type === 'local-only-blocked' ? 'IndexedDB recupera com localStorage bloqueado' : 'dois armazenamentos bloqueados impedem perda no cadastro', async () => { await load(); await page.locator('#pizzeria-idea').fill('Minha pizzaria se chama Persistência QA.'); await page.getByRole('button', { name: 'Criar opções', exact: true }).click(); await page.locator('.ai-style-card').first().getByRole('button').click(); await pause(600); if (type === 'local-only-blocked') {

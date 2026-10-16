@@ -47,6 +47,9 @@ jobs:
         env:
           QA_HEADLESS: "true"
         run: node scripts/run-browser-qa-ci.mjs
+      - name: Published guest UI and calculator (remote mutations blocked)
+        if: ${{ !cancelled() }}
+        run: node scripts/check-public-browser.mjs
       - name: Preserve screenshots and reports, including failures
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -59,3 +62,7 @@ jobs:
             .sites-runtime/browser-ci/*.log
             .sites-runtime/browser-ci/guest/evidence/
             .sites-runtime/browser-ci/calculator/
+            .sites-runtime/browser-ci/handoff/
+            .sites-runtime/browser-ci/public/summary.json
+            .sites-runtime/browser-ci/public/guest/evidence/
+            .sites-runtime/browser-ci/public/calculator/
