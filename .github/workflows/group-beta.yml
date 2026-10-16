@@ -54,6 +54,7 @@ on:
       - "scripts/check-order-demo.test.mjs"
       - "components/operation-guide.tsx"
       - "app/pedido/**"
+      - "scripts/check-menu-ocr.mjs"
       - "scripts/check-menu-photo-ocr.mjs"
       - "components/ai-import.tsx"
       - "components/product-photo-crop.tsx"
