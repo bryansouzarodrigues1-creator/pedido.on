@@ -18,13 +18,15 @@ function complexOptions(v:Record<string,unknown>){
 }
 /** Only parse clear public menu entries. No JavaScript execution, login, third-party redirects, or inferred prices. */
 export function structuredIfoodMenu(html:string){
- const candidates=new Map<string,Candidate>();let visited=0;
+ const candidates=new Map<string,Candidate>(),blockedKeys=new Set<string>();let visited=0;
  function collect(value:Record<string,unknown>,category:string,source:"schema"|"hydration"){
   const name=clean(value.name,100),description=clean(value.description);
   if(name.length<2||!category||/^(?:taxa|frete|entrega|avalia[cç][aã]o)\b/i.test(name))return;
-  if(complexOptions(value))return; // A single price cannot represent required toppings, sizes or variants.
-  if(["UNAVAILABLE","DISABLED","INACTIVE"].includes(String(value.status||"").toUpperCase()))return;
-  if(value.promotionalPrice!==undefined||value.discountedPrice!==undefined||value.discountPrice!==undefined)return;
+  const key=category.toLocaleLowerCase("pt-BR")+":"+name.toLocaleLowerCase("pt-BR");
+  if(complexOptions(value)||["UNAVAILABLE","DISABLED","INACTIVE"].includes(String(value.status||"").toUpperCase())
+   ||value.promotionalPrice!==undefined||value.discountedPrice!==undefined||value.discountPrice!==undefined){
+   blockedKeys.add(key);return; // A simpler duplicate cannot override a complex or unavailable item.
+  }
   let prices:number[]=[];
   if(source==="schema"){
    const offers=Array.isArray(value.offers)?value.offers:[value.offers];
@@ -37,7 +39,6 @@ export function structuredIfoodMenu(html:string){
    if(price!==null)prices.push(price);
   }
   if(!prices.length)return;
-  const key=category.toLocaleLowerCase("pt-BR")+":"+name.toLocaleLowerCase("pt-BR");
   const candidate=candidates.get(key)||{name,category,description,prices:new Set<number>(),uncertain:false};
   for(const price of prices)candidate.prices.add(price);
   if(candidate.description&&description&&candidate.description!==description)candidate.uncertain=true;
@@ -81,7 +82,7 @@ export function structuredIfoodMenu(html:string){
  }
  const lines:string[]=[];
  for(const candidate of candidates.values()){
-  if(candidate.uncertain||candidate.prices.size!==1)continue;
+  if(blockedKeys.has(candidate.category.toLocaleLowerCase("pt-BR")+":"+candidate.name.toLocaleLowerCase("pt-BR"))||candidate.uncertain||candidate.prices.size!==1)continue;
   const cents=[...candidate.prices][0],price=(cents/100).toFixed(2).replace(".",",");
   const kind=/bebida|refri|suco|cerveja|combo|lanche|hamburg/i.test(candidate.category)?"simple":"pizza";
   lines.push("Categoria: "+candidate.category+" ["+kind+"]",candidate.name+" R$ "+price,...(candidate.description?["Ingredientes: "+candidate.description]:[]));
