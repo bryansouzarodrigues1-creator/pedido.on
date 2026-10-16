@@ -71,12 +71,14 @@ try{
      });
      variants.push({name,durationMs:Math.round(performance.now()-started),recognized:parsed.items.length,ready:ready.length,unmatched:parsed.unmatched.length,exactNameMatches:checks.filter(c=>c.found).length,exactPriceMatches:checks.filter(c=>c.priceExact).length,expected:checks.length,checks,issueSamples:parsed.items.slice(0,18).map(i=>({name:i.name,kind:i.kind,review:i.reviewRequired||false,issueCount:i.issues.length,price:i.price,sizes:i.sizes}))});
    }
-   const best=[...variants].sort((a,b)=>b.exactPriceMatches-a.exactPriceMatches||b.exactNameMatches-a.exactNameMatches||a.recognized-b.recognized)[0];
-   report.pages.push({page,imageSize:[info.width,info.height],baseline:variants[0].name,bestVariant:best.name,variants});
-   report.ready+=variants[0].ready;report.matched+=variants[0].exactPriceMatches;
+   const best=[...variants].sort((a,b)=>b.exactPriceMatches-a.exactPriceMatches||b.exactNameMatches-a.exactNameMatches)[0];
+   const runtimeMode=info.height/info.width>1.6?'original-auto':'original-block';
+   const runtime=variants.find(v=>v.name===runtimeMode);
+   report.pages.push({page,imageSize:[info.width,info.height],runtimeMode,bestVariant:best.exactPriceMatches||best.exactNameMatches?best.name:null,variants});
+   report.ready+=runtime.ready;report.matched+=runtime.exactPriceMatches;
  }
  await writeFile(path.join(directory,'report.json'),JSON.stringify(report,null,2));
- console.log(JSON.stringify({expected:report.expected,baselineMatches:report.matched,baselineReady:report.ready,comparison:report.pages.map(p=>({page:p.page,bestVariant:p.bestVariant,variants:p.variants.map(v=>({name:v.name,recognized:v.recognized,ready:v.ready,exactNameMatches:v.exactNameMatches,exactPriceMatches:v.exactPriceMatches,durationMs:v.durationMs}))}))}));
+ console.log(JSON.stringify({expected:report.expected,runtimePriceMatches:report.matched,runtimeReady:report.ready,comparison:report.pages.map(p=>({page:p.page,runtimeMode:p.runtimeMode,bestVariant:p.bestVariant,variants:p.variants.map(v=>({name:v.name,recognized:v.recognized,ready:v.ready,exactNameMatches:v.exactNameMatches,exactPriceMatches:v.exactPriceMatches,durationMs:v.durationMs}))}))}));
 }finally{
  await worker?.terminate().catch(()=>{});
  await rm(temp,{recursive:true,force:true});
