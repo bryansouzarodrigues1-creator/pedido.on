@@ -4,6 +4,17 @@ import {requestedImage,creationTarget,defaultCreationTarget} from '../lib/creati
 import {creationRequest} from '../lib/creation-request.ts';
 import {demoRestaurant} from '../lib/domain.ts';
 
+test('oversized onboarding requests are rejected locally before a paid request can be built',()=>{
+ const snapshot=demoRestaurant(),before=structuredClone(snapshot);
+ const briefing='Uma identidade exclusiva para a casa. '.repeat(45),refinement=' Prefiro uma composição clara e personalizada.';
+ const message=briefing+refinement;
+ assert.ok(message.length>1600);
+ assert.throws(()=>creationRequest('visual',message,'ai',snapshot,crypto.randomUUID()),/1.600 caracteres/);
+ assert.throws(()=>creationRequest('cover','Uma foto com iluminação natural. '.repeat(25),'ai',snapshot,crypto.randomUUID()),/600 caracteres/);
+ assert.deepEqual(snapshot,before);
+ assert.equal(message,briefing+refinement);
+});
+
 test('the exact mobile logo requests select image generation before any text request',()=>{
  for(const message of ['Gere uma logo real','Gere uma logo real com cores vibrantes e um desing que vai fazer lembrar']){
   assert.equal(requestedImage(message).asset,'logo');

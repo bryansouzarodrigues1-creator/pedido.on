@@ -20,6 +20,10 @@ on:
       - "lib/gallery-styles.ts"
       - "lib/guest-brand-assets.ts"
       - "components/guest-brand-panel.tsx"
+      - "components/profit-calculator.tsx"
+      - "scripts/check-guest-browser.mjs"
+      - "scripts/check-calculator-browser.mjs"
+      - "scripts/check-creation-intent.test.mjs"
       - "lib/menu-launch-storage.ts"
       - "lib/menu-launch-checkpoint.ts"
       - "scripts/check-guest-checkpoint.test.mjs"
@@ -114,6 +118,10 @@ jobs:
         run: node scripts/check-db-snapshot.mjs
       - name: Domain tests
         run: pnpm test
+      - name: Browser QA scripts syntax (interactive QA is run separately)
+        run: |
+          node --check scripts/check-guest-browser.mjs
+          node --check scripts/check-calculator-browser.mjs
       - name: Production build
         run: pnpm build
       - name: Local OCR and screenshot photo checks (no paid generation)

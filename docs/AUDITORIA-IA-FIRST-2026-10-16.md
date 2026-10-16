@@ -1,5 +1,7 @@
 # Auditoria da Parte 1 — 16/10/2026
 
+**Atualização posterior:** o Rodrigues foi conectado e o bloqueio de navegador desta primeira rodada foi superado. A [QA pelo Desktop Commander](QA-DESKTOP-2026-10-16.md) registra os testes reais, os problemas adicionais corrigidos e as limitações que permanecem. O relato abaixo preserva o estado da primeira auditoria.
+
 ## Estado recuperado
 Produção Sites v41, main `b5b58ea9471f241b4b39f1a2675e160edb4e0a01`. PR #24 aberta em `8535c87286abc8632906db57216fc1006a93f801`; PR #26 aberta em `00823049980d3d19c6052b0c4e926138366b3064`, que já inclui a #24. A fonte Sites foi aberta pelo fluxo oficial e a árvore inicial foi confrontada com a main. Nenhuma edição local anterior estava disponível no novo executor.
 

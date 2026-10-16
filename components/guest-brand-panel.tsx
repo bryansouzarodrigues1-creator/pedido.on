@@ -13,7 +13,7 @@ export default function GuestBrandPanel({restaurantId,onApply}:{restaurantId:str
    const response=await fetch("/api/restaurants/"+encodeURIComponent(restaurantId)+"/media",{method:"POST",body:form});
    const body=await response.json() as {url?:string;error?:string};
    if(!response.ok||!body.url||!/^\/media\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/.test(body.url))throw Error(body.error||"Não foi possível aplicar a imagem.");
-   onApply(kind,body.url);setMessage((kind==="logo"?"Logo":"Capa")+" adicionado ao rascunho. Salve e publique quando estiver pronto.");
+   onApply(kind,body.url);setMessage((kind==="logo"?"Logo adicionado":"Capa adicionada")+" ao rascunho. Guarde e publique quando estiver pronto.");
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível enviar a imagem.");}finally{setBusy(null);}
  }
  async function discard(kind:"logo"|"cover"){if(!assets||busy)return;try{const next={...assets,[kind]:undefined};await saveBrandAssets(next);setAssets(next);setMessage("Referência descartada deste aparelho.");}catch{setError("Não foi possível remover esta referência agora.");}}
