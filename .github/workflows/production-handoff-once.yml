@@ -1,0 +1,46 @@
+name: One-time v45 production signup and private handoff
+on:
+  pull_request:
+    types: [opened]
+    paths:
+      - ".github/workflows/production-handoff-once.yml"
+      - "scripts/check-production-handoff-browser.mjs"
+permissions:
+  contents: read
+jobs:
+  production-handoff:
+    # Explicit, single QA slot. Never run signup on ordinary PRs or on sync.
+    if: github.head_ref == 'qa/real-handoff-v45-20261016'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install isolated browser tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pizzaria-browser-tools" --no-audit --no-fund --save-exact playwright-core@1.64.1
+          echo "QA_CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          echo "QA_PLAYWRIGHT_MODULE=$RUNNER_TEMP/pizzaria-browser-tools/node_modules/playwright-core" >> "$GITHUB_ENV"
+      - name: Prepare project without account (application mutations blocked)
+        env:
+          QA_BASE_URL: https://forno-cardapios.waves4845.chatgpt.site
+          QA_PUBLIC_GUEST_QA: "true"
+          QA_BROWSER_OUTPUT: .sites-runtime/production-handoff-once/guest
+          QA_HEADLESS: "true"
+        run: node scripts/check-guest-browser.mjs
+      - name: One real QA signup and one private draft, no publish or billing
+        env:
+          QA_PRODUCTION_HANDOFF_ONCE: v45-20261016
+          QA_HEADLESS: "true"
+        run: node scripts/check-production-handoff-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: production-handoff-v45-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            .sites-runtime/production-handoff-once/guest/evidence/
+            .sites-runtime/production-handoff-once/evidence/
