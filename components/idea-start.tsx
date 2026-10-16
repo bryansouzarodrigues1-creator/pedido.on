@@ -50,7 +50,7 @@ export default function IdeaStart(){
    const input=ready.map(p=>({id:p.id,lines:p.lines}));if(source.menuText.trim())input.push({id:"text",lines:source.menuText.split("\n").map(text=>({text}))});
    const result=input.length?readMenuPages(input):{items:[],unmatched:[]};
    if(input.length&&!result.items.length)setNotice("A fonte não trouxe produtos com preço legível. Cole o texto com os preços ou tente uma imagem mais nítida.");
-   setPreview(makePreview(result.items));setStyleId(null);setRound(0);setRefinement("");setLocalFeedbackNote("");setChatOpen(false);setImported(result.items.length);
+   setPreview(makePreview(result.items));setChatOpen(false);setImported(result.items.length);
    if(!launch.current)launch.current={id:crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,sourceText:text,hasPhotos:!!ready.length};
    reading.current={restaurantId:guestReadingKey(launch.current.id),savedAt:Date.now(),pages:ready,items:result.items,unmatched:result.unmatched,text};
    await saveReading(reading.current).catch(()=>{});
