@@ -39,7 +39,7 @@ try{
     await pizzas.locator(".products-grid>button").click();
     const builder=page.getByRole("dialog");
     await builder.getByRole("button",{name:"Meio a meio",exact:true}).click();
-    await builder.getByLabel("Segundo sabor",{exact:true}).selectOption("calabresa");
+    await builder.getByRole("combobox",{name:"Segundo sabor",exact:true}).selectOption("calabresa");
     await builder.getByRole("radio",{name:/Catupiry/}).check();
     await builder.getByRole("button",{name:/^Adicionar.*70,00/}).click();
     const bar=page.locator(".mobile-cart-bar");await bar.waitFor();assert.match(await bar.textContent(),/70,00/);
