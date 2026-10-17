@@ -17,8 +17,6 @@ CHECKS = [
     ("/", 200, "text/html"),
     ("/criar", 200, "text/html"),
     ("/entrar", 200, "text/html"),
-    ("/demo/forno-classico", 200, "text/html"),
-    ("/demo/noite-premium", 200, "text/html"),
     ("/offline", 200, "text/html"),
     ("/manifest.webmanifest", 200, "application/manifest+json"),
     ("/pwa/icon-192.png", 200, "image/png"),
@@ -27,6 +25,13 @@ CHECKS = [
     ("/api/restaurants", 401, "application/json"),
     ("/api/admin/status", 401, "application/json"),
     ("/api/billing/status", 401, "application/json"),
+]
+
+# These are expected only after the later 12-style source is deployed on Sites.
+# Record them as release gaps, not as a failure of existing orders/login.
+OPTIONAL_STYLES = [
+    ("/demo/forno-classico", 200, "text/html"),
+    ("/demo/noite-premium", 200, "text/html"),
 ]
 
 class SameOriginOnly(urllib.request.HTTPRedirectHandler):
@@ -85,6 +90,7 @@ def check(item):
 def main():
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         results = list(pool.map(check, CHECKS))
+        optional = list(pool.map(check, OPTIONAL_STYLES))
     passed = sum(x["pass"] for x in results)
     report = {
         "checked_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -93,7 +99,10 @@ def main():
         "passed": passed,
         "total": len(results),
         "checks": results,
+        "additional_style_probes": optional,
+        "extra_styles_published": all(x["pass"] for x in optional),
         "limitations": [
+            "Later 12-style feature routes are separately tested; failures mean source is not live",
             "Does not verify logged-in flow, AI quality, real orders, Asaas payment or email delivery",
             "Does not validate OCR camera, Android installation, push, or R2 images",
             "No accounts, customer data, payments, or orders are created"
