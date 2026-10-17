@@ -22,6 +22,7 @@ jobs:
       PEDIDO_STUDIO_ENABLED: "false"
       PEDIDO_BILLING_ENABLED: "false"
       PEDIDO_AI_ENABLED: "false"
+      PEDIDO_INDEPENDENT_LAUNCH_GATE: "locked"
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -43,9 +44,9 @@ jobs:
       - name: Verify independent Worker exists in bundled output
         run: |
           test -f dist/server/wrangler.json
-          node -e "const fs=require('node:fs');const j=JSON.parse(fs.readFileSync('dist/server/wrangler.json','utf8'));const d=j.d1_databases||[]; if(!d.some(x=>x.binding==='DB'&&x.database_id===process.env.PEDIDO_D1_DATABASE_ID)) process.exit(1); const r=j.r2_buckets||[]; if(!r.some(x=>x.binding==='BUCKET'&&x.bucket_name===process.env.PEDIDO_R2_BUCKET_NAME)) process.exit(2); console.log('Standalone staging D1/R2 binding IDs confirmed in generated build; deployment still disabled.');"
+          node -e "const fs=require('node:fs');const j=JSON.parse(fs.readFileSync('dist/server/wrangler.json','utf8'));if(j.name!=='pizzaria-on-backend-staging-20261017') process.exit(3); const d=j.d1_databases||[]; if(!d.some(x=>x.binding==='DB'&&x.database_id===process.env.PEDIDO_D1_DATABASE_ID)) process.exit(1); const r=j.r2_buckets||[]; if(!r.some(x=>x.binding==='BUCKET'&&x.bucket_name===process.env.PEDIDO_R2_BUCKET_NAME)) process.exit(2); console.log('Standalone staging D1/R2 binding IDs confirmed in generated build; deployment still disabled.');"
       - name: Explicit limitations
         if: always()
         run: |
           echo "Dry-run only. Build has REAL staging resource IDs, but no credentials, no DB/media transfer, no Lovable credits, no deployment, no payment." >> "$GITHUB_STEP_SUMMARY"
-          echo "Staging D1/R2 contents remain partial or empty; never publicize as full SaaS." >> "$GITHUB_STEP_SUMMARY"
+          echo "Staging D1/R2 contents remain partial or empty; all business endpoints locked without separate explicit review. Never publicize as full SaaS." >> "$GITHUB_STEP_SUMMARY"

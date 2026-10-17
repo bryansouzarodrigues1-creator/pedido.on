@@ -1,6 +1,6 @@
 import handler from "vinext/server/fetch-handler";
 import {normalizeHostingRequest,HostingProxyError, type HostingProxyConfig} from "../lib/hosting-proxy-policy";
-import {stripSitesIdentity} from "../lib/self-host-policy";
+import {stripSitesIdentity,standaloneLaunchGate} from "../lib/self-host-policy";
 
 /**
  * Standalone application origin, outside ChatGPT Sites.
@@ -9,6 +9,8 @@ import {stripSitesIdentity} from "../lib/self-host-policy";
  */
 export default {
   async fetch(incoming: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
+    const gate = standaloneLaunchGate(incoming, (env as typeof env & {PEDIDO_INDEPENDENT_LAUNCH_GATE?: string}).PEDIDO_INDEPENDENT_LAUNCH_GATE);
+    if (gate) return gate;
     let normalized;
     try {
       normalized=await normalizeHostingRequest(stripSitesIdentity(incoming),env as typeof env&HostingProxyConfig);
