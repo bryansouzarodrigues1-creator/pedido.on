@@ -21,7 +21,7 @@ Na candidata, passaram **24 verificações**, sem erros de JavaScript:
 
 As capturas dos oito estilos foram inspecionadas: capas dividida/compacta/integral, listas, cartões, vitrines e fontes diferem. Não é geração arbitrária de layouts. O viewport curto de 480 px não representa teclado Android físico.
 
-O handoff usa o mock oficial Sites. Seu cookie termina ao fechar o Chrome, portanto o teste entra novamente nessa identidade antes de conferir os dados; não afirma persistência de sessão Supabase a partir desse mock. Cadastro Supabase completo na versão publicada continua uma homologação distinta.
+O handoff local usa o mock oficial Sites. Seu cookie termina ao fechar o Chrome, portanto o teste entra novamente nessa identidade antes de conferir os dados; não afirma persistência de sessão Supabase a partir desse mock. A homologação Supabase distinta foi concluída posteriormente na v45: [seis verificações reais de cadastro e retomada](QA-CADASTRO-REAL-2026-10-16.md).
 
 ## Produção
 
@@ -39,4 +39,4 @@ Foi obtido legitimamente, por HTTP 200, o PDF público [4 Estylo’s 2025](https
 
 O resultado atual é insuficiente: a página de pizzas devolveu dois candidatos, nenhum pronto; bebidas devolveu 19 candidatos, nenhum pronto. Os 21 alvos simples conferidos manualmente — oito pizzas e 13 bebidas — não resultaram em itens prontos. Títulos coloridos em fundo escuro, códigos M/G, linhas gráficas, adicionais e listas de sabores precisam de tratamento próprio. Isso é avaliação de um PDF público real pelo motor local, não teste Android nem aprovação do OCR comercial.
 
-Próxima prioridade: melhorar contraste e estrutura nesses casos reais, medir nomes/preços/tipos contra a referência e reduzir candidatos espúrios sem preencher incertezas arbitrariamente. As demais pendências permanecem: Android físico, Supabase/Google e recuperação externa, Asaas financeiro, notificações/PWA e beta comercial.
+Próxima prioridade: melhorar contraste e estrutura nesses casos reais, medir nomes/preços/tipos contra a referência e reduzir candidatos espúrios sem preencher incertezas arbitrariamente. A experiência exploratória de contraste não foi publicada: ainda produziu associações/preços incorretos. As demais pendências permanecem: Android físico, Google e recuperação externa, Asaas financeiro, notificações/PWA e beta comercial. O heap JS medido nas amostras não representa a memória total do worker OCR nem consumo de bateria.

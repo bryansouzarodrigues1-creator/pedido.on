@@ -1,6 +1,8 @@
 # Lançamento IA-first — 16/10/2026
 
-**v45:** o Chrome agora executa no GitHub Actions, sem depender do Rodrigues. Passaram 354 testes de domínio, TypeScript/build, 24 cenários locais e 20 na produção. A rodada reproduziu e corrigiu uma falha adicional de OCR em colunas com produtos desalinhados. Fonte Sites `912223a732c851d8ca3c1be80ccd8c3d86b26f8c`, publicada às 22:28:23 UTC, ambiente 13; repetição pública aprovada no CI `38975573660`, tentativa 2. [Resultados, capturas e limites comerciais reais](QA-CHROME-CI-2026-10-16.md). Cadastro Supabase completo na versão atual e Android físico continuam fora do handoff simulado.
+**Handoff Supabase real concluído na v45:** execução `38977586275`, seis verificações aprovadas, zero falhas; cadastro direto, dados/arquivos recebidos e sessão mantida após reabrir Chrome sem novo login nem rascunho duplicado. [Evidência posterior aos cenários simulados abaixo](QA-CADASTRO-REAL-2026-10-16.md). Google/recuperação, Android físico e OCR comercial continuam pendentes. Nenhuma nova versão Sites foi necessária para acrescentar os testes.
+
+**v45:** o Chrome agora executa no GitHub Actions, sem depender do Rodrigues. Passaram 354 testes de domínio, TypeScript/build, 24 cenários locais e 20 na produção. A rodada reproduziu e corrigiu uma falha adicional de OCR em colunas com produtos desalinhados. Fonte Sites `912223a732c851d8ca3c1be80ccd8c3d86b26f8c`, publicada às 22:28:23 UTC, ambiente 13; repetição pública aprovada no CI `38975573660`, tentativa 2. [Resultados, capturas e limites comerciais reais](QA-CHROME-CI-2026-10-16.md). O cadastro Supabase foi validado posteriormente em execução própria, conforme a atualização acima; Android físico continua pendente.
 
 O proprietário confirmou autorização integral para a integração e a publicação na continuação da sessão. Mantidos o Site, a audiência pública, o banco, os bindings, a revisão 13 do ambiente e os limites financeiros existentes.
 

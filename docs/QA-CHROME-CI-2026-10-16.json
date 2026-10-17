@@ -305,5 +305,12 @@
     ],
     "commercialOcrApproved": false,
     "scope": "PDF rasterized locally at 2200px height, JPEG92, real local Tesseract; source and images not committed"
+  },
+  "laterRealHandoff": {
+    "runId": 38977586275,
+    "passed": 6,
+    "failed": 0,
+    "providerSimulated": false,
+    "report": "QA-CADASTRO-REAL-2026-10-16.json"
   }
 }

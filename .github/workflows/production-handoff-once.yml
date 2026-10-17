@@ -1,7 +1,7 @@
 name: Controlled v45 production signup and private handoff
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened]
     paths:
       - ".github/workflows/production-handoff-once.yml"
       - "scripts/check-production-handoff-browser.mjs"
@@ -9,7 +9,8 @@ permissions:
   contents: read
 jobs:
   production-handoff:
-    # Explicit fixed QA slot. Only this branch and these test files can start it.
+    # QA completed: updates must never register another account. This fixed
+    # branch/case only runs when opened; normal PRs and later commits skip it.
     if: github.head_ref == 'qa/real-handoff-v45-20261016'
     runs-on: ubuntu-latest
     timeout-minutes: 10
