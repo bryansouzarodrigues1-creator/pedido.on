@@ -13,7 +13,7 @@ export function proposalPatch(raw:unknown,data:RestaurantData):Partial<Restauran
 export function nameFromBriefing(message:string):string|undefined{
  const input=message.trim();
  const patterns=[
-  /\b(?:o )?nome da (?:minha |nossa |sua )?pizzaria\s*(?::|=|\bé\b|\be\b|\bser[aá]\b)\s*["“]?([^\n.!?;,"”]{2,100})/i,
+  /\b(?:o )?nome da (?:minha |nossa |sua )?pizzaria\s*(?::|=|é|e|será)\s*["“]?([^\n.!?;,"”]{2,100})/i,
   /\b(?:a )?(?:minha |nossa )?pizzaria\s+(?:se chama|chama-se|chama|tem (?:o )?nome de|é|e)\s*["“]?([^\n.!?;,"”]{2,100})/i,
   /\b(?:o )?nome do (?:meu |nosso )?neg[oó]cio\s*(?::|=|\bé\b|\be\b)\s*["“]?([^\n.!?;,"”]{2,100})/i,
  ];
