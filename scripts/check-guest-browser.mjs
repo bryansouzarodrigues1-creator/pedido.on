@@ -7,7 +7,7 @@ const { chromium, devices } = require(process.env.QA_PLAYWRIGHT_MODULE || 'playw
 const {base, publicReadOnly} = browserQaTarget(), key = 'pizzaria-menu-idea-v1';
 // Detect the published UI from its rendered button, never from read-only mode.
 // This keeps pre-release v45 QA explicit while enforcing the new assertions once deployed.
-let creatorVersion = 'v46', createLabel = 'Criar 8 modelos', updateLabel = 'Atualizar modelos', moreLabel = 'Ver mais 4 modelos';
+let styleTotal = 12, creatorVersion = 'v47', createLabel = 'Criar 12 modelos', updateLabel = 'Atualizar modelos', moreLabel = 'Ver mais 4 modelos';
 if (!process.env.QA_CHROME_PATH)
     throw Error('Informe QA_CHROME_PATH para usar um Chrome já instalado.');
 const runRoot = path.resolve(process.env.QA_BROWSER_OUTPUT || ('.sites-runtime/browser-qa/' + Date.now()));
@@ -28,15 +28,16 @@ async function screenshot(name) { await page.screenshot({ path: path.join(dir, n
 async function start(profile = 'guest-profile') { context = await chromium.launchPersistentContext(path.join(runRoot, profile), { executablePath: process.env.QA_CHROME_PATH, headless: process.env.QA_HEADLESS === 'true', ...devices['Pixel 7'], locale: 'pt-BR', serviceWorkers: publicReadOnly ? 'block' : 'allow' }); await guardPublicGuestContext(context, errors); page = await context.newPage(); page.setDefaultTimeout(15000); page.on('pageerror', e => errors.push(e.message)); }
 async function load() { await page.goto(base + '/criar', { waitUntil: 'domcontentloaded', timeout: 90000 }); await page.locator('#pizzeria-idea').waitFor({ state: 'visible' }); await page.waitForFunction(() => !document.querySelector('#pizzeria-idea').disabled);
     const legacy = publicReadOnly && await page.getByRole('button', {name: 'Criar opções', exact: true}).count() > 0;
-    creatorVersion = legacy ? 'v45' : 'v46'; createLabel = legacy ? 'Criar opções' : 'Criar 8 modelos'; updateLabel = legacy ? 'Atualizar prévias' : 'Atualizar modelos'; moreLabel = legacy ? 'Ver os outros quatro estilos' : 'Ver mais 4 modelos';
+    styleTotal = await page.getByRole('button', {name: 'Criar 12 modelos', exact: true}).count() ? 12 : 8;
+    creatorVersion = legacy ? 'v45' : styleTotal === 12 ? 'v47' : 'v46'; createLabel = legacy ? 'Criar opções' : 'Criar ' + styleTotal + ' modelos'; updateLabel = legacy ? 'Atualizar prévias' : 'Atualizar modelos'; moreLabel = legacy ? 'Ver os outros quatro estilos' : 'Ver mais 4 modelos';
     await page.getByRole('button', {name: createLabel, exact: true}).waitFor();
 }
 (async () => {
     await fs.mkdir(dir, { recursive: true });
     await start();
     const idea = 'Minha pizzaria se chama Bella Massa QA. Quero um cardápio artesanal e elegante. ' + ('A pizza é feita com ingredientes da casa. '.repeat(36)).slice(0, 1490);
-    await record('entrada direta sem conta', async () => { await load(); assert.deepEqual(errors, [], 'A entrada não pode ter erro de hidratação.'); assert.equal(await page.locator('input[type=email],input[type=password]').count(), 0); if (creatorVersion === 'v46') { await page.goto(base + '/', {waitUntil: 'domcontentloaded', timeout: 90000}); await page.waitForFunction(() => document.querySelector('#pizzeria-idea')?.disabled === false); const documentText = await page.locator('body').textContent(); assert.doesNotMatch(documentText, /Sua pizza está dando lucro|Menos complicação|Planos para sua pizzaria/); assert.equal(await page.locator('.idea-intro').count(), 0); assert.equal(await page.locator('.idea-composer').count(), 1); await screenshot('candidate-home'); await load(); } await screenshot('candidate-entry'); return { url: page.url(), creatorVersion, promptEnabled: await page.locator('#pizzeria-idea').isEnabled() }; });
-    if (creatorVersion === 'v46') await record('descrição visual não inventa o nome da pizzaria', async () => {
+    await record('entrada direta sem conta', async () => { await load(); assert.deepEqual(errors, [], 'A entrada não pode ter erro de hidratação.'); assert.equal(await page.locator('input[type=email],input[type=password]').count(), 0); if (creatorVersion !== 'v45') { await page.goto(base + '/', {waitUntil: 'domcontentloaded', timeout: 90000}); await page.waitForFunction(() => document.querySelector('#pizzeria-idea')?.disabled === false); const documentText = await page.locator('body').textContent(); assert.doesNotMatch(documentText, /Sua pizza está dando lucro|Menos complicação|Planos para sua pizzaria/); assert.equal(await page.locator('.idea-intro').count(), 0); assert.equal(await page.locator('.idea-composer').count(), 1); await screenshot('candidate-home'); await load(); } await screenshot('candidate-entry'); return { url: page.url(), creatorVersion, styleTotal, promptEnabled: await page.locator('#pizzeria-idea').isEnabled() }; });
+    if (creatorVersion !== 'v45') await record('descrição visual não inventa o nome da pizzaria', async () => {
         for (const text of ['Quero uma pizzaria elegante com fotos grandes', 'Quero uma pizzaria escura e moderna', 'Minha pizzaria é artesanal com forno a lenha']) {
             await page.locator('#pizzeria-idea').fill(text);
             await page.getByRole('button', {name: createLabel, exact: true}).click();
@@ -53,12 +54,12 @@ async function load() { await page.goto(base + '/criar', { waitUntil: 'domconten
         assert.ok(geometry.scroll <= geometry.width + 1, JSON.stringify(geometry));
     } await page.setViewportSize({ width: 412, height: 839 }); return { characters: idea.length, widths: [320, 360, 412], shortViewportHeight: 480 }; });
     const styles = [];
-    await record('oito propostas com estruturas distintas e nome reconhecido', async () => {
+    await record('propostas de todas as rodadas com estruturas distintas e nome reconhecido', async () => {
         await page.getByRole('button', { name: createLabel, exact: true }).click();
         await page.locator('.ai-style-card').first().waitFor();
         assert.equal(await page.locator('.ai-brand-name').count(), 0);
         assert.match(await page.locator('.ai-gallery-sample').textContent(), /ilustrativos/);
-        for (let round = 0; round < 2; round++) {
+        for (let round = 0; round < styleTotal / 4; round++) {
             assert.equal(await page.locator('.ai-style-card').count(), 4);
             for (let i = 0; i < 4; i++) {
                 const card = page.locator('.ai-style-card').nth(i);
@@ -69,22 +70,31 @@ async function load() { await page.goto(base + '/criar', { waitUntil: 'domconten
                 assert.equal(info.name, 'Bella Massa QA');
                 styles.push(info);
                 await card.screenshot({ path: path.join(dir, 'style-' + (round * 4 + i + 1) + '.png') });
+                if (styleTotal === 12) {
+                    await card.getByRole('button', {name: 'Ver referência de ' + info.title, exact: true}).click();
+                    const dialog = page.getByRole('dialog');
+                    await dialog.locator('.ai-reference-view>img').waitFor();
+                    await page.waitForFunction(() => {const img = document.querySelector('.ai-reference-view>img'); return img?.complete && img.naturalWidth > 0;});
+                    assert.match(await dialog.locator('p').textContent(), /Valores da imagem são ilustrativos/);
+                    await page.keyboard.press('Escape');
+                    assert.equal(await page.getByRole('dialog').count(), 0);
+                }
             }
-            if (!round)
+            if (round < styleTotal / 4 - 1)
                 await page.getByRole('button', { name: moreLabel, exact: true }).click();
         }
-        assert.equal(new Set(styles.map(s => s.title)).size, 8);
-        assert.equal(new Set(styles.map(s => s.classes)).size, 8);
-        if (creatorVersion === 'v46') assert.equal(new Set(styles.map(s => s.tagline)).size, 8, 'As oito propostas precisam de textos de apresentação distintos.');
+        assert.equal(new Set(styles.map(s => s.title)).size, styleTotal);
+        assert.equal(new Set(styles.map(s => s.classes)).size, styleTotal);
+        if (creatorVersion !== 'v45') assert.equal(new Set(styles.map(s => s.tagline)).size, styleTotal, 'Todas as propostas precisam de textos de apresentação distintos.');
         await screenshot('candidate-gallery-mobile');
         return styles;
     });
-    await record('navegação horizontal até o último modelo', async () => { const grid = page.locator('.ai-style-grid'); const data = await grid.evaluate(el => { el.scrollLeft = el.scrollWidth; return { client: el.clientWidth, scroll: el.scrollWidth, left: el.scrollLeft }; }); assert.ok(data.scroll > data.client); await page.locator('.ai-style-card').last().getByRole('button').click(); await page.locator('.ai-selected').waitFor(); await screenshot('candidate-selected'); return data; });
+    await record('navegação horizontal até o último modelo', async () => { const grid = page.locator('.ai-style-grid'); const data = await grid.evaluate(el => { el.scrollLeft = el.scrollWidth; return { client: el.clientWidth, scroll: el.scrollWidth, left: el.scrollLeft }; }); assert.ok(data.scroll > data.client); await page.locator('.ai-style-card').last().getByRole('button', {name: /^Escolher /}).click(); await page.locator('.ai-selected').waitFor(); await screenshot('candidate-selected'); return data; });
     await record('refinamentos sequenciais gratuitos', async () => { for (const value of ['Quero verde com cantos arredondados', 'Agora azul e uma lista compacta']) {
         await page.getByRole('button', { name: 'Quero ajustar o design', exact: true }).click();
         await page.locator('#gallery-feedback').fill(value);
         await page.getByRole('button', { name: 'Aplicar meu pedido', exact: true }).click();
-    } if (creatorVersion === 'v46') {
+    } if (creatorVersion !== 'v45') {
         await page.getByRole('button', {name: 'Quero ajustar o design', exact: true}).click();
         await page.locator('#gallery-feedback').fill('Quero azul com animação 3D da lua');
         await page.getByRole('button', {name: 'Aplicar meu pedido', exact: true}).click();
@@ -112,7 +122,7 @@ async function load() { await page.goto(base + '/criar', { waitUntil: 'domconten
         }, { key, before });
         return { styleId: before.styleId, refinementPreserved: true, sourceUpdated: true };
     });
-    await record('roteamento para cadastro preserva o projeto', async () => { if (!await page.locator('.ai-selected').count()) await page.locator('.ai-style-card').first().getByRole('button').click(); const title = await page.locator('.ai-selected-bar strong').textContent(); await page.getByRole('button', { name: 'Continuar com este cardápio', exact: true }).click(); await page.waitForURL('**/cadastro?next=*'); const saved = await page.evaluate(k => JSON.parse(localStorage.getItem(k)), key); assert.equal(saved.idea, idea); assert.ok(saved.styleId); assert.ok(saved.hasAssets); return { url: page.url(), title, styleId: saved.styleId, characters: saved.idea.length, hasAssets: saved.hasAssets }; });
+    await record('roteamento para cadastro preserva o projeto', async () => { if (!await page.locator('.ai-selected').count()) await page.locator('.ai-style-card').first().getByRole('button', {name: /^Escolher /}).click(); const title = await page.locator('.ai-selected-bar strong').textContent(); await page.getByRole('button', { name: 'Continuar com este cardápio', exact: true }).click(); await page.waitForURL('**/cadastro?next=*'); const saved = await page.evaluate(k => JSON.parse(localStorage.getItem(k)), key); assert.equal(saved.idea, idea); assert.ok(saved.styleId); assert.ok(saved.hasAssets); return { url: page.url(), title, styleId: saved.styleId, characters: saved.idea.length, hasAssets: saved.hasAssets }; });
     await context.close();
     const browser = await chromium.launch({ executablePath: process.env.QA_CHROME_PATH, headless: process.env.QA_HEADLESS === 'true' });
     for (const type of ['local-only-blocked', 'both-blocked']) {
@@ -122,7 +132,7 @@ async function load() { await page.goto(base + '/criar', { waitUntil: 'domconten
         page.on('pageerror', e => errors.push(e.message));
         await context.addInitScript(({ both }) => { Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('QA storage denied', 'SecurityError'); } }); if (both)
             Object.defineProperty(window, 'indexedDB', { get() { throw new DOMException('QA storage denied', 'SecurityError'); } }); }, { both: type === 'both-blocked' });
-        await record(type === 'local-only-blocked' ? 'IndexedDB recupera com localStorage bloqueado' : 'dois armazenamentos bloqueados impedem perda no cadastro', async () => { await load(); await page.locator('#pizzeria-idea').fill('Minha pizzaria se chama Persistência QA.'); await page.getByRole('button', { name: createLabel, exact: true }).click(); await page.locator('.ai-style-card').first().getByRole('button').click(); await pause(600); if (type === 'local-only-blocked') {
+        await record(type === 'local-only-blocked' ? 'IndexedDB recupera com localStorage bloqueado' : 'dois armazenamentos bloqueados impedem perda no cadastro', async () => { await load(); await page.locator('#pizzeria-idea').fill('Minha pizzaria se chama Persistência QA.'); await page.getByRole('button', { name: createLabel, exact: true }).click(); await page.locator('.ai-style-card').first().getByRole('button', {name: /^Escolher /}).click(); await pause(600); if (type === 'local-only-blocked') {
             await page.reload({ waitUntil: 'networkidle' });
             assert.equal(await page.locator('#pizzeria-idea').inputValue(), 'Minha pizzaria se chama Persistência QA.');
             assert.equal(await page.locator('.ai-selected').count(), 1);

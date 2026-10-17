@@ -7,6 +7,7 @@ import {creationRequest} from "@/lib/creation-request";
 import {assistantAnswer,type AssistantScreen} from "@/lib/assistant-help";
 import {presentationForTheme,menuPresentation,layoutNames,type MenuPresentation} from "@/lib/menu-design";
 import {themes,type RestaurantData} from "@/lib/domain";
+import {galleryStyles,galleryDesign,type GalleryStyleId} from "@/lib/gallery-styles";
 import {MiniMenu,Spinner} from "./ui";
 import {z} from "zod";
 import PromotionStudio from "./promotion-studio";
@@ -109,7 +110,7 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
   }
  }
  function apply(){if(stale){setError("O cardápio mudou. Prepare uma nova ideia antes de usar.");return;}if(!proposal||!changes.length)return;const text=proposalPatch(proposal,current.current);onApply?.({...text,...studioImagePatch({...current.current,...text},generated)});setApplied(true);}
- function readyStyle(theme:typeof themes[number]){if(busy||pending)return;setGuide(null);setProposal({reply:"Veja como sua pizzaria fica neste estilo.",theme:theme.id,accent:theme.color,presentation:presentationForTheme(theme.id),productDescriptions:[]});setBase(JSON.stringify(current.current));setGenerated(null);setResultMode("local");setApplied(false);setError("");}
+ function readyStyle(id:GalleryStyleId){if(busy||pending)return;const next=galleryDesign(current.current,id,"");setGuide(null);setProposal({reply:"Veja como sua pizzaria fica neste estilo.",theme:next.theme,accent:next.accent,presentation:next.presentation,productDescriptions:[]});setBase(JSON.stringify(current.current));setGenerated(null);setResultMode("local");setApplied(false);setError("");}
  function adjustPresentation(value:Partial<MenuPresentation>){if(busy||pending||stale)return;setProposal(old=>({...old,reply:old?.reply||"Confira a composição do seu cardápio.",productDescriptions:old?.productDescriptions||[],presentation:{...menuPresentation(preview),...value}}));if(!base)setBase(JSON.stringify(current.current));setApplied(false);setResultMode(resultMode||"local");}
  function prepareImage(){const brief=proposal?.imageBrief;if(!brief)return;setTarget(brief.asset);setMessage(brief.description);setProductId(brief.productId||"");setError("");}
  return <><div className="pizza-studio">
@@ -132,7 +133,7 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
    {limitReached&&<p className="creation-note">As criações com IA estão temporariamente indisponíveis para sua conta. Os estilos prontos continuam disponíveis.</p>}
    {error&&<div className="creation-error" role="alert"><p>{error}</p>{pending&&<div><button className="btn outline small" disabled={busy} onClick={()=>send(undefined,true)}><RotateCcw size={14}/> Ver resultado</button><button className="text-button" disabled={busy} onClick={()=>{attempt.current=null;setPending(false);setError("");}}>Descartar pedido</button></div>}</div>}
    {restaurantId&&!demo&&<SavedCreations key={restaurantId} restaurantId={restaurantId} onChoose={recover}/>}
-   <details className="creation-styles"><summary><Palette size={17}/> Prefere escolher um estilo pronto?</summary><p>Escolha e veja a prévia. Não usa seu limite de IA.</p><div>{themes.map(t=><button type="button" key={t.id} disabled={busy||pending} onClick={()=>readyStyle(t)} aria-pressed={proposal?.theme===t.id}><i style={{background:t.color}}/>{t.name}{proposal?.theme===t.id&&<Check size={14}/>}</button>)}</div></details>
+   <details className="creation-styles"><summary><Palette size={17}/> Prefere escolher um estilo pronto?</summary><p>Escolha e veja a prévia. Não usa seu limite de IA.</p><div>{galleryStyles.map(t=><button type="button" key={t.id} disabled={busy||pending} onClick={()=>readyStyle(t.id)} aria-pressed={proposal?.presentation?.identity===t.id}><i style={{background:t.accent}}/>{t.title}{proposal?.presentation?.identity===t.id&&<Check size={14}/>}</button>)}</div></details>
   </section>
   {guide&&<section className="creation-help" role="status"><strong>Ajuda da pizzaria.on · sem créditos</strong><p>{guide.reply}</p>{guide.screen&&onNavigate&&<button type="button" className="btn outline small" onClick={()=>onNavigate(guide.screen!,guide.sourceText)}>{guide.action||"Abrir função"} <ArrowRight size={15}/></button>}</section>}
   <section className={`creation-result ${proposal?"has-result":""}`} aria-live="polite">
