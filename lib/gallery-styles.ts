@@ -15,6 +15,17 @@ export const galleryStyles=[
  {id:"festival",title:"Festival de sabores",summary:"Cartões e ofertas em evidência",theme:"playful",accent:"#ba3b37",presentation:{layout:"cards",hero:"cover",font:"modern",corners:"soft"}},
 ] as const satisfies readonly {id:string;title:string;summary:string;theme:ThemeId;accent:string;presentation:MenuPresentation}[];
 export type GalleryStyleId=(typeof galleryStyles)[number]["id"];
+/** Short example copy belongs to the visual direction, not to the owner's products. */
+export const galleryVoices:Record<GalleryStyleId,{tagline:string;description:string}>={
+ "forno-classico":{tagline:"O sabor começa no forno.",description:"Tradição que você sente em cada fatia."},
+ "noite-premium":{tagline:"Sua noite merece mais.",description:"Pizzas marcantes. Uma experiência à altura."},
+ essencial:{tagline:"Escolha. Peça. Aproveite.",description:"Seu pedido, direto ao ponto."},
+ familia:{tagline:"Todo mundo à mesa.",description:"Sabores para reunir a família."},
+ atelier:{tagline:"Pizza feita com intenção.",description:"Ingredientes, técnica e muito sabor."},
+ urbano:{tagline:"Bateu a fome? Pede.",description:"Seu delivery favorito, em poucos toques."},
+ trattoria:{tagline:"Buona pizza, bella vita.",description:"Da nossa cozinha para o seu momento."},
+ festival:{tagline:"Hoje tem pizza!",description:"Combos, sabores e muita vontade de repetir."},
+};
 export const galleryStyleId=z.enum(["forno-classico","noite-premium","essencial","familia","atelier","urbano","trattoria","festival"]);
 const normalized=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const signals:Record<GalleryStyleId,RegExp>={
@@ -48,7 +59,8 @@ export function galleryStyle(id:GalleryStyleId){return galleryStyles.find(s=>s.i
 export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:string,feedback=""):RestaurantData{
  const preset=galleryStyle(id);
  const requested=designFromMessage(briefing,data);
- const base={...data,theme:preset.theme,accent:requested.accent||preset.accent,presentation:{...preset.presentation}};
+ const voice=galleryVoices[id];
+ const base={...data,theme:preset.theme,accent:requested.accent||preset.accent,tagline:voice.tagline,description:voice.description,presentation:{...preset.presentation}};
  let next:RestaurantData=base;
  // Each turn is applied to the previous result: a later colour must replace an earlier one.
  for(const turn of feedback.split(/\r?\n+|[.;]\s+/).filter(Boolean)){
