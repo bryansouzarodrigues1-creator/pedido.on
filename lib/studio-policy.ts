@@ -9,11 +9,20 @@ export const studioProtocol="pedido-studio-v1",studioLimits={monthly:20,daily:20
 export function studioEndpoint(raw:string|undefined){try{const u=new URL(raw||"");return u.protocol==="https:"&&!u.username&&!u.password&&!u.port&&!u.search&&!u.hash&&u.hostname.endsWith(".lovable.app")&&u.pathname==="/api/pedido-on/studio"?u.href:"";}catch{return "";}}
 export function proposalPatch(raw:unknown,data:RestaurantData):Partial<RestaurantData>{const p=studioProposal.parse(raw);if(p.productDescriptions.some(d=>!data.products.some(item=>item.id===d.id))||new Set(p.productDescriptions.map(d=>d.id)).size!==p.productDescriptions.length)throw new Error("Os textos precisam corresponder aos produtos desta pizzaria.");if(p.imageBrief?.asset==="product"&&!data.products.some(item=>item.id===p.imageBrief!.productId))throw new Error("A imagem precisa corresponder a um produto desta pizzaria.");const patch:Partial<RestaurantData>={};for(const k of ["name","theme","accent","presentation","tagline","description"] as const)if(p[k]!==undefined)(patch as Record<string,unknown>)[k]=p[k];if(p.productDescriptions.length)patch.products=data.products.map(item=>({...item,description:p.productDescriptions.find(d=>d.id===item.id)?.description??item.description}));restaurantSchema.parse({...data,...patch});return patch;}
 /** Use only an explicitly stated business name; never invent one from a vague idea. */
+/** Extract a brand name from the way a pizzaiolo actually types, with or without accents. */
 export function nameFromBriefing(message:string):string|undefined{
- const explicit=message.match(/\b(?:minha |nossa |a )?pizzaria\s+(?:se chama|chama-se|tem (?:o )?nome de)\s*["“]?([^\n.!?;,"”]{2,100})/i)
-  ||message.match(/\b(?:nome da (?:minha |nossa )?pizzaria|nome do (?:meu )?neg[oó]cio)\s*(?::|=|é)\s*["“]?([^\n.!?;,"”]{2,100})/i);
- const name=explicit?.[1]?.replace(/\s+e\s+(?:quero|gostaria|preciso|pretendo|vou)\b.*$/i,"").trim();
- return name&&name.length>=2?name:undefined;
+ const input=message.trim();
+ const patterns=[
+  /\b(?:o )?nome da (?:minha |nossa |sua )?pizzaria\s*(?::|=|\bé\b|\be\b|\bser[aá]\b)\s*["“]?([^\n.!?;,"”]{2,100})/i,
+  /\b(?:a )?(?:minha |nossa )?pizzaria\s+(?:se chama|chama-se|chama|tem (?:o )?nome de|é|e)\s*["“]?([^\n.!?;,"”]{2,100})/i,
+  /\b(?:o )?nome do (?:meu |nosso )?neg[oó]cio\s*(?::|=|\bé\b|\be\b)\s*["“]?([^\n.!?;,"”]{2,100})/i,
+ ];
+ const matched=patterns.map(pattern=>input.match(pattern)?.[1]).find(Boolean);
+ if(!matched)return;
+ const value=matched.replace(/\s+(?:e|,)\s+(?:quero|gostaria|preciso|pretendo|vou|vai|ter[aá]|com|ser[aá])\b.*$/i,"")
+  .replace(/\s+(?:quero|gostaria|preciso)\s+(?:um|uma|que|de)\b.*$/i,"")
+  .replace(/\s+/g," ").replace(/[\s"'“”]+$/g,"").trim();
+ return value.length>=2&&value.length<=100&&!/^(?:um|uma|nova|loja|moderna|artesanal|tradicional|simples)$/i.test(value)?value:undefined;
 }
 export function localStudio(message:string,data:RestaurantData,productId?:string):StudioProposal{
  const design=designFromMessage(message,data);
