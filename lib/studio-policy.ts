@@ -22,7 +22,7 @@ export function nameFromBriefing(message:string):string|undefined{
  const value=matched.replace(/\s+(?:e|,)\s+(?:quero|gostaria|preciso|pretendo|vou|vai|ter[aá]|com|ser[aá])\b.*$/i,"")
   .replace(/\s+(?:quero|gostaria|preciso)\s+(?:um|uma|que|de)\b.*$/i,"")
   .replace(/\s+/g," ").replace(/[\s"'“”]+$/g,"").trim();
- return value.length>=2&&value.length<=100&&!/^(?:um|uma|nova|loja|moderna|artesanal|tradicional|simples)$/i.test(value)?value:undefined;
+ return value.length>=2&&value.length<=100&&!/^(?:um|uma|nova|loja|moderna?|artesanal|tradicional|simples|pequena|grande|familiar|escura?|clara?|chique|premium|de bairro|muito moderna|muito pequena)$/i.test(value)?value:undefined;
 }
 export function localStudio(message:string,data:RestaurantData,productId?:string):StudioProposal{
  const design=designFromMessage(message,data);
