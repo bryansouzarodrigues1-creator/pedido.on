@@ -1,9 +1,9 @@
-import {z} from "zod";
+import {menuIdentityId} from "./menu-identity.ts";
 import {designFromMessage,type MenuPresentation} from "./menu-design.ts";
 import {defaultRestaurant,type RestaurantData,type ThemeId} from "./domain.ts";
 import {nameFromBriefing} from "./studio-policy.ts";
 
-/** Eight real menu compositions built on the same sale, cart, and checkout components. */
+/** Twelve identities built on the existing sale, cart, and checkout components. */
 export const galleryStyles=[
  {id:"forno-classico",title:"Forno clássico",summary:"Editorial e artesanal",theme:"editorial",accent:"#a7462e",presentation:{layout:"list",hero:"split",font:"serif",corners:"square"}},
  {id:"noite-premium",title:"Noite premium",summary:"Fotos grandes, fundo escuro",theme:"dark",accent:"#dd4b35",presentation:{layout:"poster",hero:"cover",font:"bold",corners:"square"}},
@@ -13,6 +13,10 @@ export const galleryStyles=[
  {id:"urbano",title:"Delivery urbano",summary:"Lista ágil e visual noturno",theme:"dark",accent:"#e86638",presentation:{layout:"list",hero:"compact",font:"bold",corners:"square"}},
  {id:"trattoria",title:"Trattoria",summary:"Organização compacta e sofisticada",theme:"classic",accent:"#3e6a54",presentation:{layout:"compact",hero:"split",font:"serif",corners:"soft"}},
  {id:"festival",title:"Festival de sabores",summary:"Cartões e ofertas em evidência",theme:"playful",accent:"#ba3b37",presentation:{layout:"cards",hero:"cover",font:"modern",corners:"soft"}},
+ {id:"forno-brasa",title:"Forno & Brasa",summary:"Fogo, cobre e destaque artesanal",theme:"dark",accent:"#b55c31",presentation:{layout:"poster",hero:"cover",font:"serif",corners:"square"}},
+ {id:"napoli-rua",title:"Napoli de Rua",summary:"Azul italiano e vitrine alternada",theme:"classic",accent:"#1346a0",presentation:{layout:"list",hero:"split",font:"modern",corners:"square"}},
+ {id:"fatia-pop",title:"Fatia Pop",summary:"Coral, berinjela e mosaico de sabores",theme:"playful",accent:"#a52a43",presentation:{layout:"cards",hero:"compact",font:"bold",corners:"soft"}},
+ {id:"pizza-vinho",title:"Pizza & Vinho",summary:"Bordô e uma carta de bistrô",theme:"editorial",accent:"#701c32",presentation:{layout:"compact",hero:"split",font:"serif",corners:"square"}},
 ] as const satisfies readonly {id:string;title:string;summary:string;theme:ThemeId;accent:string;presentation:MenuPresentation}[];
 export type GalleryStyleId=(typeof galleryStyles)[number]["id"];
 /** Short example copy belongs to the visual direction, not to the owner's products. */
@@ -25,8 +29,13 @@ export const galleryVoices:Record<GalleryStyleId,{tagline:string;description:str
  urbano:{tagline:"Bateu a fome? Pede.",description:"Seu delivery favorito, em poucos toques."},
  trattoria:{tagline:"Buona pizza, bella vita.",description:"Da nossa cozinha para o seu momento."},
  festival:{tagline:"Hoje tem pizza!",description:"Combos, sabores e muita vontade de repetir."},
+ "forno-brasa":{tagline:"Feita no fogo. Servida no capricho.",description:"Seu próximo sabor começa aqui."},
+ "napoli-rua":{tagline:"Da massa ao primeiro pedaço.",description:"Escolha os sabores para o seu momento."},
+ "fatia-pop":{tagline:"Sua próxima fatia favorita.",description:"Encontre seu sabor e faça seu pedido."},
+ "pizza-vinho":{tagline:"Uma boa pizza. Uma boa companhia.",description:"Sabores para aproveitar com calma."},
 };
-export const galleryStyleId=z.enum(["forno-classico","noite-premium","essencial","familia","atelier","urbano","trattoria","festival"]);
+export const galleryStyleId=menuIdentityId;
+export function galleryReference(id:GalleryStyleId){return `/assets/style-references/${id}.webp`;}
 const normalized=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const signals:Record<GalleryStyleId,RegExp>={
  "forno-classico":/artesanal|tradicional|italia|classico|lenha|rustic/,
@@ -37,6 +46,10 @@ const signals:Record<GalleryStyleId,RegExp>={
  urbano:/delivery|noturno|urbano|venda|direto|preto/,
  trattoria:/sofistic|italia|serif|refinad|organizado/,
  festival:/promoc|oferta|combo|chamativ|alegre|festa/,
+ "forno-brasa":/brasa|fogo|forno|cobre|rustic/,
+ "napoli-rua":/napoli|italia|azul|rua|alternad/,
+ "fatia-pop":/pop|coral|mosaico|berinjela|expressiv/,
+ "pizza-vinho":/vinho|bistro|bordo|encontro|companhia/,
 };
 /** Indicates whether the free local style engine understands at least one explicit design instruction.
  * Unrecognized requests should be retained for the authenticated AI studio, never treated as applied. */
@@ -44,15 +57,21 @@ export function supportsLocalRefinement(message:string){
  const m=normalized(message);
  return /(?:#[a-f0-9]{6}\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|lista|uma coluna|duas colunas|cartoes|cards|grade|fotos? grandes?|fotos? em destaque|vitrine|sem capa|capa grande|capa inteira|foto de fundo|sem serifa|serifa|elegante|italia|artesanal|letras? (?:fortes?|grandes?)|fonte (?:forte|grossa)|arredond|cantos? (?:retos?|suaves?)|quadrad|compact|minimal|sem fotos?|premium|luxuos|sofistic|delivery (?:direto|rapido)|(?:slogan|frase|chamada)\s*[:=])/.test(m);
 }
-/** Stable ordering, four distinct geometries in each of two rounds, zero provider calls. */
+/** Three balanced rounds, four distinct compositions in each, zero provider calls. */
 export function suggestedGalleryStyles(briefing:string,feedback=""){
  const prompt=normalized((briefing+" "+feedback).slice(0,2200));
  const weighted=galleryStyles.map((s,index)=>({s,index,weight:signals[s.id].test(prompt)?2:0}));
  weighted.sort((a,b)=>b.weight-a.weight||a.index-b.index);
- const first:GalleryStyleId[]=[];
- for(const {s} of weighted)if(!first.some(id=>galleryStyles.find(row=>row.id===id)!.presentation.layout===s.presentation.layout))first.push(s.id);
- const remainder=weighted.map(row=>row.s.id).filter(id=>!first.includes(id));
- return [...first,...remainder];
+ const ordered:GalleryStyleId[]=[],remaining=[...weighted];
+ while(remaining.length){
+  const layouts=new Set<string>();
+  for(let i=0;i<remaining.length&&layouts.size<4;){
+   const {s}=remaining[i];
+   if(layouts.has(s.presentation.layout)){i++;continue;}
+   layouts.add(s.presentation.layout);ordered.push(s.id);remaining.splice(i,1);
+  }
+ }
+ return ordered;
 }
 export function galleryStyle(id:GalleryStyleId){return galleryStyles.find(s=>s.id===id)!;}
 /** Preserves all pricing, product, Pix, and checkout data. */
@@ -60,7 +79,7 @@ export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:str
  const preset=galleryStyle(id);
  const requested=designFromMessage(briefing,data);
  const voice=galleryVoices[id];
- const base={...data,theme:preset.theme,accent:requested.accent||preset.accent,tagline:voice.tagline,description:voice.description,presentation:{...preset.presentation}};
+ const base={...data,theme:preset.theme,accent:requested.accent||preset.accent,tagline:voice.tagline,description:voice.description,presentation:{...preset.presentation,identity:id}};
  let next:RestaurantData=base;
  // Each turn is applied to the previous result: a later colour must replace an earlier one.
  for(const turn of feedback.split(/\r?\n+|[.;]\s+/).filter(Boolean)){

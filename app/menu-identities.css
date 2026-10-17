@@ -2,86 +2,86 @@
    use identical theme/layout/hero selectors; older existing menus remain valid. */
 
 /* Forno clássico — warm paper, quiet ruled list, classical type. */
-:is(.mini-menu,.customer-menu).theme-editorial.layout-list.hero-split{--menu-card:#fff9f0;--menu-accent:#a7462e;letter-spacing:.005em}
-.mini-menu.theme-editorial.layout-list.hero-split .mini-top{background:#f2e8d6;border-bottom:2px solid #a7462e}
-.mini-menu.theme-editorial.layout-list.hero-split .mini-cover{border-bottom:5px double #c29b81}
-.mini-menu.theme-editorial.layout-list.hero-split .mini-products{background:#fff9f0}
-.customer-menu.theme-editorial.layout-list.hero-split .menu-hero{border-bottom:5px double #c29b81}
-.customer-menu.theme-editorial.layout-list.hero-split .menu-product-list{border-bottom-style:dotted}
+:is(.mini-menu:not([class*="identity-"]),.customer-menu:not([class*="identity-"])).theme-editorial.layout-list.hero-split{--menu-card:#fff9f0;--menu-accent:#a7462e;letter-spacing:.005em}
+.mini-menu:not([class*="identity-"]).theme-editorial.layout-list.hero-split .mini-top{background:#f2e8d6;border-bottom:2px solid #a7462e}
+.mini-menu:not([class*="identity-"]).theme-editorial.layout-list.hero-split .mini-cover{border-bottom:5px double #c29b81}
+.mini-menu:not([class*="identity-"]).theme-editorial.layout-list.hero-split .mini-products{background:#fff9f0}
+.customer-menu:not([class*="identity-"]).theme-editorial.layout-list.hero-split .menu-hero{border-bottom:5px double #c29b81}
+.customer-menu:not([class*="identity-"]).theme-editorial.layout-list.hero-split .menu-product-list{border-bottom-style:dotted}
 
 /* Noite premium — dark photo billboard, angular tiles and sharp labels. */
-.mini-menu.theme-dark.layout-poster.hero-cover .mini-top{background:#171916;color:#fff;border-bottom:1px solid #e49a55}
-.mini-menu.theme-dark.layout-poster.hero-cover .mini-cover{min-height:192px}
-.mini-menu.theme-dark.layout-poster.hero-cover .mini-cover h3{font-size:27px;line-height:1.02;max-width:185px;text-transform:uppercase;letter-spacing:-.07em}
-.mini-menu.theme-dark.layout-poster.hero-cover .mini-product{border-radius:0;border-top:3px solid var(--menu-accent)}
-.mini-menu.theme-dark.layout-poster.hero-cover .mini-tabs .active{border-radius:0}
-.customer-menu.theme-dark.layout-poster.hero-cover .menu-hero h1{text-transform:uppercase;letter-spacing:-.075em}
-.customer-menu.theme-dark.layout-poster.hero-cover .menu-product-poster{border-top:4px solid var(--menu-accent);border-radius:0}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-poster.hero-cover .mini-top{background:#171916;color:#fff;border-bottom:1px solid #e49a55}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-poster.hero-cover .mini-cover{min-height:192px}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-poster.hero-cover .mini-cover h3{font-size:27px;line-height:1.02;max-width:185px;text-transform:uppercase;letter-spacing:-.07em}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-poster.hero-cover .mini-product{border-radius:0;border-top:3px solid var(--menu-accent)}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-poster.hero-cover .mini-tabs .active{border-radius:0}
+.customer-menu:not([class*="identity-"]).theme-dark.layout-poster.hero-cover .menu-hero h1{text-transform:uppercase;letter-spacing:-.075em}
+.customer-menu:not([class*="identity-"]).theme-dark.layout-poster.hero-cover .menu-product-poster{border-top:4px solid var(--menu-accent);border-radius:0}
 
 /* Essencial — one-column Swiss menu, strong labels, no food-photo clutter. */
-.mini-menu.theme-classic.layout-compact.hero-compact .mini-top{background:#fff;border-bottom:2px solid #111}
-.mini-menu.theme-classic.layout-compact.hero-compact .mini-cover{border-bottom:1px solid #111}
-.mini-menu.theme-classic.layout-compact.hero-compact .mini-cover h3{font-size:25px;font-weight:850;letter-spacing:-.07em;line-height:1.1}
-.mini-menu.theme-classic.layout-compact.hero-compact .mini-tabs{background:#f2f2ef}
-.mini-menu.theme-classic.layout-compact.hero-compact .mini-product{border-bottom:2px solid #ddd;color:#171b1b}
-.mini-menu.theme-classic.layout-compact.hero-compact .mini-product p{display:none}
-.customer-menu.theme-classic.layout-compact.hero-compact .menu-hero{border-bottom:2px solid #151515}
-.customer-menu.theme-classic.layout-compact.hero-compact .menu-product-compact{border-bottom:2px solid #deded8}
-.customer-menu.theme-classic.layout-compact.hero-compact .menu-product-compact p{display:none}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-compact .mini-top{background:#fff;border-bottom:2px solid #111}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-compact .mini-cover{border-bottom:1px solid #111}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-compact .mini-cover h3{font-size:25px;font-weight:850;letter-spacing:-.07em;line-height:1.1}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-compact .mini-tabs{background:#f2f2ef}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-compact .mini-product{border-bottom:2px solid #ddd;color:#171b1b}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-compact .mini-product p{display:none}
+.customer-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-compact .menu-hero{border-bottom:2px solid #151515}
+.customer-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-compact .menu-product-compact{border-bottom:2px solid #deded8}
+.customer-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-compact .menu-product-compact p{display:none}
 
 /* Casa da família — soft warm strips and rounded photo cards. */
-.mini-menu.theme-playful.layout-cards.hero-split .mini-top{background:repeating-linear-gradient(90deg,#fff1d8 0 22px,#ebc7aa 22px 44px)}
-.mini-menu.theme-playful.layout-cards.hero-split .mini-cover{border-radius:0 0 27px 27px;overflow:hidden}
-.mini-menu.theme-playful.layout-cards.hero-split .mini-product{border-radius:17px;background:#fff8e8;border:1px solid #eed6bd;box-shadow:0 3px 0 #ccae7b2b}
-.mini-menu.theme-playful.layout-cards.hero-split .mini-tabs .active{border-radius:16px}
-.customer-menu.theme-playful.layout-cards.hero-split .menu-topbar{background:repeating-linear-gradient(90deg,#fff1d8 0 24px,#f1d6bb 24px 48px)}
-.customer-menu.theme-playful.layout-cards.hero-split .product-card{background:#fff8e8;border-radius:23px}
+.mini-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-split .mini-top{background:repeating-linear-gradient(90deg,#fff1d8 0 22px,#ebc7aa 22px 44px)}
+.mini-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-split .mini-cover{border-radius:0 0 27px 27px;overflow:hidden}
+.mini-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-split .mini-product{border-radius:17px;background:#fff8e8;border:1px solid #eed6bd;box-shadow:0 3px 0 #ccae7b2b}
+.mini-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-split .mini-tabs .active{border-radius:16px}
+.customer-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-split .menu-topbar{background:repeating-linear-gradient(90deg,#fff1d8 0 24px,#f1d6bb 24px 48px)}
+.customer-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-split .product-card{background:#fff8e8;border-radius:23px}
 
 /* Ateliê — oversized art-directed food images with sophisticated green accents. */
-.mini-menu.theme-editorial.layout-poster.hero-split .mini-top{background:#e6e9de;border-bottom:1px solid #647d61}
-.mini-menu.theme-editorial.layout-poster.hero-split .mini-cover{grid-template-columns:56% 44%;background:#e9ece6}
-.mini-menu.theme-editorial.layout-poster.hero-split .mini-cover h3{font-size:19px;font-style:italic}
-.mini-menu.theme-editorial.layout-poster.hero-split .mini-products{gap:6px}
-.mini-menu.theme-editorial.layout-poster.hero-split .mini-product{border-radius:15px 2px 15px 2px}
-.mini-menu.theme-editorial.layout-poster.hero-split .mini-product>img{height:122px}
-.customer-menu.theme-editorial.layout-poster.hero-split .menu-hero{background:#e6ede3}
-.customer-menu.theme-editorial.layout-poster.hero-split .menu-product-poster{border-radius:24px 2px 24px 2px}
-.customer-menu.theme-editorial.layout-poster.hero-split .menu-product-photo{height:275px}
+.mini-menu:not([class*="identity-"]).theme-editorial.layout-poster.hero-split .mini-top{background:#e6e9de;border-bottom:1px solid #647d61}
+.mini-menu:not([class*="identity-"]).theme-editorial.layout-poster.hero-split .mini-cover{grid-template-columns:56% 44%;background:#e9ece6}
+.mini-menu:not([class*="identity-"]).theme-editorial.layout-poster.hero-split .mini-cover h3{font-size:19px;font-style:italic}
+.mini-menu:not([class*="identity-"]).theme-editorial.layout-poster.hero-split .mini-products{gap:6px}
+.mini-menu:not([class*="identity-"]).theme-editorial.layout-poster.hero-split .mini-product{border-radius:15px 2px 15px 2px}
+.mini-menu:not([class*="identity-"]).theme-editorial.layout-poster.hero-split .mini-product>img{height:122px}
+.customer-menu:not([class*="identity-"]).theme-editorial.layout-poster.hero-split .menu-hero{background:#e6ede3}
+.customer-menu:not([class*="identity-"]).theme-editorial.layout-poster.hero-split .menu-product-poster{border-radius:24px 2px 24px 2px}
+.customer-menu:not([class*="identity-"]).theme-editorial.layout-poster.hero-split .menu-product-photo{height:275px}
 
 /* Delivery urbano — dark editorial rows with oversized numbers and condensed hero. */
-.mini-menu.theme-dark.layout-list.hero-compact .mini-top{background:#0c0e10;color:#fff;border-bottom:4px solid #ef6838}
-.mini-menu.theme-dark.layout-list.hero-compact .mini-cover h3{font-size:26px;font-weight:900;line-height:.99;text-transform:uppercase}
-.mini-menu.theme-dark.layout-list.hero-compact .mini-cover{background:#242528;border-left:5px solid #ef6838}
-.mini-menu.theme-dark.layout-list.hero-compact .mini-product{padding:12px 0;border-bottom:2px solid #404046}
-.mini-menu.theme-dark.layout-list.hero-compact .mini-product strong{text-transform:uppercase;font-weight:850}
-.mini-menu.theme-dark.layout-list.hero-compact .mini-product>img{border-radius:3px}
-.customer-menu.theme-dark.layout-list.hero-compact .menu-hero{background:#17191d;border-left:8px solid var(--menu-accent)}
-.customer-menu.theme-dark.layout-list.hero-compact .menu-hero h1{text-transform:uppercase;font-weight:950}
-.customer-menu.theme-dark.layout-list.hero-compact .menu-product-list{border-bottom:2px solid #4a4a4a}
-.customer-menu.theme-dark.layout-list.hero-compact .menu-product-list h3{text-transform:uppercase;font-weight:800}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-list.hero-compact .mini-top{background:#0c0e10;color:#fff;border-bottom:4px solid #ef6838}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-list.hero-compact .mini-cover h3{font-size:26px;font-weight:900;line-height:.99;text-transform:uppercase}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-list.hero-compact .mini-cover{background:#242528;border-left:5px solid #ef6838}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-list.hero-compact .mini-product{padding:12px 0;border-bottom:2px solid #404046}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-list.hero-compact .mini-product strong{text-transform:uppercase;font-weight:850}
+.mini-menu:not([class*="identity-"]).theme-dark.layout-list.hero-compact .mini-product>img{border-radius:3px}
+.customer-menu:not([class*="identity-"]).theme-dark.layout-list.hero-compact .menu-hero{background:#17191d;border-left:8px solid var(--menu-accent)}
+.customer-menu:not([class*="identity-"]).theme-dark.layout-list.hero-compact .menu-hero h1{text-transform:uppercase;font-weight:950}
+.customer-menu:not([class*="identity-"]).theme-dark.layout-list.hero-compact .menu-product-list{border-bottom:2px solid #4a4a4a}
+.customer-menu:not([class*="identity-"]).theme-dark.layout-list.hero-compact .menu-product-list h3{text-transform:uppercase;font-weight:800}
 
 /* Trattoria — framed cream/green restaurant menu, restrained and classic. */
-.mini-menu.theme-classic.layout-compact.hero-split .mini-top{background:#e4ecdc;color:#2e4935;border-bottom:4px double #73836e}
-.mini-menu.theme-classic.layout-compact.hero-split .mini-cover{background:#f8f6eb;grid-template-columns:38% 62%}
-.mini-menu.theme-classic.layout-compact.hero-split .mini-cover h3{font-size:20px;font-family:Georgia,serif;color:#3e593f}
-.mini-menu.theme-classic.layout-compact.hero-split .mini-products{border-left:3px solid #6f8b70;margin:8px}
-.mini-menu.theme-classic.layout-compact.hero-split .mini-tabs{border-bottom:1px solid #869a7d}
-.customer-menu.theme-classic.layout-compact.hero-split .menu-hero{background:#f8f6ec;border-bottom:4px double #768b73}
-.customer-menu.theme-classic.layout-compact.hero-split .menu-product-compact{border-bottom:1px dashed #87a18a}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-split .mini-top{background:#e4ecdc;color:#2e4935;border-bottom:4px double #73836e}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-split .mini-cover{background:#f8f6eb;grid-template-columns:38% 62%}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-split .mini-cover h3{font-size:20px;font-family:Georgia,serif;color:#3e593f}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-split .mini-products{border-left:3px solid #6f8b70;margin:8px}
+.mini-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-split .mini-tabs{border-bottom:1px solid #869a7d}
+.customer-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-split .menu-hero{background:#f8f6ec;border-bottom:4px double #768b73}
+.customer-menu:not([class*="identity-"]).theme-classic.layout-compact.hero-split .menu-product-compact{border-bottom:1px dashed #87a18a}
 
 /* Festival — playful, loud, cover-led offers with high-contrast sticker cards. */
-.mini-menu.theme-playful.layout-cards.hero-cover .mini-top{background:#fcda73;color:#552515}
-.mini-menu.theme-playful.layout-cards.hero-cover .mini-cover{height:190px}
-.mini-menu.theme-playful.layout-cards.hero-cover .mini-cover h3{font-size:29px;font-weight:950;transform:rotate(-3deg);line-height:1;max-width:235px}
-.mini-menu.theme-playful.layout-cards.hero-cover .mini-tabs .active{border-radius:20px;background:#d83e33;color:white}
-.mini-menu.theme-playful.layout-cards.hero-cover .mini-product{border:2px solid #e2b74c;border-radius:15px;box-shadow:3px 3px 0 #bd4922}
-.mini-menu.theme-playful.layout-cards.hero-cover .mini-add{background:#d83e33;color:white;border-radius:50%}
-.customer-menu.theme-playful.layout-cards.hero-cover .menu-topbar{background:#fcda73}
-.customer-menu.theme-playful.layout-cards.hero-cover .menu-hero h1{font-weight:950;transform:rotate(-1deg)}
-.customer-menu.theme-playful.layout-cards.hero-cover .product-card{border:2px solid #e9b149;box-shadow:6px 6px 0 #b7442755;border-radius:17px}
+.mini-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-cover .mini-top{background:#fcda73;color:#552515}
+.mini-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-cover .mini-cover{height:190px}
+.mini-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-cover .mini-cover h3{font-size:29px;font-weight:950;transform:rotate(-3deg);line-height:1;max-width:235px}
+.mini-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-cover .mini-tabs .active{border-radius:20px;background:#d83e33;color:white}
+.mini-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-cover .mini-product{border:2px solid #e2b74c;border-radius:15px;box-shadow:3px 3px 0 #bd4922}
+.mini-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-cover .mini-add{background:#d83e33;color:white;border-radius:50%}
+.customer-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-cover .menu-topbar{background:#fcda73}
+.customer-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-cover .menu-hero h1{font-weight:950;transform:rotate(-1deg)}
+.customer-menu:not([class*="identity-"]).theme-playful.layout-cards.hero-cover .product-card{border:2px solid #e9b149;box-shadow:6px 6px 0 #b7442755;border-radius:17px}
 
 /* Reduced motion and narrow screens keep identities readable without horizontal overflow. */
 @media(max-width:650px){
- .customer-menu.theme-editorial.layout-poster.hero-split .menu-product-photo{height:210px}
- .mini-menu.theme-dark.layout-poster.hero-cover .mini-cover{min-height:174px}
+ .customer-menu:not([class*="identity-"]).theme-editorial.layout-poster.hero-split .menu-product-photo{height:210px}
+ .mini-menu:not([class*="identity-"]).theme-dark.layout-poster.hero-cover .mini-cover{min-height:174px}
 }

@@ -1,0 +1,191 @@
+/* Explicit identities apply only after selection; legacy menus keep their CSS. */
+:is(.mini-menu,.customer-menu).identity-forno-classico{--menu-bg:#faf3e7;--menu-card:#fff9f0;--menu-text:#39291e;--menu-muted:#766458;--menu-line:#ddcdb9}
+:is(.mini-menu,.customer-menu).identity-noite-premium{--menu-bg:#101011;--menu-card:#1a1919;--menu-text:#fff9f0;--menu-muted:#c4b6a5;--menu-line:#49403a}
+:is(.mini-menu,.customer-menu).identity-essencial{--menu-bg:#fff;--menu-card:#fff;--menu-text:#171717;--menu-muted:#626262;--menu-line:#dedede}
+:is(.mini-menu,.customer-menu).identity-familia{--menu-bg:#f9f2e5;--menu-card:#fffbf4;--menu-text:#4a2a1d;--menu-muted:#7a6657;--menu-line:#e6d4bd}
+:is(.mini-menu,.customer-menu).identity-atelier{--menu-bg:#f9faf6;--menu-card:#fff;--menu-text:#1e3125;--menu-muted:#5c6e5e;--menu-line:#d4ddcf}
+:is(.mini-menu,.customer-menu).identity-urbano{--menu-bg:#fafafa;--menu-card:#fff;--menu-text:#171717;--menu-muted:#606066;--menu-line:#dddde1}
+:is(.mini-menu,.customer-menu).identity-trattoria{--menu-bg:#f6f3e7;--menu-card:#fffdf4;--menu-text:#163b2b;--menu-muted:#5d6c60;--menu-line:#c8d0bb}
+:is(.mini-menu,.customer-menu).identity-festival{--menu-bg:#fff4d6;--menu-card:#fffaf0;--menu-text:#4a190d;--menu-muted:#76533b;--menu-line:#e7c991}
+:is(.mini-menu,.customer-menu).identity-forno-brasa{--menu-bg:#211a16;--menu-card:#33271e;--menu-text:#fff4df;--menu-muted:#cebaa6;--menu-line:#66503d}
+:is(.mini-menu,.customer-menu).identity-napoli-rua{--menu-bg:#fff;--menu-card:#f8faff;--menu-text:#122e62;--menu-muted:#52688e;--menu-line:#c7d4ef}
+:is(.mini-menu,.customer-menu).identity-fatia-pop{--menu-bg:#ffe8dd;--menu-card:#fff1e9;--menu-text:#2e1130;--menu-muted:#694d68;--menu-line:#cba8b8}
+:is(.mini-menu,.customer-menu).identity-pizza-vinho{--menu-bg:#fbf1ec;--menu-card:#fff7f1;--menu-text:#541628;--menu-muted:#805e65;--menu-line:#e0cbd0}
+
+.mini-menu[class*="identity-"] .mini-top,.customer-menu[class*="identity-"] .menu-topbar{background:var(--menu-bg);color:var(--menu-text);border-bottom:1px solid var(--menu-line)}
+.mini-menu[class*="identity-"] .mini-product strong{display:block;overflow-wrap:anywhere}
+.mini-menu[class*="identity-"] .mini-product b{display:block;margin-top:6px;color:var(--menu-accent)}
+.mini-menu[class*="identity-"] .mini-product>div{min-width:0}
+.mini-menu[class*="identity-"] .mini-cover h3{overflow-wrap:anywhere;line-height:1.12}
+.mini-menu[class*="identity-"] .mini-cart{background:var(--menu-accent);color:var(--menu-ink)}
+.mini-menu[class*="identity-"].layout-poster .mini-product:last-child:nth-child(odd){display:flex}
+.customer-menu[class*="identity-"] .menu-featured{display:none}
+.customer-menu[class*="identity-"] .restaurant-brand strong{overflow-wrap:anywhere}
+.customer-menu[class*="identity-"] .menu-product,.customer-menu[class*="identity-"] .product-card{min-width:0;color:var(--menu-text);text-align:left}
+.customer-menu[class*="identity-"] .menu-product h3,.customer-menu[class*="identity-"] .product-card h3{overflow-wrap:anywhere}
+.customer-menu[class*="identity-"] .menu-hero h1{font-size:clamp(30px,5vw,62px);line-height:1.08;overflow-wrap:anywhere}
+.customer-menu[class*="identity-"] .menu-hero-copy>p{color:var(--menu-muted)}
+.customer-menu[class*="identity-"] .menu-product-compact .menu-product-photo{width:74px;height:74px;flex-shrink:0;overflow:hidden;border-radius:3px}
+.customer-menu[class*="identity-"] .menu-product-compact .menu-product-photo img{width:100%;height:100%;object-fit:cover}
+
+/* 01: warm editorial list, balanced divided cover. */
+.mini-menu.identity-forno-classico .mini-top{border-bottom:3px solid var(--menu-accent)}
+.mini-menu.identity-forno-classico.hero-split .mini-cover{grid-template-columns:48% 52%;height:130px;background:var(--menu-card);border-bottom:3px double #b18d73}
+.mini-menu.identity-forno-classico .mini-product>img{border-radius:3px}
+.customer-menu.identity-forno-classico .menu-hero{background:var(--menu-bg);border-bottom:3px double #b18d73}
+.customer-menu.identity-forno-classico .menu-product-list{border-bottom-style:dotted}
+
+/* 02: dark photographic tiles. */
+.mini-menu.identity-noite-premium .mini-top{border-bottom:1px solid #b78958}
+.mini-menu.identity-noite-premium.hero-cover .mini-cover{height:178px}
+.mini-menu.identity-noite-premium .mini-cover h3{font-size:27px;text-transform:uppercase;letter-spacing:-.045em}
+.mini-menu.identity-noite-premium.layout-poster .mini-product{border:1px solid var(--menu-line);border-radius:0}
+.customer-menu.identity-noite-premium .menu-hero h1{text-transform:uppercase;font-family:Impact,"Arial Narrow",sans-serif;letter-spacing:-.02em}
+.customer-menu.identity-noite-premium .menu-product-poster{border:1px solid var(--menu-line);border-radius:0}
+
+/* 03: compact type and price columns, no cover photo. */
+.mini-menu.identity-essencial .mini-top{border-bottom:2px solid #181818}
+.mini-menu.identity-essencial.hero-compact .mini-cover{border-bottom:2px solid #181818}
+.mini-menu.identity-essencial .mini-cover h3{font-size:25px;letter-spacing:-.055em;font-weight:850}
+.mini-menu.identity-essencial .mini-product{border-bottom:2px solid var(--menu-line)}
+.mini-menu.identity-essencial .mini-product p{display:none}
+.customer-menu.identity-essencial .menu-hero{background:#fff;border-bottom:2px solid #171717}
+.customer-menu.identity-essencial .menu-product-compact{border-bottom:2px solid var(--menu-line);border-radius:0}
+
+/* 04: welcoming photo band and horizontal soft cards. */
+.mini-menu.identity-familia.hero-split .mini-cover,.mini-menu.identity-trattoria.hero-split .mini-cover{height:auto;display:flex;flex-direction:column;background:var(--menu-card)}
+.mini-menu.identity-familia.hero-split .mini-cover>img,.mini-menu.identity-trattoria.hero-split .mini-cover>img{position:static;width:100%;height:94px;object-fit:cover;filter:none}
+.mini-menu.identity-familia.hero-split .mini-cover>div:last-child,.mini-menu.identity-trattoria.hero-split .mini-cover>div:last-child{position:static;max-width:none;padding:12px 17px;color:var(--menu-text)}
+.mini-menu.identity-familia .mini-cover h3{font-size:22px;font-family:Georgia,serif}
+.mini-menu.identity-familia.layout-cards .mini-product{padding:11px;border:1px solid var(--menu-line);border-radius:12px;background:var(--menu-card);margin:9px 0}
+.customer-menu.identity-familia.hero-split .menu-hero-grid,.customer-menu.identity-trattoria.hero-split .menu-hero-grid,.customer-menu.identity-pizza-vinho.hero-split .menu-hero-grid{display:flex;flex-direction:column;gap:22px;text-align:center}
+.customer-menu.identity-familia.hero-split .menu-hero-image{order:-1;width:100%;height:230px;overflow:hidden}
+.customer-menu.identity-familia .product-card{border-radius:22px;border:1px solid var(--menu-line)}
+.customer-menu.identity-familia .restaurant-meta,.customer-menu.identity-trattoria .restaurant-meta,.customer-menu.identity-pizza-vinho .restaurant-meta{justify-content:center}
+
+/* 05: wide leading product followed by a photographic catalog. */
+.mini-menu.identity-atelier.hero-split .mini-cover{grid-template-columns:57% 43%;background:#edf1e7;height:128px}
+.mini-menu.identity-atelier .mini-cover h3{font-style:italic;font-size:21px}
+.mini-menu.identity-atelier.layout-poster .mini-products{padding:10px;gap:8px}
+.mini-menu.identity-atelier.layout-poster .mini-product:first-child{grid-column:1/-1}
+.mini-menu.identity-atelier.layout-poster .mini-product:first-child>img{height:110px}
+.customer-menu.identity-atelier .menu-hero{background:#eef2e9}
+.customer-menu.identity-atelier .menu-hero h1{font-style:italic}
+.customer-menu.identity-atelier.layout-poster .products-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.customer-menu.identity-atelier.layout-poster .menu-product-poster:first-child{grid-column:1/-1}
+.customer-menu.identity-atelier .menu-product-poster{border:0;border-radius:4px;background:transparent}
+.customer-menu.identity-atelier .menu-product-poster>.menu-product-photo{height:190px}
+.customer-menu.identity-atelier .menu-product-poster:first-child>.menu-product-photo{height:260px}
+
+/* 06: compact, direct delivery list. */
+.mini-menu.identity-urbano .mini-top,.customer-menu.identity-urbano .menu-topbar{background:#171719;color:#fff;border-bottom:4px solid var(--menu-accent)}
+.mini-menu.identity-urbano .mini-open{color:#a3dcab}
+.mini-menu.identity-urbano.hero-compact .mini-cover{background:#fff;border-left:5px solid var(--menu-accent)}
+.mini-menu.identity-urbano .mini-cover h3{font-size:26px;font-weight:900;text-transform:uppercase;letter-spacing:-.04em}
+.mini-menu.identity-urbano .mini-product>img{border-radius:3px}
+.customer-menu.identity-urbano .menu-hero{background:#fff;border-left:8px solid var(--menu-accent)}
+.customer-menu.identity-urbano .menu-hero h1{font-weight:950;letter-spacing:-.04em}
+.customer-menu.identity-urbano .menu-product-price{font-size:23px;font-weight:850}
+
+/* 07: centered restaurant menu, cream frame and ruled items. */
+.mini-menu.identity-trattoria .mini-top{border-bottom:3px double #6a856b}
+.mini-menu.identity-trattoria.hero-split .mini-cover>div:last-child{order:-1;text-align:center}
+.mini-menu.identity-trattoria .mini-cover h3{font-family:Georgia,serif;font-size:21px;font-style:italic}
+.mini-menu.identity-trattoria .mini-products{border:1px solid #81947a;margin:9px;padding:0 10px}
+.customer-menu.identity-trattoria{border-inline:clamp(2px,1vw,12px) solid #294e38}
+.customer-menu.identity-trattoria .menu-topbar .menu-container{flex-wrap:wrap;justify-content:center}
+.customer-menu.identity-trattoria.hero-split .menu-hero-image{width:100%;height:210px;overflow:hidden}
+.customer-menu.identity-trattoria .menu-product-compact{border-bottom:1px dashed #81947a;border-radius:0}
+
+/* 08: offers with large left-hand photos. */
+.mini-menu.identity-festival .mini-top,.customer-menu.identity-festival .menu-topbar{background:#ffdd72}
+.mini-menu.identity-festival.hero-cover .mini-cover{height:175px}
+.mini-menu.identity-festival .mini-cover h3{font-size:30px;font-weight:900}
+.mini-menu.identity-festival.layout-cards .mini-product{background:var(--menu-card);border:1px solid var(--menu-accent);border-radius:10px;padding:10px;margin:8px 0}
+.mini-menu.identity-festival.layout-cards .mini-product>img,.mini-menu.identity-festival.layout-cards .mini-pizza{order:-1;width:42%;height:90px}
+.customer-menu.identity-festival .product-card{border:2px solid var(--menu-accent);border-radius:17px;box-shadow:none}
+.customer-menu.identity-festival .product-card-image{order:-1;width:42%;height:150px}
+
+/* 09: split leading product and the material palette of a wood oven. */
+.mini-menu.identity-forno-brasa .mini-cover h3{font-family:Georgia,serif;font-size:24px}
+.mini-menu.identity-forno-brasa.layout-poster .mini-products{padding:8px;gap:8px}
+.mini-menu.identity-forno-brasa.layout-poster .mini-product:first-child{grid-column:1/-1;flex-direction:row;align-items:stretch;background:#82401f}
+.mini-menu.identity-forno-brasa.layout-poster .mini-product:first-child>img{width:52%;height:130px}
+.customer-menu.identity-forno-brasa .menu-hero h1{font-family:Georgia,serif}
+.customer-menu.identity-forno-brasa.layout-poster .products-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.customer-menu.identity-forno-brasa.layout-poster .menu-product-poster:first-child{grid-column:1/-1;display:grid;grid-template-columns:52% 48%;background:#82401f}
+.customer-menu.identity-forno-brasa .menu-product-poster:first-child .menu-product-photo{height:100%;min-height:230px}
+
+/* 10: alternating catalog rhythm, cobalt and porcelain. */
+.mini-menu.identity-napoli-rua .mini-top{border-bottom:3px solid var(--menu-accent)}
+.mini-menu.identity-napoli-rua.hero-split .mini-cover{background:var(--menu-accent);grid-template-columns:42% 58%;height:123px}
+.mini-menu.identity-napoli-rua.hero-split .mini-cover>div:last-child{color:var(--menu-ink)}
+.mini-menu.identity-napoli-rua.layout-list .mini-product{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;gap:8px}
+.mini-menu.identity-napoli-rua.layout-list .mini-product>div{order:0;padding:3px}
+.mini-menu.identity-napoli-rua.layout-list .mini-product>img{order:1;width:100%;height:100%;min-height:90px;margin:0;border-radius:0}
+.mini-menu.identity-napoli-rua.layout-list .mini-product:nth-child(even)>img{order:-1}
+.customer-menu.identity-napoli-rua .menu-hero{background:var(--menu-accent);color:var(--menu-ink)}
+.customer-menu.identity-napoli-rua .menu-hero h1,.customer-menu.identity-napoli-rua .menu-hero-copy>p,.customer-menu.identity-napoli-rua .restaurant-meta{color:inherit}
+.customer-menu.identity-napoli-rua.layout-list .menu-product-list{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"copy photo" "order photo";gap:14px 22px;padding:20px 0}
+.customer-menu.identity-napoli-rua .menu-product-photo{grid-area:photo;width:100%;height:100%;min-height:175px;border-radius:0}
+.customer-menu.identity-napoli-rua .menu-product-copy{grid-area:copy;align-self:end}
+.customer-menu.identity-napoli-rua .menu-product-order{grid-area:order;align-self:start;flex-direction:row;align-items:center;justify-content:space-between}
+.customer-menu.identity-napoli-rua .menu-product-list:nth-child(even){grid-template-areas:"photo copy" "photo order"}
+.customer-menu.identity-napoli-rua .menu-product-list:not(:has(.menu-product-photo)){grid-template-columns:1fr;grid-template-areas:"copy" "order"}
+
+/* 11: a real mosaic made from the same working product buttons. */
+.mini-menu.identity-fatia-pop .mini-top{border-bottom:2px solid var(--menu-text)}
+.mini-menu.identity-fatia-pop .mini-cover h3{font-weight:900;font-size:26px;letter-spacing:-.04em}
+.mini-menu.identity-fatia-pop.layout-cards .mini-products{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:9px}
+.mini-menu.identity-fatia-pop.layout-cards .mini-product{display:flex;flex-direction:column;align-items:stretch;border:1px solid var(--menu-text);border-radius:9px;padding:0;overflow:hidden}
+.mini-menu.identity-fatia-pop.layout-cards .mini-product:first-child{grid-row:span 2}
+.mini-menu.identity-fatia-pop.layout-cards .mini-product>img,.mini-menu.identity-fatia-pop.layout-cards .mini-pizza{order:-1;width:100%;height:70px;border-radius:0}
+.mini-menu.identity-fatia-pop.layout-cards .mini-product:first-child>img{height:170px}
+.mini-menu.identity-fatia-pop.layout-cards .mini-product>div{padding:9px}
+.customer-menu.identity-fatia-pop .menu-hero{background:var(--menu-bg);border-bottom:2px solid var(--menu-text)}
+.customer-menu.identity-fatia-pop.layout-cards .products-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.customer-menu.identity-fatia-pop .product-card{flex-direction:column;align-items:stretch;padding:0;overflow:hidden;border:2px solid var(--menu-text)}
+.customer-menu.identity-fatia-pop .product-card:nth-child(3n+1){grid-row:span 2}
+.customer-menu.identity-fatia-pop .product-card-image{order:-1;width:100%;height:150px}
+.customer-menu.identity-fatia-pop .product-card:nth-child(3n+1) .product-card-image{height:290px}
+.customer-menu.identity-fatia-pop .product-card-copy{padding:16px}
+.customer-menu.identity-fatia-pop .product-card-image>.add-circle{right:8px;bottom:8px}
+
+/* 12: a numbered, compact bistro menu. */
+.mini-menu.identity-pizza-vinho .mini-top,.customer-menu.identity-pizza-vinho .menu-topbar{background:#601b2d;color:#fff5ef}
+.mini-menu.identity-pizza-vinho .mini-open{color:#a3d598}
+.mini-menu.identity-pizza-vinho.hero-split .mini-cover{height:124px;grid-template-columns:45% 55%;background:var(--menu-bg)}
+.mini-menu.identity-pizza-vinho .mini-cover h3{font-size:21px;font-family:Georgia,serif}
+.mini-menu.identity-pizza-vinho .mini-products,.customer-menu.identity-pizza-vinho .products-grid{counter-reset:flavor}
+.mini-menu.identity-pizza-vinho .mini-product,.customer-menu.identity-pizza-vinho .menu-product-compact{counter-increment:flavor;border-bottom:1px solid var(--menu-line)}
+.mini-menu.identity-pizza-vinho .mini-product:before{content:counter(flavor,decimal-leading-zero);font-size:8px;color:var(--menu-muted);align-self:start}
+.mini-menu.identity-pizza-vinho.layout-compact .mini-product>img{order:-1;width:44px;height:60px;object-fit:cover}
+.customer-menu.identity-pizza-vinho.hero-split .menu-hero-image{width:100%;height:215px;overflow:hidden}
+.customer-menu.identity-pizza-vinho .menu-product-compact:before{content:counter(flavor,decimal-leading-zero);font:15px Georgia,serif;color:var(--menu-muted)}
+
+/* Reference artwork loads only when its dialog is opened. */
+.ai-style-footer .ai-reference-link{display:block!important;padding:7px 0!important;background:none!important;border:0!important;border-radius:0!important;color:#f2b997!important;font-size:11px!important;min-height:36px}
+.ai-reference-view>p{font-size:13px;line-height:1.6;color:#555;max-width:640px;margin:0 auto 16px}
+.ai-reference-view>img{display:block;max-width:100%;height:auto;width:560px;margin:0 auto;border-radius:8px}
+.ai-reference-view>div{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;position:sticky;bottom:-20px;padding:14px;background:#fff;border-top:1px solid #ddd}
+
+@media(max-width:520px){
+ .customer-menu[class*="identity-"] .restaurant-brand{min-width:0;max-width:70%}
+ .customer-menu[class*="identity-"] .menu-product-order{min-width:70px}
+ .customer-menu[class*="identity-"] .menu-product-price{font-size:16px;white-space:nowrap}
+ .customer-menu[class*="identity-"] .menu-product-compact .menu-product-photo{width:48px;height:58px}
+ .customer-menu.identity-fatia-pop .product-card-copy{padding:11px}
+ .customer-menu.identity-fatia-pop .product-card h3{font-size:16px}
+ .customer-menu.identity-fatia-pop .product-card-image{height:115px}
+ .customer-menu.identity-fatia-pop .product-card:nth-child(3n+1) .product-card-image{height:235px}
+ .customer-menu.identity-fatia-pop .product-card p{font-size:11px}
+ .customer-menu.identity-forno-brasa .menu-product-poster>.menu-product-copy,.customer-menu.identity-atelier .menu-product-poster>.menu-product-copy{padding:12px}
+ .customer-menu.identity-forno-brasa .menu-product-poster h3,.customer-menu.identity-atelier .menu-product-poster h3{font-size:17px}
+ .customer-menu.identity-forno-brasa .menu-product-poster:first-child .menu-product-photo{min-height:175px}
+ .customer-menu.identity-atelier .menu-product-poster>.menu-product-photo{height:135px}
+ .customer-menu.identity-napoli-rua.layout-list .menu-product-list{gap:12px}
+ .customer-menu.identity-napoli-rua .menu-product-photo{min-height:150px}
+ .customer-menu.identity-napoli-rua .menu-product-order{min-width:0}
+ .ai-reference-view>div{bottom:-16px}
+}
+@media(max-width:360px){.customer-menu.identity-pizza-vinho .menu-product-compact:before{display:none}.customer-menu.identity-pizza-vinho .menu-product-compact{gap:8px}}

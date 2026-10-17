@@ -3,15 +3,15 @@ import assert from "node:assert/strict";
 import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {fixture} from "./test-backend-fixture.mjs";
-import {galleryStyles,suggestedGalleryStyles,galleryDesign,chosenGalleryDraft,galleryStyleId,supportsLocalRefinement} from "../lib/gallery-styles.ts";
+import {galleryStyles,galleryReference,suggestedGalleryStyles,galleryDesign,chosenGalleryDraft,galleryStyleId,supportsLocalRefinement} from "../lib/gallery-styles.ts";
 import {defaultRestaurant,demoRestaurant,restaurantSchema} from "../lib/domain.ts";
 import {saveMenuLaunch,readMenuLaunch,launchKey} from "../lib/menu-launch.ts";
 const makeStore=()=>{const values=new Map();return {getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};};
-test("eight visual presets provide four distinct compositions per discovery round",()=>{
- assert.equal(galleryStyles.length,8);assert.equal(new Set(galleryStyles.map(x=>x.id)).size,8);
+test("twelve visual presets provide four distinct compositions in three discovery rounds",()=>{
+ assert.equal(galleryStyles.length,12);assert.equal(new Set(galleryStyles.map(x=>x.id)).size,12);
  const result=suggestedGalleryStyles("Quero algo preto, mais delivery, fotos enormes e promoções");
- assert.equal(result.length,8);assert.equal(new Set(result).size,8);
- for(const round of [result.slice(0,4),result.slice(4)]){
+ assert.equal(result.length,12);assert.equal(new Set(result).size,12);
+ for(const round of [result.slice(0,4),result.slice(4,8),result.slice(8,12)]){
   assert.equal(round.length,4);
   assert.equal(new Set(round.map(id=>galleryStyles.find(x=>x.id===id).presentation.layout)).size,4);
  }
@@ -71,7 +71,7 @@ test("the guest creator has a dedicated entry and public menus link to it before
  const f=fixture();try{
   const Page=f.load("app/criar/page.tsx").default,html=renderToStaticMarkup(createElement(Page));
   assert.match(html,/id="pizzeria-idea"/);assert.match(html,/Anexar cardápio/);
-  assert.match(html,/Criar 8 modelos/);assert.doesNotMatch(html,/<input[^>]*(?:type="email"|type="password")/);
+  assert.match(html,/Criar 12 modelos/);assert.doesNotMatch(html,/<input[^>]*(?:type="email"|type="password")/);
   const Menu=f.load("components/menu.tsx").default;
   const menu=renderToStaticMarkup(createElement(Menu,{data:demoRestaurant(),slug:"pizza"}));
   assert.match(menu,/\/criar/);

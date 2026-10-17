@@ -43,8 +43,9 @@ try {
             window.__ocrQa.timer = setInterval(() => {const now = performance.now(); window.__ocrQa.maxGapMs = Math.max(window.__ocrQa.maxGapMs, now - window.__ocrQa.last); window.__ocrQa.last = now;}, 25);
         });
         const started = performance.now();
+        const current = await page.getByRole('button', {name: 'Criar 12 modelos', exact: true}).count() > 0;
         const legacy = publicReadOnly && await page.getByRole('button', {name: 'Criar opções', exact: true}).count() > 0;
-        await page.getByRole('button', {name: legacy ? 'Criar opções' : 'Criar 8 modelos', exact: true}).click();
+        await page.getByRole('button', {name: legacy ? 'Criar opções' : current ? 'Criar 12 modelos' : 'Criar 8 modelos', exact: true}).click();
         await page.locator('.ai-style-card').first().waitFor({timeout: 120_000});
         await page.waitForFunction(expected => Array.from(document.querySelectorAll('button')).some(button => button.textContent.includes(expected) && !button.disabled), legacy ? 'Atualizar prévias' : 'Atualizar modelos');
         const ms = Math.round(performance.now() - started);

@@ -1,11 +1,13 @@
 import {z} from "zod";
 import type {RestaurantData,ThemeId} from "./domain.ts";
+import {menuIdentityId} from "./menu-identity.ts";
 
 export const presentationSchema=z.object({
   layout:z.enum(["cards","list","poster","compact"]),
   hero:z.enum(["split","cover","compact"]),
   font:z.enum(["modern","serif","bold"]),
   corners:z.enum(["soft","square"]),
+  identity:menuIdentityId.optional(),
 }).strict();
 export type MenuPresentation=z.infer<typeof presentationSchema>;
 export const layoutNames:Record<MenuPresentation["layout"],string>={cards:"Cartões",list:"Lista artesanal",poster:"Fotos em destaque",compact:"Lista compacta"};

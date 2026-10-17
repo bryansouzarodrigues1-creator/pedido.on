@@ -74,7 +74,9 @@ jobs:
             .sites-runtime/browser-ci/calculator/
             .sites-runtime/browser-ci/handoff/
             .sites-runtime/browser-ci/ocr/
+            .sites-runtime/browser-ci/styles/
             .sites-runtime/browser-ci/public/summary.json
             .sites-runtime/browser-ci/public/guest/evidence/
             .sites-runtime/browser-ci/public/calculator/
             .sites-runtime/browser-ci/public/ocr/
+            .sites-runtime/browser-ci/public/styles/
