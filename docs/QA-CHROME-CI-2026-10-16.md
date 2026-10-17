@@ -1,5 +1,7 @@
 # Chrome no CI e correção de colunas — 16/10/2026
 
+**Atualização de 17/10:** este documento registra a v45. A [v46 já foi publicada e passou em 46 cenários de Chrome](REVISAO-V46-2026-10-17.md). O [cadastro/Supabase real histórico passou nas seis verificações](QA-CADASTRO-REAL-2026-10-16.md); as menções a essa pendência abaixo refletem o momento anterior ao ensaio.
+
 O computador Rodrigues não é necessário para continuar os testes automáticos. O workflow `browser-qa.yml` usa Chrome 155 instalado no runner Ubuntu, Node 24 e ferramentas Playwright separadas das dependências do aplicativo. Guarda capturas, relatórios e logs por 14 dias; não guarda perfis, cookies ou variáveis locais.
 
 ## Falha real encontrada
