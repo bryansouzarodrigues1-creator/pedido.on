@@ -49,6 +49,8 @@ test('an explicit pizzeria name reaches the free preview and is reusable at sign
   ['A minha pizzaria chama Bella Massa e gostaria de algo premium','Bella Massa'],
   ['Minha pizzaria se chama Bella Roma, quero um layout compacto','Bella Roma'],
   ['Quero um cardápio artesanal vermelho para minha pizzaria',undefined],
+  ['Minha pizzaria é pequena e quero vermelho',undefined],
+  ['Minha pizzaria é artesanal e quero verde',undefined],
   ['Tenho uma pizzaria de bairro com foco em delivery',undefined],
  ];
  const data=demoRestaurant();
