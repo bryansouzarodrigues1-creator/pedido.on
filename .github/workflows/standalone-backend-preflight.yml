@@ -17,8 +17,8 @@ jobs:
     env:
       CI: "true"
       PEDIDO_SELF_HOSTED: "true"
-      PEDIDO_D1_DATABASE_ID: "00000000-0000-4000-8000-000000000000"
-      PEDIDO_R2_BUCKET_NAME: "pizzaria-on-preflight-dummy"
+      PEDIDO_D1_DATABASE_ID: "1d4b48d1-7689-4a1e-a9ea-d85a2983fa9a"
+      PEDIDO_R2_BUCKET_NAME: "pizzaria-on-staging-private-20261017"
       PEDIDO_STUDIO_ENABLED: "false"
       PEDIDO_BILLING_ENABLED: "false"
       PEDIDO_AI_ENABLED: "false"
@@ -43,9 +43,9 @@ jobs:
       - name: Verify independent Worker exists in bundled output
         run: |
           test -f dist/server/wrangler.json
-          node -e "const fs=require('node:fs');const j=JSON.parse(fs.readFileSync('dist/server/wrangler.json','utf8'));const d=j.d1_databases||[]; if(!d.some(x=>x.binding==='DB')) process.exit(1); const r=j.r2_buckets||[]; if(!r.some(x=>x.binding==='BUCKET')) process.exit(2); console.log('Standalone bindings declared (synthetic only).');"
+          node -e "const fs=require('node:fs');const j=JSON.parse(fs.readFileSync('dist/server/wrangler.json','utf8'));const d=j.d1_databases||[]; if(!d.some(x=>x.binding==='DB'&&x.database_id===process.env.PEDIDO_D1_DATABASE_ID)) process.exit(1); const r=j.r2_buckets||[]; if(!r.some(x=>x.binding==='BUCKET'&&x.bucket_name===process.env.PEDIDO_R2_BUCKET_NAME)) process.exit(2); console.log('Standalone staging D1/R2 binding IDs confirmed in generated build; deployment still disabled.');"
       - name: Explicit limitations
         if: always()
         run: |
-          echo "Dry-run only. No Cloudflare account credentials, no D1 transfer, no R2 transfer, no Lovable credits, no deployment, no payment." >> "$GITHUB_STEP_SUMMARY"
-          echo "Never deploy with placeholder database ID." >> "$GITHUB_STEP_SUMMARY"
+          echo "Dry-run only. Build has REAL staging resource IDs, but no credentials, no DB/media transfer, no Lovable credits, no deployment, no payment." >> "$GITHUB_STEP_SUMMARY"
+          echo "Staging D1/R2 contents remain partial or empty; never publicize as full SaaS." >> "$GITHUB_STEP_SUMMARY"
