@@ -9,20 +9,24 @@ const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
 
 const { d1, r2 } = hostingConfig;
+// Opt-in only; the published Sites app keeps its original build and bindings.
+const standalone = process.env.PEDIDO_SELF_HOSTED === "true";
+const externalDatabaseId = process.env.PEDIDO_D1_DATABASE_ID || SITE_CREATOR_PLACEHOLDER_DATABASE_ID;
+const externalBucketName = process.env.PEDIDO_R2_BUCKET_NAME || "pizzaria-on-migration-preview";
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 const managedLinux = readExecutionProfile() === "managed-linux";
 
 const localBindingConfig = {
-  main: "./build/sites-worker.ts",
+  main: standalone ? "./build/self-hosted-worker.ts" : "./build/sites-worker.ts",
   compatibility_flags: ["nodejs_compat"],
   d1_databases: d1
     ? [
         {
           binding: d1,
-          database_name: "site-creator-d1",
-          database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          database_name: standalone ? "pizzaria-on-d1" : "site-creator-d1",
+          database_id: standalone ? externalDatabaseId : SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
         },
       ]
     : [],
@@ -30,7 +34,7 @@ const localBindingConfig = {
     ? [
         {
           binding: r2,
-          bucket_name: "site-creator-r2",
+          bucket_name: standalone ? externalBucketName : "site-creator-r2",
         },
       ]
     : [],
@@ -62,14 +66,13 @@ export default defineConfig(async ({ command }) => {
     },
     plugins: [
       vinext(),
-      sites({ mockAuth: !managedLinux }),
-      connectorPreview(),
+      ...(!standalone ? [sites({ mockAuth: !managedLinux }), connectorPreview()] : []),
       cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         inspectorPort: false,
         config: {
           ...localBindingConfig,
-          ...(command === "serve"
+          ...(!standalone && command === "serve"
             ? {
                 services: [
                   {
@@ -81,7 +84,7 @@ export default defineConfig(async ({ command }) => {
               }
             : {}),
         },
-        ...(command === "serve"
+        ...(!standalone && command === "serve"
           ? {
               auxiliaryWorkers: [
                 {
