@@ -1,0 +1,31 @@
+name: Beta 5-10 pizzarias - live GET-only acceptance
+on:
+  pull_request:
+    paths:
+      - 'scripts/check-beta-live-readonly.py'
+      - '.github/workflows/beta-live-readonly.yml'
+      - 'docs/BETA-CONTROLADO-2026-10-17.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check live onboarding + access isolation, GET only
+        run: |
+          set +e
+          python3 scripts/check-beta-live-readonly.py > /tmp/pizzaria-beta-readonly.json
+          result=$?
+          cat /tmp/pizzaria-beta-readonly.json
+          exit "$result"
+      - name: Record restricted scope
+        if: always()
+        run: |
+          echo "Read-only anonymous GET to the existing Sites production, no order, account, payment or model calls." >> "$GITHUB_STEP_SUMMARY"
+          echo "Does NOT establish financial, Android, push, email, paid AI or commercial beta sign-off." >> "$GITHUB_STEP_SUMMARY"
