@@ -17,6 +17,7 @@ CHECKS = [
     ("/", 200, "text/html"),
     ("/criar", 200, "text/html"),
     ("/entrar", 200, "text/html"),
+    ("/demo/pedidos", 200, "text/html"),
     ("/offline", 200, "text/html"),
     ("/manifest.webmanifest", 200, "application/manifest+json"),
     ("/pwa/icon-192.png", 200, "image/png"),
