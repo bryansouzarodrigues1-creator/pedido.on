@@ -97,3 +97,41 @@
 .ai-landing textarea{scroll-margin-block:100px;overflow-wrap:anywhere}
 @media(max-width:520px){.ai-landing .idea-composer-bottom{flex-wrap:wrap;gap:12px}.ai-landing .idea-source-toggle{flex-basis:100%;min-height:38px;font-size:12px}.ai-landing .idea-composer .btn.primary{width:100%;min-height:46px;font-size:13px}.ai-landing .idea-file-actions label{min-height:42px;display:inline-flex;align-items:center}}
 @media(prefers-reduced-motion:reduce){.ai-gallery{animation:none}}
+
+/* The creator, not a landing-page funnel, owns the first screen. */
+.pizza-home-creator{background:#111318;min-height:100svh}
+.pizza-home-creator .pizza-home-header{background:#111318;border:0;color:#f7f5f2}
+.pizza-home-creator .pizza-home-header .brand{color:#f7f5f2}
+.pizza-home-creator .pizza-home-header nav{margin-left:auto;display:flex;align-items:center}
+.pizza-home-creator .pizza-home-header nav a{color:#aeb0b8;font-weight:600;font-size:12px}
+.pizza-home-creator .pizza-home-header nav a:hover{color:#fff}
+.ai-landing.waiting-prompt{min-height:calc(100svh - 76px);display:flex;align-items:center;padding:26px 0 80px;background:radial-gradient(ellipse at 50% 100%,#4d2b426b 0,transparent 64%),#111318}
+.ai-landing.waiting-prompt>.saas-container{width:min(940px,calc(100% - 36px))}
+.ai-landing.waiting-prompt .idea-workspace{max-width:810px}
+.ai-landing.waiting-prompt .idea-composer{padding:30px;background:#24252b;border:1px solid #797079;border-radius:23px;box-shadow:0 0 0 1px #ffffff0d,0 20px 100px #0007}
+.ai-landing.waiting-prompt .idea-composer>label{font-size:clamp(17px,3.1vw,24px);line-height:1.25;letter-spacing:-.025em;color:#faf9f7}
+.ai-landing.waiting-prompt .idea-composer>label svg{width:23px;height:23px;color:#ffad80;flex-shrink:0}
+.ai-landing.waiting-prompt .idea-composer textarea{min-height:210px;font-size:clamp(17px,2.3vw,21px);line-height:1.5;padding-top:29px;resize:vertical}
+.ai-landing.waiting-prompt .idea-composer textarea::placeholder{color:#a6a2aa}
+.ai-landing.waiting-prompt .idea-composer:focus-within{border-color:#f5a47d;box-shadow:0 0 0 4px #f5a47d23,0 22px 100px #0008}
+.ai-landing.waiting-prompt .idea-composer .btn.primary{min-height:52px;padding:12px 20px;font-size:14px}
+.ai-landing.has-results{padding:22px 0 65px;background:#111318}
+.ai-landing.has-results .idea-composer{max-width:800px}
+.ai-landing.has-results .idea-composer textarea{min-height:80px}
+.ai-gallery{scroll-margin-top:20px}
+.ai-gallery-heading{margin-bottom:18px}
+.ai-gallery-heading h2{margin-top:0}
+.ai-gallery-heading p{max-width:460px}
+.ai-gallery .ai-personalize{max-width:620px}
+.ai-gallery .ai-gallery-sample{font-size:11px}
+.ai-landing .idea-source{box-shadow:0 14px 36px #0004}
+@media(max-width:760px){
+ .ai-landing.waiting-prompt{min-height:calc(100svh - 73px);padding:16px 0 85px}
+ .ai-landing.waiting-prompt>.saas-container{width:calc(100% - 34px)}
+ .ai-landing.waiting-prompt .idea-composer{padding:22px 20px;border-radius:22px}
+ .ai-landing.waiting-prompt .idea-composer>label{font-size:19px}
+ .ai-landing.waiting-prompt .idea-composer textarea{min-height:205px;font-size:17px;padding-top:22px}
+ .ai-landing.waiting-prompt .idea-composer .btn.primary{width:100%;font-size:14px}
+ .ai-landing.has-results{padding:18px 0 45px}
+ .ai-landing .ai-style-grid{grid-auto-columns:minmax(250px,89%)}
+}
