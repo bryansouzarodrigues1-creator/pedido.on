@@ -17,8 +17,8 @@ jobs:
     env:
       CI: "true"
       PEDIDO_SELF_HOSTED: "true"
-      PEDIDO_D1_DATABASE_ID: "1d4b48d1-7689-4a1e-a9ea-d85a2983fa9a"
-      PEDIDO_R2_BUCKET_NAME: "pizzaria-on-staging-private-20261017"
+      PEDIDO_D1_DATABASE_ID: "4f83f462-997f-4269-8e77-f7daaf0c89cb"
+      PEDIDO_R2_BUCKET_NAME: "pizzaria-on-beta-media-20261017"
       PEDIDO_STUDIO_ENABLED: "false"
       PEDIDO_BILLING_ENABLED: "false"
       PEDIDO_AI_ENABLED: "false"
