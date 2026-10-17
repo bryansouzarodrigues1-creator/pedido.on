@@ -1,0 +1,49 @@
+name: Windows QA - Pizzaria.on (no production)
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/windows-qa.yml"
+      - "scripts/**"
+      - "lib/**"
+      - "components/**"
+      - "app/**"
+      - "pnpm-lock.yaml"
+      - "package.json"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-smoke:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      CI: "true"
+      PEDIDO_BILLING_ENABLED: "false"
+      PEDIDO_TRIAL_ENFORCED: "false"
+      PEDIDO_STUDIO_ENABLED: "false"
+      PEDIDO_AI_ENABLED: "false"
+      PEDIDO_IMAGE_ENABLED: "false"
+      PEDIDO_EMAIL_DELIVERY_READY: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "11.25.0"
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - name: Install exact lockfile locally
+        run: pnpm install --frozen-lockfile
+      - name: TypeScript check
+        run: pnpm typecheck
+      - name: Full domain and integration regression
+        run: pnpm test
+      - name: Prepare project build (no deployment)
+        run: pnpm build
+      - name: Report limitations
+        if: always()
+        shell: pwsh
+        run: |
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "This isolated Windows runner does not connect to a physical Android, production database, Asaas, iFood credentials, or the Rodrigues notebook. It validates reproducible code tests only."
