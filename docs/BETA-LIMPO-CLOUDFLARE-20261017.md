@@ -26,3 +26,27 @@ Os 16 registros antigos de staging pertencem a protótipos e ficam intactos num 
 ## Atenção
 
 Nem o build nem a criação do banco provam que os fluxos funcionam. Não anunciar o novo domínio como funcional antes da verificação fim a fim.
+
+
+## Atualização — primeiro beta acessível (17/10/2026)
+
+**Novo link beta:** https://pizzaria-on-backend-staging-20261017.bryansouzarodrigues06.workers.dev/criar
+
+- O backend completo foi reconstruído e implantado via Cloudflare Workers Builds com os novos IDs D1/R2. O D1 limpo tem 27 tabelas e zero registros na validação de início de beta.
+- Supabase URL e chave publicável configuradas no Worker como bindings secretos; `AUTH_SESSION_KEY` gerada com aleatoriedade criptográfica. Nunca compartilhar valores no repositório.
+- Cobranças SaaS/Asaas, IA paga e notificações push estão **desativadas** no backend beta. Não receber pagamento ou prometer IA generativa remota.
+- Verificações externas GET: `/`, `/criar`, `/entrar`, `/manifest.webmanifest`, `/api/auth/config?registration=1` responderam 200. `directSignup=true`, `inviteRequired=false`; APIs privadas `/api/restaurants` e `/api/admin/status` responderam 401 sem autenticação.
+- As 12 rotas `/demo/<style-id>` responderam 200 no novo servidor. O Lovable é apenas galeria pública, com cópia **manual** do briefing entre origens.
+- O domínio `workers.dev` foi habilitado para teste beta após essas verificações. Previews separados permanecem desligados. O pipeline GitHub está conectado, mas o **deploy automático permanece bloqueado** para não reativar prévias nem trocar configurações sem revisão.
+- Nenhum registro do Sites antigo foi importado; o backup de 13/10 permanece arquivado no staging antigo. Não há clientes reais, conforme informação do titular.
+
+### Falta para homologar comercialmente
+
+1. Fazer cadastro de **uma conta de teste**, entrar, criar e publicar um cardápio, verificar imagens e links públicos.
+2. Simular **um pedido** com pagamento na entrega em outro telefone, conferir no painel e atualizar status. Verificar isolamento entre pizzarias.
+3. Testar fluxo Pix do lojista e comprovante sem movimentar dinheiro real; confirmar que arquivos privados R2 não vazam por endereço público.
+4. Confirmar OCR de fotos reais com conferência obrigatória de todos os itens e preços; importação por iFood pode sofrer 403.
+5. Resolver recuperação de senha/e-mail, notificação de pedidos, IA remota e pagamento de assinaturas antes de abrir comercialização em escala.
+6. Configurar alerta de faturamento Cloudflare; franquia de R2 não é teto de gasto garantido.
+
+**Decisão atual:** beta público para QA limitado, NÃO plataforma comercial 100% homologada. Antes de convidar dezenas de lojas, coletar resultado do primeiro teste autenticado.
