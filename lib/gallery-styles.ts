@@ -42,7 +42,7 @@ const signals:Record<GalleryStyleId,RegExp>={
  * Unrecognized requests should be retained for the authenticated AI studio, never treated as applied. */
 export function supportsLocalRefinement(message:string){
  const m=normalized(message);
- return /(?:#[a-f0-9]{6}\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|lista|uma coluna|duas colunas|cartoes|cards|grade|fotos? grandes?|fotos? em destaque|vitrine|sem capa|capa grande|capa inteira|foto de fundo|sem serifa|serifa|elegante|italia|artesanal|letras? (?:fortes?|grandes?)|fonte (?:forte|grossa)|arredond|cantos? (?:retos?|suaves?)|quadrad|compact|minimal|sem fotos?|(?:slogan|frase|chamada)\s*[:=])/.test(m);
+ return /(?:#[a-f0-9]{6}\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|lista|uma coluna|duas colunas|cartoes|cards|grade|fotos? grandes?|fotos? em destaque|vitrine|sem capa|capa grande|capa inteira|foto de fundo|sem serifa|serifa|elegante|italia|artesanal|letras? (?:fortes?|grandes?)|fonte (?:forte|grossa)|arredond|cantos? (?:retos?|suaves?)|quadrad|compact|minimal|sem fotos?|premium|luxuos|sofistic|delivery (?:direto|rapido)|(?:slogan|frase|chamada)\s*[:=])/.test(m);
 }
 /** Stable ordering, four distinct geometries in each of two rounds, zero provider calls. */
 export function suggestedGalleryStyles(briefing:string,feedback=""){
@@ -68,9 +68,9 @@ export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:str
   const colours=[...turn.matchAll(/#[a-fA-F0-9]{6}\b|\b(?:vermelho|laranja|amarelo|verde|azul|dourado)\b/gi)];
   const last=colours.at(-1);if(last){if(/\b(?:sem|nao|não)\s*$/.test(turn.slice(0,last.index).toLowerCase()))delete extras.accent;else extras.accent=designFromMessage(last[0],next).accent;}
   const presentation=extras.presentation?{...next.presentation!,
-   ...(/lista|colunas?|cartoes|cards|grade|fotos? grandes?|em destaque|vitrine|compact|sem fotos?/.test(words)?{layout:extras.presentation.layout}:{}),
-   ...(/sem capa|cabecalho|capa grande|capa inteira|foto de fundo|compact|sem fotos?/.test(words)?{hero:extras.presentation.hero}:{}),
-   ...(/serifa|elegant|italia|artesanal|letras?|fonte|tipografia|moderno/.test(words)?{font:extras.presentation.font}:{}),
+   ...(/lista|colunas?|cartoes|cards|grade|fotos? grandes?|em destaque|vitrine|compact|sem fotos?|premium|luxuos|delivery (?:direto|rapido)/.test(words)?{layout:extras.presentation.layout}:{}),
+   ...(/sem capa|cabecalho|capa grande|capa inteira|foto de fundo|compact|sem fotos?|premium|luxuos|delivery (?:direto|rapido)/.test(words)?{hero:extras.presentation.hero}:{}),
+   ...(/serifa|elegant|italia|artesanal|sofistic|letras?|fonte|tipografia|moderno/.test(words)?{font:extras.presentation.font}:{}),
    ...(/cantos?|arredond|quadrad/.test(words)?{corners:extras.presentation.corners}:{})
   }:next.presentation;
   next={...next,...extras,presentation};
