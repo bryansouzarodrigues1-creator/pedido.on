@@ -22,7 +22,7 @@ test('the published menu renders different product structures and keeps cart and
   for(const theme of ['editorial','classic','dark','playful']){const data=demoRestaurant(theme),layout=data.presentation.layout,html=renderToStaticMarkup(createElement(Menu,{data,preview:true}));assert.match(html,new RegExp('layout-'+layout));assert.match(html,/Margherita/);assert.match(html,/Seu pedido/);const productHtml=renderToStaticMarkup(createElement(Product,{data,product:data.products[0],onChoose(){}}));if(layout==='compact')assert.doesNotMatch(productHtml,/<img/);else if(layout==='poster')assert.match(productHtml,/menu-product-poster/);else if(layout==='list')assert.match(productHtml,/menu-product-list/);else assert.match(productHtml,/product-card/);}
  }finally{f.close();}
 });
-test('the public home starts with an idea textarea and imports before asking for an account',()=>{const f=fixture();try{const Home=f.load('components/saas-landing.tsx').default,html=renderToStaticMarkup(createElement(Home));assert.match(html,/id="pizzeria-idea"/);assert.match(html,/Trazer do iFood/);assert.match(html,/antes de criar a conta/);assert.doesNotMatch(html,/<input[^>]*(?:type="email"|type="password")/);assert.ok(html.indexOf('id="pizzeria-idea"')<html.indexOf('id="planos"'));}finally{f.close();}});
+test('the public home starts with an idea textarea and imports before asking for an account',()=>{const f=fixture();try{const Home=f.load('components/saas-landing.tsx').default,html=renderToStaticMarkup(createElement(Home));assert.match(html,/id="pizzeria-idea"/);assert.match(html,/cardápio \/ iFood/);assert.match(html,/Criar 8 modelos/);assert.doesNotMatch(html,/<input[^>]*(?:type="email"|type="password")/);assert.doesNotMatch(html,/id="planos"|Sua pizza está dando lucro|Menos complicação/);}finally{f.close();}});
 test('a malformed optional product photo does not discard the valid visual proposal for a new shop',()=>{
  const snapshot=defaultRestaurant('Nova loja'),input=studioInput.parse({requestId:crypto.randomUUID(),message:'Cor de mussarela que lembre a Itália cores fotos',snapshot});
  const raw={reply:'Identidade italiana com letras elegantes.',theme:'editorial',accent:'#37634a',productDescriptions:[],imageBrief:{asset:'product',description:'Foto de pizza italiana, queijo e manjericão.'}};
@@ -43,7 +43,14 @@ test('an explicit pizzeria name reaches the free preview and is reusable at sign
   ['A pizzaria se chama Bella Roma e quero um cardápio escuro','Bella Roma'],
   ['Nome da pizzaria: Sabor & Arte','Sabor & Arte'],
   ['Nome da minha pizzaria é Massa Fina','Massa Fina'],
+  ['O nome da minha pizzaria e Sapore dinapoli','Sapore dinapoli'],
+  ['O nome da minha pizzaria é Sapore di Napoli','Sapore di Napoli'],
+  ['Minha pizzaria é Forno Bello e quero fotos grandes','Forno Bello'],
+  ['A minha pizzaria chama Bella Massa e gostaria de algo premium','Bella Massa'],
+  ['Minha pizzaria se chama Bella Roma, quero um layout compacto','Bella Roma'],
   ['Quero um cardápio artesanal vermelho para minha pizzaria',undefined],
+  ['Minha pizzaria é pequena e quero vermelho',undefined],
+  ['Minha pizzaria é artesanal e quero verde',undefined],
   ['Tenho uma pizzaria de bairro com foco em delivery',undefined],
  ];
  const data=demoRestaurant();

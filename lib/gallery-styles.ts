@@ -15,6 +15,17 @@ export const galleryStyles=[
  {id:"festival",title:"Festival de sabores",summary:"Cartões e ofertas em evidência",theme:"playful",accent:"#ba3b37",presentation:{layout:"cards",hero:"cover",font:"modern",corners:"soft"}},
 ] as const satisfies readonly {id:string;title:string;summary:string;theme:ThemeId;accent:string;presentation:MenuPresentation}[];
 export type GalleryStyleId=(typeof galleryStyles)[number]["id"];
+/** Short example copy belongs to the visual direction, not to the owner's products. */
+export const galleryVoices:Record<GalleryStyleId,{tagline:string;description:string}>={
+ "forno-classico":{tagline:"O sabor começa no forno.",description:"Tradição que você sente em cada fatia."},
+ "noite-premium":{tagline:"Sua noite merece mais.",description:"Pizzas marcantes. Uma experiência à altura."},
+ essencial:{tagline:"Escolha. Peça. Aproveite.",description:"Seu pedido, direto ao ponto."},
+ familia:{tagline:"Todo mundo à mesa.",description:"Sabores para reunir a família."},
+ atelier:{tagline:"Pizza feita com intenção.",description:"Ingredientes, técnica e muito sabor."},
+ urbano:{tagline:"Bateu a fome? Pede.",description:"Seu delivery favorito, em poucos toques."},
+ trattoria:{tagline:"Buona pizza, bella vita.",description:"Da nossa cozinha para o seu momento."},
+ festival:{tagline:"Hoje tem pizza!",description:"Combos, sabores e muita vontade de repetir."},
+};
 export const galleryStyleId=z.enum(["forno-classico","noite-premium","essencial","familia","atelier","urbano","trattoria","festival"]);
 const normalized=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const signals:Record<GalleryStyleId,RegExp>={
@@ -31,7 +42,7 @@ const signals:Record<GalleryStyleId,RegExp>={
  * Unrecognized requests should be retained for the authenticated AI studio, never treated as applied. */
 export function supportsLocalRefinement(message:string){
  const m=normalized(message);
- return /(?:#[a-f0-9]{6}\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|lista|uma coluna|duas colunas|cartoes|cards|grade|fotos? grandes?|fotos? em destaque|vitrine|sem capa|capa grande|capa inteira|foto de fundo|sem serifa|serifa|elegante|italia|artesanal|letras? (?:fortes?|grandes?)|fonte (?:forte|grossa)|arredond|cantos? (?:retos?|suaves?)|quadrad|compact|minimal|sem fotos?|(?:slogan|frase|chamada)\s*[:=])/.test(m);
+ return /(?:#[a-f0-9]{6}\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|lista|uma coluna|duas colunas|cartoes|cards|grade|fotos? grandes?|fotos? em destaque|vitrine|sem capa|capa grande|capa inteira|foto de fundo|sem serifa|serifa|elegante|italia|artesanal|letras? (?:fortes?|grandes?)|fonte (?:forte|grossa)|arredond|cantos? (?:retos?|suaves?)|quadrad|compact|minimal|sem fotos?|premium|luxuos|sofistic|delivery (?:direto|rapido)|(?:slogan|frase|chamada)\s*[:=])/.test(m);
 }
 /** Stable ordering, four distinct geometries in each of two rounds, zero provider calls. */
 export function suggestedGalleryStyles(briefing:string,feedback=""){
@@ -48,7 +59,8 @@ export function galleryStyle(id:GalleryStyleId){return galleryStyles.find(s=>s.i
 export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:string,feedback=""):RestaurantData{
  const preset=galleryStyle(id);
  const requested=designFromMessage(briefing,data);
- const base={...data,theme:preset.theme,accent:requested.accent||preset.accent,presentation:{...preset.presentation}};
+ const voice=galleryVoices[id];
+ const base={...data,theme:preset.theme,accent:requested.accent||preset.accent,tagline:voice.tagline,description:voice.description,presentation:{...preset.presentation}};
  let next:RestaurantData=base;
  // Each turn is applied to the previous result: a later colour must replace an earlier one.
  for(const turn of feedback.split(/\r?\n+|[.;]\s+/).filter(Boolean)){
@@ -56,9 +68,9 @@ export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:str
   const colours=[...turn.matchAll(/#[a-fA-F0-9]{6}\b|\b(?:vermelho|laranja|amarelo|verde|azul|dourado)\b/gi)];
   const last=colours.at(-1);if(last){if(/\b(?:sem|nao|não)\s*$/.test(turn.slice(0,last.index).toLowerCase()))delete extras.accent;else extras.accent=designFromMessage(last[0],next).accent;}
   const presentation=extras.presentation?{...next.presentation!,
-   ...(/lista|colunas?|cartoes|cards|grade|fotos? grandes?|em destaque|vitrine|compact|sem fotos?/.test(words)?{layout:extras.presentation.layout}:{}),
-   ...(/sem capa|cabecalho|capa grande|capa inteira|foto de fundo|compact|sem fotos?/.test(words)?{hero:extras.presentation.hero}:{}),
-   ...(/serifa|elegant|italia|artesanal|letras?|fonte|tipografia|moderno/.test(words)?{font:extras.presentation.font}:{}),
+   ...(/lista|colunas?|cartoes|cards|grade|fotos? grandes?|em destaque|vitrine|compact|sem fotos?|premium|luxuos|delivery (?:direto|rapido)/.test(words)?{layout:extras.presentation.layout}:{}),
+   ...(/sem capa|cabecalho|capa grande|capa inteira|foto de fundo|compact|sem fotos?|premium|luxuos|delivery (?:direto|rapido)/.test(words)?{hero:extras.presentation.hero}:{}),
+   ...(/serifa|elegant|italia|artesanal|sofistic|letras?|fonte|tipografia|moderno/.test(words)?{font:extras.presentation.font}:{}),
    ...(/cantos?|arredond|quadrad/.test(words)?{corners:extras.presentation.corners}:{})
   }:next.presentation;
   next={...next,...extras,presentation};
