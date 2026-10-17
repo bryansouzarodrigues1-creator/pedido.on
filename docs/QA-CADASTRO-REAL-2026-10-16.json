@@ -1,0 +1,62 @@
+{
+  "base": "https://forno-cardapios.waves4845.chatgpt.site",
+  "slot": "v45-20261016-r2",
+  "phase": "completed",
+  "registered": true,
+  "registrationSent": true,
+  "draftCreated": true,
+  "checks": [
+    {
+      "name": "projeto recuperado e cadastro direto disponível; Google condicional confere com a configuração",
+      "ok": true
+    },
+    {
+      "name": "cadastro Supabase por e-mail abre diretamente o rascunho com nome e briefing preservados",
+      "ok": true
+    },
+    {
+      "name": "um único rascunho privado preserva o visual e o refinamento, sem produtos de exemplo nem Pix configurado",
+      "ok": true
+    },
+    {
+      "name": "texto, logo e capa transferidos; duas imagens próprias no R2 e rascunho guardado em produção",
+      "ok": true
+    },
+    {
+      "name": "briefing longo e pedido fora do motor local chegam inteiros ao Estúdio sem geração",
+      "ok": true
+    },
+    {
+      "name": "fechar e reabrir Chrome preserva a sessão Supabase e o mesmo rascunho, sem novo login nem duplicação",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "forbiddenRequests": [],
+  "applicationWrites": {
+    "register": 1,
+    "create": 1,
+    "media": 2,
+    "save": 1
+  },
+  "googleEnabled": false,
+  "registrationStatus": 200,
+  "testCommit": "0e31838df8c20ed18eb0850b2355b1cdd64d9270",
+  "runId": 38977586275,
+  "artifactId": 12079596998,
+  "publishedVersion": 45,
+  "environmentRevision": 13,
+  "providerSimulated": false,
+  "realAndroid": false,
+  "qaAccountsCreatedThisContinuation": 2,
+  "privateQaDraftsCreatedThisContinuation": 2,
+  "ownTestImagesUploadedThisContinuation": 4,
+  "financialCharges": 0,
+  "paidAiCalls": 0,
+  "sourceApplicationChanged": false,
+  "notes": [
+    "First QA slot proved four checks; whitespace expectation stopped the test before session reopen.",
+    "Intermediate run timed out waiting for network idle; no registration was sent.",
+    "Final run passed all six checks with normal Supabase login persistence."
+  ]
+}

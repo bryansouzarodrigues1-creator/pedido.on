@@ -1,0 +1,770 @@
+{
+  "date": "2026-10-17",
+  "timezone": "America/Sao_Paulo",
+  "project": "Pizzaria.on / Pedido.on",
+  "url": "https://forno-cardapios.waves4845.chatgpt.site",
+  "published": {
+    "version": 46,
+    "sourceCommit": "3920f13f7d0a4513be3a95fea698b6446ad23860",
+    "sourceTree": "56cff25fc2f7730b90fed1248a65e7ef13d1d1b3",
+    "githubPr": 39,
+    "githubHead": "19310f9953080adb0d24c222fe184773cdef5059",
+    "githubMerge": "d2d830dd8d388bd01afa3b2a36914bd7171a6be5",
+    "savedVersionId": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_f182af3484c48191816aafded4e4c89c",
+    "deploymentId": "appgdep_6ad341208a608191a8983341b42776d0",
+    "deployedAtUtc": "2026-10-17T09:34:48.621047+00:00",
+    "environmentRevision": 13,
+    "audience": "public"
+  },
+  "domain": {
+    "passed": 364,
+    "failed": 0,
+    "skipped": 0,
+    "typecheck": "passed",
+    "build": "passed",
+    "linuxRun": 39021424016,
+    "windowsRun": 39021424046
+  },
+  "chrome": {
+    "runId": 39021423935,
+    "attempt": 2,
+    "artifactId": 12097341137,
+    "artifactZipSha256": "d19be6cf09fa672710eeb76e142b27cef616cb8f101cea26ee436e8135b44a80",
+    "browser": "Chrome 155 / Pixel 7 emulado; não é Android físico",
+    "localPassed": 25,
+    "publicPassed": 21,
+    "failed": 0,
+    "local": {
+      "guest": {
+        "base": "http://127.0.0.1:5173",
+        "device": "Chrome / Pixel 7 emulado",
+        "host": "linux",
+        "checks": [
+          {
+            "name": "entrada direta sem conta",
+            "ok": true,
+            "detail": {
+              "url": "http://127.0.0.1:5173/criar",
+              "creatorVersion": "v46",
+              "promptEnabled": true
+            }
+          },
+          {
+            "name": "descrição visual não inventa o nome da pizzaria",
+            "ok": true,
+            "detail": {
+              "creatorVersion": "v46",
+              "descriptions": 3
+            }
+          },
+          {
+            "name": "prompt longo e controles em tela estreita",
+            "ok": true,
+            "detail": {
+              "characters": 1570,
+              "widths": [
+                320,
+                360,
+                412
+              ],
+              "shortViewportHeight": 480
+            }
+          },
+          {
+            "name": "oito propostas com estruturas distintas e nome reconhecido",
+            "ok": true,
+            "detail": [
+              {
+                "title": "Forno clássico",
+                "tagline": "O sabor começa no forno.",
+                "classes": "mini-menu theme-editorial layout-list hero-split font-serif corners-square large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 110,
+                  "display": "grid",
+                  "columns": "96.3125px 127.672px"
+                },
+                "product": {
+                  "height": 94,
+                  "direction": "row"
+                }
+              },
+              {
+                "title": "Ateliê da pizza",
+                "tagline": "Pizza feita com intenção.",
+                "classes": "mini-menu theme-editorial layout-poster hero-split font-serif corners-soft large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 125.4375,
+                  "display": "grid",
+                  "columns": "125.438px 98.5469px"
+                },
+                "product": {
+                  "height": 200,
+                  "direction": "column"
+                }
+              },
+              {
+                "title": "Essencial",
+                "tagline": "Escolha. Peça. Aproveite.",
+                "classes": "mini-menu theme-classic layout-compact hero-compact font-modern corners-square large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 84,
+                  "display": "block",
+                  "columns": "none"
+                },
+                "product": {
+                  "height": 41,
+                  "direction": "row"
+                }
+              },
+              {
+                "title": "Casa da família",
+                "tagline": "Todo mundo à mesa.",
+                "classes": "mini-menu theme-playful layout-cards hero-split font-bold corners-soft large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 105,
+                  "display": "grid",
+                  "columns": "96.3125px 127.672px"
+                },
+                "product": {
+                  "height": 81,
+                  "direction": "row"
+                }
+              },
+              {
+                "title": "Noite premium",
+                "tagline": "Sua noite merece mais.",
+                "classes": "mini-menu theme-dark layout-poster hero-cover font-bold corners-square large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 174,
+                  "display": "block",
+                  "columns": "none"
+                },
+                "product": {
+                  "height": 185,
+                  "direction": "column"
+                }
+              },
+              {
+                "title": "Delivery urbano",
+                "tagline": "Bateu a fome? Pede.",
+                "classes": "mini-menu theme-dark layout-list hero-compact font-bold corners-square large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 79.46875,
+                  "display": "block",
+                  "columns": "none"
+                },
+                "product": {
+                  "height": 84,
+                  "direction": "row"
+                }
+              },
+              {
+                "title": "Trattoria",
+                "tagline": "Buona pizza, bella vita.",
+                "classes": "mini-menu theme-classic layout-compact hero-split font-serif corners-soft large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 105,
+                  "display": "grid",
+                  "columns": "85.1094px 138.875px"
+                },
+                "product": {
+                  "height": 84,
+                  "direction": "row"
+                }
+              },
+              {
+                "title": "Festival de sabores",
+                "tagline": "Hoje tem pizza!",
+                "classes": "mini-menu theme-playful layout-cards hero-cover font-modern corners-soft large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 190,
+                  "display": "block",
+                  "columns": "none"
+                },
+                "product": {
+                  "height": 83,
+                  "direction": "row"
+                }
+              }
+            ]
+          },
+          {
+            "name": "navegação horizontal até o último modelo",
+            "ok": true,
+            "detail": {
+              "client": 380,
+              "scroll": 1036,
+              "left": 656
+            }
+          },
+          {
+            "name": "refinamentos sequenciais gratuitos",
+            "ok": true,
+            "detail": {
+              "class": "mini-menu theme-classic layout-compact hero-compact font-modern corners-soft large",
+              "accent": "",
+              "style": "--menu-accent: #296bac; --menu-ink: #ffffff;"
+            }
+          },
+          {
+            "name": "limite honesto para pedidos fora dos modelos",
+            "ok": true,
+            "detail": "Não consegui aplicar essa mudança com os modelos locais. Seu pedido está guardado para o Estúdio de IA."
+          },
+          {
+            "name": "anexos TXT e CSV sem confusão com a marca",
+            "ok": true,
+            "detail": {
+              "sourceText": "BEBIDAS\nRefrigerante lata R$ 6,00\nÁgua mineral R$ 4,00\nCategoria: Bebidas [simple]\nSuco natural R$ 8,00"
+            }
+          },
+          {
+            "name": "logo e capa separados; adicionar, remover e recuperar",
+            "ok": true,
+            "detail": {
+              "brand": 2,
+              "ocrPhotos": 0
+            }
+          },
+          {
+            "name": "foto do cardápio adicionada e removida separadamente",
+            "ok": true
+          },
+          {
+            "name": "recuperação após fechar e reabrir o Chrome",
+            "ok": true,
+            "detail": {
+              "briefing": true,
+              "source": true,
+              "brand": true
+            }
+          },
+          {
+            "name": "atualizar a leitura preserva o modelo e os pedidos escritos",
+            "ok": true,
+            "detail": {
+              "styleId": "festival",
+              "refinementPreserved": true,
+              "sourceUpdated": true
+            }
+          },
+          {
+            "name": "roteamento para cadastro preserva o projeto",
+            "ok": true,
+            "detail": {
+              "url": "http://127.0.0.1:5173/cadastro?next=%2Fapp%3Fnew%3D1%26setup%3D1",
+              "title": "Festival de sabores",
+              "styleId": "festival",
+              "characters": 1570,
+              "hasAssets": true
+            }
+          },
+          {
+            "name": "IndexedDB recupera com localStorage bloqueado",
+            "ok": true,
+            "detail": {
+              "scenario": "local-only-blocked"
+            }
+          },
+          {
+            "name": "dois armazenamentos bloqueados impedem perda no cadastro",
+            "ok": true,
+            "detail": {
+              "scenario": "both-blocked"
+            }
+          }
+        ],
+        "errors": []
+      },
+      "calculator": {
+        "base": "http://127.0.0.1:5173",
+        "host": "linux",
+        "device": "Chrome / Pixel 7 emulado",
+        "checks": [
+          {
+            "name": "salvar e recarregar imediatamente preserva cálculo",
+            "ok": true,
+            "profit": 600000
+          },
+          {
+            "name": "download de cópia com armazenamento",
+            "ok": true
+          },
+          {
+            "name": "armazenamento bloqueado não informa sucesso falso",
+            "ok": true,
+            "message": "O cálculo está nesta página, mas seu navegador não permitiu guardar. Baixe o resultado antes de sair."
+          },
+          {
+            "name": "download de cópia sem armazenamento",
+            "ok": true
+          }
+        ],
+        "errors": [],
+        "scope": "somente navegação e dados neste navegador"
+      },
+      "handoff": {
+        "base": "http://127.0.0.1:5173",
+        "identity": "mock local oficial Sites; Supabase externo não exercitado",
+        "checks": [
+          {
+            "name": "login local recupera o nome e a ideia sem nova pergunta",
+            "ok": true
+          },
+          {
+            "name": "um rascunho privado recebe estilo, refinamentos, texto e marca sem cadastrar produtos ilustrativos",
+            "ok": true,
+            "restaurantId": "41793528-7d17-42e9-a1dd-dd7f3d4cf5c8",
+            "products": 0
+          },
+          {
+            "name": "logo e capa são enviados ao R2 local e guardados no rascunho",
+            "ok": true
+          },
+          {
+            "name": "fechar, reabrir e entrar novamente preserva dados e o mesmo rascunho sem duplicação",
+            "ok": true
+          }
+        ],
+        "errors": []
+      },
+      "ocr": {
+        "base": "http://127.0.0.1:5173",
+        "publicReadOnly": false,
+        "menus": "sintéticos e reproduzíveis",
+        "device": "Chrome / Pixel 7 emulado; CPU desacelerada 4x; não é Android físico",
+        "checks": [
+          {
+            "name": "table",
+            "ok": true,
+            "items": 4,
+            "priceFields": 8,
+            "ms": 1460,
+            "maxMainThreadGapMs": 283,
+            "jsHeapBytes": 24541041
+          },
+          {
+            "name": "staggered-columns",
+            "ok": true,
+            "items": 5,
+            "priceFields": 5,
+            "ms": 1502,
+            "maxMainThreadGapMs": 237,
+            "jsHeapBytes": 24422711
+          }
+        ],
+        "errors": []
+      }
+    },
+    "public": {
+      "guest": {
+        "base": "https://forno-cardapios.waves4845.chatgpt.site",
+        "device": "Chrome / Pixel 7 emulado",
+        "host": "linux",
+        "checks": [
+          {
+            "name": "entrada direta sem conta",
+            "ok": true,
+            "detail": {
+              "url": "https://forno-cardapios.waves4845.chatgpt.site/criar",
+              "creatorVersion": "v46",
+              "promptEnabled": true
+            }
+          },
+          {
+            "name": "descrição visual não inventa o nome da pizzaria",
+            "ok": true,
+            "detail": {
+              "creatorVersion": "v46",
+              "descriptions": 3
+            }
+          },
+          {
+            "name": "prompt longo e controles em tela estreita",
+            "ok": true,
+            "detail": {
+              "characters": 1570,
+              "widths": [
+                320,
+                360,
+                412
+              ],
+              "shortViewportHeight": 480
+            }
+          },
+          {
+            "name": "oito propostas com estruturas distintas e nome reconhecido",
+            "ok": true,
+            "detail": [
+              {
+                "title": "Forno clássico",
+                "tagline": "O sabor começa no forno.",
+                "classes": "mini-menu theme-editorial layout-list hero-split font-serif corners-square large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 110,
+                  "display": "grid",
+                  "columns": "96.3125px 127.672px"
+                },
+                "product": {
+                  "height": 94,
+                  "direction": "row"
+                }
+              },
+              {
+                "title": "Ateliê da pizza",
+                "tagline": "Pizza feita com intenção.",
+                "classes": "mini-menu theme-editorial layout-poster hero-split font-serif corners-soft large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 125.4375,
+                  "display": "grid",
+                  "columns": "125.438px 98.5469px"
+                },
+                "product": {
+                  "height": 200,
+                  "direction": "column"
+                }
+              },
+              {
+                "title": "Essencial",
+                "tagline": "Escolha. Peça. Aproveite.",
+                "classes": "mini-menu theme-classic layout-compact hero-compact font-modern corners-square large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 84,
+                  "display": "block",
+                  "columns": "none"
+                },
+                "product": {
+                  "height": 41,
+                  "direction": "row"
+                }
+              },
+              {
+                "title": "Casa da família",
+                "tagline": "Todo mundo à mesa.",
+                "classes": "mini-menu theme-playful layout-cards hero-split font-bold corners-soft large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 105,
+                  "display": "grid",
+                  "columns": "96.3125px 127.672px"
+                },
+                "product": {
+                  "height": 81,
+                  "direction": "row"
+                }
+              },
+              {
+                "title": "Noite premium",
+                "tagline": "Sua noite merece mais.",
+                "classes": "mini-menu theme-dark layout-poster hero-cover font-bold corners-square large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 174,
+                  "display": "block",
+                  "columns": "none"
+                },
+                "product": {
+                  "height": 185,
+                  "direction": "column"
+                }
+              },
+              {
+                "title": "Delivery urbano",
+                "tagline": "Bateu a fome? Pede.",
+                "classes": "mini-menu theme-dark layout-list hero-compact font-bold corners-square large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 79.46875,
+                  "display": "block",
+                  "columns": "none"
+                },
+                "product": {
+                  "height": 84,
+                  "direction": "row"
+                }
+              },
+              {
+                "title": "Trattoria",
+                "tagline": "Buona pizza, bella vita.",
+                "classes": "mini-menu theme-classic layout-compact hero-split font-serif corners-soft large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 105,
+                  "display": "grid",
+                  "columns": "85.1094px 138.875px"
+                },
+                "product": {
+                  "height": 84,
+                  "direction": "row"
+                }
+              },
+              {
+                "title": "Festival de sabores",
+                "tagline": "Hoje tem pizza!",
+                "classes": "mini-menu theme-playful layout-cards hero-cover font-modern corners-soft large",
+                "name": "Bella Massa QA",
+                "cardWidth": 250,
+                "cover": {
+                  "height": 190,
+                  "display": "block",
+                  "columns": "none"
+                },
+                "product": {
+                  "height": 83,
+                  "direction": "row"
+                }
+              }
+            ]
+          },
+          {
+            "name": "navegação horizontal até o último modelo",
+            "ok": true,
+            "detail": {
+              "client": 380,
+              "scroll": 1036,
+              "left": 656
+            }
+          },
+          {
+            "name": "refinamentos sequenciais gratuitos",
+            "ok": true,
+            "detail": {
+              "class": "mini-menu theme-classic layout-compact hero-compact font-modern corners-soft large",
+              "accent": "",
+              "style": "--menu-accent: #296bac; --menu-ink: #ffffff;"
+            }
+          },
+          {
+            "name": "limite honesto para pedidos fora dos modelos",
+            "ok": true,
+            "detail": "Não consegui aplicar essa mudança com os modelos locais. Seu pedido está guardado para o Estúdio de IA."
+          },
+          {
+            "name": "anexos TXT e CSV sem confusão com a marca",
+            "ok": true,
+            "detail": {
+              "sourceText": "BEBIDAS\nRefrigerante lata R$ 6,00\nÁgua mineral R$ 4,00\nCategoria: Bebidas [simple]\nSuco natural R$ 8,00"
+            }
+          },
+          {
+            "name": "logo e capa separados; adicionar, remover e recuperar",
+            "ok": true,
+            "detail": {
+              "brand": 2,
+              "ocrPhotos": 0
+            }
+          },
+          {
+            "name": "foto do cardápio adicionada e removida separadamente",
+            "ok": true
+          },
+          {
+            "name": "recuperação após fechar e reabrir o Chrome",
+            "ok": true,
+            "detail": {
+              "briefing": true,
+              "source": true,
+              "brand": true
+            }
+          },
+          {
+            "name": "atualizar a leitura preserva o modelo e os pedidos escritos",
+            "ok": true,
+            "detail": {
+              "styleId": "festival",
+              "refinementPreserved": true,
+              "sourceUpdated": true
+            }
+          },
+          {
+            "name": "roteamento para cadastro preserva o projeto",
+            "ok": true,
+            "detail": {
+              "url": "https://forno-cardapios.waves4845.chatgpt.site/cadastro?next=%2Fapp%3Fnew%3D1%26setup%3D1",
+              "title": "Festival de sabores",
+              "styleId": "festival",
+              "characters": 1570,
+              "hasAssets": true
+            }
+          },
+          {
+            "name": "IndexedDB recupera com localStorage bloqueado",
+            "ok": true,
+            "detail": {
+              "scenario": "local-only-blocked"
+            }
+          },
+          {
+            "name": "dois armazenamentos bloqueados impedem perda no cadastro",
+            "ok": true,
+            "detail": {
+              "scenario": "both-blocked"
+            }
+          }
+        ],
+        "errors": []
+      },
+      "calculator": {
+        "base": "https://forno-cardapios.waves4845.chatgpt.site",
+        "host": "linux",
+        "device": "Chrome / Pixel 7 emulado",
+        "checks": [
+          {
+            "name": "salvar e recarregar imediatamente preserva cálculo",
+            "ok": true,
+            "profit": 600000
+          },
+          {
+            "name": "download de cópia com armazenamento",
+            "ok": true
+          },
+          {
+            "name": "armazenamento bloqueado não informa sucesso falso",
+            "ok": true,
+            "message": "O cálculo está nesta página, mas seu navegador não permitiu guardar. Baixe o resultado antes de sair."
+          },
+          {
+            "name": "download de cópia sem armazenamento",
+            "ok": true
+          }
+        ],
+        "errors": [],
+        "scope": "somente navegação e dados neste navegador"
+      },
+      "ocr": {
+        "base": "https://forno-cardapios.waves4845.chatgpt.site",
+        "publicReadOnly": true,
+        "menus": "sintéticos e reproduzíveis",
+        "device": "Chrome / Pixel 7 emulado; CPU desacelerada 4x; não é Android físico",
+        "checks": [
+          {
+            "name": "table",
+            "ok": true,
+            "items": 4,
+            "priceFields": 8,
+            "ms": 1555,
+            "maxMainThreadGapMs": 111,
+            "jsHeapBytes": 14598450
+          },
+          {
+            "name": "staggered-columns",
+            "ok": true,
+            "items": 5,
+            "priceFields": 5,
+            "ms": 1901,
+            "maxMainThreadGapMs": 118,
+            "jsHeapBytes": 13535029
+          }
+        ],
+        "errors": []
+      }
+    }
+  },
+  "tinyfish": {
+    "runId": "e56cae7f-7619-49b7-a660-85f78502b781",
+    "runUrl": "https://agent.tinyfish.ai/runs/e56cae7f-7619-49b7-a660-85f78502b781",
+    "status": "completed",
+    "steps": 6,
+    "durationSeconds": 41,
+    "viewport": "desktop",
+    "verified": [
+      "entry on / and /criar"
+    ],
+    "notExecuted": [
+      "name recognition",
+      "generate eight styles",
+      "refinement",
+      "reload persistence",
+      "signup navigation"
+    ],
+    "limitation": "Plugin reported textarea input interaction failure. Cause is not established. Actual Chrome public tests subsequently passed text input and the full guest flow.",
+    "walletBeforeUsd": "2.760",
+    "walletAfterUsd": "2.664",
+    "walletDeltaUsd": "0.096",
+    "walletTopups": 0,
+    "automaticReload": "unconfigured"
+  },
+  "realOcrBaseline": {
+    "runId": 38981765676,
+    "testCommit": "4fe2690858819dca38a300be2d4b6a9e601d3409",
+    "sameOcrInputsAsPublished": true,
+    "artifactId": 12081312764,
+    "source": "https://4estylos.com.br/public/archives/CARDAPIO_PIZZARIA_2025.pdf",
+    "sha256": "437c75008bda1d024215f2adcce0ce97fccbabb42e237a330219cc8f340816c1",
+    "fixturePages": [
+      11,
+      19
+    ],
+    "expectedSimpleItems": 21,
+    "runtimeNameAndPriceExact": 6,
+    "runtimeMarkedReady": 8,
+    "commerciallyValidated": false,
+    "device": "Node / Tesseract on CI; not Android or a customer phone photo",
+    "pages": [
+      {
+        "page": 11,
+        "imageSize": [
+          1241,
+          2200
+        ],
+        "runtimeMode": "original-auto",
+        "bestVariant": "original-auto"
+      },
+      {
+        "page": 19,
+        "imageSize": [
+          1241,
+          2200
+        ],
+        "runtimeMode": "original-auto",
+        "bestVariant": "original-auto"
+      }
+    ]
+  },
+  "historicalRealSupabaseHandoff": {
+    "version": 45,
+    "runId": 38977586275,
+    "passed": 6,
+    "failed": 0,
+    "newAccountsThisTurn": 0,
+    "report": "QA-CADASTRO-REAL-2026-10-16.md"
+  },
+  "financialChargesThisTurn": 0,
+  "paidProductAiCallsThisTurn": 0,
+  "databaseMigrations": 0,
+  "runtimeConfigurationChanges": 0,
+  "remaining": [
+    "OCR on real menus and reliable price association",
+    "real Android keyboard/camera/battery performance",
+    "Google OAuth and recovery delivery",
+    "Asaas financial cycle",
+    "PWA install/push/offline on devices",
+    "beta with real pizzerias"
+  ]
+}

@@ -1,5 +1,7 @@
 # OCR: associação de preços e revisão — 16/10/2026
 
+**Medição vigente recuperada em 17/10:** as políticas posteriores de códigos M/G, valores inteiros e títulos estão na v46. O benchmark real `38981765676` obteve seis de 21 alvos com nome/preço exatos; qualidade comercial continua pendente. [Resultados e limites](REVISAO-V46-2026-10-17.md#ocr-real-continua-prioritário). Não tomar a medição verde ou fixtures controlados como homologação de cardápios reais.
+
 **Continuação v45:** o Chrome do GitHub confirmou uma falha adicional quando apenas uma linha das colunas estava alinhada. A correção usa evidência repetida de produtos/preços em cada lado; 354 testes e dois casos de OCR no navegador passaram na candidata. Publicação às 22:28:23 UTC, fonte `912223a732c851d8ca3c1be80ccd8c3d86b26f8c`. A avaliação de duas páginas de cardápio público real foi insuficiente; a Parte 2 continua aberta. [Resultados e limitações](QA-CHROME-CI-2026-10-16.md).
 
 Atualização de liberação: PR #28 integrada em `6af785a6144758dd7a107b5d66d3efd059bc472f` após CI `38971079784` aprovado; **v44 publicada** em 16/10 às 21:47 UTC. A rodada final de navegador continua pendente porque o Rodrigues está offline. Os limites das imagens reproduzíveis e de Android abaixo permanecem válidos.

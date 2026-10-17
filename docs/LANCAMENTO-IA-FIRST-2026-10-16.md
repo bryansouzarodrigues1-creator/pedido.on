@@ -1,5 +1,7 @@
 # Lançamento IA-first — 16/10/2026
 
+**Atualização de 17/10 — v46 concluída:** #38 e #39 integradas e publicadas pelo Sites, com 364 testes, TypeScript/build e 46 cenários Chrome aprovados. [Fonte, implantação, capturas e limites reais](REVISAO-V46-2026-10-17.md). As versões mencionadas abaixo ficam preservadas como histórico; GitHub não implanta automaticamente.
+
 **v45:** o Chrome agora executa no GitHub Actions, sem depender do Rodrigues. Passaram 354 testes de domínio, TypeScript/build, 24 cenários locais e 20 na produção. A rodada reproduziu e corrigiu uma falha adicional de OCR em colunas com produtos desalinhados. Fonte Sites `912223a732c851d8ca3c1be80ccd8c3d86b26f8c`, publicada às 22:28:23 UTC, ambiente 13; repetição pública aprovada no CI `38975573660`, tentativa 2. [Resultados, capturas e limites comerciais reais](QA-CHROME-CI-2026-10-16.md). Cadastro Supabase completo na versão atual e Android físico continuam fora do handoff simulado.
 
 O proprietário confirmou autorização integral para a integração e a publicação na continuação da sessão. Mantidos o Site, a audiência pública, o banco, os bindings, a revisão 13 do ambiente e os limites financeiros existentes.
