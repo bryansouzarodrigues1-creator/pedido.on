@@ -33,8 +33,10 @@ try{
     const composition=await page.locator(".product-section .products-grid").first().evaluate(el=>({display:getComputedStyle(el).display,columns:getComputedStyle(el).gridTemplateColumns,firstDirection:getComputedStyle(el.querySelector("button")).flexDirection}));
     await page.screenshot({path:path.join(output,id+".png"),fullPage:true});
     await page.getByRole("textbox",{name:"Buscar no cardápio",exact:true}).fill("Margherita");
-    await page.waitForFunction(()=>document.querySelectorAll(".product-section .products-grid>button").length===1);
-    await page.locator(".product-section .products-grid>button").click();
+    // A combo can also mention Margherita in its description; search must retain it.
+    await page.waitForFunction(()=>Array.from(document.querySelectorAll(".product-section")).find(el=>el.querySelector("h2")?.textContent==="Pizzas")?.querySelectorAll(".products-grid>button").length===1);
+    const pizzas=page.locator(".product-section").filter({has:page.getByRole("heading",{name:"Pizzas",exact:true})});
+    await pizzas.locator(".products-grid>button").click();
     const builder=page.getByRole("dialog");
     await builder.getByRole("button",{name:"Meio a meio",exact:true}).click();
     await builder.getByLabel("Segundo sabor",{exact:true}).selectOption("calabresa");
