@@ -75,7 +75,7 @@ export default function IdeaStart(){
   const combined=(refinement?refinement+"\n":"")+feedback.trim();
   if(combined.length>600){setError("Resuma as mudanças em até 600 caracteres.");return;}
   setRefinement(combined);setFeedback("");setError("");setChatOpen(false);
-  setLocalFeedbackNote(supportsLocalRefinement(feedback)?"Pronto! Veja como seus ajustes ficaram.":"Não consegui aplicar essa mudança com os modelos locais. Seu pedido está guardado para o Estúdio de IA.");
+  setLocalFeedbackNote(supportsLocalRefinement(feedback)?"Ajustei o que este modelo permite. Confira a prévia. Seu pedido completo ficou guardado.":"Não consegui aplicar essa mudança com os modelos locais. Seu pedido está guardado para o Estúdio de IA.");
   if(!styleId)setRound(0);
  }
  return <section className={"idea-start ai-landing "+(preview?"has-results":"waiting-prompt")} id="ideia"><div className="saas-container">

@@ -62,3 +62,19 @@ test('an explicit pizzeria name reaches the free preview and is reusable at sign
  }
  assert.equal(localStudio(cases[0][0],data).presentation.layout,'poster');
 });
+
+test('design descriptions and verb prefixes never become an invented pizzeria name',()=>{
+ for(const brief of [
+  'Quero uma pizzaria elegante com fotos grandes',
+  'Quero uma pizzaria escura e moderna',
+  'Uma pizzaria especial para famílias',
+  'Minha pizzaria é artesanal com forno a lenha',
+  'Minha pizzaria e pequena com delivery rápido',
+ ])assert.equal(nameFromBriefing(brief),undefined,brief);
+ for(const [brief,name] of [
+  ['O nome da minha pizzaria é Estação da Pizza','Estação da Pizza'],
+  ['Minha pizzaria e Estação da Pizza','Estação da Pizza'],
+  ['Minha pizzaria se chama Artesanal da Vila','Artesanal da Vila'],
+  ['Nome do meu negócio é Forno da Vila','Forno da Vila'],
+ ])assert.equal(nameFromBriefing(brief),name,brief);
+});

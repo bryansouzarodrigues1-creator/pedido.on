@@ -20,7 +20,7 @@ try {
         page.on('pageerror', error => errors.push(error.message));
         const session = await context.newCDPSession(page);
         await session.send('Emulation.setCPUThrottlingRate', {rate: 4});
-        await page.goto(base + '/criar', {waitUntil: 'networkidle', timeout: 90_000});
+        await page.goto(base + '/criar', {waitUntil: 'domcontentloaded', timeout: 90_000});
         await page.waitForFunction(() => document.querySelector('#pizzeria-idea')?.disabled === false);
         await page.locator('#pizzeria-idea').fill('Minha pizzaria se chama OCR no navegador. Preserve os preços do arquivo.');
         await page.getByRole('button', {name: /Anexar (?:arquivos|cardápio)/}).click();
@@ -43,9 +43,10 @@ try {
             window.__ocrQa.timer = setInterval(() => {const now = performance.now(); window.__ocrQa.maxGapMs = Math.max(window.__ocrQa.maxGapMs, now - window.__ocrQa.last); window.__ocrQa.last = now;}, 25);
         });
         const started = performance.now();
-        await page.getByRole('button', {name: publicReadOnly ? 'Criar opções' : 'Criar 8 modelos', exact: true}).click();
+        const legacy = publicReadOnly && await page.getByRole('button', {name: 'Criar opções', exact: true}).count() > 0;
+        await page.getByRole('button', {name: legacy ? 'Criar opções' : 'Criar 8 modelos', exact: true}).click();
         await page.locator('.ai-style-card').first().waitFor({timeout: 120_000});
-        await page.waitForFunction(expected => Array.from(document.querySelectorAll('button')).some(button => button.textContent.includes(expected) && !button.disabled), publicReadOnly ? 'Atualizar prévias' : 'Atualizar modelos');
+        await page.waitForFunction(expected => Array.from(document.querySelectorAll('button')).some(button => button.textContent.includes(expected) && !button.disabled), legacy ? 'Atualizar prévias' : 'Atualizar modelos');
         const ms = Math.round(performance.now() - started);
         const result = await page.evaluate(() => new Promise((resolve, reject) => {
             const launch = JSON.parse(localStorage.getItem('pizzaria-menu-idea-v1'));
