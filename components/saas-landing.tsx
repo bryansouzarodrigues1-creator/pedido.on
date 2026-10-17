@@ -1,21 +1,9 @@
 import IdeaStart from "./idea-start";
-import {ArrowRight,ArrowUpRight,Check,Calculator,Pizza,ClipboardList,Sparkles,Store} from "lucide-react";
-import PlanCards from "./plan-cards";
-import {Brand,MiniMenu} from "./ui";
-import {demoRestaurant} from "@/lib/domain";
-const signup="/criar";
+import {Brand} from "./ui";
+/** Visitors arrive from a shared menu: the creator itself is the entire first experience. */
 export default function SaasLanding(){
- const example={...demoRestaurant("dark"),name:"Forno da Vila",tagline:"Quentinha. Caprichada. Sua.",accent:"#dc3828",cover:"/assets/pizza.webp"};
- return <div className="pizza-home">
-  <header className="pizza-home-header"><div className="saas-container"><Brand/><nav aria-label="Navegação principal"><a className="public-calculator-link" href="/calculadora"><Calculator size={16}/>Calculadora grátis</a><a href="#planos">Planos</a><a href="/entrar">Entrar</a><a className="btn primary small desktop-signup" href={signup}>Criar cardápio <ArrowRight size={15}/></a></nav></div></header>
-  <main>
-   <section className="landing-creator-shortcut"><IdeaStart/></section>
-   <section className="saas-container pizza-free-tool"><div className="pizza-calculator-icon"><Calculator size={29}/></div><div><span className="pizza-eyebrow">GRÁTIS E SEM CADASTRO</span><h2>Sua pizza está dando lucro?</h2><p>Calcule o preço, veja quanto sobra e salve suas contas para voltar depois.</p></div><a className="btn dark" href="/calculadora">Calcular agora <ArrowRight size={17}/></a></section>
-   <section className="saas-container pizza-workflow" id="como-funciona"><div className="pizza-section-heading"><span className="pizza-eyebrow">DA COZINHA AO CLIENTE</span><h2>Menos complicação.<br/>Mais pizza saindo.</h2><p>O que você precisa para vender, no mesmo lugar.</p></div><div className="pizza-feature-row"><article><Pizza size={25}/><h3>Seu cardápio</h3><p>Sabores, tamanhos, meio a meio, bordas e bebidas. Seus preços, do seu jeito.</p></article><article><ClipboardList size={25}/><h3>Seus pedidos</h3><p>Confira o pagamento, acompanhe o preparo e avise quando sair para entrega.</p></article><article><Sparkles size={25}/><h3>Sua marca</h3><p>Crie logo, capa e descrições com IA. Confira o resultado e escolha o que usar.</p></article></div></section>
-   <section className="pizza-menu-showcase"><div className="saas-container"><div className="pizza-menu-copy"><span className="pizza-eyebrow">UM LINK COM A SUA CARA</span><h2>Deu vontade?<br/><em>É só pedir.</em></h2><p>O cliente abre o link, escolhe a pizza e monta o pedido. Você compartilha no WhatsApp, no Instagram ou na embalagem.</p><a className="btn primary" href="/demo/dark">Experimentar o cardápio <ArrowUpRight size={17}/></a><div className="pizza-menu-detail"><Store size={19}/><span>Layout, letras, cores e sabores da sua pizzaria.<br/>Funciona no celular e no computador.</span></div></div><div className="pizza-menu-device"><div><span/><small>Cardápio de exemplo</small><span/></div><MiniMenu data={example} large/></div></div></section>
-   <PlanCards/><section className="saas-container pizza-start"><div><span className="pizza-eyebrow">VAMOS COMEÇAR?</span><h2>Coloque sua pizzaria<br/>no próximo pedido.</h2><p>Comece pela sua ideia, traga seus sabores e publique quando estiver pronto.</p></div><a className="btn primary" href={signup}>Criar meu cardápio <ArrowRight size={18}/></a></section>
-   <section className="saas-container pizza-questions"><details><summary>O cliente precisa criar uma conta?</summary><p>Não. Ele escolhe os produtos e informa os dados da entrega ou retirada.</p></details><details><summary>Como funciona o Pix?</summary><p>O dinheiro vai para a chave da pizzaria. Você confere o recebimento no banco e aprova o pedido pelo painel.</p></details><details><summary>Preciso de fotos para começar?</summary><p>Não. Nome e preço já bastam. Você pode enviar fotos ou criar imagens depois.</p></details><details><summary>A calculadora exige cadastro?</summary><p>Não. O acesso é livre. Seus cálculos ficam salvos neste navegador, e você também pode baixar o resultado.</p></details></section>
-  </main>
-  <footer className="saas-container pizza-home-footer"><Brand small/><nav><a href="/calculadora">Calculadora grátis</a><a href="/demo/dark">Ver cardápio</a><a href="/entrar">Meu painel</a></nav><small>© {new Date().getFullYear()} pizzaria.on · Feito para quem faz pizza.</small></footer>
+ return <div className="pizza-home pizza-home-creator">
+  <header className="pizza-home-header"><div className="saas-container"><Brand/><nav aria-label="Acesso"><a href="/entrar">Entrar</a></nav></div></header>
+  <main><IdeaStart/></main>
  </div>;
 }
