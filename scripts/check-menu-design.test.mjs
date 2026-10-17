@@ -43,6 +43,11 @@ test('an explicit pizzeria name reaches the free preview and is reusable at sign
   ['A pizzaria se chama Bella Roma e quero um cardápio escuro','Bella Roma'],
   ['Nome da pizzaria: Sabor & Arte','Sabor & Arte'],
   ['Nome da minha pizzaria é Massa Fina','Massa Fina'],
+  ['O nome da minha pizzaria e Sapore dinapoli','Sapore dinapoli'],
+  ['O nome da minha pizzaria é Sapore di Napoli','Sapore di Napoli'],
+  ['Minha pizzaria é Forno Bello e quero fotos grandes','Forno Bello'],
+  ['A minha pizzaria chama Bella Massa e gostaria de algo premium','Bella Massa'],
+  ['Minha pizzaria se chama Bella Roma, quero um layout compacto','Bella Roma'],
   ['Quero um cardápio artesanal vermelho para minha pizzaria',undefined],
   ['Tenho uma pizzaria de bairro com foco em delivery',undefined],
  ];
