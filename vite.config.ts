@@ -71,6 +71,7 @@ export default defineConfig(async ({ command }) => {
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         inspectorPort: false,
         config: {
+          ...(standalone ? {name: "pizzaria-on-backend-staging-20261017"} : {}),
           ...localBindingConfig,
           ...(!standalone && command === "serve"
             ? {
