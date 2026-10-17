@@ -5,10 +5,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises'), path = require('node:path');
 const { chromium, devices } = require(process.env.QA_PLAYWRIGHT_MODULE || 'playwright-core');
 const {base, publicReadOnly} = browserQaTarget(), key = 'pizzaria-menu-idea-v1';
-// Public v45 is deliberately not updated by this PR; compare the new locally running UI only.
-const createLabel = publicReadOnly ? 'Criar opções' : 'Criar 8 modelos';
-const updateLabel = publicReadOnly ? 'Atualizar prévias' : 'Atualizar modelos';
-const moreLabel = publicReadOnly ? 'Ver os outros quatro estilos' : 'Ver mais 4 modelos';
+// Detect the published UI from its rendered button, never from read-only mode.
+// This keeps pre-release v45 QA explicit while enforcing the new assertions once deployed.
+let creatorVersion = 'v46', createLabel = 'Criar 8 modelos', updateLabel = 'Atualizar modelos', moreLabel = 'Ver mais 4 modelos';
 if (!process.env.QA_CHROME_PATH)
     throw Error('Informe QA_CHROME_PATH para usar um Chrome já instalado.');
 const runRoot = path.resolve(process.env.QA_BROWSER_OUTPUT || ('.sites-runtime/browser-qa/' + Date.now()));
@@ -27,12 +26,25 @@ catch (e) {
 } await fs.writeFile(path.join(dir, 'guest-browser.json'), JSON.stringify({ base, device: 'Chrome / Pixel 7 emulado', host: process.platform, checks: results, errors }, null, 2)); }
 async function screenshot(name) { await page.screenshot({ path: path.join(dir, name + '.png'), fullPage: true }); }
 async function start(profile = 'guest-profile') { context = await chromium.launchPersistentContext(path.join(runRoot, profile), { executablePath: process.env.QA_CHROME_PATH, headless: process.env.QA_HEADLESS === 'true', ...devices['Pixel 7'], locale: 'pt-BR', serviceWorkers: publicReadOnly ? 'block' : 'allow' }); await guardPublicGuestContext(context, errors); page = await context.newPage(); page.setDefaultTimeout(15000); page.on('pageerror', e => errors.push(e.message)); }
-async function load() { await page.goto(base + '/criar', { waitUntil: 'networkidle', timeout: 90000 }); await page.locator('#pizzeria-idea').waitFor({ state: 'visible' }); await page.waitForFunction(() => !document.querySelector('#pizzeria-idea').disabled); }
+async function load() { await page.goto(base + '/criar', { waitUntil: 'domcontentloaded', timeout: 90000 }); await page.locator('#pizzeria-idea').waitFor({ state: 'visible' }); await page.waitForFunction(() => !document.querySelector('#pizzeria-idea').disabled);
+    const legacy = publicReadOnly && await page.getByRole('button', {name: 'Criar opções', exact: true}).count() > 0;
+    creatorVersion = legacy ? 'v45' : 'v46'; createLabel = legacy ? 'Criar opções' : 'Criar 8 modelos'; updateLabel = legacy ? 'Atualizar prévias' : 'Atualizar modelos'; moreLabel = legacy ? 'Ver os outros quatro estilos' : 'Ver mais 4 modelos';
+    await page.getByRole('button', {name: createLabel, exact: true}).waitFor();
+}
 (async () => {
     await fs.mkdir(dir, { recursive: true });
     await start();
     const idea = 'Minha pizzaria se chama Bella Massa QA. Quero um cardápio artesanal e elegante. ' + ('A pizza é feita com ingredientes da casa. '.repeat(36)).slice(0, 1490);
-    await record('entrada direta sem conta', async () => { await load(); assert.deepEqual(errors, [], 'A entrada não pode ter erro de hidratação.'); assert.equal(await page.locator('input[type=email],input[type=password]').count(), 0); if (!publicReadOnly) { const documentText = await page.locator('body').textContent(); assert.doesNotMatch(documentText, /Sua pizza está dando lucro|Menos complicação|Planos para sua pizzaria/); assert.equal(await page.locator('.idea-intro').count(), 0); assert.equal(await page.locator('.idea-composer').count(), 1); } await screenshot('candidate-entry'); return { url: page.url(), promptEnabled: await page.locator('#pizzeria-idea').isEnabled() }; });
+    await record('entrada direta sem conta', async () => { await load(); assert.deepEqual(errors, [], 'A entrada não pode ter erro de hidratação.'); assert.equal(await page.locator('input[type=email],input[type=password]').count(), 0); if (creatorVersion === 'v46') { await page.goto(base + '/', {waitUntil: 'domcontentloaded', timeout: 90000}); await page.waitForFunction(() => document.querySelector('#pizzeria-idea')?.disabled === false); const documentText = await page.locator('body').textContent(); assert.doesNotMatch(documentText, /Sua pizza está dando lucro|Menos complicação|Planos para sua pizzaria/); assert.equal(await page.locator('.idea-intro').count(), 0); assert.equal(await page.locator('.idea-composer').count(), 1); await screenshot('candidate-home'); await load(); } await screenshot('candidate-entry'); return { url: page.url(), creatorVersion, promptEnabled: await page.locator('#pizzeria-idea').isEnabled() }; });
+    if (creatorVersion === 'v46') await record('descrição visual não inventa o nome da pizzaria', async () => {
+        for (const text of ['Quero uma pizzaria elegante com fotos grandes', 'Quero uma pizzaria escura e moderna', 'Minha pizzaria é artesanal com forno a lenha']) {
+            await page.locator('#pizzeria-idea').fill(text);
+            await page.getByRole('button', {name: createLabel, exact: true}).click();
+            await page.locator('.ai-style-card').first().waitFor();
+            assert.deepEqual(await page.locator('.ai-style-card .mini-top strong').allTextContents(), Array(4).fill('Sua pizzaria'));
+        }
+        return {creatorVersion, descriptions: 3};
+    });
     await record('prompt longo e controles em tela estreita', async () => { await page.locator('#pizzeria-idea').fill(idea); for (const width of [320, 360, 412]) {
         await page.setViewportSize({ width, height: 480 });
         await page.locator('#pizzeria-idea').focus();
@@ -63,7 +75,7 @@ async function load() { await page.goto(base + '/criar', { waitUntil: 'networkid
         }
         assert.equal(new Set(styles.map(s => s.title)).size, 8);
         assert.equal(new Set(styles.map(s => s.classes)).size, 8);
-        if (!publicReadOnly) assert.equal(new Set(styles.map(s => s.tagline)).size, 8, 'As oito propostas precisam de textos de apresentação distintos.');
+        if (creatorVersion === 'v46') assert.equal(new Set(styles.map(s => s.tagline)).size, 8, 'As oito propostas precisam de textos de apresentação distintos.');
         await screenshot('candidate-gallery-mobile');
         return styles;
     });
@@ -72,8 +84,14 @@ async function load() { await page.goto(base + '/criar', { waitUntil: 'networkid
         await page.getByRole('button', { name: 'Quero ajustar o design', exact: true }).click();
         await page.locator('#gallery-feedback').fill(value);
         await page.getByRole('button', { name: 'Aplicar meu pedido', exact: true }).click();
+    } if (creatorVersion === 'v46') {
+        await page.getByRole('button', {name: 'Quero ajustar o design', exact: true}).click();
+        await page.locator('#gallery-feedback').fill('Quero azul com animação 3D da lua');
+        await page.getByRole('button', {name: 'Aplicar meu pedido', exact: true}).click();
+        assert.match(await page.locator('.ai-gallery-feedback').textContent(), /o que este modelo permite/);
+        await page.waitForFunction(key => JSON.parse(localStorage.getItem(key)).refinement.includes('azul com animação 3D da lua'), key);
     } const design = await page.locator('.ai-selected .mini-menu').evaluate(el => ({ class: el.className, accent: el.style.getPropertyValue('--accent'), style: el.getAttribute('style') })); assert.match(design.class, /layout-compact/); assert.match(design.class, /corners-soft/); assert.match(design.style, /#296bac/i); return design; });
-    await record('limite honesto para pedidos fora dos modelos', async () => { await page.getByRole('button', { name: 'Quero ajustar o design', exact: true }).click(); await page.locator('#gallery-feedback').fill('Crie uma animação 3D de uma lua girando'); await page.getByRole('button', { name: 'Aplicar meu pedido', exact: true }).click(); const notice = await page.locator('.ai-gallery-feedback').textContent(); assert.match(notice, publicReadOnly ? /além das alterações gratuitas/ : /Estúdio de IA/); return notice; });
+    await record('limite honesto para pedidos fora dos modelos', async () => { await page.getByRole('button', { name: 'Quero ajustar o design', exact: true }).click(); await page.locator('#gallery-feedback').fill('Crie uma animação 3D de uma lua girando'); await page.getByRole('button', { name: 'Aplicar meu pedido', exact: true }).click(); const notice = await page.locator('.ai-gallery-feedback').textContent(); assert.match(notice, creatorVersion === 'v45' ? /além das alterações gratuitas/ : /Estúdio de IA/); return notice; });
     await record('anexos TXT e CSV sem confusão com a marca', async () => { await page.getByRole('button', { name: /Anexar (?:arquivos|cardápio)/ }).click(); const file = page.locator('input[type=file][accept*=".txt"]'); await file.setInputFiles({ name: 'cardapio.txt', mimeType: 'text/plain', buffer: Buffer.from('BEBIDAS\nRefrigerante lata R$ 6,00\nÁgua mineral R$ 4,00') }); await page.waitForFunction(() => document.querySelector('#idea-source-text').value.includes('Água mineral')); await file.setInputFiles({ name: 'cardapio.csv', mimeType: 'text/csv', buffer: Buffer.from('categoria;nome;preco\nBebidas;Suco natural;8,00') }); await page.waitForFunction(() => document.querySelector('#idea-source-text').value.includes('Suco natural')); return { sourceText: await page.locator('#idea-source-text').inputValue() }; });
     let png;
     await record('logo e capa separados; adicionar, remover e recuperar', async () => { png = Buffer.from(await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 600; c.height = 400; const x = c.getContext('2d'); x.fillStyle = '#f3dec5'; x.fillRect(0, 0, 600, 400); x.fillStyle = '#a63823'; x.font = 'bold 42px sans-serif'; x.fillText('BELLA MASSA QA', 70, 190); return c.toDataURL('image/png').split(',')[1]; }), 'base64'); const files = page.locator('input[type=file]'); await files.nth(2).setInputFiles({ name: 'logo-qa.png', mimeType: 'image/png', buffer: png }); await page.getByRole('button', { name: 'Remover logo', exact: true }).waitFor(); await files.nth(3).setInputFiles({ name: 'capa-qa.png', mimeType: 'image/png', buffer: png }); await page.getByRole('button', { name: 'Remover capa', exact: true }).waitFor(); assert.equal(await page.locator('.idea-photos img').count(), 0); await page.getByRole('button', { name: 'Remover logo', exact: true }).click(); await page.waitForFunction(() => !document.querySelector('img[alt="Logo anexado"]')); assert.equal(await page.locator('img[alt="Capa ou referência anexada"]').count(), 1); await files.nth(2).setInputFiles({ name: 'logo-qa.png', mimeType: 'image/png', buffer: png }); await page.getByRole('button', { name: 'Remover logo', exact: true }).waitFor(); await page.reload({ waitUntil: 'networkidle' }); assert.equal(await page.locator('img[alt="Logo anexado"]').count(), 1); assert.equal(await page.locator('img[alt="Capa ou referência anexada"]').count(), 1); return { brand: 2, ocrPhotos: 0 }; });
