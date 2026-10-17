@@ -19,8 +19,11 @@ jobs:
           python-version: '3.12'
       - name: Check live onboarding + access isolation, GET only
         run: |
+          set +e
           python3 scripts/check-beta-live-readonly.py > /tmp/pizzaria-beta-readonly.json
+          result=$?
           cat /tmp/pizzaria-beta-readonly.json
+          exit "$result"
       - name: Record restricted scope
         if: always()
         run: |
