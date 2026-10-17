@@ -9,7 +9,9 @@ Data de configuração: 17/10/2026. Este documento registra a infraestrutura cri
 - Worker exclusivo de staging: `pizzaria-on-backend-staging-20261017`.
 - Branch monitorada: `infra/cloudflare-staging-deploy-gated-20261017`, **não** `main`.
 - Build: `corepack enable && corepack pnpm install --frozen-lockfile && corepack pnpm build`.
-- Deploy: `corepack pnpm exec wrangler deploy --config dist/server/wrangler.json`.
+- Primeira implantação: o build Cloudflare compilou e publicou o Worker com `corepack pnpm exec wrangler deploy --config dist/server/wrangler.json`; execução #`39618040-31c9-45b7-b7fb-922386e37502` concluída com `success`.
+- **Atualização de segurança após o primeiro deploy:** a Cloudflare habilitou automaticamente o subdomínio e previews ao publicar; ambos foram desativados imediatamente e a API confirmou `enabled=false`, `previews_enabled=false`.
+- **Deploy automático agora desativado na configuração do pipeline**: o comando posterior foi alterado para apenas registrar build concluído. O GitHub pode disparar builds, mas futuras mudanças não serão publicadas automaticamente. Uma implantação nova exige revisão e habilitação separada do comando de deploy.
 - Código de entrada: `build/self-hosted-worker.ts`, compilado pelo Vinext.
 - D1: `pizzaria-on-staging-20261017`, ID `1d4b48d1-7689-4a1e-a9ea-d85a2983fa9a`.
 - R2: `pizzaria-on-staging-private-20261017` (classe Standard, sem domínio público).
@@ -18,7 +20,7 @@ Data de configuração: 17/10/2026. Este documento registra a infraestrutura cri
 
 ## Segurança obrigatória
 
-O Worker independente executa `standaloneLaunchGate` **antes** da camada Vinext, de autenticação, dos bancos, das imagens e dos pagamentos.
+O Worker completo foi implantado isoladamente e possui bindings DB/BUCKET verificados. O Worker independente executa `standaloneLaunchGate` **antes** da camada Vinext, de autenticação, dos bancos, das imagens e dos pagamentos.
 
 A menos que `PEDIDO_INDEPENDENT_LAUNCH_GATE` seja `reconciled-and-approved`, **todos** os métodos e endpoints retornam HTTP 503. O retorno de `/healthz` também é 503 e deixa claro que o aplicativo não está pronto. A configuração de build define `PEDIDO_INDEPENDENT_LAUNCH_GATE=locked` e mantém IA, Studio e billing desativados. Não remover essa trava para executar smoke público.
 
@@ -39,7 +41,7 @@ Essa galeria ainda transfere briefing manualmente para o Sites, não executa CRU
 ## Operação
 
 - O pipeline só acompanha a branch de staging. Novas mudanças na main não são implantadas nele automaticamente.
-- GitHub Actions realiza testes e build offline; Cloudflare Workers Builds realiza build/deploy na nuvem. Sem necessidade de computador pessoal ligado.
+- GitHub Actions realiza testes e build isolados; Cloudflare Workers Builds executou o primeiro build/deploy na nuvem com sucesso. A partir da correção de segurança, somente o build é automático; futuros deploys exigem aprovação/reconfiguração explícita. Não há necessidade de computador pessoal ligado.
 - Evitar compartilhar variáveis de autenticação, tokens de deploy, backups SQL, URLs assinadas de mídia ou credenciais em GitHub, prompts e logs.
-- O Worker pode permanecer privado durante os testes. Não criar rota pública, trocar webhook ou divulgar staging como site operacional.
+- **Atenção:** Wrangler pode reabilitar o subdomínio/previews em deploys futuros. Confirmar `GET /workers/scripts/<worker>/subdomain` após **cada** implantação; manter `enabled=false` e `previews_enabled=false`, além do bloqueio de runtime. Não criar rota pública, trocar webhook ou divulgar staging como site operacional.
 - A Cloudflare possui cobrança por excedente de R2 e outros serviços; monitorar uso e alertas de faturamento.
