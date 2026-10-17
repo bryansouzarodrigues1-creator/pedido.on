@@ -1,5 +1,28 @@
 # Migração do Pizzaria.on sem recriar o SaaS com créditos Lovable
 
+> **Atualização confirmada em 17/10/2026, após a ativação R2:** a seção abaixo
+> foi escrita antes de provisionarmos Cloudflare e é histórica. O estado ATUAL
+> não é mais "0 D1/R2": existe D1 `pizzaria-on-staging-20261017`, 27 tabelas,
+> com **16 registros do backup parcial de 13/10**, e bucket R2 **Standard privado**
+> `pizzaria-on-staging-private-20261017`. Não há objetos R2 antigos recuperados.
+> O Worker isolado `pizzaria-on-staging-guard-20261017` possui ambos os
+> bindings, mas está sem domínio/prévia pública e retorna 503 em todas as rotas.
+> O build Vinext independente foi testado com **IDs reais de staging**, sem
+> deploy, no GitHub (PR #45). O Lovable publicou SOMENTE a galeria
+> [Pizzaria.on Estilos](https://pizzaria-on-estilos.lovable.app), com as 12
+> referências HTTP 200; cadastro/pedidos reais permanecem no
+> [ChatGPT Sites](https://forno-cardapios.waves4845.chatgpt.site/criar).
+> **A migração integral continua pendente**, pois não há exportação atual de
+> todos os registros/objetos do Sites, nem segredos/serviços externos
+> homologados no Worker. Não alterar Asaas, Supabase, clientes, domínio,
+> cobranças ou R2 privado enquanto estiver nesse estado.
+>
+> Logs de execução e regras de segurança estão em
+> `pizzaria.on-chat/docs/INFRA-CLOUDFLARE-STAGING-2026-10-17.md`.
+> O CI de produção público passou 16/16 testes HTTP anônimos na PR #44,
+> sem provar pedidos em dois aparelhos ou cobrança real.
+
+
 Estado em 17/10/2026 — **PR experimental / sem implantação**.
 
 ## Decisão técnica
