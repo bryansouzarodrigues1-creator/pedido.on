@@ -173,3 +173,16 @@
 .ai-gallery .ai-palette-swatches{display:flex;align-items:center;gap:7px;flex-shrink:0}
 .ai-gallery .ai-palette-swatches i{display:block;width:28px;height:28px;border-radius:50%;border:2px solid #ffffff9c;box-shadow:0 0 0 1px #15151555}
 @media(max-width:520px){.ai-gallery .ai-visual-summary{align-items:flex-start}.ai-gallery .ai-palette-swatches i{width:23px;height:23px}}
+
+/* Progressive disclosure: primary actions remain visible; advanced tools are a single option. */
+.ai-selected-more{margin:10px auto 0;max-width:460px;color:#d0cbd0;text-align:center}
+.ai-selected-more summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;padding:10px 16px;border-radius:10px;border:1px solid #565861;background:#272931;color:#f3efee}
+.ai-selected-more summary::-webkit-details-marker{display:none}
+.ai-selected-more summary::after{content:"⌄";font-size:16px;line-height:1}
+.ai-selected-more[open] summary::after{content:"⌃"}
+.ai-selected-more summary:focus-visible{outline:2px solid #f18e61;outline-offset:3px}
+.ai-selected-more>div{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:12px 0 0}
+.ai-selected-more .btn{font-size:12px;min-height:42px;background:#292a32;color:#fff;border:1px solid #5a5a62;border-radius:9px}
+.ai-selected-actions{align-items:center}
+.ai-selected-actions .btn.primary{font-weight:800}
+@media(max-width:520px){.ai-selected-more summary{width:100%;justify-content:center}.ai-selected-more>div{flex-direction:column}.ai-selected-more .btn{width:100%}}

@@ -76,8 +76,9 @@ try{
   const first=page.locator(".ai-style-card").first();
   await first.locator(".ai-style-footer button").last().click();
   await page.locator(".ai-selected").waitFor();
-  for(const prompt of ["Quero verde com cantos arredondados","Agora azul e uma lista compacta","Quero azul com animação 3D da lua"]){
-   await page.getByRole("button",{name:"Quero ajustar o design"}).click();
+  await page.locator(".ai-selected-more summary").click();
+   for(const prompt of ["Quero verde com cantos arredondados","Agora azul e uma lista compacta","Quero azul com animação 3D da lua"]){
+   await page.getByRole("button",{name:"Ajustar cores, fotos e textos"}).click();
    await page.locator("#gallery-feedback").fill(prompt);
    await page.getByRole("button",{name:/Aplicar meu pedido/}).click();
   }
@@ -86,7 +87,7 @@ try{
   assert.match(await selected.getAttribute("class"),/corners-soft/);
   assert.match(await selected.getAttribute("style"),/#296bac/);
   await page.screenshot({path:path.join(evidence,"guided-style.png"),fullPage:true});
-  await page.getByRole("button",{name:/Continuar com este cardápio/}).click();
+  await page.getByRole("button",{name:"Usar este modelo"}).click();
   await page.waitForURL(/\/cadastro(?:\?|$)/,{timeout:45_000});
   const launch=await page.evaluate(()=>JSON.parse(localStorage.getItem("pizzaria-menu-idea-v1")));
   assert.equal(launch.brandName,"Bella Massa QA");

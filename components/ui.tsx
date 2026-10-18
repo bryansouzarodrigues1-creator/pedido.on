@@ -23,9 +23,9 @@ export function themeStyle(data:RestaurantData):CSSProperties{
     "--menu-secondary":palette.secondary,"--menu-secondary-ink":inkOn(palette.secondary)}:{})
  } as CSSProperties;
 }
-export function MiniMenu({data,large=false}:{data:RestaurantData;large?:boolean}){
+export function MiniMenu({data,large=false,rich=false}:{data:RestaurantData;large?:boolean;rich?:boolean}){
   const presentation=menuPresentation(data);
-  const products=data.products.filter(p=>p.enabled).slice(0,large?3:2);
+  const products=data.products.filter(p=>p.enabled).slice(0,rich?6:large?3:2);
   return <div className={`mini-menu theme-${data.theme} layout-${presentation.layout} hero-${presentation.hero} font-${presentation.font} corners-${presentation.corners}${menuIdentityClass(presentation.identity)} ${presentation.palette?"has-brand-palette":""} ${presentation.motif==="sea-cheese"?"motif-sea-cheese":""} ${large?"large":""}`} style={themeStyle(data)}>
     <div className="mini-top"><span>{data.logo?<img src={data.logo} alt=""/>:<Pizza size={large?23:16}/>}</span><strong>{data.name||"Sua pizzaria"}</strong><span className="mini-open">● Aberto</span></div>
     <div className="mini-cover">{data.cover?<img src={data.cover} alt=""/>:<div className="cover-empty"><Pizza size={50}/></div>}<div><span>FEITA DO SEU JEITO</span><h3>{data.tagline||"Uma boa pizza muda a noite."}</h3></div></div>
