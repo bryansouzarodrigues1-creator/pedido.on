@@ -20,6 +20,11 @@ test('a visual idea without a trade name is accepted and retained while the flow
  let result=nextOwnerIntake(emptyOwnerIntake(),input);assert.equal(result.error,undefined);assert.equal(result.state.step,0);assert.equal(result.state.initialMessage,input);
  result=nextOwnerIntake(result.state,'Forno da Praia');assert.equal(result.error,undefined);assert.equal(result.state.answers.name,'Forno da Praia');assert.equal(result.state.initialMessage,input);
 });
+test('ordinary create, build and help instructions are never saved as a fictitious trade name',()=>{
+ for(const input of ['Crie um cardápio azul e amarelo','Faça uma lista artesanal','Monte um cardápio moderno','Me ajude a escolher um visual']){
+  const result=nextOwnerIntake(emptyOwnerIntake(),input);assert.equal(result.error,undefined);assert.equal(result.state.answers.name,undefined);assert.equal(result.state.step,0);assert.equal(result.state.initialMessage,input);
+ }
+});
 test('an explicit preview action defers optional fields without inventing store facts, and survives checkpoints',()=>{
  const first=nextOwnerIntake(emptyOwnerIntake(),'Minha pizzaria se chama Forno Azul. Quero um visual artesanal.').state;
  const ready=ownerReadyForPreview(first);assert.equal(intakeFinished(ready),true);assert.equal(first.answers.address,undefined);

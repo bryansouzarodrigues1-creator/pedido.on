@@ -84,7 +84,7 @@ export function validateOwnerAnswer(field:OwnerField,raw:string):{value?:string;
  if(field!=="name"&&skip(simplified(text)))return {value:""};
  if(field==="name"){
   const compact=clean(text.split(locationBoundary)[0].split(descriptorBoundary)[0]);
-  const genericSentence=/^(?:quero|queria|gostaria|prefiro|preciso|cores?|fundo|fica|delivery|sem|com|tenho|localiza[cç][ãa]o|endere[cç]o)\b/i.test(compact);
+  const genericSentence=/^(?:quero|queria|gostaria|prefiro|preciso|faça|faca|crie|criar|monte|montar|gere|gerar|me ajude|ajude|cores?|fundo|fica|delivery|sem|com|tenho|localiza[cç][ãa]o|endere[cç]o)\b/i.test(compact);
   const name=extractOwnerName(text)||(!genericSentence&&/^[^\n.!?]{2,100}$/.test(compact)&&compact.split(/\s+/).length<=8?compact:undefined);
   if(!name||name.length<2||name.length>100)return {error:"Não consegui identificar o nome. Escreva o nome da pizzaria, por exemplo: Forno Azul."};
   return {value:name};
@@ -122,7 +122,7 @@ export function nextOwnerIntake(state:OwnerIntake,message:string):{state:OwnerIn
  const field=ownerFieldIds[state.step],facts=ownerFacts(message);
  const parsed:{value?:string;error?:string}=facts[field]!==undefined?{value:facts[field]}:validateOwnerAnswer(field,message);
  // A visual idea without a name is a valid first turn, not a validation error.
- if(parsed.error&&field==="name"&&message.trim().length>=8&&/\b(?:quero|gostaria|imagino|visual|estilo|design|card[aá]pio)\b/i.test(message)&&!inspectMenuSourceText(message).links.length){
+ if(parsed.error&&field==="name"&&message.trim().length>=8&&/\b(?:quero|queria|gostaria|imagino|prefiro|preciso|faça|faca|crie|criar|monte|montar|gere|gerar|ajude|visual|estilo|design|card[aá]pio)\b/i.test(message)&&!inspectMenuSourceText(message).links.length){
   return {state:withOwnerAnswers({...state,initialMessage:state.initialMessage||message.slice(0,1600)},ownerFacts(message))};
  }
  if(parsed.error)return {state,error:parsed.error};
