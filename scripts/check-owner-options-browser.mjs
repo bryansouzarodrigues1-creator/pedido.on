@@ -41,7 +41,7 @@ try{
  await page.getByRole('button',{name:'Artesanal',exact:true}).click();await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).click();await page.locator('.ai-style-card').first().waitFor();
  assert.match(await page.locator('.ai-gallery-heading').textContent(),/11 itens/);assert.match(await page.locator('.mini-store-hours').first().textContent(),/23:30/);assert.equal(lookups,1);
  await page.locator('.ai-style-card').first().getByRole('button',{name:/Escolher/}).click();await page.getByRole('button',{name:/Testar o cardápio completo personalizado/}).click();
- const full=page.getByRole('dialog',{name:'Teste do cardápio personalizado'});await full.waitFor();assert.match(await full.textContent(),/Margherita de Teste/);assert.match(await full.textContent(),/Calabresa da Fornalha/);
+ const full=page.getByRole('dialog',{name:'Teste do cardápio personalizado'});await full.waitFor();await full.locator('.customer-menu').waitFor();assert.match(await full.textContent(),/Margherita de Teste/);assert.match(await full.textContent(),/Calabresa da Fornalha/);
  await page.screenshot({path:path.join(output,'cardapio-ficticio-completo.png'),fullPage:true});
  checks.push({name:'confirmed public metadata leaves only WhatsApp confirmation and an optional visual choice; eleven fictitious items reach preview',ok:true});await close('fluxo-link-ficticio');
  await start('blocked');await page.getByRole('button',{name:'Tenho um link do iFood',exact:true}).click();await page.locator('#owner-intake-message').fill(sample.url);await page.getByRole('button',{name:'Consultar loja',exact:true}).click();
