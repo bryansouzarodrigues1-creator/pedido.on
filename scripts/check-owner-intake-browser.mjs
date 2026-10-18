@@ -72,6 +72,8 @@ try{
   await overlay.screenshot({path:path.join(evidence,"guided-full-menu-brand.png")});
   await overlay.getByRole("button",{name:"Fechar teste e voltar aos modelos"}).click();
   assert.equal(await page.getByRole("dialog",{name:"Teste do cardápio personalizado"}).count(),0);
+  await page.getByRole("button",{name:"Escolher outro"}).click();
+  await page.locator(".ai-style-card").first().waitFor();
   return actual;
  });
  await record("importação de cardápio CSV/TXT mantém preços como dados, não como arte",async()=>{
