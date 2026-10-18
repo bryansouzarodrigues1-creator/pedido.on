@@ -56,6 +56,7 @@ export default defineConfig(async ({ command }) => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
+    define:{__PIZZARIA_SOURCE_SHA__:JSON.stringify(process.env.PEDIDO_RELEASE_ID||"local")},
     server: {
       ...(managedLinux
         ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] }
@@ -73,6 +74,7 @@ export default defineConfig(async ({ command }) => {
         config: {
           ...(standalone ? {name: "pizzaria-on-backend-staging-20261017"} : {}),
           ...localBindingConfig,
+          ...(standalone ? {vars:{PEDIDO_BILLING_SANDBOX_ONLY:"true",PEDIDO_BILLING_PROVIDER:"asaas",ASAAS_ENV:"sandbox"}} : {}),
           ...(!standalone && command === "serve"
             ? {
                 services: [

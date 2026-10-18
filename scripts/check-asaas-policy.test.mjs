@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   ASAAS_PLAN_CENTS, asaasEntitlement, asaasHasAccess, monthAfterDueDate,
   readAsaasConfig, safeAsaasInvoiceUrl, validAsaasWebhookToken,
+  sandboxBillingOwner,
 } from "../lib/asaas-policy.ts";
 
 test("Asaas stays disabled without explicit approval and matched environment keys", () => {
@@ -22,6 +23,16 @@ test("Asaas stays disabled without explicit approval and matched environment key
   assert.equal(readAsaasConfig({...base, ASAAS_WEBHOOK_TOKEN: "short"}).enabled, false);
   assert.equal(readAsaasConfig({...base, ASAAS_WEBHOOK_TOKEN: "a".repeat(32) + " "}).enabled, false);
   assert.equal(readAsaasConfig({...base, ASAAS_ENV: "production", ASAAS_API_KEY: "$aact_prod_example"}).baseUrl, "https://api.asaas.com/v3");
+});
+
+test("sandbox-only deployment rejects production and confines fictitious access to named test owners", () => {
+  const input = {PEDIDO_BILLING_ENABLED:"true",PEDIDO_BILLING_PROVIDER:"asaas",PEDIDO_BILLING_SANDBOX_ONLY:"true",ASAAS_ENV:"sandbox",ASAAS_API_KEY:"$aact_hmlg_fixture",ASAAS_WEBHOOK_TOKEN:"w".repeat(48),PEDIDO_BILLING_SANDBOX_TEST_OWNERS:"owner-a, owner-b"};
+  assert.equal(readAsaasConfig(input).enabled,true);
+  assert.equal(readAsaasConfig({...input,ASAAS_ENV:"production",ASAAS_API_KEY:"$aact_prod_fixture"}).enabled,false);
+  for(const id of ["owner-a","owner-b"])assert.equal(sandboxBillingOwner(input,id),true);
+  for(const id of [undefined,"owner","owner-c",""])assert.equal(sandboxBillingOwner(input,id),false);
+  assert.equal(sandboxBillingOwner({...input,PEDIDO_BILLING_SANDBOX_ONLY:"false"},"owner-a"),false);
+  assert.equal(sandboxBillingOwner({...input,ASAAS_ENV:"production"},"owner-a"),false);
 });
 
 test("invoice links only allow a direct HTTPS Asaas invoice for the current environment", () => {

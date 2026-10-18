@@ -5,7 +5,7 @@ import {planCatalog,publicPlanCatalog,publicPlanName,type CatalogPlan} from "@/l
 import AiAllowance from "./ai-allowance";
 import {billingPost} from "@/lib/billing-client";
 import {Modal,Spinner} from "./ui";
-type BillingState={enabled:boolean;provider?:"asaas"|"stripe";mode?:"sandbox"|"production";enforced?:boolean;subscription:{id?:string;plan:string;status:string;periodEnd:number;paidThrough:number;paidPlan:string}|null;intent?:{id:string;plan:string;state:string}|null;invoices?:{id:string;status:string;amount:number;dueDate:string;url:string|null}[]};
+type BillingState={enabled:boolean;provider?:"asaas"|"stripe";mode?:"sandbox"|"production";enforced?:boolean;testAccess?:boolean;subscription:{id?:string;plan:string;status:string;periodEnd:number;paidThrough:number;paidPlan:string}|null;intent?:{id:string;plan:string;state:string}|null;invoices?:{id:string;status:string;amount:number;dueDate:string;url:string|null}[]};
 const price=(cents:number)=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(cents/100),paidDate=(value:number)=>new Date(value*1000).toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"});
 const statuses:Record<string,string>={PENDING:"A pagar",OVERDUE:"Vencida",CONFIRMED:"Paga",RECEIVED:"Paga",REFUNDED:"Estornada",REFUND_PENDING:"Estorno em análise",CHARGEBACK_REQUESTED:"Pagamento contestado",CHARGEBACK_DISPUTE:"Pagamento contestado",AWAITING_CHARGEBACK_REVERSAL:"Pagamento contestado",DELETED:"Cancelada"};
 export function BillingControls({initialPlan: _initialPlan}:{initialPlan:string}){
@@ -28,6 +28,7 @@ export function BillingControls({initialPlan: _initialPlan}:{initialPlan:string}
  const current=state.subscription,asaas=state.provider==="asaas",canSubscribe=!current||["canceled","incomplete_expired"].includes(current.status);
  return <div className="billing-controls">
   {asaas&&state.mode==="sandbox"&&<span className="pill">Ambiente de teste · sem pagamento real</span>}
+  {state.testAccess&&<p role="status">Conta de homologação: o pagamento fictício controla apenas o acesso de teste desta conta.</p>}
   {current&&<p><strong>{planCatalog[current.plan as CatalogPlan]?.name||current.plan}</strong>{planCatalog[current.plan as CatalogPlan]&&<> · {price(planCatalog[current.plan as CatalogPlan].amount)}/mês</>}</p>}
   {current&&<p><strong>{current.status==="active"?"Assinatura ativa":current.status==="canceled"?"Renovação cancelada":current.status==="trialing"?"Em teste":"Pagamento pendente"}</strong>{current.paidThrough>0&&<> · acesso pago até {paidDate(current.paidThrough)}</>}</p>}
   {canSubscribe&&<>
