@@ -42,6 +42,10 @@ export function extractOwnerName(text:string):string|undefined {
  if(!value||value.length>75||value.split(/\s+/).length>10||/^(?:uma?|fica|em|no|na|aqui|com|de\s+bairro)\b/i.test(value))return;
  // Some owners say "pizzaria e Della Mama": here the 'e' is the verb "é".
  if(/^pizzaria\s+e\s+/i.test(value))value=value.replace(/^pizzaria\s+e\s+/i,"Pizzaria ");
+ // Presentation only: preserve intentional casing such as iFood or di Napoli.
+ if(value===value.toLowerCase()||/^Pizzaria [a-zà-ÿ ]+$/.test(value)){
+   value=value.split(/\s+/).map((word,index)=>index>0&&/^(?:de|da|do|das|dos|e)$/i.test(word)?word.toLowerCase():word.charAt(0).toLocaleUpperCase("pt-BR")+word.slice(1)).join(" ");
+ }
  return value.length>=2?value:undefined;
 }
 export function extractLocationHint(text:string):string|undefined {
