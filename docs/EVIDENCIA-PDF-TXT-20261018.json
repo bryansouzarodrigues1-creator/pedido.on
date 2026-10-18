@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-18",
+  "siteVersion": 56,
+  "siteSource": "973e7b071ff6411ee748024d0c8a182ebf084ae9",
+  "savedVersion": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_e860a77064108191a50586c645ee35ee",
+  "deployment": {
+    "id": "appgdep_6ad53e7fd26c819190dffdd567474dd8",
+    "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "title": "pizzaria.on — Cardápio e pedidos para pizzarias",
+    "version_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_e860a77064108191a50586c645ee35ee",
+    "type": "publish",
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "has_mcp": false,
+    "screenshot_asset_pointer": null,
+    "provider_deployment_id": "site---6ac6d3ea9f7881918f315a156338ed52",
+    "failure_message": null,
+    "env_set_revision": 13,
+    "updated_at": "2026-10-18T21:48:11.096777+00:00"
+  },
+  "githubHead": "0be596b127caf224718073256381f0b9422fd495",
+  "mainMerge": "b791abd6d9d225bc544422cc9fc215c50853d96d",
+  "mirrorHead": "56fbf71c6d60649c4c5e7071c4bd01a9257bdc1e",
+  "mirrorMerge": "c759dbe8d4767fcb0408684438c5e884d21d6ae3",
+  "sourceTreesEqual": true,
+  "tests": {
+    "local": 430,
+    "typecheck": "passed",
+    "build": "passed",
+    "chrome": {
+      "run": 39169221841,
+      "attempt1": "success",
+      "localSuites": 8,
+      "documentScenarios": 5,
+      "adaptiveScenarios": 6,
+      "styles": 12,
+      "postPublicationAttempt": 2,
+      "postPublicationJob": 117799614382,
+      "postPublicationStatus": "success",
+      "publicDocumentScenarios": 5,
+      "publicSuites": 5,
+      "artifactId": 12152221724
+    },
+    "windows": {
+      "run": 39169221838,
+      "status": "success"
+    },
+    "authOrders": {
+      "run": 39169221943,
+      "status": "success"
+    },
+    "mirror": {
+      "run": 39169254859,
+      "status": "success"
+    }
+  },
+  "data": {
+    "restaurantsCompared": 7,
+    "fullRowsUnchanged": true,
+    "productionTestRowsCreated": 0
+  },
+  "pdf": {
+    "engine": "pdfjs-dist 5.6.205",
+    "processing": "browser local",
+    "textPages": 2,
+    "exactDigitalProducts": 4,
+    "scannedPages": 1,
+    "exactOcrProducts": 3,
+    "passwordAndCorruptFilesRejected": true,
+    "totalPageLimit": 8,
+    "maxBytes": 15728640
+  },
+  "source": {
+    "realIfood": {
+      "checkedAt": "2026-10-18T21:53:13.409Z",
+      "httpStatus": 403,
+      "products": 0,
+      "metadataFields": []
+    },
+    "positiveIfoodFixtures": "controlled fictitious responses/pages; not a successful real catalogue import",
+    "officialIfoodCredentialsConfigured": false
+  },
+  "limitations": [
+    "Android/Pixel 7 emulated in Chrome; no physical Android",
+    "No paid AI, real billing or live Supabase signup was executed in the new document tests",
+    "Scanned PDFs use the existing OCR and still require owner price review; fixture accuracy is not a general real-menu benchmark"
+  ]
+}
