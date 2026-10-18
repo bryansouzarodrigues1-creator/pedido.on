@@ -4,6 +4,7 @@ import {readFileSync} from "node:fs";
 import {brandPaletteFromBriefing} from "../lib/brand-palette.ts";
 import {galleryDesign,galleryStyles,supportsLocalRefinement,chosenGalleryDraft} from "../lib/gallery-styles.ts";
 import {nameFromBriefing} from "../lib/studio-policy.ts";
+import {validateOwnerAnswer} from "../lib/owner-intake.ts";
 import {menuPresentation,presentationSchema} from "../lib/menu-design.ts";
 import {demoRestaurant,restaurantSchema} from "../lib/domain.ts";
 
@@ -23,6 +24,7 @@ test("regression: yellow cheese and sea blue are separate, contrasting roles",()
 });
 test("name and location never contaminate the verified store title",()=>{
  assert.equal(nameFromBriefing(briefing),"Pizzaria Brasa do Mar");
+ assert.equal(validateOwnerAnswer("name","Pizzaria Brasa do Mar e fica em Búzios").value,"Pizzaria Brasa do Mar");
  const menu=galleryDesign(demoRestaurant(),"forno-classico",briefing);
  assert.equal(menu.name,"Pizzaria Brasa do Mar");
  assert.ok(!menu.name.includes("Búzios"));
