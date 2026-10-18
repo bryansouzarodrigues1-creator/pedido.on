@@ -40,3 +40,6 @@
 .demo-payment-modes{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 14px}.demo-payment-modes button{min-height:44px}@media(max-width:480px){.demo-payment-modes{display:grid;grid-template-columns:1fr}.demo-payment-modes button{justify-content:center}}
 
 .plan-trial-link{font-size:13px;text-align:center;margin-top:16px;text-decoration:underline;text-underline-offset:3px}
+
+/* Beta comercial: um único cartão de assinatura, centralizado em qualquer largura. */
+.pizza-plans .plans-grid-single{grid-template-columns:minmax(0,560px);justify-content:center}

@@ -1,3 +1,22 @@
 import {Check,ArrowRight} from "lucide-react";
-import {planCatalog,planIds} from "@/lib/plan-catalog";
-export default function PlanCards(){return <section className="saas-container pizza-plans" id="planos"><div className="pizza-section-heading"><span className="pizza-eyebrow">PLANOS PARA SUA PIZZARIA</span><h2>Comece simples.<br/>Crie mais quando precisar.</h2><p>Todos para uma pizzaria. Escolha seu plano ou teste por 7 dias.</p></div><div className="plans-grid">{planIds.map((id,index)=>{const plan=planCatalog[id];return <article className={`plan-card ${index===1?"popular":""}`} key={id}><h3>{plan.name}</h3><p>{plan.description}</p><div className="plan-price"><span>R$</span><b>{plan.amount/100}</b><span>/mês</span></div><ul>{plan.features.map(feature=><li key={feature}><Check size={15}/>{feature}</li>)}</ul><a className={`btn ${index===1?"primary":"outline"}`} href={`/assinatura?plan=${id}`}>Assinar {plan.name} <ArrowRight size={16}/></a><a className="plan-trial-link" href={`/cadastro?next=${encodeURIComponent('/app?new=1&plan='+id)}`}>Testar por 7 dias sem cobrança</a></article>;})}</div><p className="plans-fine-print">No teste: 7 imagens e 100 textos no total. Imagens de produtos, logo, capa e artes compartilham a franquia. Cotas não acumulam; IA sujeita à disponibilidade. Reabrir e baixar uma criação não gasta outra tentativa. Ao assinar, o pagamento é feito no Asaas. A mensalidade é separada dos pedidos da pizzaria.</p></section>;}
+import {publicPlanCatalog,publicPlanName} from "@/lib/plan-catalog";
+export default function PlanCards(){
+ const plan=publicPlanCatalog.essencial;
+ return <section className="saas-container pizza-plans" id="planos">
+  <div className="pizza-section-heading">
+   <span className="pizza-eyebrow">PREÇO SIMPLES</span>
+   <h2>Um plano. Sua pizzaria pronta.</h2>
+   <p>Uma assinatura mensal para criar seu cardápio e receber pedidos. Teste por 7 dias sem cobrança enquanto essa modalidade estiver disponível.</p>
+  </div>
+  <div className="plans-grid plans-grid-single">
+   <article className="plan-card popular">
+    <h3>{publicPlanName}</h3><p>{plan.description}</p>
+    <div className="plan-price"><span>R$</span><b>{plan.amount/100}</b><span>/mês</span></div>
+    <ul>{plan.features.map(feature=><li key={feature}><Check size={15}/>{feature}</li>)}</ul>
+    <a className="btn primary" href="/assinatura?plan=essencial">Assinar por R$ 49/mês <ArrowRight size={16}/></a>
+    <a className="plan-trial-link" href={`/cadastro?next=${encodeURIComponent("/app?new=1&plan=essencial")}`}>Testar por 7 dias sem cobrança</a>
+   </article>
+  </div>
+  <p className="plans-fine-print">No teste: 7 imagens e 100 textos no total, sujeitos à disponibilidade. No plano mensal: 4 imagens e 80 textos com IA, conforme franquia técnica. A IA paga ainda está indisponível no beta Cloudflare. A cobrança via Asaas permanece desativada até a homologação. O Pix das pizzas é recebido diretamente pela pizzaria.</p>
+ </section>;
+}

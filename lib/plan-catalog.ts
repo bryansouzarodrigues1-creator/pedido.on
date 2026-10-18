@@ -7,5 +7,13 @@ export const planCatalog={
 export type CatalogPlan=keyof typeof planCatalog;
 export const trialAi={images:7,texts:100};
 export const planIds=Object.keys(planCatalog) as CatalogPlan[];
+/** Only R$49 is offered to new customers for the first commercial beta.
+ * Keep historical plan IDs/prices for old invoices, cancellation and refunds.
+ */
+export const publicPlanIds=["essencial"] as const;
+export const publicPlanCatalog={essencial:planCatalog.essencial};
+export const publicPlanName="Pizzaria.on";
+export function isPublicPlan(value:unknown):value is "essencial"{return value==="essencial";}
+
 export const aiCostUnits={image:168750,text:2500}; // 1 credit = 1,000,000 units; reference + 25% reserve.
 export const aiBetaBudgetUnits=20000000;

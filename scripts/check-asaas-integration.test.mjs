@@ -31,17 +31,27 @@ test('financial mutations reject absent or mismatched CSRF before changing recor
  }finally{f.close();}
 });
 
-test('all three selected plans create the exact catalog monthly invoice without unpaid entitlement',async()=>{
- for(const [plan,amount] of [['essencial',49],['profissional',89],['rede',149]]){
-  const f=harness();try{
-   const response=await f.call('billingCheckout','POST',{},f.input({plan}));assert.equal(response.status,200);
-   assert.match((await response.json()).url,/^https:\/\/asaas.com\//);
-   const remote=[...f.subscriptions.values()][0];assert.equal(remote.value,amount);assert.equal(remote.cycle,'MONTHLY');
-   const status=await (await f.call('billingStatus','GET')).json();
-   assert.equal(status.subscription.plan,plan);assert.equal(status.subscription.status,'pending');
-   assert.equal(status.invoices[0].amount,amount*100);assert.equal(status.subscription.paidThrough,0);
-  }finally{f.close();}
- }
+test('new Asaas checkout creates only the R$49 monthly plan; old tiers cannot initiate charges',async()=>{
+ const f=harness();try{
+  for(const plan of ['profissional','rede']){
+   const response=await f.call('billingCheckout','POST',{},f.input({plan}));
+   assert.equal(response.status,400,plan);
+   assert.equal(f.calls.length,0,'the Asaas API must not be called for retired tiers');
+  }
+  const response=await f.call('billingCheckout','POST',{},f.input({plan:'essencial'}));
+  assert.equal(response.status,200);
+  const url=(await response.json()).url;
+  assert.match(url,/^https:\/\/asaas.com\//);
+  const remote=[...f.subscriptions.values()][0];
+  assert.equal(remote.value,49);
+  assert.equal(remote.cycle,'MONTHLY');
+  const status=await (await f.call('billingStatus','GET')).json();
+  assert.deepEqual(Object.keys(status.plans),['essencial']);
+  assert.equal(status.subscription.plan,'essencial');
+  assert.equal(status.subscription.status,'pending');
+  assert.equal(status.invoices[0].amount,4900);
+  assert.equal(status.subscription.paidThrough,0);
+ }finally{f.close();}
 });
 
 test('Asaas checkout uses fixed server prices, hosted invoice and durable reuse without releasing an unpaid plan',async()=>{const f=harness();try{const input=f.input(),before=f.db.prepare('SELECT data,published_data FROM restaurants').all();const first=await f.call('billingCheckout','POST',{},input);assert.equal(first.status,200,await first.clone().text());assert.match((await first.json()).url,/^https:\/\/asaas.com\/000\/i\//);assert.equal(f.customer.size,1);assert.equal(f.subscriptions.size,1);assert.equal([...f.subscriptions.values()][0].value,49);assert.equal([...f.subscriptions.values()][0].billingType,'UNDEFINED');assert.equal([...f.subscriptions.values()][0].description,'pizzaria.on · essencial');assert.match([...f.subscriptions.values()][0].externalReference,/^pedido-on:production:/);assert.equal(f.db.prepare('SELECT paid_through FROM asaas_subscriptions').get().paid_through,0);assert.equal(f.load('lib/billing.ts').billingEnforced(),false);
