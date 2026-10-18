@@ -45,6 +45,7 @@ jobs:
         shell: bash
         run: |
           npm install --prefix "$RUNNER_TEMP/pizzaria-browser-tools" --no-audit --no-fund --save-exact playwright-core@1.64.1
+          node "$RUNNER_TEMP/pizzaria-browser-tools/node_modules/playwright-core/cli.js" install ffmpeg
           command -v google-chrome
           google-chrome --version
           echo "QA_CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
@@ -60,6 +61,9 @@ jobs:
       - name: Published guest UI and calculator (remote mutations blocked)
         if: ${{ !cancelled() }}
         run: node scripts/check-public-browser.mjs
+      - name: Probe the supplied public iFood URL without credentials or writes
+        if: ${{ !cancelled() }}
+        run: node --experimental-strip-types scripts/probe-public-store.mjs
       - name: Preserve screenshots and reports, including failures
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -74,6 +78,7 @@ jobs:
             .sites-runtime/browser-ci/calculator/
             .sites-runtime/browser-ci/handoff/
             .sites-runtime/browser-ci/owner/
+            .sites-runtime/browser-ci/intake-options/
             .sites-runtime/browser-ci/ocr/
             .sites-runtime/browser-ci/styles/
             .sites-runtime/browser-ci/public/summary.json

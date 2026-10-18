@@ -1,3 +1,5 @@
+import {inspectMenuSourceText} from "./menu-source-links.ts";
+import type {MenuStoreInfo} from "./menu-store-info.ts";
 import {z} from "zod";
 
 export const ownerFieldIds=["name","address","whatsapp","hours","menu"] as const;
@@ -10,13 +12,15 @@ export const ownerIntakeSchema=z.object({
     hours:z.string().max(300).optional(),
     menu:z.string().max(2000).optional(),
   }).strict(),
+  visualChoice:z.enum(["artesanal","moderno","divertido","sugestoes"]).optional(),
+  source:z.object({url:z.string().url().max(2048),telephone:z.string().max(25).optional()}).strict().optional(),
   step:z.number().int().min(0).max(5),
   initialMessage:z.string().max(1600).default(""),
 }).strict();
 export type OwnerIntake=z.infer<typeof ownerIntakeSchema>;
 export const emptyOwnerIntake=():OwnerIntake=>({answers:{},step:0,initialMessage:""});
 export const ownerQuestions=[
-  "Olá! Vou montar seu cardápio sem gastar créditos para gerar imagens. Qual é o nome da pizzaria? Pode me contar também o estilo que imagina.",
+  "Qual é o nome da pizzaria e como você imagina o cardápio? Se já tiver um link do iFood, pode começar por ele.",
   "Onde fica a pizzaria? Informe rua, número, bairro, cidade e estado. Se não tiver endereço para divulgar, responda 'depois'.",
   "Qual WhatsApp os clientes devem usar para fazer pedidos? Inclua o DDD. Pode responder 'depois'.",
   "Qual é o horário de funcionamento? Ex.: terça a domingo, 18h às 23h. Se ainda não definiu, responda 'depois'.",
@@ -33,8 +37,9 @@ const descriptorBoundary=/\s+(?:e\s+)?(?:quero|gostaria|as cores?|cores?|com\s+(
 /** Conservative: never display an entire paragraph as a business name. */
 export function extractOwnerName(text:string):string|undefined {
  const t=clean(text.slice(0,1600));
- const match=t.match(/\b(?:o\s+)?nome\s+(?:dela|dele|da\s+(?:minha\s+)?pizzaria|do\s+(?:meu\s+)?negócio|da\s+loja)\s*(?:é|e|:|=)\s*(.+)$/i)
-  ||t.match(/\b(?:a\s+)?(?:minha\s+)?pizzaria\s+(?:se\s+chama|chama-se|chama|é|e)\s+(.+)$/i);
+ const match=t.match(/\b(?:o\s+)?nome\s+(?:dela|dele|da\s+(?:minha\s+)?pizzaria|do\s+(?:meu\s+)?negócio|da\s+loja)\s*(?:é|e|:|=)\s*(.+)$/im)
+  ||t.match(/^(?:nome|pizzaria)\s*[:=]\s*(.+)$/im)
+  ||t.match(/\b(?:a\s+)?(?:minha\s+)?pizzaria\s+(?:se\s+chama|chama-se|chama|é|e)\s+(.+)$/im);
  if(!match)return;
  let value=clean(match[1].split(/[\n!?;]/)[0]);
  // A location or colour sentence is not part of the name.
@@ -66,7 +71,7 @@ export function validateOwnerAnswer(field:OwnerField,raw:string):{value?:string;
   const compact=clean(text.split(locationBoundary)[0].split(descriptorBoundary)[0]);
   const genericSentence=/^(?:quero|queria|gostaria|prefiro|preciso|cores?|fundo|fica|delivery|sem|com|tenho|localiza[cç][ãa]o|endere[cç]o)\b/i.test(compact);
   const name=extractOwnerName(text)||(!genericSentence&&/^[^\n.!?]{2,100}$/.test(compact)&&compact.split(/\s+/).length<=8?compact:undefined);
-  if(!name||name.length<2||name.length>100)return {error:"Não consegui identificar o nome. Escreva só o nome da pizzaria, por exemplo: Pizzaria Della Mama."};
+  if(!name||name.length<2||name.length>100)return {error:"Não consegui identificar o nome. Escreva o nome da pizzaria, por exemplo: Forno Azul."};
   return {value:name};
  }
  if(field==="address")return text.length<6||text.length>200?{error:"Informe o endereço completo ou escreva 'depois'. Evite incluir instruções de design nesse campo."}:{value:text};
@@ -82,14 +87,38 @@ export function validateOwnerAnswer(field:OwnerField,raw:string):{value?:string;
  }
  return {error:"Campo desconhecido."};
 }
+export function ownerAnsweredCount(state:OwnerIntake){return ownerFieldIds.filter(field=>state.answers[field]!==undefined).length;}
+/** Advance over facts already provided or explicitly skipped, preserving older checkpoints. */
+export function withOwnerAnswers(state:OwnerIntake,patch:Partial<OwnerIntake["answers"]>){
+ const answers={...state.answers,...patch},index=ownerFieldIds.findIndex(field=>answers[field]===undefined);
+ return ownerIntakeSchema.parse({...state,answers,step:index<0?5:index});
+}
+export function ownerFacts(message:string):Partial<OwnerIntake["answers"]>{
+ const facts:Partial<OwnerIntake["answers"]>={},name=extractOwnerName(message);if(name)facts.name=name;
+ for(const [field,pattern] of [["address",/^endere[cç]o(?: da (?:loja|pizzaria))?\s*[:=]\s*(.+)$/im],["whatsapp",/^(?:whatsapp|whats|telefone para pedidos)\s*[:=]\s*(.+)$/im],["hours",/^hor[aá]rios?(?: de funcionamento)?\s*[:=]\s*(.+)$/im]] as const){
+  const match=message.match(pattern);if(!match)continue;const result=validateOwnerAnswer(field,match[1]);if(!result.error)facts[field]=result.value;
+ }
+ const source=inspectMenuSourceText(message);if(source.links.length===1)facts.menu=source.links[0].url;
+ return facts;
+}
 export function nextOwnerIntake(state:OwnerIntake,message:string):{state:OwnerIntake;error?:string}{
  if(state.step>=ownerFieldIds.length)return {state};
- const field=ownerFieldIds[state.step];
- const parsed=validateOwnerAnswer(field,message);
+ const field=ownerFieldIds[state.step],parsed=validateOwnerAnswer(field,message);
  if(parsed.error)return {state,error:parsed.error};
- const next={...state,step:state.step+1,initialMessage:state.step===0?message.slice(0,1600):state.initialMessage,
-  answers:{...state.answers,[field]:parsed.value}};
- return {state:ownerIntakeSchema.parse(next)};
+ const facts=ownerFacts(message),patch:Partial<OwnerIntake["answers"]>={};
+ for(const field of ownerFieldIds)if(state.answers[field]===undefined&&facts[field]!==undefined)patch[field]=facts[field];
+ patch[field]=parsed.value;
+ const initialMessage=state.initialMessage||message.slice(0,1600);
+ return {state:withOwnerAnswers({...state,initialMessage},patch)};
+}
+/** Public facts are suggestions until the owner confirms; never overwrite an explicit answer. */
+export function ownerFromStore(state:OwnerIntake,url:string,store:MenuStoreInfo={}){
+ const patch:Partial<OwnerIntake["answers"]>={menu:url};
+ for(const field of ["name","address","hours"] as const)if(state.answers[field]===undefined&&store[field]){
+  const checked=validateOwnerAnswer(field,store[field]!);if(!checked.error)patch[field]=checked.value;
+ }
+ const telephone=store.telephone&&validateOwnerAnswer("whatsapp",store.telephone).value;
+ return withOwnerAnswers({...state,source:{url,...(telephone?{telephone}:{})},initialMessage:state.initialMessage|| (patch.name?`Minha pizzaria se chama ${patch.name}.`:"")},patch);
 }
 export function intakeFinished(v:OwnerIntake){return v.step>=ownerFieldIds.length&&!!v.answers.name;}
 export function ownerPreviewDetails(v:OwnerIntake){
@@ -98,3 +127,7 @@ export function ownerPreviewDetails(v:OwnerIntake){
  // We don't invent a city/state from a vague location description.
  return {name:a.name||"Sua pizzaria",address,city:"",whatsapp:a.whatsapp||"",hours:a.hours||""};
 }
+
+export const ownerVisualChoices=[{id:"artesanal",label:"Artesanal",prompt:"Quero um cardápio artesanal, com fotos grandes e letras elegantes."},{id:"moderno",label:"Moderno",prompt:"Quero um cardápio moderno, organizado e fácil de ler no celular."},{id:"divertido",label:"Divertido",prompt:"Quero um cardápio alegre, com letras fortes e fotos em destaque."},{id:"sugestoes",label:"Me ajude a escolher",prompt:"Quero sugestões de visual para minha pizzaria."}] as const;
+export function ownerVisualBriefing(state:OwnerIntake){const choice=ownerVisualChoices.find(c=>c.id===state.visualChoice);return choice?state.initialMessage.slice(0,1500)+"\n"+choice.prompt:state.initialMessage;}
+export function hasOwnerVisualBriefing(state:OwnerIntake){return !!state.visualChoice||/\b(?:quero|prefiro|estilo|visual|design|layout|letras|fotos|cores)\b/i.test(state.initialMessage.replace(state.answers.name||"", ""));}
