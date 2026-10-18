@@ -1,7 +1,7 @@
 import {env} from "cloudflare:workers";
 import {z} from "zod";
 import {HttpError} from "./http";
-import {ASAAS_PLAN_CENTS,readAsaasConfig,safeAsaasInvoiceUrl,asaasEntitlement,type AsaasMode,type AsaasPlan,type AsaasPayment} from "./asaas-policy";
+import {ASAAS_PLAN_CENTS,readAsaasConfig,safeAsaasInvoiceUrl,asaasEntitlement,sandboxBillingOwner,type AsaasConfigInput,type AsaasMode,type AsaasPlan,type AsaasPayment} from "./asaas-policy";
 type Owner={userId:string;displayName:string;email:string};
 type Intent={id:string;owner_id:string;environment:AsaasMode;active_key:string|null;plan:AsaasPlan;reference:string;document_hash:string;state:string;customer_id:string;subscription_id:string;lease_token:string;lease_until:number};
 type Subscription={id:string;owner_id:string;environment:AsaasMode;remote_id:string;customer_id:string;intent_id:string;plan:AsaasPlan;status:string;paid_through:number;paid_plan:string;sync_token:string;sync_until:number};
@@ -11,7 +11,8 @@ type RemotePayment=AsaasPayment&{invoiceUrl?:string;refunds?:{value:number;statu
 const remoteId=z.string().regex(/^[a-zA-Z0-9_-]{3,100}$/),stamp=()=>new Date().toISOString(),seconds=()=>Math.floor(Date.now()/1000);
 const db=()=>{if(!env.DB)throw new HttpError(503,"Serviço de assinatura indisponível.");return env.DB;};
 const hash=async(value:string)=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value)))].map(v=>v.toString(16).padStart(2,"0")).join("");
-export function asaasRuntime(){const e=env as typeof env&{PEDIDO_BILLING_ENABLED?:string;PEDIDO_BILLING_PROVIDER?:string;ASAAS_ENV?:string;ASAAS_API_KEY?:string;ASAAS_WEBHOOK_TOKEN?:string};return {...readAsaasConfig(e),key:e.ASAAS_API_KEY||"",webhook:e.ASAAS_WEBHOOK_TOKEN||""};}
+export function asaasRuntime(){const e=env as typeof env&AsaasConfigInput;return {...readAsaasConfig(e),key:e.ASAAS_API_KEY||"",webhook:e.ASAAS_WEBHOOK_TOKEN||""};}
+export function asaasSandboxTestOwner(ownerId?:string){return sandboxBillingOwner(env as typeof env&AsaasConfigInput,ownerId);}
 function config(){const c=asaasRuntime();if(!c.enabled||!c.mode||!c.baseUrl)throw new HttpError(503,"A assinatura Asaas está em configuração.");return {...c,mode:c.mode,baseUrl:c.baseUrl};}
 export function billingDocument(value:string){const doc=value.replace(/[.\s/-]/g,"").toUpperCase();if(!/^(?:\d{11}|[A-Z0-9]{12}\d{2})$/.test(doc)||/^(.)\1+$/.test(doc))return null;return doc;}
 export const asaasCheckoutSchema=z.object({requestId:z.string().uuid(),plan:z.literal("essencial"),document:z.string().max(24).transform(billingDocument).refine((v):v is string=>v!==null,"Informe seu CPF ou CNPJ para a assinatura.")}).strict();
@@ -68,7 +69,7 @@ export async function synchronizeAsaas(key:string,event?:{id:string;event:string
   ]);
  }finally{await db().prepare("UPDATE asaas_subscriptions SET sync_token='',sync_until=0 WHERE id=? AND sync_token=?").bind(key,token).run();}
 }
-export async function asaasPaidAccount(ownerId:string){const c=asaasRuntime();if(!c.enabled||c.mode!=="production")return null;const rows=(await db().prepare("SELECT paid_through,paid_plan FROM asaas_subscriptions WHERE owner_id=? AND environment='production' AND paid_through>? ORDER BY paid_through DESC").bind(ownerId,seconds()).all<{paid_through:number;paid_plan:AsaasPlan}>()).results;const ranks={essencial:1,profissional:3,rede:10};rows.sort((a,b)=>(ranks[b.paid_plan]||0)-(ranks[a.paid_plan]||0));return rows[0]?{status:"active",paidThrough:rows[0].paid_through,paidPlan:rows[0].paid_plan}:null;}
+export async function asaasPaidAccount(ownerId:string){const c=asaasRuntime();if(!c.enabled||c.mode!=="production"&&!asaasSandboxTestOwner(ownerId))return null;const rows=(await db().prepare("SELECT paid_through,paid_plan FROM asaas_subscriptions WHERE owner_id=? AND environment=? AND paid_through>? ORDER BY paid_through DESC").bind(ownerId,c.mode,seconds()).all<{paid_through:number;paid_plan:AsaasPlan}>()).results;const ranks={essencial:1,profissional:3,rede:10};rows.sort((a,b)=>(ranks[b.paid_plan]||0)-(ranks[a.paid_plan]||0));return rows[0]?{status:"active",paidThrough:rows[0].paid_through,paidPlan:rows[0].paid_plan}:null;}
 export async function asaasStatus(ownerId:string){const c=asaasRuntime();if(!c.mode)return {subscription:null,intent:null,invoices:[]};const row=await db().prepare("SELECT * FROM asaas_subscriptions WHERE owner_id=? AND environment=? ORDER BY created_at DESC,id DESC LIMIT 1").bind(ownerId,c.mode).first<Subscription>(),intent=await db().prepare("SELECT id,plan,state FROM asaas_intents WHERE active_key=?").bind(c.mode+":"+ownerId).first<{id:string;plan:string;state:string}>();
  const invoices=(await db().prepare("SELECT p.remote_id,p.status,p.amount,p.due_date,p.invoice_url FROM asaas_payments p JOIN asaas_subscriptions s ON s.id=p.subscription_key WHERE s.owner_id=? AND s.environment=? ORDER BY p.due_date DESC,p.updated_at DESC LIMIT 12").bind(ownerId,c.mode).all<PaymentRow>()).results;
  return {subscription:row?{id:row.remote_id,plan:row.plan,status:row.status==="CANCELED"?"canceled":row.paid_through>seconds()?"active":"pending",paidThrough:row.paid_through,paidPlan:row.paid_plan,periodEnd:row.paid_through}:null,intent,invoices:invoices.map(p=>({id:p.remote_id,status:p.status,amount:p.amount,dueDate:p.due_date,url:safeAsaasInvoiceUrl(p.invoice_url,c.mode!)||null}))};}

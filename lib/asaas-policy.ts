@@ -11,6 +11,8 @@ export type AsaasConfigInput = {
   ASAAS_ENV?: string;
   ASAAS_API_KEY?: string;
   ASAAS_WEBHOOK_TOKEN?: string;
+  PEDIDO_BILLING_SANDBOX_ONLY?: string;
+  PEDIDO_BILLING_SANDBOX_TEST_OWNERS?: string;
 };
 export type AsaasPayment = {
   id: string;
@@ -34,14 +36,24 @@ export function readAsaasConfig(input: AsaasConfigInput) {
   const token = input.ASAAS_WEBHOOK_TOKEN || "";
   const keyMatchesEnvironment = sandbox ? key.startsWith("$aact_hmlg_") : production && key.startsWith("$aact_prod_");
   const webhookValid = token.length >= 32 && token.length <= 255 && !/\s/.test(token);
+  const sandboxOnly = input.PEDIDO_BILLING_SANDBOX_ONLY === "true";
   return {
     enabled: input.PEDIDO_BILLING_ENABLED === "true"
       && input.PEDIDO_BILLING_PROVIDER === "asaas"
       && (sandbox || production)
+      && (!sandboxOnly || sandbox)
       && keyMatchesEnvironment && webhookValid && token !== key && !/\s/.test(key),
+    sandboxOnly,
     mode: sandbox ? "sandbox" as const : production ? "production" as const : null,
     baseUrl: sandbox ? "https://api-sandbox.asaas.com/v3" : production ? "https://api.asaas.com/v3" : null,
   };
+}
+
+/** Only explicitly named QA accounts can exercise paid access with fictitious money. */
+export function sandboxBillingOwner(input: AsaasConfigInput, ownerId?: string): boolean {
+  return !!ownerId && input.PEDIDO_BILLING_SANDBOX_ONLY === "true"
+    && input.ASAAS_ENV === "sandbox"
+    && (input.PEDIDO_BILLING_SANDBOX_TEST_OWNERS || "").split(",").map(v => v.trim()).includes(ownerId);
 }
 
 /** URL de fatura devolvida pelo Asaas: recuse domínios externos e credenciais na URL. */

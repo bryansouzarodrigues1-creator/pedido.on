@@ -9,6 +9,7 @@ import {promisify} from 'node:util';
 import {createRequire} from 'node:module';
 import {createWorker,OEM,PSM} from 'tesseract.js';
 import {arrangeMenuWords,readMenuPages,readerItemReady,normalizeMenuText} from '../lib/menu-reader-policy.ts';
+import {reconcileOcrLine,enhanceDarkMenuCrop,chooseMenuOcrReading} from '../lib/menu-ocr-refinement.ts';
 
 const source='https://4estylos.com.br/public/archives/CARDAPIO_PIZZARIA_2025.pdf';
 const expectedSha='437c75008bda1d024215f2adcce0ce97fccbabb42e237a330219cc8f340816c1';
@@ -35,7 +36,7 @@ let worker;
 const report={source,sha256:expectedSha,fixturePages:[11,19],ready:0,matched:0,expected:21,pages:[],testMode:'observational',paidAiCalls:0,customerData:false};
 try{
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
- let response;try{response=await fetch(source,{signal:controller.signal,headers:{accept:'application/pdf'}});}finally{clearTimeout(timer);}
+ let response;try{response=process.env.QA_MENU_PDF_PATH?new Response(await readFile(process.env.QA_MENU_PDF_PATH),{headers:{'content-type':'application/pdf'}}):await fetch(source,{signal:controller.signal,headers:{accept:'application/pdf'}});}finally{clearTimeout(timer);}
  if(!response.ok||!response.headers.get('content-type')?.includes('pdf'))throw Error('Public PDF was not accessible as PDF: HTTP '+response.status);
  const parts=[];let bytes=0;for await(const part of response.body){bytes+=part.length;if(bytes>26000000)throw Error('PDF exceeded 26MB limit');parts.push(part);}
  const pdf=Buffer.concat(parts),checksum=createHash('sha256').update(pdf).digest('hex');
@@ -58,21 +59,42 @@ try{
       ['original-auto',original,PSM.AUTO],
       ['max-inverse-block',inverted,PSM.SINGLE_BLOCK],
       ['max-inverse-auto',inverted,PSM.AUTO],
+      ['runtime-refined',original,PSM.AUTO],
    ]){
-     await worker.setParameters({tessedit_pageseg_mode:psm,preserve_interword_spaces:'1'});
+     await worker.setParameters({tessedit_pageseg_mode:psm,preserve_interword_spaces:'1',user_defined_dpi:'300'});
      const started=performance.now(),{data}=await worker.recognize(image,{rotateAuto:true},{text:true,blocks:true});
      const words=data.blocks?.flatMap(block=>block.paragraphs.flatMap(p=>p.lines.flatMap(line=>line.words.map(w=>({text:w.text,confidence:w.confidence,box:w.bbox})))))||[];
-     const lines=words.length?arrangeMenuWords(words,info.width):data.text.split('\n').map(text=>({text}));
+     let lines=words.length?arrangeMenuWords(words,info.width):data.text.split('\n').map(text=>({text}));
+     let refinements=0;
+     if(name==='runtime-refined'&&Math.abs(data.rotateRadians||0)<=.001){
+       const {data:alternative}=await worker.recognize(inverted,{rotateAuto:false},{text:true,blocks:true});
+       const aw=alternative.blocks?.flatMap(b=>b.paragraphs.flatMap(p=>p.lines.flatMap(l=>l.words.map(w=>({text:w.text,confidence:w.confidence,box:w.bbox})))))||[];
+       lines=chooseMenuOcrReading(lines,arrangeMenuWords(aw,info.width),'public-'+page);
+
+       const uncertain=lines.filter(line=>line.box&&/R\s*\$\s*\d|\d+[,.]\d{2}/i.test(line.text)&&((line.priceConfidence??100)<75||(line.confidence??100)<75)).slice(0,12);
+       await worker.setParameters({tessedit_pageseg_mode:PSM.SINGLE_LINE,preserve_interword_spaces:'1',user_defined_dpi:'300'});
+       for(const line of uncertain){
+         const box=line.box,left=Math.max(0,box.x0-5),top=Math.max(0,box.y0-5),width=Math.min(info.width-left,box.x1-left+5),height=Math.min(info.height-top,box.y1-top+5),scale=Math.min(3,80/height);
+         if(width<=0||height<=0)continue;
+         const {data:pixels,info:crop}=await sharp(original).extract({left,top,width,height}).resize(Math.ceil(width*scale),Math.ceil(height*scale),{fit:'fill'}).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+         const enhanced=enhanceDarkMenuCrop(new Uint8ClampedArray(pixels),crop.width,crop.height);
+         const image=await sharp(enhanced,{raw:{width:crop.width,height:crop.height,channels:4}}).extend({top:10,bottom:10,left:10,right:10,background:'#fff'}).png().toBuffer();
+         const {data:detail}=await worker.recognize(image,{rotateAuto:false},{text:true,blocks:true});
+         const dw=detail.blocks?.flatMap(b=>b.paragraphs.flatMap(p=>p.lines.flatMap(l=>l.words.map(w=>({text:w.text,confidence:w.confidence,box:w.bbox})))))||[];
+         const candidate=arrangeMenuWords(dw,crop.width+20);
+         if(candidate.length===1){Object.assign(line,reconcileOcrLine(line,candidate[0]));refinements++;}
+       }
+     }
      const parsed=readMenuPages([{id:'public-'+page,lines}]),ready=parsed.items.filter(readerItemReady);
      const checks=references[page].map(([target,value])=>{
        const item=parsed.items.find(i=>normalizeMenuText(i.name)===normalizeMenuText(target));
        const correct=!!item&&readerItemReady(item)&&(typeof value==='number'?item.price===value:Object.entries(value).every(([key,price])=>item.sizes[key]===price));
        return {name:target,found:!!item,ready:!!item&&readerItemReady(item),priceExact:correct};
      });
-     variants.push({name,durationMs:Math.round(performance.now()-started),recognized:parsed.items.length,ready:ready.length,unmatched:parsed.unmatched.length,exactNameMatches:checks.filter(c=>c.found).length,exactPriceMatches:checks.filter(c=>c.priceExact).length,expected:checks.length,checks,issueSamples:parsed.items.slice(0,18).map(i=>({name:i.name,kind:i.kind,review:i.reviewRequired||false,issueCount:i.issues.length,price:i.price,sizes:i.sizes}))});
+     variants.push({name,refinements,durationMs:Math.round(performance.now()-started),recognized:parsed.items.length,ready:ready.length,unmatched:parsed.unmatched.length,exactNameMatches:checks.filter(c=>c.found).length,exactPriceMatches:checks.filter(c=>c.priceExact).length,expected:checks.length,checks,issueSamples:parsed.items.slice(0,18).map(i=>({name:i.name,kind:i.kind,review:i.reviewRequired||false,issueCount:i.issues.length,price:i.price,sizes:i.sizes}))});
    }
    const best=[...variants].sort((a,b)=>b.exactPriceMatches-a.exactPriceMatches||b.exactNameMatches-a.exactNameMatches)[0];
-   const runtimeMode=info.height/info.width>1.6?'original-auto':'original-block';
+   const runtimeMode=info.height/info.width>1.6?'runtime-refined':'original-block';
    const runtime=variants.find(v=>v.name===runtimeMode);
    report.pages.push({page,imageSize:[info.width,info.height],runtimeMode,bestVariant:best.exactPriceMatches||best.exactNameMatches?best.name:null,variants});
    report.ready+=runtime.ready;report.matched+=runtime.exactPriceMatches;

@@ -1,0 +1,35 @@
+name: Two beta accounts - authorized one-time integration
+on:
+  pull_request:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  integration:
+    if: github.head_ref == 'feat/homologacao-integrada-sandbox-20261018'
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '11.25.0'
+      - run: pnpm install --frozen-lockfile
+      - name: Await reviewed release and exercise two real beta accounts
+        env:
+          CI: 'true'
+          QA_BETA_WRITE_ACK: two-test-accounts-20261018
+          QA_EXPECTED_RELEASE: ${{ github.event.pull_request.head.sha }}
+        run: node --experimental-strip-types scripts/qa-beta-two-accounts.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: beta-two-accounts-${{ github.run_id }}
+          path: .sites-runtime/qa-beta-two-accounts/report.json
+          if-no-files-found: warn
+          retention-days: 14

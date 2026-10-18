@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture} from './test-backend-fixture.mjs';
 
-function harness(){const f=fixture();Object.assign(f.env,{PEDIDO_BILLING_ENABLED:'true',PEDIDO_BILLING_PROVIDER:'asaas',ASAAS_ENV:'production',ASAAS_API_KEY:'$aact_prod_fixture_not_a_real_key',ASAAS_WEBHOOK_TOKEN:'webhook-fixture-'.repeat(4)});const customer=new Map(),subscriptions=new Map(),payments=new Map(),calls=[];const original=globalThis.fetch;let pauseCustomer=null,loseSubscriptionResponse=false,redirect=false;
+function harness(mode='production'){const f=fixture();Object.assign(f.env,{PEDIDO_BILLING_ENABLED:'true',PEDIDO_BILLING_PROVIDER:'asaas',ASAAS_ENV:mode,ASAAS_API_KEY:mode==='sandbox'?'$aact_hmlg_fixture_not_a_real_key':'$aact_prod_fixture_not_a_real_key',ASAAS_WEBHOOK_TOKEN:'webhook-fixture-'.repeat(4)});const customer=new Map(),subscriptions=new Map(),payments=new Map(),calls=[];const original=globalThis.fetch;let pauseCustomer=null,loseSubscriptionResponse=false,redirect=false;
  globalThis.fetch=async(url,options={})=>{const u=new URL(url),method=options.method||'GET',body=options.body?JSON.parse(options.body):null;calls.push({path:u.pathname,method,body,query:u.search,options});assert.equal(options.headers.access_token,f.env.ASAAS_API_KEY);assert.equal(options.redirect,'manual');if(redirect)return new Response('',{status:302,headers:{Location:'https://attacker.example'}});const path=u.pathname.replace('/v3/','');
  if(path==='customers'&&method==='GET')return Response.json({data:[...customer.values()].filter(c=>c.externalReference===u.searchParams.get('externalReference')),hasMore:false});
  if(path==='customers'&&method==='POST'){if(pauseCustomer)await pauseCustomer;const value={...body,id:'cus_fixture_'+(customer.size+1)};customer.set(value.id,value);return Response.json(value);}
  if(path==='subscriptions'&&method==='GET')return Response.json({data:[...subscriptions.values()].filter(s=>s.externalReference===u.searchParams.get('externalReference')),hasMore:false});
- if(path==='subscriptions'&&method==='POST'){const value={...body,id:'sub_fixture_'+(subscriptions.size+1),status:'ACTIVE',deleted:false};subscriptions.set(value.id,value);const p={id:'pay_fixture_'+(payments.size+1),customer:value.customer,subscription:value.id,status:'PENDING',value:value.value,dueDate:body.nextDueDate,invoiceUrl:'https://asaas.com/000/i/fatura-fixture'};payments.set(p.id,p);if(loseSubscriptionResponse){loseSubscriptionResponse=false;throw Error('ambiguous timeout after provider creation');}return Response.json(value);}
+ if(path==='subscriptions'&&method==='POST'){const value={...body,id:'sub_fixture_'+(subscriptions.size+1),status:'ACTIVE',deleted:false};subscriptions.set(value.id,value);const p={id:'pay_fixture_'+(payments.size+1),customer:value.customer,subscription:value.id,status:'PENDING',value:value.value,dueDate:body.nextDueDate,invoiceUrl:mode==='sandbox'?'https://sandbox.asaas.com/i/fatura-fixture':'https://asaas.com/000/i/fatura-fixture'};payments.set(p.id,p);if(loseSubscriptionResponse){loseSubscriptionResponse=false;throw Error('ambiguous timeout after provider creation');}return Response.json(value);}
  if(/^subscriptions\/[^/]+\/payments$/.test(path))return Response.json({data:[...payments.values()].filter(p=>p.subscription===path.split('/')[1]&&p.status!=='DELETED'),hasMore:false});
  if(/^subscriptions\/[^/]+$/.test(path)){const value=subscriptions.get(path.split('/')[1]);if(!value)return new Response('',{status:404});if(method==='DELETE'){value.deleted=true;for(const p of payments.values())if(p.subscription===value.id&&['PENDING','OVERDUE'].includes(p.status))p.status='DELETED';return Response.json({deleted:true,id:value.id});}return Response.json(value);}
  if(/^payments\/[^/]+$/.test(path))return Response.json(payments.get(path.split('/')[1]));throw Error('Unexpected provider request '+method+' '+path);};
@@ -92,3 +92,38 @@ test('requests cannot forge a plan amount, steal another intent or bypass CSRF a
 test('disabled, mismatched sandbox keys and redirects do not enable billing or forward credentials',async()=>{const f=harness();try{f.env.PEDIDO_BILLING_ENABLED='false';assert.equal((await f.call('billingCheckout','POST',{},f.input())).status,503);assert.equal(f.calls.length,0);f.env.PEDIDO_BILLING_ENABLED='true';f.env.ASAAS_ENV='sandbox';assert.equal((await f.call('billingCheckout','POST',{},f.input())).status,503);assert.equal(f.calls.length,0);f.env.ASAAS_API_KEY='$aact_hmlg_fixture_not_a_real_key';assert.equal(f.load('lib/asaas-billing.ts').asaasRuntime().enabled,true);assert.equal(await f.load('lib/asaas-billing.ts').asaasPaidAccount('owner-a'),null);f.setRedirect();assert.equal((await f.call('billingCheckout','POST',{},f.input())).status,503);assert.equal(f.calls.length,1);assert.equal(f.calls[0].path,'/v3/customers');}finally{f.close();}});
 
 test('wrong customer, altered fee and unsafe invoice links cannot confer entitlement or redirect a payer',async()=>{const f=harness();try{await f.call('billingCheckout','POST',{},f.input());const p=[...f.payments.values()][0];p.status='RECEIVED';p.value=1;await f.webhook('evt_wrong_amount');assert.equal(f.db.prepare('SELECT paid_through FROM asaas_subscriptions').get().paid_through,0);p.value=49;p.invoiceUrl='https://attacker.example/i/steal';await f.webhook('evt_bad_link');const view=await (await f.call('billingStatus','GET')).json();assert.equal(view.invoices[0].url,null);p.customer='cus_other_owner';const response=await f.webhook('evt_wrong_customer');assert.equal(response.status,503);assert.equal(f.db.prepare("SELECT count(*) n FROM asaas_events WHERE id LIKE '%evt_wrong_customer'").get().n,0);}finally{f.close();}});
+
+test('sandbox-only QA accounts exercise pending, verified payment, duplicate webhook, cancellation and refund without granting another owner',async()=>{
+ const f=harness('sandbox');try{
+  Object.assign(f.env,{PEDIDO_BILLING_SANDBOX_ONLY:'true',PEDIDO_BILLING_SANDBOX_TEST_OWNERS:'owner-a,owner-b'});
+  const billing=f.load('lib/billing.ts');
+  assert.equal(billing.billingEnforced('owner-a'),true);
+  assert.equal(billing.billingEnforced('owner-b'),true);
+  assert.equal(billing.billingEnforced('owner-c'),false);
+  assert.equal(await billing.canServeMenu('owner-a','shop-a'),false);
+  assert.equal(await billing.canServeMenu('owner-b','shop-b'),false);
+  const checkout=await f.call('billingCheckout','POST',{},f.input());assert.equal(checkout.status,200,await checkout.clone().text());
+  assert.match((await checkout.json()).url,/^https:\/\/sandbox\.asaas\.com\/i\//);
+  const payment=[...f.payments.values()][0],sub=[...f.subscriptions.values()][0];
+  assert.equal(await billing.canServeMenu('owner-a','shop-a'),false,'creating an invoice never grants access');
+  const wrong=await f.call('asaasWebhook','POST',{}, {id:'evt_wrong',event:'PAYMENT_RECEIVED',payment:{id:payment.id}},{'asaas-access-token':'wrong'});assert.equal(wrong.status,401);
+  assert.equal((await f.webhook('evt_unpaid')).status,200);assert.equal(await billing.canServeMenu('owner-a','shop-a'),false,'the signed payload cannot override the provider status');
+  payment.status='RECEIVED';assert.equal((await f.webhook('evt_qa_paid')).status,200);
+  const count=f.calls.length;assert.equal((await f.webhook('evt_qa_paid')).status,200);assert.equal(f.calls.length,count);
+  assert.equal(await billing.canServeMenu('owner-a','shop-a'),true);
+  assert.equal(await billing.canServeMenu('owner-b','shop-b'),false);
+  f.state.user={userId:'owner-b',displayName:'QA B',email:'b@example.test'};
+  assert.equal((await f.call('billingCancel','POST',{}, {subscriptionId:sub.id,confirm:true})).status,404);
+  assert.equal((await (await f.call('billingStatus','GET')).json()).subscription,null);
+  f.state.user={userId:'owner-a',displayName:'QA A',email:'a@example.test'};
+  assert.equal((await f.call('billingCancel','POST',{}, {subscriptionId:sub.id,confirm:true})).status,200);
+  assert.equal(await billing.canServeMenu('owner-a','shop-a'),true,'paid access survives canceled renewal');
+  payment.status='REFUNDED';assert.equal((await f.webhook('evt_qa_refunded','PAYMENT_REFUNDED')).status,200);
+  assert.equal(await billing.canServeMenu('owner-a','shop-a'),false);
+  assert.equal((await f.webhook('evt_qa_stale','PAYMENT_RECEIVED')).status,200);
+  assert.equal(await billing.canServeMenu('owner-a','shop-a'),false,'a stale notification never restores a refunded invoice');
+  f.env.ASAAS_ENV='production';f.env.ASAAS_API_KEY='$aact_prod_fixture';
+  const before=f.calls.length;assert.equal((await f.call('billingCheckout','POST',{},f.input())).status,503);assert.equal(f.calls.length,before);
+  f.env.PEDIDO_BILLING_PROVIDER='stripe';assert.equal(billing.billingConfig().enabled,false);assert.equal(billing.billingConfig().provider,'asaas');
+ }finally{f.close();}
+});
