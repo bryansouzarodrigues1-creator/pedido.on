@@ -28,7 +28,7 @@ export function MiniMenu({data,large=false,rich=false}:{data:RestaurantData;larg
   const products=data.products.filter(p=>p.enabled).slice(0,rich?6:large?3:2);
   return <div className={`mini-menu theme-${data.theme} layout-${presentation.layout} hero-${presentation.hero} font-${presentation.font} corners-${presentation.corners}${menuIdentityClass(presentation.identity)} ${presentation.palette?"has-brand-palette":""} ${presentation.motif==="sea-cheese"?"motif-sea-cheese":""} ${large?"large":""}`} style={themeStyle(data)}>
     <div className="mini-top"><span>{data.logo?<img src={data.logo} alt=""/>:<Pizza size={large?23:16}/>}</span><strong>{data.name||"Sua pizzaria"}</strong><span className="mini-open">● Aberto</span></div>
-    <div className="mini-cover">{data.cover?<img src={data.cover} alt=""/>:<div className="cover-empty"><Pizza size={50}/></div>}<div><span>FEITA DO SEU JEITO</span><h3>{data.tagline||"Uma boa pizza muda a noite."}</h3></div></div>
+    <div className={"mini-cover"+(!data.cover?" no-cover":"")} style={!data.cover?{background:"var(--menu-card,#fffdf8)"}:undefined}>{data.cover?<img src={data.cover} alt=""/>:<div className="cover-empty"><Pizza size={50}/></div>}<div style={!data.cover?{color:"var(--menu-text,#2d3026)"}:undefined}><span>FEITA DO SEU JEITO</span><h3 style={{color:"inherit"}}>{data.tagline||"Uma boa pizza muda a noite."}</h3></div></div>
     {data.address&&<div className="mini-store-address">⌖ {data.address}{data.city?` · ${data.city}`:""}</div>}
     {data.hours&&<div className="mini-store-hours">◷ {data.hours}</div>}
     <div className="mini-meta"><span>◷ {data.eta}</span><span>Entrega {money(data.deliveryFee)}</span></div>

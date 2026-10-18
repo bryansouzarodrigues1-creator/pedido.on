@@ -28,7 +28,14 @@ async function start(mode){
 }
 async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();}
 async function pause(){if(process.env.QA_RECORD_INTAKE==='true')await page.waitForTimeout(1400);}
-async function ready(){await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-template-options').evaluate(el=>el.open),false);assert.equal(await page.locator('.creator-briefing').evaluate(el=>el.open),false);}
+async function ready(){
+ await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
+ assert.equal(await page.locator('.ai-template-options').evaluate(el=>el.open),false);assert.equal(await page.locator('.creator-briefing').evaluate(el=>el.open),false);
+ const ratio=await page.locator('.ai-selected .mini-cover.no-cover').evaluate(cover=>{
+  const luminance=color=>{const c=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});return c[0]*.2126+c[1]*.7152+c[2]*.0722;};
+  const bg=luminance(getComputedStyle(cover).backgroundColor),fg=luminance(getComputedStyle(cover.querySelector('h3')).color);return (Math.max(bg,fg)+.05)/(Math.min(bg,fg)+.05);
+ });assert.ok(ratio>=4.5,'A menu without a cover photo needs a readable headline');
+}
 async function close(name){const video=page.video();await context.close();if(video)await rename(await video.path(),path.join(output,name+'.webm'));}
 try{
  await start('complete');
