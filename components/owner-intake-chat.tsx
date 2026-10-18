@@ -18,7 +18,7 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const finished=intakeFinished(value),hint=value.step===1?extractLocationHint(value.initialMessage):undefined;
  const blocked=disabled||reading||!!found,field=editing||ownerFieldIds[value.step],count=ownerAnsweredCount(value);
- const first=!value.initialMessage&&!value.answers.name&&!editing;
+ const first=!value.initialMessage&&!value.answers.name&&!value.source&&!editing;
  function acceptAnswer(answer:string){
   const result=nextOwnerIntake(value,answer);if(result.error){setError(result.error);return;}
   const hasProducts=onText?.(answer);

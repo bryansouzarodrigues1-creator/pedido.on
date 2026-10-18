@@ -78,7 +78,7 @@ try{
  await ready();assert.match(await page.locator('.ai-gallery-heading').textContent(),/11 itens/);assert.equal(lookups,1);await page.locator('.ai-selected').scrollIntoViewIfNeeded();await pause();
  await page.getByRole('button',{name:/Testar o cardápio completo personalizado/}).click();await page.getByRole('dialog',{name:'Teste do cardápio personalizado'}).locator('.customer-menu').waitFor();await pause();
  checks.push({name:'iFood action keeps the exact same input and draft; confirmed facts leave only WhatsApp and optional visual choices',ok:true});await close('fluxo-campo-unico');
- await start('blocked');await say(sample.url);await page.getByText(/O link ficou guardado/).waitFor();await say(sample.name);
+ await start('blocked');await say(sample.url);await page.getByText(/O link ficou guardado/).waitFor();assert.match(await page.locator('.owner-intake-question').textContent(),/nome da pizzaria/);await say(sample.name);
  await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
  assert.equal(await page.locator('.ai-selected .mini-store-address').count(),0);assert.equal(await page.locator('.ai-selected .mini-store-hours').count(),0);
  await page.reload({waitUntil:'networkidle'});await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),sample.name);
