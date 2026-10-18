@@ -23,4 +23,6 @@ A conversa inicial não menciona créditos, chamadas pagas ou economia de geraç
 
 A leitura pública usa dados estruturados do negócio na página aceita do iFood. Endereço corporativo do rodapé, rótulos do link, horários inválidos e múltiplas lojas conflitantes não preenchem dados do dono. A integração oficial continua dependendo de aplicação/loja autorizadas. Um GET externo da URL real fornecida no projeto é registrado separadamente; respostas de teste não são evidência de catálogo real importado.
 
-As gravações de QA usam somente a pizzaria fictícia. Nenhuma conta real é criada. Publicação e resultados finais serão registrados na continuidade após testes.
+As gravações de QA usam somente a pizzaria fictícia. Nenhuma conta real foi criada. Os três cenários passaram no Chrome com Pixel 7 emulado, execução `39146567482`, com contraste mínimo de 4,5 nos dados encontrados e sem caixa de rolagem interna. Não é teste em Android físico. Também passaram os 417 testes, TypeScript/build e os CIs Windows e auth/pedidos. Os testes públicos ocorreram na v49 anterior à publicação; a v51 foi confirmada pelo resultado nativo do Sites.
+
+A v51 foi publicada em 18/10/2026 às 13:51:06 de Brasília, preservando o ambiente 13 e todos os sete registros de pizzarias existentes. O GET real da Aione retornou 403 às 13:50; nenhum produto, endereço ou horário real foi importado nessa consulta. O vídeo `fluxo-forno-azul-teste.mp4` identifica permanentemente os dados fictícios e a resposta do link simulada. [Registro de implantação e evidências](EVIDENCIA-FLUXO-OPCOES-20261018.json).

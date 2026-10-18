@@ -1,0 +1,62 @@
+{
+  "fictitious": true,
+  "notice": "Cenário Forno Azul inteiramente fictício. Fonte iFood com dados é interceptada; não comprova importação externa.",
+  "source": {
+    "mainHead": "19d3e8ebeb74dfdd8b066b9e1d260ddc312a99f7",
+    "mainMerge": "a3a0a0555bc44c4c93e8860cc7f4575da617ab2a",
+    "mirrorMerge": "975a89221bb13dc97974b47c14f978773c899a0e",
+    "sitesCommit": "41639f8959f9f37e5829973fc9cb38ad1b7959d7"
+  },
+  "deployment": {
+    "id": "appgdep_6ad4f8e1eee481919bd0ecfc0baad1f0",
+    "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "title": "pizzaria.on — Cardápio e pedidos para pizzarias",
+    "version_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_ccd20d369e4c8191a829c1674e6e421a",
+    "type": "publish",
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "has_mcp": false,
+    "screenshot_asset_pointer": null,
+    "provider_deployment_id": "site---6ac6d3ea9f7881918f315a156338ed52",
+    "failure_message": null,
+    "env_set_revision": 13,
+    "updated_at": "2026-10-18T16:51:06.748396+00:00"
+  },
+  "validation": {
+    "tests": 417,
+    "typecheck": "passed",
+    "build": "passed",
+    "chromeRun": 39146567482,
+    "windowsRun": 39146567498,
+    "authOrdersRun": 39146567486,
+    "mirrorRun": 39146589359,
+    "all": "success",
+    "device": "Chrome com Pixel 7 emulado; não Android físico",
+    "browserLocalScenarios": [
+      "Descrição completa sem perguntas repetidas",
+      "Dados do link confirmados, WhatsApp explícito, visual opcional e 11 produtos",
+      "Link bloqueado sem inventar dados"
+    ],
+    "sourceReadability": "Contraste >= 4.5 e ausência de rolagem interna verificados no navegador",
+    "publicBeforeDeployment": "v49 validada somente com operações locais de visitante; nova v51 confirmada pelo resultado nativo da implantação"
+  },
+  "preservation": {
+    "restaurantRecords": 7,
+    "fullRowsUnchanged": true,
+    "migrations": false,
+    "envRevision": 13,
+    "financialOrAiCalls": false
+  },
+  "realStoreProbe": {
+    "checkedAt": "2026-10-18T16:50:00.561Z",
+    "httpStatus": 403,
+    "products": 0,
+    "metadata": [],
+    "url": "https://www.ifood.com.br/delivery/cabo-frio-rj/aione-pizzas-jardim-pero/900caad5-258e-4bf7-9458-353cb0bffe60"
+  },
+  "limits": [
+    "Sem validação em Android físico",
+    "Página real retornou 403; dados públicos estruturados são condicionais",
+    "Sem habilitar integração oficial iFood, cobrança ou geração paga"
+  ]
+}
