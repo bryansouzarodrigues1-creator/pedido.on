@@ -1,7 +1,7 @@
 "use client";
 import {useState,type FormEvent} from "react";
 import {ArrowRight,Bot,Check,MessageCircle,MapPin} from "lucide-react";
-import {emptyOwnerIntake,intakeFinished,nextOwnerIntake,ownerFieldIds,ownerQuestions,extractLocationHint,validateOwnerAnswer,type OwnerField,type OwnerIntake} from "@/lib/owner-intake";
+import {intakeFinished,nextOwnerIntake,ownerFieldIds,ownerQuestions,extractLocationHint,validateOwnerAnswer,type OwnerField,type OwnerIntake} from "@/lib/owner-intake";
 
 /** Structured chat: one short question at a time, no billing/API/image generation. */
 export default function OwnerIntakeChat({value,onChange,onReady,disabled}:{
@@ -11,7 +11,7 @@ export default function OwnerIntakeChat({value,onChange,onReady,disabled}:{
  const [editing,setEditing]=useState<OwnerField|null>(null);
  const finished=intakeFinished(value),hint=value.step===1?extractLocationHint(value.initialMessage):undefined;
  function submit(e:FormEvent){
-  e.preventDefault();if(disabled||finished)return;
+  e.preventDefault();if(disabled||(finished&&!editing))return;
   const current=reply.trim();
   if(!current){setError("Escreva uma resposta ou digite 'depois' quando o campo for opcional.");return;}
   if(editing){
