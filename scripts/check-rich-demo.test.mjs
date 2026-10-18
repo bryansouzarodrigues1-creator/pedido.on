@@ -38,7 +38,9 @@ test("12 demonstration styles share the full catalog, preserving item prices and
 test("chosen design hides secondary actions while preserving the test and customizations",()=>{
  const code=readFileSync(new URL("../components/idea-start.tsx",import.meta.url),"utf8");
  assert.match(code,/<details className="ai-selected-more">/);
- assert.match(code,/Testar cardápio completo/);
+ assert.match(code,/Testar meu cardápio completo/);
+ assert.match(code,/FullMenu data={design\(styleId\)} demo preview/);
+ assert.match(code,/detailedDemoRestaurant\("editorial"\)/);
  assert.match(code,/Usar este modelo/);
  assert.match(code,/Ver imagem de referência/);
  assert.match(code,/Ajustar cores, fotos e textos/);
