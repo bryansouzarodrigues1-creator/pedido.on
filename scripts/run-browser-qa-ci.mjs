@@ -67,7 +67,7 @@ try {
         if (Date.now() >= deadline) throw Error('O servidor de QA não ficou pronto em dois minutos.');
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
-    for (const [name, script] of [['guest', 'scripts/check-owner-intake-browser.mjs'], ['calculator', 'scripts/check-calculator-browser.mjs'], ['handoff', 'scripts/check-handoff-browser.mjs'], ['ocr', 'scripts/check-ocr-browser.mjs'], ['styles', 'scripts/check-style-gallery-browser.mjs']]) {
+    for (const [name, script] of [['guest', 'scripts/check-owner-intake-browser.mjs'], ['calculator', 'scripts/check-calculator-browser.mjs'], ['handoff', 'scripts/check-handoff-browser.mjs'], ['owner', 'scripts/check-owner-workspace-browser.mjs'], ['ocr', 'scripts/check-ocr-browser.mjs'], ['styles', 'scripts/check-style-gallery-browser.mjs']]) {
         const result = await run([script], name + '.log', {QA_BASE_URL: base, QA_BROWSER_OUTPUT: path.join(output, name), QA_HEADLESS: 'true'});
         results.push({name, ...result});
     }

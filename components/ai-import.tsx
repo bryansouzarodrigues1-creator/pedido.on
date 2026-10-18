@@ -1,6 +1,6 @@
 "use client";
 import {useState,useEffect,useRef,useMemo,type ChangeEvent} from "react";
-import {Upload,Camera,ArrowRight,Check,Trash2,RotateCw,FileText,AlertCircle,Eye} from "lucide-react";
+import {Upload,Camera,ArrowRight,Check,Trash2,RotateCw,FileText,AlertCircle,Eye,Link2} from "lucide-react";
 import {Modal,Spinner} from "./ui";
 import Menu from "./menu";
 import {money,type RestaurantData,type Size} from "@/lib/domain";
@@ -15,6 +15,7 @@ import {inspectMenuSourceText,mergeReaderSource} from "@/lib/menu-source-links";
 
 export default function AiImport({restaurantId,draft,onImport,onActivityChange,incomingSource,onSourceReceived,autoOpen=false}:{restaurantId:string;draft:RestaurantData;onImport:(patch:Partial<RestaurantData>)=>void|Promise<void>;onActivityChange?:(active:boolean)=>void;incomingSource?:{requestId:string;text:string}|null;onSourceReceived?:(requestId:string)=>void;autoOpen?:boolean}){
   const [notice,setNotice]=useState("");
+  const [sourceMode,setSourceMode]=useState<"ifood"|"files">("files"),[ifoodUrl,setIfoodUrl]=useState("");
   const [open,setOpen]=useState(false),[pages,setPages]=useState<ReaderPage[]>([]),[items,setItems]=useState<ReaderItem[]>([]),[unmatched,setUnmatched]=useState<{sourceId:string;text:string}[]>([]);
   const [showSources,setShowSources]=useState(false),[text,setText]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState(""),[progress,setProgress]=useState(0),[label,setLabel]=useState(""),[restored,setRestored]=useState(false),[confirmed,setConfirmed]=useState(false),[preview,setPreview]=useState(false),[source,setSource]=useState<ReaderItem|null>(null),[storageNote,setStorageNote]=useState(""),[initialized,setInitialized]=useState(false);
   const controller=useRef<AbortController|null>(null),mounted=useRef(true),current=useRef(draft);current.current=draft;
@@ -30,7 +31,7 @@ export default function AiImport({restaurantId,draft,onImport,onActivityChange,i
   useEffect(()=>{if(!initialized)return;if(!pages.length&&!items.length&&!text.trim()){void removeReading(restaurantId).catch(()=>{});return;}const timer=setTimeout(()=>{void saveReading({restaurantId,savedAt:Date.now(),pages,items,unmatched,text}).catch(()=>{if(mounted.current)setStorageNote("Não foi possível guardar a leitura neste aparelho. Confira antes de sair.");});},500);return()=>clearTimeout(timer);},[pages,items,unmatched,text,restaurantId,initialized]);
   useEffect(()=>{
     if(!initialized||busy||!incomingSource||receivedSource.current===incomingSource.requestId)return;
-    setOpen(true);setShowSources(true);setConfirmed(false);
+    setOpen(true);setSourceMode("files");setShowSources(true);setConfirmed(false);
     try{const merged=mergeReaderSource(text,incomingSource.text),value={restaurantId,savedAt:Date.now(),pages,items,unmatched,text:merged};latestReading.current=value;receivedSource.current=incomingSource.requestId;setText(merged);setError("");void saveReading(value).catch(()=>{if(mounted.current)setStorageNote("Não foi possível guardar a referência neste aparelho. Confira antes de sair.");});onSourceReceived?.(incomingSource.requestId);}
     catch(error){setError(error instanceof Error?error.message:"Não foi possível acrescentar a referência. Sua leitura foi mantida.");}
   },[initialized,busy,incomingSource,onSourceReceived,text,restaurantId,pages,items,unmatched]);
@@ -51,6 +52,23 @@ export default function AiImport({restaurantId,draft,onImport,onActivityChange,i
       if(!mounted.current)return;setPages(ready);setItems(reconcileReaderReview(items,result.items,current.current));setShowSources(false);setUnmatched(result.unmatched);setRestored(false);
     }catch(e){if(!abort.signal.aborted&&mounted.current)setError(e instanceof Error?e.message:"Não foi possível ler essa foto. Tente uma foto mais nítida ou cole o texto.");}
     finally{if(mounted.current){setBusy(false);setLabel("");}controller.current=null;}
+  }
+  async function readIfood(){
+    if(busy)return;setError("");setNotice("");
+    const link=inspectMenuSourceText(ifoodUrl).links;
+    if(link.length!==1){setError("Cole o link completo de uma loja no iFood.");return;}
+    let merged:string;
+    try{merged=mergeReaderSource(text,link[0].url);}catch(e){setError(e instanceof Error?e.message:"Sua leitura atual foi mantida.");return;}
+    setText(merged);setBusy(true);setLabel("Buscando produtos do iFood…");setConfirmed(false);
+    try{
+      const found=await fetchMenuSource(link[0].url);if(!mounted.current)return;setNotice(found.message);
+      if(!found.text)return;
+      const next=mergeReaderSource(merged,found.text),content=inspectMenuSourceText(next);setText(next);
+      const result=readMenuPages([...pages.filter(p=>p.lines.length).map(p=>({id:p.id,lines:p.lines})),{id:"text",lines:content.menuText.split("\n").map(value=>({text:value}))}]);
+      if(!result.items.length){setError("O link não trouxe produtos com preço. Continue com prints ou texto do cardápio.");return;}
+      setItems(reconcileReaderReview(items,result.items,current.current));setUnmatched(result.unmatched);setShowSources(false);setRestored(false);
+    }catch(e){if(mounted.current)setError(e instanceof Error?e.message:"Não foi possível consultar o iFood agora. Continue com prints ou texto.");}
+    finally{if(mounted.current){setBusy(false);setLabel("");}}
   }
   function assignSize(size:Size){setConfirmed(false);setItems(old=>old.map(v=>v.kind==="pizza"&&v.price?{...v,price:null,sizes:{...v.sizes,[size]:v.price},issues:v.issues.filter(s=>!s.includes("tamanho desse preço"))}:v));}
   const selected=items.filter(v=>v.selected),pending=items.filter(v=>!readerItemReady(v));
@@ -79,8 +97,8 @@ export default function AiImport({restaurantId,draft,onImport,onActivityChange,i
     setOpen(false);
   }
   const photo=pages.find(p=>p.id===source?.sourceId);
-  return <><section className="menu-reader-entry"><div><span className="menu-reader-symbol"><FileText size={25}/></span><h3>{draft.products.length?"Traga outra parte do cardápio":"Traga seu cardápio"}</h3><p>{restored?"Você tem uma leitura guardada neste aparelho.":"Use o link do iFood, texto, arquivo ou fotos."}</p><small>Você confere antes de adicionar.</small></div><button type="button" className="btn primary" disabled={!initialized} onClick={()=>{setOpen(true);setError("");}}>{restored?"Continuar leitura":"Importar cardápio"}<ArrowRight size={18}/></button></section>
-    <Modal open={open} onClose={closeReading} title={items.length&&!showSources?"Confira os produtos":"Importar cardápio"} wide>
+  return <><section className="menu-reader-entry"><div><span className="menu-reader-symbol"><FileText size={25}/></span><h3>{draft.products.length?"Importar mais produtos":"Traga seu cardápio"}</h3><p>Do iFood, de fotos ou de um arquivo. Você confere antes de adicionar.</p></div><div className="menu-import-choices"><button type="button" className="btn primary" disabled={!initialized} onClick={()=>{setSourceMode("ifood");setOpen(true);setShowSources(true);setError("");setNotice("");if(!ifoodUrl)setIfoodUrl(sourceText.links[0]?.url||"");}}><Link2 size={18}/>Trazer do iFood</button><button type="button" className="btn outline" disabled={!initialized} onClick={()=>{setSourceMode("files");setOpen(true);setShowSources(true);setError("");}}>Fotos, texto ou arquivo</button>{restored&&<button type="button" className="text-button" disabled={!initialized} onClick={()=>{setSourceMode("files");setOpen(true);setShowSources(false);setError("");}}>Continuar leitura guardada<ArrowRight size={16}/></button>}</div></section>
+    <Modal open={open} onClose={closeReading} title={items.length&&!showSources?"Confira os produtos":sourceMode==="ifood"?"Trazer cardápio do iFood":"Importar cardápio"} wide>
       {storageNote&&<p role="status" className="reader-note">{storageNote}</p>}{(pages.length>0||items.length>0||text.trim())&&<button type="button" className="text-button" disabled={busy} onClick={()=>void discard()}>Descartar leitura guardada</button>}
       <MenuSourceLink source={sourceText}/>{notice&&<p className="reader-note" role="status">{notice}</p>}
       {items.length&&!showSources?<div className="menu-reader-review">
@@ -97,7 +115,7 @@ export default function AiImport({restaurantId,draft,onImport,onActivityChange,i
         <label className="check-option reader-confirm"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>Conferi os nomes, os tamanhos e os preços selecionados.</label>
         {error&&<p role="alert" className="field-error">{error}</p>}
         <div className="reader-footer"><button type="button" className="btn outline" disabled={!previewData} onClick={()=>setPreview(true)}><Eye size={17}/>Ver cardápio</button><button type="button" className="btn primary" disabled={busy||!confirmed||!selected.length||selected.some(v=>!readerItemReady(v))} onClick={()=>void apply()}><Check size={17}/>Adicionar {selected.length} ao rascunho</button></div><small>Se você selecionar um item já cadastrado, seus textos e preços serão atualizados após a confirmação. Publique depois para os clientes verem.</small>
-      </div>:<div className="menu-reader-source">
+      </div>:sourceMode==="ifood"?<div className="ifood-import-source"><p>Cole o link da sua loja. Buscamos os produtos disponíveis na página pública para você revisar.</p><label htmlFor="ifood-store-url">Link da loja no iFood</label><input id="ifood-store-url" type="text" inputMode="url" autoComplete="url" value={ifoodUrl} disabled={busy} onChange={e=>setIfoodUrl(e.target.value)} placeholder="https://www.ifood.com.br/delivery/…"/><button type="button" className="btn primary full" disabled={busy||!ifoodUrl.trim()} onClick={()=>void readIfood()}>{busy?<Spinner/>:<Link2 size={17}/>} {busy?"Buscando produtos…":"Buscar produtos do iFood"}</button>{error&&<p className="field-error" role="alert">{error}</p>}<p className="field-hint">Se o iFood não liberar os produtos pelo link, continue com prints ou com o texto do cardápio.</p><button type="button" className="text-button" disabled={busy} onClick={()=>setSourceMode("files")}>Enviar prints ou colar texto<ArrowRight size={16}/></button>{items.length>0&&<button type="button" className="text-button" disabled={busy} onClick={()=>setShowSources(false)}>Voltar à leitura guardada</button>}</div>:<div className="menu-reader-source">
         <p>Traga os produtos de uma vez. Você confere os preços antes de adicionar ao cardápio.</p>{items.length>0&&<><p>Você pode ler novamente. Os ajustes dos trechos que não mudaram serão mantidos.</p><button type="button" className="text-button" disabled={busy} onClick={()=>setShowSources(false)}>Voltar aos itens já lidos</button></>}
         <div className="reader-upload-actions"><label className="btn outline"><FileText size={18}/>Arquivo TXT/CSV<input type="file" accept=".txt,.csv,text/plain,text/csv" hidden disabled={busy} onChange={textFile}/></label><a href="/modelo-cardapio.csv" download className="text-button">Modelo CSV</a><label className="btn outline"><Camera size={18}/>Tirar foto<input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden disabled={busy} onChange={files}/></label><label className="btn outline"><Upload size={18}/>Escolher fotos<input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={busy} onChange={files}/></label></div>
         {pages.length>0&&<div className="reader-photo-list">{pages.map(page=><article key={page.id}><img src={page.image} alt={page.name}/><small>{page.name}</small><div><button type="button" className="icon-btn" disabled={busy} aria-label={`Girar ${page.name}`} onClick={()=>{void rotateMenuPhoto(page).then(rotated=>{setPages(old=>old.map(v=>v.id===page.id?rotated:v));setItems(old=>old.map(item=>item.sourceId===page.id?{...item,box:undefined}:item));setConfirmed(false);}).catch(()=>setError("Não foi possível girar a foto."));}}><RotateCw size={16}/></button><button type="button" className="icon-btn" disabled={busy} aria-label={`Remover ${page.name}`} onClick={()=>{setPages(old=>old.filter(v=>v.id!==page.id));setItems(old=>old.filter(item=>item.sourceId!==page.id));setConfirmed(false);}}><Trash2 size={16}/></button></div></article>)}</div>}
