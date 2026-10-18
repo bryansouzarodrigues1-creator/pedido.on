@@ -82,7 +82,7 @@ try{
  });
  await record("importação de cardápio CSV/TXT mantém preços como dados, não como arte",async()=>{
   await page.locator('.creator-briefing>summary').click();
-  await page.getByRole("button",{name:/Anexar cardápio/}).click();
+  await page.getByRole("button",{name:/Enviar cardápio ou imagens/}).click();
   const file=page.locator('input[type=file][accept*=".txt"]');
   await file.setInputFiles({name:"cardapio.txt",mimeType:"text/plain",buffer:Buffer.from("BEBIDAS\nRefrigerante lata R$ 6,00\nÁgua mineral R$ 4,00")});
   await page.waitForFunction(()=>document.querySelector("#idea-source-text")?.value.includes("Água mineral"));

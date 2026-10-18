@@ -66,7 +66,7 @@ test('the reference UI exposes canonical public URLs and explains the public loo
  const f=fixture();try{
   const View=f.load('components/menu-source-link.tsx').default;
   const html=renderToStaticMarkup(createElement(View,{source:inspectMenuSourceText(shared)}));
-  assert.match(html,/Link do iFood reconhecido/);assert.match(html,/Aione Pizzas Jardim Pero/);assert.match(html,/referência do endereço/);assert.match(html,/consultar o catálogo público/);assert.match(html,/iFood bloquear o acesso/);
+  assert.match(html,/Link do iFood reconhecido/);assert.match(html,/Aione Pizzas Jardim Pero/);assert.match(html,/referência do endereço/);assert.match(html,/consultar o catálogo público/);assert.match(html,/iFood não liberar os produtos/);
   assert.ok(html.includes(`href="${url}"`));assert.match(html,/rel="noopener noreferrer"/);assert.doesNotMatch(html,/UTM_Medium|secret|cnpj|Loja encontrada/i);
   const unsafe=renderToStaticMarkup(createElement(View,{source:inspectMenuSourceText('https://evil.example/menu')}));assert.doesNotMatch(unsafe,/href=/);assert.match(unsafe,/Use o link da loja ou o texto/);
   const plain=renderToStaticMarkup(createElement(View,{source:inspectMenuSourceText('Bebidas\nSuco R$ 8,00')}));assert.equal(plain,'');

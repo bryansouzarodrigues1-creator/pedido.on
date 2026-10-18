@@ -1,7 +1,7 @@
 import {structuredMenuStore,type MenuStoreInfo} from "./menu-store-info.ts";
 import {parseIfoodStoreLink} from "./menu-source-links.ts";
 export type IfoodImportResult={status:"imported"|"needs_content";url:string;text:string;count:number;message:string;store?:MenuStoreInfo};
-const blocked="O iFood não liberou o catálogo por esse link. Cole o texto completo do cardápio ou envie um arquivo TXT/CSV para continuar. Não é preciso cadastrar os produtos um a um.";
+const blocked="O iFood não liberou o catálogo por esse link. Abra sua loja e envie PDF, TXT/CSV, página salva ou prints do cardápio.";
 const clean=(s:unknown,max=600)=>typeof s==="string"?s.replace(/<[^>]*>/g," ").replace(/[\r\n]+/g," ").replace(/\s+/g," ").trim().slice(0,max):"";
 type Candidate={name:string;category:string;description:string;prices:Set<number>;uncertain:boolean};
 const keys=["@graph","hasMenu","hasMenuSection","hasMenuItem","itemListElement","item"];
@@ -114,5 +114,5 @@ export async function importIfoodLink(raw:string,fetcher:typeof fetch=fetch):Pro
   const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length;}
   const html=new TextDecoder().decode(bytes),menu=structuredIfoodMenu(html,60000-link.url.length-1),store=structuredMenuStore(html,link.url);
   return menu.count?{status:"imported",url:link.url,...menu,...(store?{store}:{}),message:(menu.partial?"Trouxemos uma parte do catálogo: ":"")+menu.count+" produtos encontrados em dados públicos estruturados. Confira os preços, tamanhos e complementos antes de importar; itens complexos podem exigir foto ou texto."}:store?{...fallback("Encontramos dados públicos da loja. Confira nome, endereço e horários; os produtos ainda precisam de texto ou fotos."),store}:fallback();
- }catch{return fallback("Não foi possível acessar esse catálogo agora. Você pode colar o texto completo ou enviar um arquivo TXT/CSV.");}
+ }catch{return fallback("Não foi possível acessar esse catálogo agora. Você pode enviar PDF, TXT/CSV ou fotos do cardápio.");}
 }

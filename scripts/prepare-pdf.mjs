@@ -1,0 +1,11 @@
+import {createRequire} from 'node:module';
+import {mkdir,cp,copyFile,readFile} from 'node:fs/promises';
+import path from 'node:path';
+const require=createRequire(import.meta.url),root=path.resolve(import.meta.dirname,'..');
+const source=path.dirname(require.resolve('pdfjs-dist/package.json'));
+const {version}=JSON.parse(await readFile(path.join(source,'package.json'),'utf8'));
+const target=path.join(root,'public/pdf','v'+version);await mkdir(target,{recursive:true});
+await copyFile(path.join(source,'build/pdf.worker.min.mjs'),path.join(target,'pdf.worker.min.mjs'));
+for(const name of ['cmaps','standard_fonts','wasm'])await cp(path.join(source,name),path.join(target,name),{recursive:true});
+await copyFile(path.join(source,'LICENSE'),path.join(target,'PDFJS-LICENSE.txt'));
+console.log('Leitor PDF '+version+' preparado na mesma origem; arquivos lidos no aparelho.');

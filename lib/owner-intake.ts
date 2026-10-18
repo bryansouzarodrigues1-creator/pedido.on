@@ -24,7 +24,7 @@ export const ownerQuestions=[
   "Onde fica a pizzaria? Informe rua, número, bairro, cidade e estado. Se não tiver endereço para divulgar, responda 'depois'.",
   "Qual WhatsApp os clientes devem usar para fazer pedidos? Inclua o DDD. Pode responder 'depois'.",
   "Qual é o horário de funcionamento? Ex.: terça a domingo, 18h às 23h. Se ainda não definiu, responda 'depois'.",
-  "Você já tem cardápio? Cole o link do iFood ou do seu cardápio. Também pode enviar foto, TXT ou CSV em 'Anexar cardápio'. Se vai cadastrar os produtos depois, escreva 'depois'.",
+  "Traga seu cardápio por link do iFood, PDF, TXT ou foto. Também pode colar os produtos com preços aqui.",
 ] as const;
 
 const simplified=(text:string)=>text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();

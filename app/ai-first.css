@@ -236,4 +236,30 @@
 .ai-template-options[open]{padding-bottom:18px}.ai-template-options .ai-style-grid{margin-top:12px}
 .creator-briefing>summary{padding:16px 18px;border:1px solid #5f555b;background:#212128;border-radius:12px;font-size:13px;color:#eaded5;cursor:pointer;line-height:1.6}.creator-briefing>summary>span{font-size:11px;opacity:.75;margin-left:8px}.creator-briefing[open]>summary{margin-bottom:16px}.creator-flow.waiting-prompt .creator-briefing>summary{display:none}
 .mini-menu .mini-cover.no-cover>.cover-empty{background:transparent;color:var(--menu-muted,#6d785f);place-items:center end;padding:20px;opacity:.28}
+
+/* A useful preview fits the screen. Missing photos must not create empty posters. */
+.creator-flow .ai-selected-preview{max-width:460px;max-height:600px;mask-image:linear-gradient(#000 0%,#000 91%,transparent 100%)}
+.creator-flow .ai-selected-preview .mini-menu{width:100%;min-height:0}
+.creator-flow .ai-selected-preview .mini-top strong{font-size:17px}
+.creator-flow .ai-selected-preview .mini-product strong{font-size:14px}
+.creator-flow .ai-selected-preview .mini-product p{font-size:11px;line-height:1.55;max-width:none}
+.creator-flow .ai-selected-preview .mini-product b{font-size:13px}
+.creator-flow .ai-selected-preview .mini-tabs{font-size:10px}
+.mini-menu.layout-poster .mini-product.without-photo{display:flex;min-height:0;grid-column:auto;padding:14px 12px}
+.mini-menu.layout-poster .mini-product.without-photo>div{padding:0 22px 0 0;order:0}
+.mini-menu.layout-poster .mini-product.without-photo .mini-add{bottom:14px;right:10px}
+.mini-menu .mini-cover.no-cover span{color:inherit}
+.customer-menu .menu-product-poster.without-photo{min-height:0;justify-content:flex-start}
+.customer-menu .menu-product-poster.without-photo .menu-product-copy{width:100%}
+.owner-source-fallback{padding:16px;border:1px solid #dabf9f;border-radius:14px;background:#fff6e9;color:#463523;margin:16px 0}
+.owner-source-fallback>strong{font-size:14px;line-height:1.5;display:block}
+.owner-source-fallback p{font-size:13px;line-height:1.6;margin:8px 0 12px;color:#634f3e}
+.owner-source-fallback>div{display:flex;gap:8px;flex-wrap:wrap}
+.owner-source-fallback>div>a,.owner-source-fallback>div>button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #c8ab8c;border-radius:9px;padding:10px;background:#fffdf8;color:#493722;font:inherit;font-size:12px;min-height:42px;text-decoration:none;cursor:pointer}
+.owner-source-fallback summary,.idea-source-review summary{font-size:13px;cursor:pointer;padding:12px 0;line-height:1.5}
+.owner-source-fallback details p{margin-bottom:0}
+.idea-source>p{font-size:13px;line-height:1.7;color:#d4cdd0}
+.idea-source-review{margin-top:12px;color:#ece7e1;border-top:1px solid #55515a}
+.idea-source-review label{margin-top:12px}
+@media(max-width:520px){.creator-flow .ai-selected-preview{max-height:490px}.owner-source-fallback>div>a,.owner-source-fallback>div>button{flex:1 1 135px}.creator-flow .ai-selected-preview .mini-top strong{font-size:15px}}
 @media(max-width:640px){.creator-flow.waiting-prompt{padding-top:15px;padding-bottom:42px}.creator-intro{margin:6px auto 25px}.creator-intro>span{font-size:9px;letter-spacing:1.7px}.ai-landing .creator-intro h1{font-size:36px;letter-spacing:-1.7px;margin:13px 0}.creator-intro>p{font-size:13px;max-width:300px}.creator-flow .idea-conversation{padding:18px;border-radius:20px}.owner-intake--composer .owner-intake-title strong{font-size:14px}.owner-intake--composer .owner-intake-title small{font-size:11px}.owner-intake--composer .owner-intake-reply textarea{font-size:16px;padding:14px;min-height:135px}.creator-flow.waiting-prompt .owner-intake-reply textarea:placeholder-shown{min-height:175px}.owner-intake--composer .owner-intake-controls{display:grid;gap:12px}.owner-intake--composer .owner-intake-controls .btn{width:100%;margin:0;font-size:14px;justify-content:center}.owner-intake--composer .owner-intake-controls small{font-size:10px}.owner-intake--composer .owner-start-options button{font-size:11px;min-height:38px;padding:8px 10px}.ai-template-options{padding-inline:12px}.ai-template-options>summary{font-size:12px}}
