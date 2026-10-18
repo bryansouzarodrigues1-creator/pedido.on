@@ -31,11 +31,12 @@ export default function IdeaStart(){
  const [initialized,setInitialized]=useState(false),[brandAssets,setBrandAssets]=useState<BrandAssets|null>(null),[brandName,setBrandName]=useState(""),[storageError,setStorageError]=useState("");
  const [referenceId,setReferenceId]=useState<GalleryStyleId|null>(null);
  const [fullPreview,setFullPreview]=useState(false);
+ const [templatesOpen,setTemplatesOpen]=useState(false);
  const fullPreviewRef=useRef<HTMLDivElement|null>(null);
  const [styleId,setStyleId]=useState<GalleryStyleId|null>(null),[round,setRound]=useState(0),[refinement,setRefinement]=useState(""),[feedback,setFeedback]=useState(""),[localFeedbackNote,setLocalFeedbackNote]=useState(""),[chatOpen,setChatOpen]=useState(false);
  const [idea,setIdea]=useState(""),[sourceOpen,setSourceOpen]=useState(false),[sourceText,setSourceText]=useState(""),[pages,setPages]=useState<ReaderPage[]>([]),[preview,setPreview]=useState<RestaurantData|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[readingLabel,setReadingLabel]=useState(""),[imported,setImported]=useState(0),[saving,setSaving]=useState(false);
  const abort=useRef<AbortController|null>(null),alive=useRef(true),reading=useRef<Reading|null>(null),launch=useRef<MenuLaunch|null>(null),galleryRef=useRef<HTMLElement|null>(null),styleGridRef=useRef<HTMLDivElement|null>(null),scrollToResult=useRef(false);
- useEffect(()=>{alive.current=true;void loadLaunchCheckpoint().then(async saved=>{if(!saved||!alive.current)return;launch.current=saved;setIntake(saved.ownerIntake||emptyOwnerIntake());setIdea(saved.idea);setSourceText(saved.sourceText);setBrandName(saved.brandName||"");if(saved.sourceText||saved.hasPhotos||saved.hasAssets)setSourceOpen(true);setStyleId(saved.styleId||null);setRefinement(saved.refinement||"");const [v,images]=await Promise.all([loadReading(guestReadingKey(saved.id)).catch(()=>null),loadBrandAssets(guestReadingKey(saved.id)).catch(()=>null)]);if(!alive.current)return;if(v){setPages(v.pages);reading.current=v;setImported(v.items.length);}if(images)setBrandAssets(images);if(saved.hasPhotos&&!v?.pages.length||saved.hasAssets&&!images?.logo&&!images?.cover)setNotice("Sua ideia foi recuperada, mas alguns anexos não estão disponíveis. Envie esses arquivos novamente antes de continuar.");if(saved.previewReady&&saved.ownerIntake&&intakeFinished(saved.ownerIntake))setPreview(makePreview(v?.items||[]));}).catch(()=>{if(alive.current)setStorageError("Não foi possível recuperar o projeto deste aparelho.");}).finally(()=>{if(alive.current)setInitialized(true);});return()=>{alive.current=false;abort.current?.abort();};},[]);
+ useEffect(()=>{alive.current=true;void loadLaunchCheckpoint().then(async saved=>{if(!saved||!alive.current)return;launch.current=saved;setIntake(saved.ownerIntake||emptyOwnerIntake());setIdea(saved.idea);setSourceText(saved.sourceText);setBrandName(saved.brandName||"");if(saved.sourceText||saved.hasPhotos||saved.hasAssets)setSourceOpen(true);setStyleId(saved.styleId||(saved.previewReady?suggestedGalleryStyles(saved.idea,saved.refinement||"")[0]:null));setRefinement(saved.refinement||"");const [v,images]=await Promise.all([loadReading(guestReadingKey(saved.id)).catch(()=>null),loadBrandAssets(guestReadingKey(saved.id)).catch(()=>null)]);if(!alive.current)return;if(v){setPages(v.pages);reading.current=v;setImported(v.items.length);}if(images)setBrandAssets(images);if(saved.hasPhotos&&!v?.pages.length||saved.hasAssets&&!images?.logo&&!images?.cover)setNotice("Sua ideia foi recuperada, mas alguns anexos não estão disponíveis. Envie esses arquivos novamente antes de continuar.");if(saved.previewReady&&saved.ownerIntake&&intakeFinished(saved.ownerIntake))setPreview(makePreview(v?.items||[]));}).catch(()=>{if(alive.current)setStorageError("Não foi possível recuperar o projeto deste aparelho.");}).finally(()=>{if(alive.current)setInitialized(true);});return()=>{alive.current=false;abort.current?.abort();};},[]);
  useEffect(()=>{if(!initialized||!idea&&!brandName&&!sourceText&&!pages.length&&!brandAssets&&!preview&&!intake.step)return;const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,ownerIntake:intake,sourceText,hasPhotos:!!pages.length,hasAssets:!!(brandAssets?.logo||brandAssets?.cover),styleId:styleId||undefined,refinement,previewReady:!!preview};launch.current=value;void saveLaunchCheckpoint(value).then(()=>{if(alive.current)setStorageError("");}).catch(e=>{if(alive.current)setStorageError(e instanceof Error?e.message:"Não foi possível guardar sua ideia.");});},[idea,brandName,intake,sourceText,pages.length,brandAssets,styleId,refinement,preview,initialized]);
  useEffect(()=>{if(preview&&scrollToResult.current){scrollToResult.current=false;requestAnimationFrame(()=>galleryRef.current?.scrollIntoView({behavior:"smooth",block:"start"}));}},[preview]);
  useEffect(()=>{if(!fullPreview)return;const previous=document.activeElement as HTMLElement|null,scroll=document.body.style.overflow;document.body.style.overflow="hidden";
@@ -55,9 +56,9 @@ export default function IdeaStart(){
    const old=brandAssets||{key:guestReadingKey(id)},next={...old,key:guestReadingKey(id),[kind]:image};
    await saveBrandAssets(next);await saveLaunchCheckpoint(value);launch.current=value;setBrandAssets(next);setSourceOpen(true);
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível guardar a imagem da marca.");}finally{setBusy(false);}}
- async function generate(e?:FormEvent){
-  if(!intakeFinished(intake)){setError("Complete os dados essenciais ou escolha preencher depois.");return;}
-  e?.preventDefault();if(busy)return;setError("");setNotice("");setBusy(true);const controller=new AbortController();abort.current=controller;
+ async function generate(nextIntake:OwnerIntake=intake){
+  if(!intakeFinished(nextIntake)){setError("Informe o nome da pizzaria para preparar sua prévia.");return;}
+  if(busy)return;const nextIdea=ownerVisualBriefing(nextIntake);setIdea(nextIdea);setError("");setNotice("");setBusy(true);const controller=new AbortController();abort.current=controller;
   try{
    let text=sourceText,source=inspectMenuSourceText(text),ready=pages;
    if(source.links.length===1&&!source.menuText&&!pages.length){
@@ -66,10 +67,8 @@ export default function IdeaStart(){
       const result=sourceLookup.current?.url===source.links[0].url?sourceLookup.current:await fetchMenuSource(source.links[0].url);
       setNotice(result.message);
       if(result.text){text=source.links[0].url+"\n"+result.text;setSourceText(text);source=inspectMenuSourceText(text);}
-      else setSourceOpen(true);
     }catch{
       setNotice("Não consegui ler automaticamente o link do cardápio. Vou mostrar os modelos; depois você pode enviar fotos, CSV ou cadastrar produtos manualmente.");
-      setSourceOpen(true);
     }
    }
    const missing=pages.filter(p=>!p.lines.length);
@@ -77,11 +76,19 @@ export default function IdeaStart(){
    const input=ready.map(p=>({id:p.id,lines:p.lines}));if(source.menuText.trim())input.push({id:"text",lines:source.menuText.split("\n").map(text=>({text}))});
    const result=input.length?readMenuPages(input):{items:[],unmatched:[]};
    if(input.length&&!result.items.length)setNotice("A fonte não trouxe produtos com preço legível. Cole o texto com os preços ou tente uma imagem mais nítida.");
-   scrollToResult.current=true;setPreview(makePreview(result.items));setChatOpen(false);setImported(result.items.length);
+   scrollToResult.current=true;setStyleId(current=>current||suggestedGalleryStyles(nextIdea,refinement)[0]);setTemplatesOpen(false);setPreview(makePreview(result.items));setChatOpen(false);setImported(result.items.length);
    if(!launch.current)launch.current={id:crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,sourceText:text,hasPhotos:!!ready.length};
    reading.current={restaurantId:guestReadingKey(launch.current.id),savedAt:Date.now(),pages:ready,items:result.items,unmatched:result.unmatched,text};
    await saveReading(reading.current).catch(()=>{});
   }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Não foi possível preparar a prévia.");}finally{if(alive.current){setBusy(false);setReadingLabel("");}abort.current=null;}
+ }
+ function captureProductText(message:string){
+  if(!/(?:R\s*\$\s*\d|\b\d+[,.]\d{2}\b)/i.test(message))return false;
+  const text=inspectMenuSourceText(message).menuText.split("\n").filter(line=>!/^\s*\|?\s*(?:campo|nome(?: da pizzaria)?|endere[cç]o|whats(?:app)?|hor[aá]rios?|card[aá]pio|exemplo)(?:\s|[:=|])/i.test(line)).join("\n");
+  const parsed=readMenuPages([{id:"message",lines:text.split("\n").map(text=>({text}))}]);
+  if(!parsed.items.length)return false;
+  try{const merged=mergeReaderSource(sourceText,text);setSourceText(merged);reading.current=null;return true;}
+  catch(e){setError(e instanceof Error?e.message:"Não foi possível acrescentar os produtos. Sua leitura anterior foi preservada.");return false;}
  }
  async function removeBrand(kind:"logo"|"cover"){if(!brandAssets||busy||saving)return;setBusy(true);setError("");try{const next={...brandAssets,[kind]:undefined};await saveBrandAssets(next);setBrandAssets(next);}catch{setError("Não foi possível remover esta imagem. Tente novamente.");}finally{setBusy(false);}}
  async function continueSetup(requestAi=false){
@@ -103,22 +110,26 @@ export default function IdeaStart(){
   const combined=(refinement?refinement+"\n":"")+feedback.trim();
   if(combined.length>600){setError("Resuma as mudanças em até 600 caracteres.");return;}
   setRefinement(combined);setFeedback("");setError("");setChatOpen(false);
-  setLocalFeedbackNote(supportsLocalRefinement(feedback)?"Ajustei o que este modelo permite. Confira a prévia. Seu pedido completo ficou guardado.":"Não consegui aplicar essa mudança com os modelos locais. Seu pedido está guardado para o Estúdio de IA.");
+  const changed=!!preview&&JSON.stringify(galleryDesign(preview,styleId||styles[0],idea,refinement))!==JSON.stringify(galleryDesign(preview,styleId||styles[0],idea,combined));
+  setLocalFeedbackNote(changed?"Prévia atualizada. Confira o resultado; seu pedido completo ficou guardado.":supportsLocalRefinement(feedback)?"Esse pedido não mudou o visual atual. Tente outra cor, organização ou tamanho das fotos.":"Essa personalização precisa do Estúdio de IA. Seu pedido ficou guardado para continuar com sua conta.");
   if(!styleId)setRound(0);
  }
- return <section className={"idea-start ai-landing "+(preview?"has-results":"waiting-prompt")} id="ideia"><div className="saas-container">
+ return <section className={"idea-start ai-landing creator-flow "+(preview?"has-results":"waiting-prompt")} id="ideia"><div className="saas-container">
+   {!preview&&<div className="creator-intro"><span>SEU CARDÁPIO. DO SEU JEITO.</span><h1>Sua pizzaria começa<br/>com uma ideia.</h1><p>Conte como você imagina. Traga seu cardápio e veja tudo ganhar forma.</p></div>}
    <div className={"idea-workspace"+(preview?" has-gallery":"")}><div className="idea-composer-wrap">
+     <details className="creator-briefing" open={!preview}><summary>Sua ideia e dados da pizzaria <span>Conferir ou editar</span></summary>
      <div className="idea-conversation">
        <OwnerIntakeChat value={intake} disabled={busy||saving||!initialized}
         onChange={next=>{
-          setIntake(next);setPreview(null);setStyleId(null);setRound(0);
+          setIntake(next);setPreview(null);if(next.visualChoice!==intake.visualChoice)setStyleId(null);setRound(0);
           if(next.initialMessage!==intake.initialMessage||next.visualChoice!==intake.visualChoice)setIdea(ownerVisualBriefing(next));
           if(next.answers.name!==intake.answers.name)setBrandName(next.answers.name||"");
           if(next.answers.menu!==intake.answers.menu)setSourceText(old=>old&&old!==intake.answers.menu?old:next.answers.menu||"");
         }}
         onSource={result=>{sourceLookup.current=result;setPreview(null);setSourceText(old=>mergeReaderSource(old,result.url+(result.text?"\n"+result.text:"")));}}
+        onText={captureProductText}
         onAttach={()=>setSourceOpen(true)}
-        onReady={()=>{void generate();}}/>
+        onReady={next=>{void generate(next);}}/>
        <div className="idea-composer-bottom idea-conversation-attachments"><button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>setSourceOpen(!sourceOpen)}><Paperclip size={17}/>Anexar cardápio / iFood {pages.length>0?"("+pages.length+")":""}</button><small>Traga os produtos e a identidade da sua pizzaria.</small></div>
      </div>
      {sourceOpen&&<div className="idea-source"><div><strong><Link2 size={17}/>Seu cardápio atual</strong><button className="icon-btn" type="button" aria-label="Recolher importação" onClick={()=>setSourceOpen(false)}><X size={16}/></button></div><label htmlFor="idea-source-text">Link do iFood ou texto dos produtos</label>
@@ -128,21 +139,23 @@ export default function IdeaStart(){
        {pages.length>0&&<div className="idea-photos">{pages.map(page=><div key={page.id}><img src={page.image} alt={page.name}/><button type="button" disabled={busy||saving||!initialized} aria-label={"Remover "+page.name} onClick={()=>{setPages(old=>old.filter(p=>p.id!==page.id));setPreview(null);reading.current=null;}}><X size={13}/></button></div>)}</div>}
        <small>Confira os preços e tamanhos antes de publicar. Logo e capa ficam guardados neste aparelho até você aplicá-los no painel.</small>
      </div>}
+     </details>
      {storageError&&<p className="idea-error" role="status">{storageError}</p>}{notice&&<p className="idea-notice" role="status">{notice}</p>}{error&&<p className="idea-error" role="alert">{error}</p>}{busy&&readingLabel&&<p className="idea-notice" role="status">{readingLabel}</p>}
    </div>
    {preview&&<section ref={galleryRef} className="ai-gallery" aria-label="Escolha o visual do seu cardápio">
-     <div className="ai-gallery-heading"><div><h2>{styleId?"Seu modelo":"12 modelos para sua pizzaria"}</h2><p>{imported?imported+" itens identificados. ":""}Escolha o que mais combina com você.</p></div><span className="ai-round-count">{styleId?"ESCOLHIDO":`${round*4+1}–${Math.min(round*4+4,styles.length)} DE ${styles.length}`}</span></div>
+     <div className="ai-gallery-heading"><div><h2>Sua pizzaria está ganhando forma.</h2><p>{imported?imported+" itens identificados. ":""}Confira a prévia e ajuste do seu jeito.</p></div><span className="ai-round-count">PRÉVIA</span></div>
      {interpretedPalette&&<div className="ai-visual-summary" aria-live="polite"><div><strong>Identidade visual aplicada</strong><small>{interpretedPalette.motif==="sea-cheese"?"Azul do mar + amarelo-queijo · cabeçalho, destaques, fundos e fotos com composição adaptada":"Duas cores combinadas em superfícies, navegação, botões e conteúdo"}</small></div><span className="ai-palette-swatches" aria-label="Cores da identidade"><i title="Cor principal" style={{background:interpretedPalette.primary}}/><i title="Cor secundária" style={{background:interpretedPalette.palette.secondary}}/><i title="Fundo do cardápio" style={{background:interpretedPalette.palette.background}}/></span></div>}
      {!explicitName&&styleId&&<label className="ai-brand-name"><span>Como se chama sua pizzaria? <small>Opcional por enquanto</small></span><input type="text" autoComplete="organization" maxLength={100} value={brandName} onChange={e=>setBrandName(e.target.value)} placeholder="Nome da sua pizzaria" disabled={busy||saving}/></label>}
      {preview.products.some(item=>item.id==="margherita"&&item.name==="Margherita")&&imported===0&&<p className="ai-gallery-sample" role="note">Sabores e preços ilustrativos para visualizar o design. Nenhum valor de exemplo será cadastrado na sua loja.</p>}
-     {styleId?<div className="ai-selected"><div className="ai-selected-bar"><div><strong>{galleryStyle(styleId).title}</strong><small>{galleryStyle(styleId).summary}</small></div><button type="button" onClick={()=>{setStyleId(null);setChatOpen(false);}}>Escolher outro</button></div><div className="ai-selected-preview"><MiniMenu data={design(styleId)} large rich/></div><div className="ai-selected-actions">
+     {styleId&&<div className="ai-selected"><div className="ai-selected-bar"><div><strong>Prévia da sua pizzaria</strong><small>{galleryStyle(styleId).summary}</small></div><button type="button" onClick={()=>{setTemplatesOpen(true);setChatOpen(false);requestAnimationFrame(()=>galleryRef.current?.querySelector(".ai-template-options")?.scrollIntoView({behavior:"smooth",block:"start"}));}}>Escolher outro</button></div><div className="ai-selected-preview"><MiniMenu data={design(styleId)} large rich/></div><div className="ai-selected-actions">
        <button type="button" className="btn outline" onClick={()=>setFullPreview(true)} aria-label={"Testar o cardápio completo personalizado "+galleryStyle(styleId).title}>Testar meu cardápio completo <ArrowRight size={15}/></button>
        <button type="button" className="btn primary" disabled={busy||saving} onClick={()=>void continueSetup()}>{saving?<Spinner/>:<><Check size={17}/>Usar este modelo</>}</button>
       </div><details className="ai-selected-more"><summary>Mais opções de personalização</summary><div>
        <button type="button" className="btn outline" onClick={()=>setReferenceId(styleId)}>Ver imagem de referência</button>
        <button type="button" className="btn outline" aria-expanded={chatOpen} aria-controls="gallery-feedback" onClick={()=>setChatOpen(true)}>Ajustar cores, fotos e textos</button>
-      </div></details></div>:
-       <><p className="ai-swipe-hint">Arraste para o lado · {`modelos ${round*4+1} a ${Math.min(round*4+4,styles.length)}`}</p><div ref={styleGridRef} className="ai-style-grid">{visible.map(id=>{const style=galleryStyle(id);return <article key={id} className="ai-style-card"><div className="ai-style-screen"><MiniMenu data={design(id)} large/></div><div className="ai-style-footer"><div><strong>{style.title}</strong><span>{style.summary}</span><button type="button" className="ai-reference-link" aria-label={"Ver referência de "+style.title} onClick={()=>setReferenceId(id)}>Ver referência</button></div><button type="button" disabled={busy||saving} onClick={()=>{setStyleId(id);setChatOpen(false);}} aria-label={"Escolher "+style.title}>Escolher<ArrowRight size={16}/></button></div></article>;})}</div><div className="ai-gallery-commands"><button type="button" onClick={()=>{setRound((round+1)%rounds);styleGridRef.current?.scrollTo({left:0,behavior:"auto"});setChatOpen(false);}}><RefreshCw size={16}/>{round<rounds-1?"Ver mais 4 modelos":"Ver os primeiros 4"}</button><button type="button" onClick={()=>setChatOpen(true)}><Sparkles size={16}/>Gerar outro modelo</button></div></>}
+      </div></details></div>}
+       <details className="ai-template-options" open={templatesOpen} onToggle={e=>setTemplatesOpen(e.currentTarget.open)}><summary>Prefere escolher um modelo pronto? <span>12 opções</span></summary>
+       <p className="ai-swipe-hint">Arraste para o lado · {`modelos ${round*4+1} a ${Math.min(round*4+4,styles.length)}`}</p><div ref={styleGridRef} className="ai-style-grid">{visible.map(id=>{const style=galleryStyle(id);return <article key={id} className="ai-style-card"><div className="ai-style-screen"><MiniMenu data={design(id)} large/></div><div className="ai-style-footer"><div><strong>{style.title}</strong><span>{style.summary}</span><button type="button" className="ai-reference-link" aria-label={"Ver referência de "+style.title} onClick={()=>setReferenceId(id)}>Ver referência</button></div><button type="button" disabled={busy||saving} onClick={()=>{setStyleId(id);setTemplatesOpen(false);setChatOpen(false);galleryRef.current?.scrollIntoView({behavior:"smooth",block:"start"});}} aria-label={"Escolher "+style.title}>Escolher<ArrowRight size={16}/></button></div></article>;})}</div><div className="ai-gallery-commands"><button type="button" onClick={()=>{setRound((round+1)%rounds);styleGridRef.current?.scrollTo({left:0,behavior:"auto"});setChatOpen(false);}}><RefreshCw size={16}/>{round<rounds-1?"Ver mais 4 modelos":"Ver os primeiros 4"}</button><button type="button" onClick={()=>setChatOpen(true)}><Sparkles size={16}/>Pedir um ajuste</button></div></details>
      {localFeedbackNote.includes("Estúdio")&&<div className="ai-personalize"><p>Seu pedido ficou guardado. A personalização avançada exige uma conta.</p><button className="btn dark" type="button" disabled={saving||busy} onClick={()=>void continueSetup(true)}><Sparkles size={16}/>Continuar com IA <ArrowRight size={15}/></button></div>}
      {chatOpen&&<form className="ai-refine" onSubmit={refine}><label htmlFor="gallery-feedback">O que você quer diferente?</label><textarea id="gallery-feedback" required rows={3} maxLength={600} value={feedback} onChange={e=>setFeedback(e.target.value)} placeholder="Escreva livremente como você quer o design, as cores, a geometria, o tamanho das fotos e os textos."/><div><small>Peça mudanças de cores, fotos, letras e composição. Confira o resultado antes de aplicar.</small><button type="submit" className="btn dark">Aplicar meu pedido <ArrowRight size={15}/></button></div></form>}
      {localFeedbackNote&&<p className="ai-gallery-feedback" role="status">{localFeedbackNote}</p>}

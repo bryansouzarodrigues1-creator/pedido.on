@@ -34,10 +34,25 @@ const locationBoundary=/\s+(?:e\s+)?(?:fica\s+(?:em|na|no)|fica\s+localizada?\s+
 // Colour words may be part of the trade name ("Forno Azul", "Casa Verde").
 // Split at actual design instructions, not at a colour adjective by itself.
 const descriptorBoundary=/\s+(?:e\s+)?(?:quero|gostaria|as cores?|cores?|com\s+(?:as?\s+)?cores?)\b/i;
+/** Clipboard tables arrive as Markdown, tabs, or plain label/value rows. */
+function labelledOwnerFields(message:string){
+ const result:Partial<Record<OwnerField,string>>={};
+ for(const line of message.slice(0,6000).split(/\r?\n/)){
+  const row=line.trim().replace(/^\|\s*|\s*\|$/g,"").replace(/\*\*/g,"");
+  const match=row.match(/^(nome(?: da pizzaria)?|pizzaria|endere[cç]o(?: da (?:loja|pizzaria))?|whatsapp|whats|telefone para pedidos|hor[aá]rios?(?: de funcionamento)?|card[aá]pio)\s*(?:[:=|]\s*|\t+\s*| +)(.+)$/i);
+  if(!match)continue;
+  if(/^pizzaria$/i.test(match[1])&&!/^pizzaria\s*[:=|\t]/i.test(row))continue;
+  if(/^nome$/i.test(match[1])&&/^(?:do|da|dela|dele)\b.*\s(?:é|e|:|=)\s/i.test(match[2]))continue;
+  const key=simplified(match[1]),field:OwnerField=/^(nome|pizzaria)/.test(key)?"name":key.startsWith("endereco")?"address":/^(whats|telefone)/.test(key)?"whatsapp":key.startsWith("horario")?"hours":"menu";
+  const value=clean(match[2].replace(/\s*\|.*$/,""));if(value&&!result[field])result[field]=value;
+ }
+ return result;
+}
 /** Conservative: never display an entire paragraph as a business name. */
 export function extractOwnerName(text:string):string|undefined {
  const t=clean(text.slice(0,1600));
- const match=t.match(/\b(?:o\s+)?nome\s+(?:dela|dele|da\s+(?:minha\s+)?pizzaria|do\s+(?:meu\s+)?negócio|da\s+loja)\s*(?:é|e|:|=)\s*(.+)$/im)
+ const labelled=labelledOwnerFields(text).name;
+ const match=(labelled?["",labelled]:null)||t.match(/\b(?:o\s+)?nome\s+(?:dela|dele|da\s+(?:minha\s+)?pizzaria|do\s+(?:meu\s+)?negócio|da\s+loja)\s*(?:é|e|:|=)\s*(.+)$/im)
   ||t.match(/^(?:nome|pizzaria)\s*[:=]\s*(.+)$/im)
   ||t.match(/\b(?:a\s+)?(?:minha\s+)?pizzaria\s+(?:se\s+chama|chama-se|chama|é|e)\s+(.+)$/im);
  if(!match)return;
@@ -69,7 +84,7 @@ export function validateOwnerAnswer(field:OwnerField,raw:string):{value?:string;
  if(field!=="name"&&skip(simplified(text)))return {value:""};
  if(field==="name"){
   const compact=clean(text.split(locationBoundary)[0].split(descriptorBoundary)[0]);
-  const genericSentence=/^(?:quero|queria|gostaria|prefiro|preciso|cores?|fundo|fica|delivery|sem|com|tenho|localiza[cç][ãa]o|endere[cç]o)\b/i.test(compact);
+  const genericSentence=/^(?:quero|queria|gostaria|prefiro|preciso|faça|faca|crie|criar|monte|montar|gere|gerar|me ajude|ajude|cores?|fundo|fica|delivery|sem|com|tenho|localiza[cç][ãa]o|endere[cç]o)\b/i.test(compact);
   const name=extractOwnerName(text)||(!genericSentence&&/^[^\n.!?]{2,100}$/.test(compact)&&compact.split(/\s+/).length<=8?compact:undefined);
   if(!name||name.length<2||name.length>100)return {error:"Não consegui identificar o nome. Escreva o nome da pizzaria, por exemplo: Forno Azul."};
   return {value:name};
@@ -95,17 +110,23 @@ export function withOwnerAnswers(state:OwnerIntake,patch:Partial<OwnerIntake["an
 }
 export function ownerFacts(message:string):Partial<OwnerIntake["answers"]>{
  const facts:Partial<OwnerIntake["answers"]>={},name=extractOwnerName(message);if(name)facts.name=name;
- for(const [field,pattern] of [["address",/^endere[cç]o(?: da (?:loja|pizzaria))?\s*[:=]\s*(.+)$/im],["whatsapp",/^(?:whatsapp|whats|telefone para pedidos)\s*[:=]\s*(.+)$/im],["hours",/^hor[aá]rios?(?: de funcionamento)?\s*[:=]\s*(.+)$/im]] as const){
-  const match=message.match(pattern);if(!match)continue;const result=validateOwnerAnswer(field,match[1]);if(!result.error)facts[field]=result.value;
+ const fields=labelledOwnerFields(message);
+ for(const field of ["address","whatsapp","hours"] as const){
+  const value=fields[field];if(!value)continue;const result=validateOwnerAnswer(field,value);if(!result.error)facts[field]=result.value;
  }
  const source=inspectMenuSourceText(message);if(source.links.length===1)facts.menu=source.links[0].url;
  return facts;
 }
 export function nextOwnerIntake(state:OwnerIntake,message:string):{state:OwnerIntake;error?:string}{
  if(state.step>=ownerFieldIds.length)return {state};
- const field=ownerFieldIds[state.step],parsed=validateOwnerAnswer(field,message);
+ const field=ownerFieldIds[state.step],facts=ownerFacts(message);
+ const parsed:{value?:string;error?:string}=facts[field]!==undefined?{value:facts[field]}:validateOwnerAnswer(field,message);
+ // A visual idea without a name is a valid first turn, not a validation error.
+ if(parsed.error&&field==="name"&&message.trim().length>=8&&/\b(?:quero|queria|gostaria|imagino|prefiro|preciso|faça|faca|crie|criar|monte|montar|gere|gerar|ajude|visual|estilo|design|card[aá]pio)\b/i.test(message)&&!inspectMenuSourceText(message).links.length){
+  return {state:withOwnerAnswers({...state,initialMessage:state.initialMessage||message.slice(0,1600)},ownerFacts(message))};
+ }
  if(parsed.error)return {state,error:parsed.error};
- const facts=ownerFacts(message),patch:Partial<OwnerIntake["answers"]>={};
+ const patch:Partial<OwnerIntake["answers"]>={};
  for(const field of ownerFieldIds)if(state.answers[field]===undefined&&facts[field]!==undefined)patch[field]=facts[field];
  patch[field]=parsed.value;
  const initialMessage=state.initialMessage||message.slice(0,1600);
@@ -121,6 +142,13 @@ export function ownerFromStore(state:OwnerIntake,url:string,store:MenuStoreInfo=
  return withOwnerAnswers({...state,source:{url,...(telephone?{telephone}:{})},initialMessage:state.initialMessage|| (patch.name?`Minha pizzaria se chama ${patch.name}.`:"")},patch);
 }
 export function intakeFinished(v:OwnerIntake){return v.step>=ownerFieldIds.length&&!!v.answers.name;}
+/** Explicit preview action defers the remaining optional business fields. */
+export function ownerReadyForPreview(state:OwnerIntake){
+ if(intakeFinished(state))return state;
+ if(!state.answers.name)return state;
+ const patch:Partial<OwnerIntake["answers"]>={};for(const field of ownerFieldIds)if(state.answers[field]===undefined)patch[field]="";
+ return withOwnerAnswers(state,patch);
+}
 export function ownerPreviewDetails(v:OwnerIntake){
  const a=v.answers;
  const address=a.address||"";
