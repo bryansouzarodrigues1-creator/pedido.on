@@ -1,5 +1,5 @@
 import {menuIdentityId} from "./menu-identity.ts";
-import {designFromMessage,type MenuPresentation} from "./menu-design.ts";
+import {designFromMessage,brandPaletteFromBriefing,type MenuPresentation} from "./menu-design.ts";
 import {defaultRestaurant,type RestaurantData,type ThemeId} from "./domain.ts";
 import {nameFromBriefing} from "./studio-policy.ts";
 
@@ -79,7 +79,22 @@ export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:str
  const preset=galleryStyle(id);
  const requested=designFromMessage(briefing,data);
  const voice=galleryVoices[id];
- const base={...data,theme:preset.theme,accent:requested.accent||preset.accent,tagline:voice.tagline,description:voice.description,presentation:{...preset.presentation,identity:id}};
+ const palette=brandPaletteFromBriefing(briefing,feedback)||brandPaletteFromBriefing(briefing);
+ const requestWords=normalized(briefing);
+ // Only honor explicit geometry preferences; keep the preset layouts diverse.
+ const geometry={
+  ...(/fotos? grandes?|fotos? em destaque|capa grande|capa inteira|foto de fundo/.test(requestWords)?{hero:"cover" as const}:{}),
+  ...(/\bserifa\b|elegant|artesanal|sofistic/.test(requestWords)?{font:"serif" as const}:{}),
+  ...(/arredond|cantos? suaves?/.test(requestWords)?{corners:"soft" as const}:{}),
+  ...(/\b(lista|compacto|cartoes|cards|grade)\b/.test(requestWords)&&requested.presentation?{layout:requested.presentation.layout}:{})
+ };
+ const seaCopy=palette?.motif==="sea-cheese"?{
+  tagline:["O sabor do forno encontra o mar.","Uma onda de sabor na sua noite.","Queijo dourado, pizza do seu jeito.","O encontro do mar com o forno.","Do mar ao forno, feito para você.","Seu sabor favorito, com brisa de verão.","Queijo no ponto. Pedido no caminho.","Sabores que chegam como uma onda.","Uma maré de pizzas deliciosas.","Azul do mar. Queijo dourado.","Uma fatia cheia de verão.","Seu momento com sabor de mar."][galleryStyles.findIndex(p=>p.id===id)],
+  description:"Pizza feita para aproveitar cada fatia."
+ }:null;
+ const base={...data,theme:preset.theme,accent:palette?.primary||requested.accent||preset.accent,
+   tagline:seaCopy?.tagline||voice.tagline,description:seaCopy?.description||voice.description,
+   presentation:{...preset.presentation,...geometry,identity:id,...(palette?{palette:palette.palette,motif:palette.motif}:{})}};
  let next:RestaurantData=base;
  // Each turn is applied to the previous result: a later colour must replace an earlier one.
  for(const turn of feedback.split(/\r?\n+|[.;]\s+/).filter(Boolean)){
@@ -93,6 +108,10 @@ export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:str
    ...(/cantos?|arredond|quadrad/.test(words)?{corners:extras.presentation.corners}:{})
   }:next.presentation;
   next={...next,...extras,presentation};
+ }
+ if(palette){
+  // The two-tone colors have distinct roles, not twelve cards in one flat color.
+  next={...next,accent:palette.primary,presentation:{...next.presentation!,palette:palette.palette,motif:palette.motif}};
  }
  const brand=nameFromBriefing(briefing);
  const tagline=[...(briefing+"\n"+feedback).matchAll(/(?:slogan|frase|chamada)\s*[:=]\s*["“]?([^\n"”]{2,120})/gi)].at(-1)?.[1]?.trim();
