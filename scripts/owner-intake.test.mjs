@@ -16,6 +16,8 @@ test("real reported bug: user free message yields only restaurant name, never fu
 });
 test("natural Portuguese, punctuation, names and minimal/no input",()=>{
  assert.equal(extractOwnerName('Minha pizzaria se chama "Forno do Bairro". Quero azul'),"Forno do Bairro");
+ assert.equal(extractOwnerName('Minha pizzaria se chama Forno Azul. Quero amarelo cor de queijo e azul do mar, com letras elegantes e fotos grandes.'),"Forno Azul");
+ assert.equal(validateOwnerAnswer("name",'Minha pizzaria se chama Casa Verde e quero cores claras').value,"Casa Verde");
  assert.equal(extractOwnerName("Minha pizzaria é uma loja pequena"),undefined);
  assert.equal(extractOwnerName("Gostaria de fundo preto"),undefined);
  assert.equal(validateOwnerAnswer("name","Della Mama").value,"Della Mama");
