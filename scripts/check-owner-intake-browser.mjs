@@ -35,7 +35,7 @@ try{
   await page.screenshot({path:path.join(evidence,"guided-start.png"),fullPage:true});
  });
  await record("captura nome, bairro, WhatsApp, horário e link sem confundir cores",async()=>{
-  await say("O nome da minha pizzaria é Bella Massa QA, quero um cardápio artesanal com detalhes azuis e fotos grandes.");
+  await say("O nome da minha pizzaria é Bella Massa QA, quero amarelo cor de queijo e azul do mar, um cardápio artesanal com fotos grandes.");
   assert.match(await page.locator(".owner-intake-history").textContent(),/Bella Massa QA/);
   await say("Rua Guilhermina, 120, Tucuns, Armação dos Búzios - RJ");
   await say("(22) 99999-9999");
@@ -53,6 +53,26 @@ try{
   assert.equal(await page.locator(".ai-style-card .mini-store-address").count(),4);
   assert.match(await page.locator(".ai-style-card .mini-store-hours").first().textContent(),/18h/);
   await page.screenshot({path:path.join(evidence,"guided-personalized.png"),fullPage:true});
+ });
+ await record("teste completo abre as 18 demonstrações com as cores e o nome do briefing, sem pedidos reais",async()=>{
+  await page.locator(".ai-style-card").first().locator(".ai-style-footer button").last().click();
+  await page.locator(".ai-selected").waitFor();
+  const chosen=await page.locator(".ai-selected .mini-menu").evaluate(el=>({accent:el.style.getPropertyValue("--menu-accent"),secondary:el.style.getPropertyValue("--menu-secondary"),bg:el.style.getPropertyValue("--menu-bg")}));
+  assert.equal(chosen.accent.toUpperCase(),"#2169AC");assert.equal(chosen.secondary.toUpperCase(),"#F2BD38");
+  await page.getByRole("button",{name:/Testar o cardápio completo personalizado/}).click();
+  const overlay=page.getByRole("dialog",{name:"Teste do cardápio personalizado"});
+  await overlay.waitFor();
+  const full=overlay.locator(".customer-menu");await full.waitFor();
+  const actual=await full.evaluate(el=>({accent:el.style.getPropertyValue("--menu-accent"),secondary:el.style.getPropertyValue("--menu-secondary"),bg:el.style.getPropertyValue("--menu-bg")}));
+  assert.deepEqual(actual,chosen,"A demonstração deve reutilizar exatamente a mesma paleta");
+  assert.match(await full.locator(".restaurant-brand").textContent(),/Bella Massa QA/);
+  assert.match(await full.textContent(),/Frango com Catupiry/);
+  assert.match(await full.textContent(),/Dupla da noite/);
+  assert.match(await overlay.textContent(),/não envia pedidos nem cobra/);
+  await overlay.screenshot({path:path.join(evidence,"guided-full-menu-brand.png")});
+  await overlay.getByRole("button",{name:"Fechar teste e voltar aos modelos"}).click();
+  assert.equal(await page.getByRole("dialog",{name:"Teste do cardápio personalizado"}).count(),0);
+  return actual;
  });
  await record("importação de cardápio CSV/TXT mantém preços como dados, não como arte",async()=>{
   await page.getByRole("button",{name:/Anexar cardápio/}).click();
