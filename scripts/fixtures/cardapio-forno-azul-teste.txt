@@ -1,0 +1,23 @@
+# DADOS FICTÍCIOS — cardápio exclusivamente para teste
+Pizzas
+P M G
+Margherita de Teste 32,90 42,90 52,90
+Molho de tomate, muçarela, tomate e manjericão
+Calabresa da Fornalha 34,90 44,90 54,90
+Muçarela, calabresa fatiada, cebola e orégano
+Frango Cremoso 36,90 46,90 56,90
+Frango desfiado, requeijão cremoso e milho
+Quatro Queijos 39,90 49,90 59,90
+Muçarela, provolone, parmesão e requeijão
+Portuguesa 38,90 48,90 58,90
+Presunto, ovos, ervilha, cebola e azeitonas
+Vegetariana da Horta 37,90 47,90 57,90
+Brócolis, tomate, milho, cebola e muçarela
+Chocolate com Banana 35,90 45,90 55,90
+Chocolate ao leite, banana e canela
+Doce de Leite 36,90 46,90 56,90
+Doce de leite, muçarela e coco
+Bebidas
+Refrigerante cola 2L R$ 13,90
+Suco de uva 1L R$ 12,00
+Água sem gás 500ml R$ 5,00

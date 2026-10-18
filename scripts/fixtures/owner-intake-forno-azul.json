@@ -1,0 +1,11 @@
+{
+  "fictitious": true,
+  "notice": "Dados exclusivamente fictícios. O link é uma fixture interceptada nos testes; não identifica uma loja real. Não enviar mensagens ou pedidos.",
+  "name": "Forno Azul de Teste",
+  "address": "Rua Fornalha de Teste, 137, Bairro Fictício, Armação dos Búzios - RJ",
+  "whatsapp": "(22) 90000-0000",
+  "hours": "terça a domingo, 18:00 às 23:30",
+  "url": "https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/forno-azul-de-teste/00000000-0000-4000-8000-000000000050",
+  "initialMessage": "Minha pizzaria se chama Forno Azul de Teste. Quero amarelo cor de queijo e azul do mar, fotos grandes e letras fáceis de ler.\nEndereço: Rua Fornalha de Teste, 137, Bairro Fictício, Armação dos Búzios - RJ\nWhatsApp: (22) 90000-0000\nHorários: terça a domingo, 18h às 23h30",
+  "menuText": "Pizzas\nP M G\nMargherita de Teste 32,90 42,90 52,90\nMolho de tomate, muçarela, tomate e manjericão\nCalabresa da Fornalha 34,90 44,90 54,90\nMuçarela, calabresa fatiada, cebola e orégano\nFrango Cremoso 36,90 46,90 56,90\nFrango desfiado, requeijão cremoso e milho\nQuatro Queijos 39,90 49,90 59,90\nMuçarela, provolone, parmesão e requeijão\nPortuguesa 38,90 48,90 58,90\nPresunto, ovos, ervilha, cebola e azeitonas\nVegetariana da Horta 37,90 47,90 57,90\nBrócolis, tomate, milho, cebola e muçarela\nChocolate com Banana 35,90 45,90 55,90\nChocolate ao leite, banana e canela\nDoce de Leite 36,90 46,90 56,90\nDoce de leite, muçarela e coco\nBebidas\nRefrigerante cola 2L R$ 13,90\nSuco de uva 1L R$ 12,00\nÁgua sem gás 500ml R$ 5,00"
+}

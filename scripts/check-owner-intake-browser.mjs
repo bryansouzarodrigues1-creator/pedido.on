@@ -31,7 +31,8 @@ try{
  await record("conversa sem cadastro nem imagens pagas",async()=>{
   assert.equal(await page.locator(".ai-style-card").count(),0);
   assert.equal(await page.locator('input[type="email"],input[type="password"]').count(),0);
-  assert.match(await page.locator(".owner-intake").textContent(),/5 perguntas/);
+  assert.match(await page.locator(".owner-intake").textContent(),/Pergunto só o que falta/);
+  assert.doesNotMatch(await page.locator(".owner-intake").textContent(),/cr[eé]ditos|geraç[aã]o paga/i);
   await page.screenshot({path:path.join(evidence,"guided-start.png"),fullPage:true});
  });
  await record("captura nome, bairro, WhatsApp, horário e link sem confundir cores",async()=>{

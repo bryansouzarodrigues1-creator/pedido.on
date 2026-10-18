@@ -26,6 +26,8 @@ try{
    try{
     await page.goto(base+"/demo/"+id,{waitUntil:"load",timeout:90_000});
     await page.locator(".customer-menu.identity-"+id).waitFor();
+    // The server-rendered search can exist before its client handlers hydrate.
+    await page.waitForLoadState("networkidle");
     const geometry=[];
     for(const width of [320,412]){
      await page.setViewportSize({width,height:839});
@@ -48,10 +50,17 @@ try{
     await bar.click();
     const cart=page.getByRole("dialog");assert.match(await cart.textContent(),/Margherita/);assert.match(await cart.textContent(),/Calabresa/);assert.match(await cart.textContent(),/Catupiry/);assert.match(await cart.textContent(),/70,00/);
     await page.screenshot({path:path.join(output,id+"-cart.png"),fullPage:true});await page.keyboard.press("Escape");
-    const reference=await context.request.get(base+"/assets/style-references/"+id+".webp");
-    assert.equal(reference.status(),200);assert.match(reference.headers()["content-type"],/^image\/webp/);
+    const referencePath="/assets/style-references/"+id+".webp";
+    const reference=await context.request.get(base+referencePath);
+    assert.equal(reference.status(),200);
+    const referenceContentType=reference.headers()["content-type"]||"";
+    // Sites may label static files as octet-stream. Verify the image format and
+    // actual browser decoding; retain strict MIME checks on the local candidate.
+    assert.match(referenceContentType,publicReadOnly?/^(image\/webp|application\/octet-stream)(;|$)/:/^image\/webp/);
     const bytes=await reference.body();assert.ok(bytes.length>10000);assert.equal(bytes.toString("ascii",8,12),"WEBP");
-    checks.push({name:id,ok:true,widths:geometry,composition,halfHalfWithCrustCents:7000,referenceBytes:bytes.length});
+    const referenceDimensions=await page.evaluate(async source=>{const img=new Image();img.src=source;await img.decode();return {width:img.naturalWidth,height:img.naturalHeight};},referencePath);
+    assert.ok(referenceDimensions.width>100&&referenceDimensions.height>100,"Style reference must decode in the browser");
+    checks.push({name:id,ok:true,widths:geometry,composition,halfHalfWithCrustCents:7000,referenceBytes:bytes.length,referenceContentType,referenceDimensions,...(!referenceContentType.startsWith("image/webp")?{hostingWarning:"Static WebP served with generic MIME; bytes and browser decoding verified."}:{})});
     console.log("PASS STYLE "+id);
    }catch(error){checks.push({name:id,ok:false,error:error.message});await page.screenshot({path:path.join(output,id+"-failure.png"),fullPage:true}).catch(()=>{});console.error("FAIL STYLE "+id+" "+error.message);}
   }
