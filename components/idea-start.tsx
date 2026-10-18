@@ -90,8 +90,9 @@ export default function IdeaStart(){
        <OwnerIntakeChat value={intake} disabled={busy||saving||!initialized}
         onChange={next=>{
           setIntake(next);setPreview(null);setStyleId(null);setRound(0);
-          if(next.step===1){setIdea(next.initialMessage);setBrandName(next.answers.name||"");}
-          if(next.step===5&&next.answers.menu){setSourceText(old=>old||next.answers.menu||"");}
+          if(next.step===1&&intake.step===0)setIdea(next.initialMessage);
+          if(next.answers.name!==intake.answers.name)setBrandName(next.answers.name||"");
+          if(next.answers.menu!==intake.answers.menu)setSourceText(old=>old&&old!==intake.answers.menu?old:next.answers.menu||"");
         }}
         onReady={()=>{void generate();}}/>
        <div className="idea-composer-bottom idea-conversation-attachments"><button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>setSourceOpen(!sourceOpen)}><Paperclip size={17}/>Anexar cardápio / iFood {pages.length>0?"("+pages.length+")":""}</button><small>Sem chamadas pagas para criar os 12 modelos.</small></div>
