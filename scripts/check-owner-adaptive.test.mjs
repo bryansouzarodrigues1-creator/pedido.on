@@ -21,6 +21,7 @@ test('older source-only checkpoints offer an explicitly unverified URL label and
  const legacy=ownerIntakeSchema.parse({answers:{menu:masterUrl},source:{url:masterUrl},step:0,initialMessage:''});
  assert.deepEqual(ownerNameSuggestion(legacy),{name:'Master Pizzas Buzios Sao Jose',fromShare:false});assert.equal(legacy.answers.name,undefined);
  const edited=withOwnerAnswers(legacy,{name:'Nome escolhido pelo dono'});assert.equal(edited.step,1);assert.equal(ownerNameSuggestion(edited),undefined);
+ const long=ownerIntakeSchema.parse({...legacy,source:{url:masterUrl.replace('master-pizzas---buzios-sao-jose','a'.repeat(110))}});assert.equal(ownerNameSuggestion(long),undefined,'An unusable URL label must leave the editable name field visible');
 });
 
 test('changing stores drops old suggestions and telephone while explicit answers and design survive',()=>{

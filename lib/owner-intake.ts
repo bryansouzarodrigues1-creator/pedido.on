@@ -141,8 +141,9 @@ export function ownerWithMenuSource(state:OwnerIntake,message:string){
 /** Explicit confirmation is required for both a share caption and a URL label. */
 export function ownerNameSuggestion(state:OwnerIntake){
  if(state.answers.name||!state.source)return;
- if(state.source.sharedName)return {name:state.source.sharedName,fromShare:true};
- const link=parseIfoodStoreLink(state.source.url);return link?{name:link.storeLabel,fromShare:false}:undefined;
+ const name=state.source.sharedName||parseIfoodStoreLink(state.source.url)?.storeLabel;if(!name)return;
+ const checked=validateOwnerAnswer("name",name);if(checked.error||checked.value!==name)return;
+ return {name,fromShare:!!state.source.sharedName};
 }
 /** Supplied files/text replace the missing-content notice; the source stays saved. */
 export function ownerWithMenuContent(state:OwnerIntake){
