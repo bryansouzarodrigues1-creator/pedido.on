@@ -47,3 +47,16 @@ export function brandPaletteFromBriefing(briefing:string,feedback=""):ResolvedBr
   :{background:"#F1F5F6",surface:"#FFFFFF",secondary:secondary.hex,text:"#233340",muted:"#586A74",line:"#C7D5DC"};
  return {primary:preferred.hex,palette,motif:seaCheese?"sea-cheese":"two-tone"};
 }
+
+/** Keep multi-turn recolors distinct from a paired-color instruction.
+ * "verde\nAgora azul" is a replacement, not a green/blue brand identity.
+ */
+export function resolveBrandPalette(briefing:string,feedback=""):ResolvedBrandPalette|null{
+ if(!feedback.trim())return brandPaletteFromBriefing(briefing);
+ const last=feedback.split(/\r?\n+|[.;]\s+/).map(x=>x.trim()).filter(Boolean).at(-1)||"";
+ const latest=brandPaletteFromBriefing(last);
+ if(latest)return latest;
+ const normalized=norm(last);
+ const hasColorChange=/\b(?:azul|amarel[oa]|verde|vermelh[oa]|laranja|cobre|marinho|roxo|rosa|dourad[oa]|preto|branco|#[a-f0-9]{6})\b/.test(normalized);
+ return hasColorChange?null:brandPaletteFromBriefing(briefing);
+}
