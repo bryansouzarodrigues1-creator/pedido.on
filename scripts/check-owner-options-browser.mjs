@@ -35,7 +35,15 @@ try{
  assert.equal(await page.locator('.ai-style-card .mini-top strong').first().textContent(),sample.name);await page.screenshot({path:path.join(output,'briefing-completo.png'),fullPage:true});
  checks.push({name:'complete fictitious briefing skips repeated address, WhatsApp and hours questions',ok:true});await close('descricao-completa');
  await start('metadata');await showStep();await page.getByRole('button',{name:'Tenho um link do iFood',exact:true}).click();await page.locator('#owner-intake-message').fill(sample.url);await showStep();await page.getByRole('button',{name:'Consultar loja',exact:true}).click();
- const found=page.getByRole('region',{name:'Confira os dados encontrados no link'});await found.waitFor();assert.match(await found.textContent(),/Rua Fornalha de Teste/);await found.scrollIntoViewIfNeeded();await showStep();await page.screenshot({path:path.join(output,'link-dados-encontrados.png'),fullPage:true});
+ const found=page.getByRole('region',{name:'Confira os dados encontrados no link'});await found.waitFor();assert.match(await found.textContent(),/Rua Fornalha de Teste/);
+ const sourceLayout=await found.evaluate(section=>{
+  const luminance=color=>{const c=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});return c[0]*.2126+c[1]*.7152+c[2]*.0722;};
+  const bg=luminance(getComputedStyle(section).backgroundColor);
+  const contrasts=[...section.querySelectorAll('h3,dd')].map(el=>{const fg=luminance(getComputedStyle(el).color);return (Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05);});
+  const history=section.closest('.owner-intake-history');return {contrasts,clipped:history.scrollHeight>history.clientHeight+1};
+ });
+ assert.ok(sourceLayout.contrasts.every(ratio=>ratio>=4.5),'Public source facts must be legible on the light confirmation panel');assert.equal(sourceLayout.clipped,false,'Source confirmation must not be trapped in an inner scroll box');
+ await found.getByRole('heading').scrollIntoViewIfNeeded();await showStep();await page.screenshot({path:path.join(output,'link-dados-encontrados.png'),fullPage:true});
  await page.getByRole('button',{name:'Usar dados encontrados',exact:true}).click();
  assert.equal(await page.locator('.owner-intake-question').count(),1);assert.match(await page.locator('.owner-intake-question').textContent(),/WhatsApp/);
  await page.locator('.owner-intake-question').scrollIntoViewIfNeeded();await showStep();
