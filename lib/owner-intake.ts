@@ -119,13 +119,14 @@ export function ownerFacts(message:string):Partial<OwnerIntake["answers"]>{
 }
 export function nextOwnerIntake(state:OwnerIntake,message:string):{state:OwnerIntake;error?:string}{
  if(state.step>=ownerFieldIds.length)return {state};
- const field=ownerFieldIds[state.step],parsed=validateOwnerAnswer(field,message);
+ const field=ownerFieldIds[state.step],facts=ownerFacts(message);
+ const parsed:{value?:string;error?:string}=facts[field]!==undefined?{value:facts[field]}:validateOwnerAnswer(field,message);
  // A visual idea without a name is a valid first turn, not a validation error.
  if(parsed.error&&field==="name"&&message.trim().length>=8&&/\b(?:quero|gostaria|imagino|visual|estilo|design|card[aá]pio)\b/i.test(message)&&!inspectMenuSourceText(message).links.length){
   return {state:withOwnerAnswers({...state,initialMessage:state.initialMessage||message.slice(0,1600)},ownerFacts(message))};
  }
  if(parsed.error)return {state,error:parsed.error};
- const facts=ownerFacts(message),patch:Partial<OwnerIntake["answers"]>={};
+ const patch:Partial<OwnerIntake["answers"]>={};
  for(const field of ownerFieldIds)if(state.answers[field]===undefined&&facts[field]!==undefined)patch[field]=facts[field];
  patch[field]=parsed.value;
  const initialMessage=state.initialMessage||message.slice(0,1600);

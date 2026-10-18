@@ -88,5 +88,10 @@ try{
  await say('Quero um cardápio artesanal, com letras elegantes e fotos grandes.');assert.equal(await page.getByRole('alert').count(),0);assert.match(await page.locator('.owner-intake-question').textContent(),/nome da pizzaria/);
  await say(sample.name);await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
  checks.push({name:'source error preserves the input and a visual-only idea can continue by providing just its name',ok:true});await close('falha-recuperavel');
+ await start('complete');await say(sample.initialMessage);await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
+ await page.evaluate(()=>{Storage.prototype.setItem=function(){throw Error('storage blocked for QA');};IDBFactory.prototype.open=function(){throw Error('IndexedDB blocked for QA');};});
+ await page.getByRole('button',{name:'Usar este modelo',exact:true}).click();
+ const storageAlert=page.getByRole('alert').filter({hasText:/navegador.*guardar sua ideia/});await storageAlert.waitFor();assert.equal(await storageAlert.isVisible(),true);assert.match(page.url(),/\/criar$/);
+ checks.push({name:'a failed save remains visible outside the collapsed briefing and prevents losing content at signup',ok:true});await close('armazenamento-bloqueado');
  assert.deepEqual(errors,[]);
-}finally{await context?.close().catch(()=>{});await browser.close();await writeFile(path.join(output,'summary.json'),JSON.stringify({checks,errors,lookups,fictitious:true,ifood:'controlled responses; not a real external store import',passed:checks.length===5&&!errors.length},null,2));}
+}finally{await context?.close().catch(()=>{});await browser.close();await writeFile(path.join(output,'summary.json'),JSON.stringify({checks,errors,lookups,fictitious:true,ifood:'controlled responses; not a real external store import',passed:checks.length===6&&!errors.length},null,2));}
