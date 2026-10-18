@@ -1,0 +1,91 @@
+{
+  "scope": "Campo único e prévia direta; todos os negócios no QA são fictícios.",
+  "source": {
+    "head": "63545dce8d74806a320ef58802ce60dfec57164d",
+    "mainMerge": "196adffac8c86d684fbc49bcfdb7bafb11b9b541",
+    "mirrorMerge": "f4e2f44f152c3964e038ea6b7d145bc277ad11ae",
+    "sitesCommit": "8b39f093aded05f4c09421154a9e6228eaa12013"
+  },
+  "version": {
+    "id": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_80edd611b6048191a588f1ea8d5fea69",
+    "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "version_number": 55,
+    "source": {
+      "commit_sha": "8b39f093aded05f4c09421154a9e6228eaa12013"
+    },
+    "archive_storage": {
+      "archive_format": "tar",
+      "sediment_file_id": "file_000000000df8820e9d118d396d9c5e0c",
+      "content_hash": "sha256:e432d8100c85ed44cc5da59b10f1ef8c935a0102c8c21ba0909a11793ce06ab4",
+      "size_bytes": 22579200,
+      "file_count": 408
+    },
+    "screenshot_url": null,
+    "deployment_id": null
+  },
+  "deployment": {
+    "id": "appgdep_6ad507bbde188191a773be585249542b",
+    "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "title": "pizzaria.on — Cardápio e pedidos para pizzarias",
+    "version_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_80edd611b6048191a588f1ea8d5fea69",
+    "type": "publish",
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "has_mcp": false,
+    "screenshot_asset_pointer": null,
+    "provider_deployment_id": "site---6ac6d3ea9f7881918f315a156338ed52",
+    "failure_message": null,
+    "env_set_revision": 13,
+    "updated_at": "2026-10-18T17:54:28.859693+00:00"
+  },
+  "validation": {
+    "unitTests": 424,
+    "typecheck": "passed",
+    "build": "passed",
+    "chromeRun": 39151348950,
+    "windowsRun": 39151348914,
+    "authOrdersRun": 39151348945,
+    "mirrorRun": 39151404473,
+    "all": "success",
+    "scenarios": 6,
+    "viewportWidths": [
+      320,
+      412,
+      1280
+    ],
+    "device": "Chrome / Pixel 7 emulado; não Android físico",
+    "sourceDataContrast": "At least 4.5; verified in actual browser CSS",
+    "noCoverHeadlineContrast": "At least 4.5; verified in actual browser CSS",
+    "publicQaTiming": "The public read-only checks ran against v51 before publication. v55 confirmed by native deployment result."
+  },
+  "preservation": {
+    "restaurantRecords": 7,
+    "fullRowsUnchanged": true,
+    "envRevision": 13,
+    "migrations": false,
+    "newExternalGeneration": false,
+    "financialOperations": false
+  },
+  "realStoreProbe": {
+    "checkedAt": "2026-10-18T17:52:05.988Z",
+    "url": "https://www.ifood.com.br/delivery/cabo-frio-rj/aione-pizzas-jardim-pero/900caad5-258e-4bf7-9458-353cb0bffe60",
+    "httpStatus": 403,
+    "status": "needs_content",
+    "productCount": 0,
+    "metadataFields": [],
+    "store": null,
+    "message": "O iFood não liberou o catálogo por esse link. Cole o texto completo do cardápio ou envie um arquivo TXT/CSV para continuar. Não é preciso cadastrar os produtos um a um.",
+    "note": "An anonymous public-page lookup. Does not validate official iFood API access or guarantee a full catalog."
+  },
+  "limits": [
+    "Entrada antes do cadastro ainda usa adaptação local de estilos; Estúdio generativo continua autenticado.",
+    "Respostas positivas do iFood são controladas, não catálogo real importado.",
+    "Página real da Aione retornou 403.",
+    "Sem teste em Android físico ou nova geração externa real."
+  ],
+  "video": {
+    "file": "fluxo-campo-unico-pizzaria.mp4",
+    "fictitious": true,
+    "sourceResponse": "controlled in QA"
+  }
+}
