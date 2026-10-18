@@ -1,0 +1,25 @@
+name: Beta Cloudflare - 12 full demo menus GET-only
+on:
+  pull_request:
+    paths:
+      - "scripts/check-beta-worker-live.mjs"
+      - ".github/workflows/beta-worker-readonly.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Verify actual public Cloudflare beta (GET only)
+        run: node scripts/check-beta-worker-live.mjs
+      - name: Boundaries
+        if: always()
+        run: |
+          echo "GET only. No user/signup, fake or real payment, order, images from R2, or model generation." >> "$GITHUB_STEP_SUMMARY"
+          echo "Does not prove a logged-in, two-device checkout or Asaas sandbox acceptance." >> "$GITHUB_STEP_SUMMARY"
