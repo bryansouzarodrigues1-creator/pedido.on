@@ -3,12 +3,16 @@ export type MenuSourceText={status:"none"|"ifood"|"multiple"|"unsupported";links
 
 const uuid=/^[a-f\d]{8}-(?:[a-f\d]{4}-){3}[a-f\d]{12}$/i;
 const slug=/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u;
+// iFood keeps punctuation as separator runs, e.g. master-pizzas---buzios.
+// Validate that public store path without collapsing or rewriting its hyphens.
+const storeSlug=/^[\p{L}\p{N}]+(?:-+[\p{L}\p{N}]+)*$/u;
 const states=new Set("ac al ap am ba ce df es go ma mt ms mg pa pb pr pe pi rj rn rs ro rr sc sp se to".split(" "));
 const urls=/(?:https?:\/\/|(?:www\.)?ifood\.com\.br\/)[^\s<>"'`]+/gi;
 const price=/(?:R\s*\$\s*\d|\b\d+[,.]\d{2}\b)/i;
 const shareLine=/^(?:esse lugar e a sua cara[!.]?|use o icone de coracao.*favoritos[!.]?)$/;
 const normalize=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
-const label=(value:string)=>value.split("-").map(word=>word.charAt(0).toLocaleUpperCase("pt-BR")+word.slice(1)).join(" ");
+const label=(value:string)=>value.split(/-+/).map(word=>word.charAt(0).toLocaleUpperCase("pt-BR")+word.slice(1)).join(" ");
+const captionLabel=(value:string)=>normalize(value).replace(/^esse lugar e a sua cara[!.]?\s*/,"").replace(/^use o icone de coracao.*?favoritos[!.]?\s*/,"").replace(/[-–—\s]+/g," ").trim();
 
 /** Read the public reference only. Slug labels are hints, not verified store data. */
 export function parseIfoodStoreLink(input:string):IfoodStoreLink|null{
@@ -21,7 +25,7 @@ export function parseIfoodStoreLink(input:string):IfoodStoreLink|null{
   const match=url.pathname.match(/^\/delivery\/([^/]+)\/([^/]+)\/([^/]+)\/?$/);
   if(!match)return null;
   const [city,store,id]=match.slice(1).map(value=>decodeURIComponent(value));
-  if(city.length>160||store.length>160||!slug.test(city)||!slug.test(store)||!uuid.test(id))return null;
+  if(city.length>160||store.length>160||!slug.test(city)||!storeSlug.test(store)||!uuid.test(id))return null;
   const cityParts=city.split("-"),state=cityParts.at(-1)!.toLowerCase();
   if(cityParts.length<2||!states.has(state))return null;
   return {provider:"ifood",url:`https://www.ifood.com.br/delivery/${encodeURIComponent(city)}/${encodeURIComponent(store)}/${id.toLowerCase()}`,storeId:id.toLowerCase(),storeLabel:label(store),locationLabel:label(cityParts.slice(0,-1).join("-"))+" · "+state.toUpperCase()};
@@ -35,9 +39,9 @@ export function inspectMenuSourceText(input:string):MenuSourceText{
  const lines=text.split(/\r?\n/),menuText=lines.flatMap((line,index)=>{
   const hasLineUrl=[...line.matchAll(urls)].length>0;
   const clean=line.replace(urls,"").trim();
-  const caption=normalize(clean).replace(/\s*-\s*$/,"");
+  const caption=captionLabel(clean);
   const sharedCaption=/-\s*$/.test(clean)&&[...String(lines[index+1]||"").matchAll(urls)].some(match=>{
-   const link=parseIfoodStoreLink(match[0]),name=link&&normalize(link.storeLabel);return name&&(name===caption||name.startsWith(caption+" "));
+   const link=parseIfoodStoreLink(match[0]),name=link&&captionLabel(link.storeLabel);return name&&caption&&(name===caption||name.startsWith(caption+" "));
   });
   if(hasLineUrl&&!price.test(clean)||hasUrls&&shareLine.test(normalize(clean))||sharedCaption)return [];
   return [clean];

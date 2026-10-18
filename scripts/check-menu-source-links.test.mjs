@@ -14,7 +14,32 @@ import {fixture} from './test-backend-fixture.mjs';
 const id='900caad5-258e-4bf7-9458-353cb0bffe60';
 const url=`https://www.ifood.com.br/delivery/cabo-frio-rj/aione-pizzas-jardim-pero/${id}`;
 const shared=`Esse lugar é a sua cara! Use o ícone de coração no app pra salvar a loja na sua área de Favoritos. Aione Pizzas - ${url}?UTM_Medium=share`;
+const masterUrl='https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b';
+const masterShared='Esse lugar é a sua cara! Use o ícone de coração no app pra salvar a loja na sua área de Favoritos. Master Pizzas - Búzios - '+masterUrl+'?UTM_Medium=share';
 const read=value=>readMenuPages([{id:'text',lines:inspectMenuSourceText(value).menuText.split('\n').map(text=>({text}))}]);
+
+test('the exact reported Master Pizzas share accepts triple hyphens and preserves the real store path',()=>{
+ const source=inspectMenuSourceText(masterShared);assert.equal(source.status,'ifood');assert.equal(source.links.length,1);assert.equal(source.menuText,'');
+ const parsed=source.links[0];assert.equal(parsed.url,masterUrl);assert.equal(parsed.storeId,'cd5f08e7-d71c-4918-9fb4-963192b8a85b');assert.equal(parsed.storeLabel,'Master Pizzas Buzios Sao Jose');assert.equal(parsed.locationLabel,'Armacao Dos Buzios · RJ');assert.equal(read(masterShared).items.length,0);
+ for(const separators of ['--','---','----']){const candidate=masterUrl.replace('---',separators);assert.equal(parseIfoodStoreLink(candidate).url,candidate);}
+ for(const input of [masterUrl,masterUrl+'?UTM_Medium=share',masterUrl.replace('https://',''),masterShared.replace(' - '+masterUrl,' -\n'+masterUrl),'Esse lugar é a sua cara!\nUse o ícone de coração no app pra salvar a loja na sua área de Favoritos.\nMaster Pizzas - Búzios -\n'+masterUrl]){
+  const result=inspectMenuSourceText(input);assert.equal(result.status,'ifood');assert.equal(result.links[0].url,masterUrl);assert.equal(result.menuText,'');
+ }
+});
+
+test('separator runs do not relax host, credential, path, state or UUID checks',()=>{
+ for(const candidate of [masterUrl.replace('www.ifood.com.br','www.ifood.com.br.evil.test'),masterUrl.replace('www.ifood.com.br','user:pass@www.ifood.com.br'),masterUrl.replace('www.ifood.com.br','www.ifood.com.br:8443'),masterUrl.replace('master-pizzas---buzios','master-pizzas%2F..%2Fbuzios'),masterUrl.replace('master-pizzas---buzios','-master-pizzas---buzios'),masterUrl.replace('-sao-jose/','-sao-jose-/'),masterUrl.replace('buzios-rj','buzios-xx'),masterUrl.replace('cd5f08e7-d71c-4918-9fb4-963192b8a85b','invalid-id')])assert.equal(parseIfoodStoreLink(candidate),null,candidate);
+});
+
+test('the real source route accepts the reported canonical path and returns an upstream block without calling it invalid',async()=>{
+ const f=fixture(),previous=globalThis.fetch;let called=[];
+ globalThis.fetch=async(target,options)=>{called.push(target);assert.equal(options.redirect,'manual');return new Response('blocked',{status:403});};
+ try{
+  const route=f.load('app/api/menu-source/route.ts');
+  const result=await route.POST(new Request('https://pedido.example/api/menu-source',{method:'POST',headers:{Origin:'https://pedido.example','Content-Type':'application/json','cf-connecting-ip':'203.0.113.20'},body:JSON.stringify({url:masterUrl})}));
+  assert.equal(result.status,200);const body=await result.json();assert.equal(body.url,masterUrl);assert.equal(body.status,'needs_content');assert.equal(body.count,0);assert.deepEqual(called,[masterUrl]);
+ }finally{globalThis.fetch=previous;f.close();}
+});
 
 test('the owner-provided Aione link is a local reference; tracking and fragments do not become store facts',()=>{
  const parsed=parseIfoodStoreLink(url+'?UTM_Medium=share&price=999,99#secret');
