@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-18",
+  "siteVersion": 49,
+  "siteSource": "dba7f997c7167ca87d60309190075d5b7b0ee5e9",
+  "deploymentId": "appgdep_6ad4d15e5b188191b974cff39125060a",
+  "publishedUrl": "https://forno-cardapios.waves4845.chatgpt.site",
+  "environmentRevision": 13,
+  "githubHead": "4e4a59445c4b21112559bb7e4845c565461286a4",
+  "mainMerge": "ecef3dfd1897732fbe4d0b22ba4cc54956f6cd9d",
+  "tests": {
+    "local": 408,
+    "typecheck": "passed",
+    "build": "passed",
+    "ci": [
+      {
+        "id": 39133986231,
+        "name": "Group beta auth and order checks",
+        "conclusion": "success"
+      },
+      {
+        "id": 39133986273,
+        "name": "Chrome browser QA (isolated local data)",
+        "conclusion": "success"
+      },
+      {
+        "id": 39133986291,
+        "name": "Windows QA - Pizzaria.on (no production)",
+        "conclusion": "success"
+      }
+    ],
+    "ownerBrowserChecks": 4,
+    "ifoodResponses": "controlled",
+    "android": "Chrome Pixel 7 emulation; physical Android not tested"
+  },
+  "dataComparison": {
+    "rows": 7,
+    "unchanged": true
+  },
+  "mirrorMerge": "f8a02465f9b53058dc6a90b683088db21e3ebe5d",
+  "limitations": [
+    "No live complete iFood catalog imported. Public lookup may be blocked.",
+    "No migration between existing Sites data and separate Cloudflare beta."
+  ]
+}
