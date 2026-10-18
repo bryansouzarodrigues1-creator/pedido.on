@@ -66,8 +66,7 @@ export function validateOwnerAnswer(field:OwnerField,raw:string):{value?:string;
  if(field==="address")return text.length<6||text.length>200?{error:"Informe o endereço completo ou escreva 'depois'. Evite incluir instruções de design nesse campo."}:{value:text};
  if(field==="whatsapp"){
   const digits=text.replace(/\D/g,"");
-  if(digits.length!==10&&digits.length!==11&&!(digits.length===12||digits.length===13)&&digits.startsWith("55"))return {error:"Informe o WhatsApp com DDD, por exemplo (22) 99999-9999, ou responda 'depois'."};
-  if(digits.length<10||digits.length>13)return {error:"Informe um telefone brasileiro com DDD ou responda 'depois'."};
+  if(!(digits.length===10||digits.length===11||((digits.length===12||digits.length===13)&&digits.startsWith("55"))))return {error:"Informe um WhatsApp brasileiro com DDD (ex.: 22 99999-9999), ou responda 'depois'."};
   return {value:text.slice(0,25)};
  }
  if(field==="hours")return text.length>300||text.length<4?{error:"Informe dias e horários ou escreva 'depois'."}:{value:text};
