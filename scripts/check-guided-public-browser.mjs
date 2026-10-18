@@ -7,11 +7,13 @@ import {browserQaTarget,guardPublicGuestContext} from './browser-qa-target.mjs';
 const {base,publicReadOnly}=browserQaTarget();if(!publicReadOnly)throw Error('This check is only for the authorized public read-only origin.');
 const require=createRequire(import.meta.url),{chromium,devices}=require(process.env.QA_PLAYWRIGHT_MODULE||'playwright-core');
 const output=path.resolve(process.env.QA_BROWSER_OUTPUT||'.sites-runtime/browser-ci/public/guest'),dir=path.join(output,'evidence');await mkdir(dir,{recursive:true});
+let documentsPublished=false;
 const checks=[],errors=[];const browser=await chromium.launch({executablePath:process.env.QA_CHROME_PATH,headless:true}),context=await browser.newContext({...devices['Pixel 7'],locale:'pt-BR',serviceWorkers:'block'});
 await guardPublicGuestContext(context,errors);const page=await context.newPage();page.setDefaultTimeout(20000);page.on('pageerror',e=>errors.push(e.message));
 try{
  await page.goto(base+'/criar',{waitUntil:'domcontentloaded',timeout:90000});await page.waitForFunction(()=>document.querySelector('#owner-intake-message')?.disabled===false);
  assert.equal(await page.locator('input[type=email],input[type=password]').count(),0);
+ documentsPublished=await page.getByRole('button',{name:'Enviar PDF, foto ou TXT',exact:true}).count()>0;
  const adaptive=await page.locator('.owner-start-options').count()>0;
  if(adaptive)assert.doesNotMatch(await page.locator('.owner-intake').textContent(),/cr[eé]ditos|geraç[aã]o paga|sem gastar/i);
  checks.push({name:'published guided entry is usable without signup',ok:true,adaptive});
@@ -23,4 +25,4 @@ try{
  assert.match(await page.locator('.mini-store-address').first().textContent(),/Rua de Teste/);assert.match(await page.locator('.mini-store-hours').first().textContent(),/23h30/);
  await page.screenshot({path:path.join(dir,'published-guided-personalized.png'),fullPage:true});
  checks.push({name:'published local-only briefing reaches personalized previews with confirmed address and hours',ok:true});assert.deepEqual(errors,[]);
-}finally{await context.close();await browser.close();await writeFile(path.join(dir,'guest-browser.json'),JSON.stringify({base,checks,errors,scope:'Browser-local only. No signup, source lookup, payment, model or remote mutation.'},null,2));}
+}finally{await context.close();await browser.close();await writeFile(path.join(dir,'guest-browser.json'),JSON.stringify({base,checks,errors,features:{pdf:documentsPublished},scope:'Browser-local only. No signup, source lookup, payment, model or remote mutation.'},null,2));}
