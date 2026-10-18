@@ -41,7 +41,7 @@ export function BillingControls({initialPlan: _initialPlan}:{initialPlan:string}
    {state.intent&&state.intent.plan!=="essencial"?
     <p className="field-error" role="alert">Existe uma solicitação antiga de outro plano. Entre em contato com o suporte antes de contratar o plano único.</p>:
     <button className="btn primary small" disabled={busy||(asaas&&document.replace(/[^0-9A-Za-z]/g,"").length<11)} onClick={()=>void checkout()}>{busy?<Spinner/>:<CreditCard size={15}/>} {state.intent?"Continuar pagamento":`Assinar por ${price(publicPlanCatalog.essencial.amount)}/mês`}</button>}
-  </>}>}
+  </>}
   {asaas?<>
    {(current||state.intent)&&<button type="button" className="btn outline small" disabled={busy} onClick={()=>void sync()}>{busy?<Spinner/>:<RefreshCw size={15}/>}{current?.status==="pending"?"Já paguei · verificar":"Atualizar assinatura"}</button>}
    {!!state.invoices?.length&&<details className="billing-invoices" open={current?.status==="pending"}><summary>Faturas</summary>{state.invoices.map(invoice=><div className="billing-invoice" key={invoice.id}><span><b>{price(invoice.amount)}</b><small>{statuses[invoice.status]||"Em atualização"} · {invoice.dueDate.split("-").reverse().join("/")}</small></span>{invoice.url&&<a href={invoice.url} target="_blank" rel="noopener noreferrer" className="text-button">{["PENDING","OVERDUE"].includes(invoice.status)?"Pagar":"Ver fatura"}</a>}</div>)}</details>}
