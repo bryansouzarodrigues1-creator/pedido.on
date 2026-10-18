@@ -1,0 +1,226 @@
+{
+  "reportedScreenshot": "Screenshot_20261018_200800_Chrome.jpg",
+  "issue": "Shared caption was discarded; blocked lookup repeated the name question and did not survive reload",
+  "completedAt": "2026-10-18T23:25:04.996Z",
+  "source": {
+    "commit": "2d380acf54f0538a4379efd3846d185d72228fe6",
+    "tree": "7991530e7435ddba7f5ce1d4c375999031283e5e"
+  },
+  "github": {
+    "pr": 65,
+    "head": "7f4a75af6cdd066bccd431885186baa33e2d7504",
+    "merge": "35e777b99b6e86c839427e736f12f79d4c6f0218",
+    "mirrorPr": 22,
+    "mirrorHead": "c270614c2a48ed362a067f67e7a18be4631678c9",
+    "mirrorMerge": "e9dcaedbde24b82a7905975de264bb1cd3737e0e"
+  },
+  "publication": {
+    "version": 59,
+    "versionId": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_5effc5fcd81c8191bbb2ea70b5f10fc0",
+    "deploymentId": "appgdep_6ad5540a065081918d2590b828890326",
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "environmentRevision": 13,
+    "completedAt": "2026-10-18T23:20:01.577391+00:00"
+  },
+  "local": {
+    "tests": 440,
+    "passed": 440,
+    "failed": 0,
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "ci": {
+    "chrome": {
+      "runId": 39175964192,
+      "jobId": 117818714120,
+      "conclusion": "success",
+      "artifactId": 12154437857,
+      "artifactDigest": "sha256:38cd94a1bffe53867cff22bb707e728c35314106ded7fa8d248733aa547b2472"
+    },
+    "windows": {
+      "runId": 39175964140,
+      "conclusion": "success"
+    },
+    "authOrders": {
+      "runId": 39175964135,
+      "conclusion": "success"
+    },
+    "mirror": {
+      "runId": 39175966294,
+      "conclusion": "success"
+    }
+  },
+  "browser": {
+    "local": {
+      "base": "http://127.0.0.1:5173",
+      "commit": "fc57be534dc90947083a2ddc67f6fa39fbaf3552",
+      "runner": "linux",
+      "browser": "Chrome / Pixel 7 emulado; não é Android físico",
+      "identity": "mock local oficial Sites; nenhum provedor financeiro ou IA",
+      "results": [
+        {
+          "name": "guest",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "calculator",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "handoff",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "owner",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "ocr",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "styles",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "intake-options",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "documents",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "shared-ifood",
+          "code": 0,
+          "signal": null
+        }
+      ]
+    },
+    "localRegression": {
+      "base": "http://127.0.0.1:5173",
+      "commit": "fc57be534dc90947083a2ddc67f6fa39fbaf3552",
+      "checks": [
+        {
+          "name": "exact share message reaches the lookup in the same composer, preserving three hyphens and removing tracking",
+          "ok": true
+        },
+        {
+          "name": "share name, original message and blocked result survive reload; pasted products replace the warning without repeating a lookup",
+          "ok": true
+        },
+        {
+          "name": "one-click share name confirmation reaches a preview with two supplied products and no invented address or hours",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "lookups": 1,
+      "controlledUpstream": true,
+      "scope": "UI and browser storage only; source POST intercepted; no remote application mutation; not a real catalog import",
+      "passed": true
+    },
+    "public": {
+      "base": "https://forno-cardapios.waves4845.chatgpt.site",
+      "commit": "fc57be534dc90947083a2ddc67f6fa39fbaf3552",
+      "scope": "UI pública; nenhum cadastro, pedido, upload remoto ou geração; armazenamento apenas no navegador",
+      "checks": [
+        {
+          "name": "guest",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "calculator",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "ocr",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "styles",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "documents",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "shared-ifood",
+          "code": 0,
+          "signal": null
+        }
+      ]
+    },
+    "publicRegression": {
+      "base": "https://forno-cardapios.waves4845.chatgpt.site",
+      "commit": "fc57be534dc90947083a2ddc67f6fa39fbaf3552",
+      "checks": [
+        {
+          "name": "exact share message reaches the lookup in the same composer, preserving three hyphens and removing tracking",
+          "ok": true
+        },
+        {
+          "name": "share name, original message and blocked result survive reload; pasted products replace the warning without repeating a lookup",
+          "ok": true
+        },
+        {
+          "name": "one-click share name confirmation reaches a preview with two supplied products and no invented address or hours",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "lookups": 1,
+      "controlledUpstream": true,
+      "scope": "UI and browser storage only; source POST intercepted; no remote application mutation; not a real catalog import",
+      "passed": true
+    },
+    "publicScreenshotVisuallyInspected": true,
+    "physicalAndroid": false
+  },
+  "realLookup": {
+    "checkedAt": "2026-10-18T23:23:00.531Z",
+    "url": "https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b",
+    "httpStatus": 403,
+    "status": "needs_content",
+    "productCount": 0,
+    "metadataFields": [],
+    "store": null,
+    "message": "O iFood não liberou o catálogo por esse link. Abra sua loja e envie PDF, TXT/CSV, página salva ou prints do cardápio.",
+    "note": "An anonymous public-page lookup. Does not validate official iFood API access or guarantee a full catalog."
+  },
+  "independentExtraction": {
+    "provider": "TinyFish",
+    "status": "bot_blocked",
+    "url": "https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b",
+    "productCount": 0
+  },
+  "preservation": {
+    "completeRestaurantsCompared": 7,
+    "unchanged": true,
+    "environmentChanged": false,
+    "migrations": false,
+    "paidGeneration": false,
+    "billingChanged": false
+  },
+  "limits": [
+    "The interface source response is simulated; two pasted products are fictitious",
+    "No real iFood catalog imported",
+    "Official iFood application credentials and merchant authorization are not configured",
+    "No physical Android test"
+  ]
+}
