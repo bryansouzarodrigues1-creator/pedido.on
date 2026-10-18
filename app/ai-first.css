@@ -207,3 +207,31 @@
 /* This light conversation lives inside a dark landing page. Keep inherited
    text legible and let the page scroll instead of clipping source facts. */
 .ai-landing .owner-intake{color:#30392d}.ai-landing .owner-source-confirm h3,.ai-landing .owner-source-confirm dd{color:#30392d}.owner-intake-history{max-height:none;overflow:visible}.ai-landing .idea-conversation .idea-source-toggle{color:#5b6853}
+
+/* One clear starting point: the idea owns the screen; presets are optional. */
+.creator-flow.waiting-prompt{display:block;padding-top:22px;align-items:initial}
+.creator-intro{text-align:center;max-width:760px;margin:8px auto 30px}
+.creator-intro>span{font-size:11px;letter-spacing:2.2px;font-weight:800;color:#ed9975}
+.ai-landing .creator-intro h1{color:#fff8f1;font-size:clamp(36px,5.2vw,59px);line-height:1.06;letter-spacing:-2.6px;margin:17px 0}
+.creator-intro>p{color:#c4bec7;font-size:15px;line-height:1.7;margin:0 auto;max-width:490px}
+.creator-flow .idea-conversation{border:1px solid #dd987b;border-radius:24px;box-shadow:0 0 0 5px #ee976a12,0 24px 80px #0005;padding:clamp(20px,3vw,32px);background:#fffdf8}
+.creator-flow .idea-conversation:focus-within{border-color:#f1784e;box-shadow:0 0 0 5px #f1784e29,0 24px 80px #0005}
+.owner-intake--composer{gap:12px}.owner-intake--composer .owner-intake-title{margin-bottom:4px}
+.owner-intake--composer .owner-intake-title strong{font-size:16px}.owner-intake--composer .owner-intake-title small{font-size:12px}
+.owner-intake--composer .owner-intake-reply{gap:12px}
+.owner-intake--composer .owner-intake-reply label{font-size:12px;color:#756a5f}
+.owner-intake--composer .owner-intake-reply textarea{min-height:145px;max-height:380px;font-size:17px;line-height:1.65;padding:18px;border:1px solid #d9c9ba;background:#fff;color:#292c29;border-radius:15px}
+.creator-flow.waiting-prompt .owner-intake-reply textarea:placeholder-shown{min-height:190px}
+.owner-intake--composer .owner-intake-reply textarea:focus{outline:2px solid #de8d68;outline-offset:2px}
+.owner-intake--composer .owner-intake-reply textarea::placeholder{color:#827c75;opacity:1}
+.owner-intake--composer .owner-start-options,.owner-intake--composer .owner-quick-options{margin:0;gap:8px}
+.owner-intake--composer .owner-start-options:empty,.owner-intake--composer .owner-quick-options:empty,.owner-intake--composer .owner-intake-history:empty{display:none}
+.owner-intake--composer .owner-start-options button{background:#f8f3eb;font-size:12px;border-color:#ded2c2;min-height:38px}
+.owner-link-hint{color:#785541;font-size:12px;line-height:1.6}
+.owner-intake--composer .owner-intake-controls{margin-top:4px}.owner-intake--composer .owner-intake-controls .btn,.owner-intake--composer .owner-intake-ready .btn{min-height:52px;padding:14px 21px;font-size:15px;box-shadow:0 5px 16px #d93d2026}
+.owner-preview-shortcut{display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:10px;border:1px solid #d4dbc9;border-radius:10px;background:#f1f5e9;color:#3c5135;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.ai-template-options{border:1px solid #58525b;background:#1d1e25;border-radius:14px;padding:0 18px;margin-top:24px;scroll-margin-top:20px}
+.ai-template-options>summary{padding:18px 0;cursor:pointer;color:#e4d7ce;font-size:14px;font-weight:650;line-height:1.6}
+.ai-template-options>summary>span{font-size:11px;color:#c8b4a4;white-space:nowrap;margin-left:8px}
+.ai-template-options[open]{padding-bottom:18px}.ai-template-options .ai-style-grid{margin-top:12px}
+@media(max-width:640px){.creator-flow.waiting-prompt{padding-top:15px;padding-bottom:42px}.creator-intro{margin:6px auto 25px}.creator-intro>span{font-size:9px;letter-spacing:1.7px}.ai-landing .creator-intro h1{font-size:36px;letter-spacing:-1.7px;margin:13px 0}.creator-intro>p{font-size:13px;max-width:300px}.creator-flow .idea-conversation{padding:18px;border-radius:20px}.owner-intake--composer .owner-intake-title strong{font-size:14px}.owner-intake--composer .owner-intake-title small{font-size:11px}.owner-intake--composer .owner-intake-reply textarea{font-size:16px;padding:14px;min-height:135px}.creator-flow.waiting-prompt .owner-intake-reply textarea:placeholder-shown{min-height:175px}.owner-intake--composer .owner-intake-controls{display:grid;gap:12px}.owner-intake--composer .owner-intake-controls .btn{width:100%;margin:0;font-size:14px;justify-content:center}.owner-intake--composer .owner-intake-controls small{font-size:10px}.owner-intake--composer .owner-start-options button{font-size:11px;min-height:38px;padding:8px 10px}.ai-template-options{padding-inline:12px}.ai-template-options>summary{font-size:12px}}

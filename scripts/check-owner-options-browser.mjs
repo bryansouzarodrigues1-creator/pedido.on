@@ -1,14 +1,14 @@
-// Real UI, controlled public-source responses, fictitious business only. No accounts or orders.
+// Real UI with fictitious businesses and controlled source responses. No account or order writes.
 import {createRequire} from 'node:module';
 import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile,rename} from 'node:fs/promises';
 import path from 'node:path';
 import {browserQaTarget} from './browser-qa-target.mjs';
-const {base,publicReadOnly}=browserQaTarget();if(publicReadOnly)throw Error('Adaptive intake scenarios require isolated QA.');
+const {base,publicReadOnly}=browserQaTarget();if(publicReadOnly)throw Error('Composer scenarios require isolated QA.');
 const require=createRequire(import.meta.url),{chromium,devices}=require(process.env.QA_PLAYWRIGHT_MODULE||'playwright-core');
 const sample=JSON.parse(await readFile(new URL('./fixtures/owner-intake-forno-azul.json',import.meta.url),'utf8'));
 const output=path.resolve(process.env.QA_BROWSER_OUTPUT||'.sites-runtime/browser-ci/intake-options');await mkdir(output,{recursive:true});
-const browser=await chromium.launch({executablePath:process.env.QA_CHROME_PATH,headless:true,slowMo:100});
+const browser=await chromium.launch({executablePath:process.env.QA_CHROME_PATH,headless:true,slowMo:90});
 const checks=[],errors=[];let context,page,lookups=0;
 async function start(mode){
  context=await browser.newContext({...devices['Pixel 7'],locale:'pt-BR',serviceWorkers:'block',...(process.env.QA_RECORD_INTAKE==='true'?{recordVideo:{dir:output,size:{width:412,height:915}}}:{})});
@@ -16,6 +16,7 @@ async function start(mode){
   const request=route.request(),url=new URL(request.url());
   if(url.origin===base&&url.pathname==='/api/menu-source'&&request.method()==='POST'){
    assert.equal(request.postDataJSON().url,sample.url);lookups++;
+   if(mode==='network')return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Consulta temporariamente indisponível. Tente novamente.'})});
    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(mode==='blocked'?{status:'needs_content',url:sample.url,count:0,text:'',message:'Catálogo público bloqueado no cenário de teste.'}:{status:'imported',url:sample.url,count:11,text:sample.menuText,store:{name:sample.name,address:sample.address,hours:sample.hours,telephone:sample.whatsapp},message:'Dados fictícios para revisão.'})});
   }
   if(url.origin===base&&['GET','HEAD','OPTIONS'].includes(request.method()))return route.continue();
@@ -25,44 +26,67 @@ async function start(mode){
  await page.goto(base+'/criar',{waitUntil:'networkidle',timeout:90000});await page.waitForFunction(()=>document.querySelector('#owner-intake-message')?.disabled===false);
  assert.doesNotMatch(await page.locator('body').textContent(),/cr[eé]ditos|geraç[aã]o paga|sem gastar/i);
 }
-async function say(text){await page.locator('#owner-intake-message').fill(text);await page.getByRole('button',{name:'Enviar',exact:true}).click();}
-async function showStep(){if(process.env.QA_RECORD_INTAKE==='true')await page.waitForTimeout(1600);}
+async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();}
+async function pause(){if(process.env.QA_RECORD_INTAKE==='true')await page.waitForTimeout(1400);}
+async function ready(){await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-template-options').evaluate(el=>el.open),false);}
 async function close(name){const video=page.video();await context.close();if(video)await rename(await video.path(),path.join(output,name+'.webm'));}
 try{
- await start('complete');await page.getByRole('button',{name:'Ainda não tenho cardápio',exact:true}).click();await say(sample.initialMessage);
- await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).waitFor();assert.equal(await page.locator('#owner-intake-message').count(),0);
- await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).click();await page.locator('.ai-style-card').first().waitFor();
- assert.equal(await page.locator('.ai-style-card .mini-top strong').first().textContent(),sample.name);await page.screenshot({path:path.join(output,'briefing-completo.png'),fullPage:true});
- checks.push({name:'complete fictitious briefing skips repeated address, WhatsApp and hours questions',ok:true});await close('descricao-completa');
- await start('metadata');await showStep();await page.getByRole('button',{name:'Tenho um link do iFood',exact:true}).click();await page.locator('#owner-intake-message').fill(sample.url);await showStep();await page.getByRole('button',{name:'Consultar loja',exact:true}).click();
- const found=page.getByRole('region',{name:'Confira os dados encontrados no link'});await found.waitFor();assert.match(await found.textContent(),/Rua Fornalha de Teste/);
+ await start('complete');
+ for(const width of [320,412,1280]){
+  await page.setViewportSize({width,height:915});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+  const geometry=await page.locator('#owner-intake-message').evaluate(el=>({height:el.getBoundingClientRect().height,font:parseFloat(getComputedStyle(el).fontSize)}));
+  assert.ok(geometry.height>=175&&geometry.font>=16,'The initial idea must have a large readable composer');
+ }
+ await page.setViewportSize({width:412,height:915});await page.screenshot({path:path.join(output,'campo-principal-mobile.png'),fullPage:true});
+ const table=[['Campo','Dados de teste'],['Nome',sample.name],['Endereço',sample.address],['WhatsApp',sample.whatsapp],['Horários',sample.hours],['Cardápio','Oito pizzas em P/M/G e três bebidas'],['Exemplo','Margherita: R$32,90 / R$42,90 / R$52,90']].map(row=>row.join('\t')).join('\n');
+ await say(table);assert.equal(await page.getByRole('alert').count(),0);
+ await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
+ assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),sample.name);
+ assert.match(await page.locator('.ai-selected .mini-store-address').textContent(),/Rua Fornalha de Teste/);
+ assert.match(await page.locator('.ai-selected .mini-store-hours').textContent(),/23:30/);
+ assert.equal(await page.locator('.ai-template-options').evaluate(el=>el.open),false);
+ await page.screenshot({path:path.join(output,'tabela-colada-aceita.png'),fullPage:true});
+ checks.push({name:'reported clipboard table is accepted; optional fields can be deferred and presets start collapsed',ok:true});await close('tabela-colada');
+ await start('complete');await say(sample.initialMessage+'\n'+sample.menuText);
+ await ready();assert.match(await page.locator('.ai-gallery-heading').textContent(),/11 itens/);
+ await page.getByRole('button',{name:/Testar o cardápio completo personalizado/}).click();
+ const full=page.getByRole('dialog',{name:'Teste do cardápio personalizado'});await full.locator('.customer-menu').waitFor();
+ assert.match(await full.textContent(),/Margherita de Teste/);assert.match(await full.textContent(),/Calabresa da Fornalha/);assert.match(await full.textContent(),/32,90/);
+ await page.screenshot({path:path.join(output,'produtos-no-campo-principal.png'),fullPage:true});
+ checks.push({name:'a complete briefing plus eleven priced products reaches the full menu through the main composer',ok:true});await close('descricao-e-produtos');
+ await start('metadata');await pause();
+ const box=page.locator('#owner-intake-message');await box.fill('Minha pizzaria se chama '+sample.name+'.');
+ await box.evaluate(el=>el.dataset.qaContinuity='same-composer');
+ await page.getByRole('button',{name:'Tenho um link do iFood',exact:true}).click();
+ assert.equal(await box.getAttribute('data-qa-continuity'),'same-composer');assert.equal(await box.inputValue(),'Minha pizzaria se chama '+sample.name+'.');
+ await box.fill((await box.inputValue())+'\n'+sample.url);await pause();await page.locator('.owner-intake-reply button[type=submit]').click();
+ const found=page.getByRole('region',{name:'Confira os dados encontrados no link'});await found.waitFor();
+ assert.equal(await box.getAttribute('data-qa-continuity'),'same-composer');assert.match(await found.textContent(),/Rua Fornalha de Teste/);
  const sourceLayout=await found.evaluate(section=>{
   const luminance=color=>{const c=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});return c[0]*.2126+c[1]*.7152+c[2]*.0722;};
   const bg=luminance(getComputedStyle(section).backgroundColor);
   const contrasts=[...section.querySelectorAll('h3,dd')].map(el=>{const fg=luminance(getComputedStyle(el).color);return (Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05);});
   const history=section.closest('.owner-intake-history');return {contrasts,clipped:history.scrollHeight>history.clientHeight+1};
  });
- assert.ok(sourceLayout.contrasts.every(ratio=>ratio>=4.5),'Public source facts must be legible on the light confirmation panel');assert.equal(sourceLayout.clipped,false,'Source confirmation must not be trapped in an inner scroll box');
- await found.getByRole('heading').scrollIntoViewIfNeeded();await showStep();await page.screenshot({path:path.join(output,'link-dados-encontrados.png'),fullPage:true});
+ assert.ok(sourceLayout.contrasts.every(ratio=>ratio>=4.5));assert.equal(sourceLayout.clipped,false);
+ await found.getByRole('heading').scrollIntoViewIfNeeded();await pause();await page.screenshot({path:path.join(output,'link-no-mesmo-campo.png'),fullPage:true});
  await page.getByRole('button',{name:'Usar dados encontrados',exact:true}).click();
- assert.equal(await page.locator('.owner-intake-question').count(),1);assert.match(await page.locator('.owner-intake-question').textContent(),/WhatsApp/);
- await page.locator('.owner-intake-question').scrollIntoViewIfNeeded();await showStep();
+ assert.match(await page.locator('.owner-intake-question').textContent(),/WhatsApp/);await pause();
  await page.getByRole('button',{name:'Usar '+sample.whatsapp+' como WhatsApp',exact:true}).click();
- await page.getByRole('button',{name:'Artesanal',exact:true}).scrollIntoViewIfNeeded();await showStep();
- await page.getByRole('button',{name:'Artesanal',exact:true}).click();await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).click();await page.locator('.ai-style-card').first().waitFor();
- assert.match(await page.locator('.ai-gallery-heading').textContent(),/11 itens/);assert.match(await page.locator('.mini-store-hours').first().textContent(),/23:30/);assert.equal(lookups,1);
- await page.locator('.ai-style-card').first().scrollIntoViewIfNeeded();await showStep();
- await page.locator('.ai-style-card').first().getByRole('button',{name:/Escolher/}).click();await page.getByRole('button',{name:/Testar o cardápio completo personalizado/}).click();
- const full=page.getByRole('dialog',{name:'Teste do cardápio personalizado'});await full.waitFor();await full.locator('.customer-menu').waitFor();assert.match(await full.textContent(),/Margherita de Teste/);assert.match(await full.textContent(),/Calabresa da Fornalha/);
- await showStep();
- await page.screenshot({path:path.join(output,'cardapio-ficticio-completo.png'),fullPage:true});
- checks.push({name:'confirmed public metadata leaves only WhatsApp confirmation and an optional visual choice; eleven fictitious items reach preview',ok:true});await close('fluxo-link-ficticio');
- await start('blocked');await page.getByRole('button',{name:'Tenho um link do iFood',exact:true}).click();await page.locator('#owner-intake-message').fill(sample.url);await page.getByRole('button',{name:'Consultar loja',exact:true}).click();
- await page.getByText(/O link ficou guardado/).waitFor();assert.match(await page.locator('.owner-intake-question').textContent(),/nome da pizzaria/);
- await say('Forno Azul de Teste');await page.getByRole('button',{name:'Preencher depois',exact:true}).click();await page.getByRole('button',{name:'Preencher depois',exact:true}).click();
- await page.getByRole('button',{name:'Terça a domingo · 18h–23h',exact:true}).click();await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).waitFor();
- assert.equal(await page.locator('#owner-intake-message').count(),0);assert.equal(await page.getByRole('button',{name:'Consultar loja',exact:true}).count(),0);
- assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);await page.screenshot({path:path.join(output,'link-bloqueado-opcoes.png'),fullPage:true});
- checks.push({name:'blocked source asks only missing facts, exposes explicit options and preserves its link without fabricated business data',ok:true});await close('link-bloqueado');
+ await page.getByRole('button',{name:'Artesanal',exact:true}).scrollIntoViewIfNeeded();await pause();await page.getByRole('button',{name:'Artesanal',exact:true}).click();
+ await ready();assert.match(await page.locator('.ai-gallery-heading').textContent(),/11 itens/);assert.equal(lookups,1);await page.locator('.ai-selected').scrollIntoViewIfNeeded();await pause();
+ await page.getByRole('button',{name:/Testar o cardápio completo personalizado/}).click();await page.getByRole('dialog',{name:'Teste do cardápio personalizado'}).locator('.customer-menu').waitFor();await pause();
+ checks.push({name:'iFood action keeps the exact same input and draft; confirmed facts leave only WhatsApp and optional visual choices',ok:true});await close('fluxo-campo-unico');
+ await start('blocked');await say(sample.url);await page.getByText(/O link ficou guardado/).waitFor();await say(sample.name);
+ await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
+ assert.equal(await page.locator('.ai-selected .mini-store-address').count(),0);assert.equal(await page.locator('.ai-selected .mini-store-hours').count(),0);
+ await page.reload({waitUntil:'networkidle'});await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),sample.name);
+ checks.push({name:'blocked source allows preview without inventing missing facts and resumes its selected preview',ok:true});await close('link-bloqueado');
+ await start('network');await say(sample.url);await page.getByRole('alert').waitFor();
+ assert.equal(await page.locator('#owner-intake-message').inputValue(),sample.url);assert.equal(await page.locator('#owner-intake-message').isEnabled(),true);
+ await say('Quero um cardápio artesanal, com letras elegantes e fotos grandes.');assert.equal(await page.getByRole('alert').count(),0);assert.match(await page.locator('.owner-intake-question').textContent(),/nome da pizzaria/);
+ await say(sample.name);await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
+ checks.push({name:'source error preserves the input and a visual-only idea can continue by providing just its name',ok:true});await close('falha-recuperavel');
  assert.deepEqual(errors,[]);
-}finally{await context?.close().catch(()=>{});await browser.close();await writeFile(path.join(output,'summary.json'),JSON.stringify({checks,errors,lookups,fictitious:true,ifood:'controlled responses; not a real external store import',passed:checks.length===3&&!errors.length},null,2));}
+}finally{await context?.close().catch(()=>{});await browser.close();await writeFile(path.join(output,'summary.json'),JSON.stringify({checks,errors,lookups,fictitious:true,ifood:'controlled responses; not a real external store import',passed:checks.length===5&&!errors.length},null,2));}

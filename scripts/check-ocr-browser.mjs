@@ -22,13 +22,14 @@ try {
         await session.send('Emulation.setCPUThrottlingRate', {rate: 4});
         await page.goto(base + '/criar', {waitUntil: 'domcontentloaded', timeout: 90_000});
         const guided=await page.locator('#owner-intake-message').count()>0;
+        const composer=await page.locator('.owner-intake--composer').count()>0;
         if(guided){
             await page.waitForFunction(()=>document.querySelector('#owner-intake-message')?.disabled===false);
             for(const response of ['Pizzaria OCR no navegador','depois','depois','depois','depois']){
                 await page.locator('#owner-intake-message').fill(response);
-                await page.getByRole('button',{name:'Enviar',exact:true}).click();
+                await page.locator('.owner-intake-reply button[type=submit]').click();
             }
-            await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).waitFor();
+            await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).waitFor();
         }else{
             await page.waitForFunction(() => document.querySelector('#pizzeria-idea')?.disabled === false);
             await page.locator('#pizzeria-idea').fill('Minha pizzaria se chama OCR no navegador. Preserve os preços do arquivo.');
@@ -55,10 +56,10 @@ try {
         const started = performance.now();
         const current = await page.getByRole('button', {name: 'Criar 12 modelos', exact: true}).count() > 0;
         const legacy = publicReadOnly && await page.getByRole('button', {name: 'Criar opções', exact: true}).count() > 0;
-        if(guided)await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).click();
+        if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).click();
         else await page.getByRole('button', {name: legacy ? 'Criar opções' : current ? 'Criar 12 modelos' : 'Criar 8 modelos', exact: true}).click();
-        await page.locator('.ai-style-card').first().waitFor({timeout: 120_000});
-        if(guided)await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).waitFor();
+        await page.locator(composer?'.ai-selected .mini-menu':'.ai-style-card').first().waitFor({timeout: 120_000});
+        if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).waitFor();
         else await page.waitForFunction(expected => Array.from(document.querySelectorAll('button')).some(button => button.textContent.includes(expected) && !button.disabled), legacy ? 'Atualizar prévias' : 'Atualizar modelos');
         const ms = Math.round(performance.now() - started);
         const result = await page.evaluate(() => new Promise((resolve, reject) => {

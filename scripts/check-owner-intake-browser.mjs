@@ -17,7 +17,7 @@ async function say(answer){
  await wait();
  const box=page.locator("#owner-intake-message");
  await box.fill(answer);
- await page.getByRole("button",{name:/^(Enviar|Salvar)$/}).click();
+ await page.locator(".owner-intake-reply button[type=submit]").click();
 }
 async function record(label,fn){try{let data=await fn();checks.push({label,ok:true,data});console.log("PASS GUIDED "+label);}catch(e){checks.push({label,ok:false,error:e.message});console.error("FAIL GUIDED "+label+" "+e.stack);await page?.screenshot({path:path.join(evidence,"fail-"+checks.length+".png"),fullPage:true}).catch(()=>{});throw e;}}
 try{
@@ -42,13 +42,16 @@ try{
   await say("(22) 99999-9999");
   await say("Terça a domingo, das 18h às 23h");
   await say("depois");
-  await page.getByRole("button",{name:/Ver meus 12 modelos personalizados/}).waitFor();
+  await page.getByRole("button",{name:/Criar minha prévia/}).waitFor();
   assert.equal(await page.locator(".ai-style-card").count(),0);
   await page.screenshot({path:path.join(evidence,"guided-complete.png"),fullPage:true});
  });
  await record("12 templates usam mesmo nome e endereço HTML sem imagens novas",async()=>{
-  await page.getByRole("button",{name:/Ver meus 12 modelos personalizados/}).click();
-  await page.locator(".ai-style-card").first().waitFor({timeout:90000});
+  await page.getByRole("button",{name:/Criar minha prévia/}).click();
+  await page.locator(".ai-selected").waitFor({timeout:90000});
+  assert.equal(await page.locator(".ai-template-options").evaluate(el=>el.open),false);
+  await page.getByRole("button",{name:"Escolher outro",exact:true}).click();
+  await page.locator(".ai-style-card").first().waitFor();
   assert.equal(await page.locator(".ai-style-card").count(),4);
   assert.deepEqual(await page.locator(".ai-style-card .mini-top strong").allTextContents(),Array(4).fill("Bella Massa QA"));
   assert.equal(await page.locator(".ai-style-card .mini-store-address").count(),4);
@@ -84,8 +87,10 @@ try{
   await page.waitForFunction(()=>document.querySelector("#idea-source-text")?.value.includes("Água mineral"));
   await file.setInputFiles({name:"cardapio.csv",mimeType:"text/csv",buffer:Buffer.from("categoria;nome;preco\nBebidas;Suco natural;8,00")});
   await page.waitForFunction(()=>document.querySelector("#idea-source-text")?.value.includes("Suco natural"));
-  await page.getByRole("button",{name:/Ver meus 12 modelos personalizados/}).click();
-  await page.locator(".ai-style-card").first().waitFor({timeout:90_000});
+  await page.getByRole("button",{name:/Criar minha prévia/}).click();
+  await page.locator(".ai-selected").waitFor({timeout:90_000});
+  await page.getByRole("button",{name:"Escolher outro",exact:true}).click();
+  await page.locator(".ai-style-card").first().waitFor();
   assert.ok((await page.locator(".ai-style-card .mini-product").count())>=1);
  });
  await record("assets reutilizáveis e refinamento de estilo persistem em checkpoint",async()=>{

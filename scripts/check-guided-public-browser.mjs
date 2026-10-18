@@ -16,9 +16,9 @@ try{
  if(adaptive)assert.doesNotMatch(await page.locator('.owner-intake').textContent(),/cr[eé]ditos|geraç[aã]o paga|sem gastar/i);
  checks.push({name:'published guided entry is usable without signup',ok:true,adaptive});
  for(const text of ['Minha pizzaria se chama Forno Azul Público QA. Quero amarelo cor de queijo e azul do mar.','Rua de Teste, 137, Bairro Fictício, Búzios - RJ','depois','Terça a domingo, 18h às 23h30','depois']){
-  await page.locator('#owner-intake-message').fill(text);await page.getByRole('button',{name:'Enviar',exact:true}).click();
+  await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();
  }
- await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).click();await page.locator('.ai-style-card').first().waitFor();
+ await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).click();if(await page.locator('.owner-intake--composer').count()){await page.locator('.ai-selected').waitFor();await page.getByRole('button',{name:'Escolher outro',exact:true}).click();}await page.locator('.ai-style-card').first().waitFor();
  assert.equal(await page.locator('.ai-style-card').count(),4);assert.equal(await page.locator('.ai-style-card .mini-top strong').first().textContent(),'Forno Azul Público QA');
  assert.match(await page.locator('.mini-store-address').first().textContent(),/Rua de Teste/);assert.match(await page.locator('.mini-store-hours').first().textContent(),/23h30/);
  await page.screenshot({path:path.join(dir,'published-guided-personalized.png'),fullPage:true});
