@@ -1,4 +1,4 @@
-import {inspectMenuSourceText} from "./menu-source-links.ts";
+import {inspectMenuSourceText,parseIfoodStoreLink,sharedIfoodStoreName} from "./menu-source-links.ts";
 import type {MenuStoreInfo} from "./menu-store-info.ts";
 import {z} from "zod";
 
@@ -13,7 +13,7 @@ export const ownerIntakeSchema=z.object({
     menu:z.string().max(2000).optional(),
   }).strict(),
   visualChoice:z.enum(["artesanal","moderno","divertido","sugestoes"]).optional(),
-  source:z.object({url:z.string().url().max(2048),telephone:z.string().max(25).optional()}).strict().optional(),
+  source:z.object({url:z.string().url().max(2048),telephone:z.string().max(25).optional(),sharedName:z.string().min(2).max(100).optional(),catalogStatus:z.enum(["imported","needs_content"]).optional()}).strict().optional(),
   step:z.number().int().min(0).max(5),
   initialMessage:z.string().max(1600).default(""),
 }).strict();
@@ -132,14 +132,32 @@ export function nextOwnerIntake(state:OwnerIntake,message:string):{state:OwnerIn
  const initialMessage=state.initialMessage||message.slice(0,1600);
  return {state:withOwnerAnswers({...state,initialMessage},patch)};
 }
+/** Keep the actual shared message even when it contains no explicit owner answer. */
+export function ownerWithMenuSource(state:OwnerIntake,message:string){
+ const source=inspectMenuSourceText(message);if(source.links.length!==1)return state;
+ const url=source.links[0].url,sharedName=sharedIfoodStoreName(message),previous=state.source?.url===url?state.source:{};
+ return ownerIntakeSchema.parse({...state,initialMessage:state.initialMessage||message.slice(0,1600),source:{...previous,url,...(sharedName?{sharedName}:{})}});
+}
+/** Explicit confirmation is required for both a share caption and a URL label. */
+export function ownerNameSuggestion(state:OwnerIntake){
+ if(state.answers.name||!state.source)return;
+ const name=state.source.sharedName||parseIfoodStoreLink(state.source.url)?.storeLabel;if(!name)return;
+ const checked=validateOwnerAnswer("name",name);if(checked.error||checked.value!==name)return;
+ return {name,fromShare:!!state.source.sharedName};
+}
+/** Supplied files/text replace the missing-content notice; the source stays saved. */
+export function ownerWithMenuContent(state:OwnerIntake){
+ if(!state.source?.catalogStatus)return state;
+ const {catalogStatus,...source}=state.source;return {...state,source};
+}
 /** Public facts are suggestions until the owner confirms; never overwrite an explicit answer. */
-export function ownerFromStore(state:OwnerIntake,url:string,store:MenuStoreInfo={}){
+export function ownerFromStore(state:OwnerIntake,url:string,store:MenuStoreInfo={},catalogStatus?:"imported"|"needs_content"){
  const patch:Partial<OwnerIntake["answers"]>={menu:url};
  for(const field of ["name","address","hours"] as const)if(state.answers[field]===undefined&&store[field]){
   const checked=validateOwnerAnswer(field,store[field]!);if(!checked.error)patch[field]=checked.value;
  }
  const telephone=store.telephone&&validateOwnerAnswer("whatsapp",store.telephone).value;
- return withOwnerAnswers({...state,source:{url,...(telephone?{telephone}:{})},initialMessage:state.initialMessage|| (patch.name?`Minha pizzaria se chama ${patch.name}.`:"")},patch);
+ return withOwnerAnswers({...state,source:{...(state.source?.url===url?state.source:{}),url,...(telephone?{telephone}:{}),...(catalogStatus?{catalogStatus}:{})},initialMessage:state.initialMessage|| (patch.name?`Minha pizzaria se chama ${patch.name}.`:"")},patch);
 }
 export function intakeFinished(v:OwnerIntake){return v.step>=ownerFieldIds.length&&!!v.answers.name;}
 /** Explicit preview action defers the remaining optional business fields. */

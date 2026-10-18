@@ -258,6 +258,10 @@
 .owner-source-fallback>div>a,.owner-source-fallback>div>button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #c8ab8c;border-radius:9px;padding:10px;background:#fffdf8;color:#493722;font:inherit;font-size:12px;min-height:42px;text-decoration:none;cursor:pointer}
 .owner-source-fallback summary,.idea-source-review summary{font-size:13px;cursor:pointer;padding:12px 0;line-height:1.5}
 .owner-source-fallback details p{margin-bottom:0}
+.owner-intake--composer .owner-intake-reply[hidden]{display:none}
+.owner-name-confirm h3{overflow-wrap:anywhere;margin-top:7px}
+.owner-source-actions{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+.owner-source-actions a,.owner-source-actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:1 1 135px;min-height:44px;padding:10px;border:1px solid #c8ab8c;border-radius:9px;background:#fffdf8;color:#493722;font:inherit;font-size:12px;text-decoration:none;cursor:pointer}
 .idea-source>p{font-size:13px;line-height:1.7;color:#d4cdd0}
 .idea-source-review{margin-top:12px;color:#ece7e1;border-top:1px solid #55515a}
 .idea-source-review label{margin-top:12px}

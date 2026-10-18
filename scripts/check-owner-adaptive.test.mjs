@@ -1,10 +1,45 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {emptyOwnerIntake,nextOwnerIntake,ownerFromStore,withOwnerAnswers,intakeFinished,ownerAnsweredCount,ownerPreviewDetails,ownerIntakeSchema,ownerVisualBriefing,hasOwnerVisualBriefing} from '../lib/owner-intake.ts';
+import {emptyOwnerIntake,nextOwnerIntake,ownerFromStore,ownerWithMenuSource,ownerWithMenuContent,ownerNameSuggestion,withOwnerAnswers,intakeFinished,ownerAnsweredCount,ownerPreviewDetails,ownerIntakeSchema,ownerVisualBriefing,hasOwnerVisualBriefing} from '../lib/owner-intake.ts';
 import {galleryDesign} from '../lib/gallery-styles.ts';
 import {defaultRestaurant} from '../lib/domain.ts';
 const f=JSON.parse(readFileSync(new URL('./fixtures/owner-intake-forno-azul.json',import.meta.url)));
+const masterUrl='https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b';
+const shared='Esse lugar é a sua cara! Use o ícone de coração no app pra salvar a loja na sua área de Favoritos. Master Pizzas - Búzios - '+masterUrl+'?UTM_Medium=share';
+
+test('a blocked share resumes with its exact message and name choice, without confirming facts silently',()=>{
+ const s=ownerFromStore(ownerWithMenuSource(emptyOwnerIntake(),shared),masterUrl,{},'needs_content');
+ const restored=ownerIntakeSchema.parse(JSON.parse(JSON.stringify(s)));
+ assert.equal(restored.initialMessage,shared);assert.equal(restored.source.catalogStatus,'needs_content');
+ assert.deepEqual(ownerNameSuggestion(restored),{name:'Master Pizzas - Búzios',fromShare:true});assert.equal(restored.answers.name,undefined);assert.equal(restored.answers.address,undefined);assert.equal(restored.answers.hours,undefined);
+ const confirmed=nextOwnerIntake(restored,ownerNameSuggestion(restored).name).state;
+ assert.equal(confirmed.answers.name,'Master Pizzas - Búzios');assert.equal(confirmed.step,1);assert.equal(ownerNameSuggestion(confirmed),undefined);assert.equal(ownerVisualBriefing(confirmed),'');
+});
+
+test('older source-only checkpoints offer an explicitly unverified URL label and remain editable',()=>{
+ const legacy=ownerIntakeSchema.parse({answers:{menu:masterUrl},source:{url:masterUrl},step:0,initialMessage:''});
+ assert.deepEqual(ownerNameSuggestion(legacy),{name:'Master Pizzas Buzios Sao Jose',fromShare:false});assert.equal(legacy.answers.name,undefined);
+ const edited=withOwnerAnswers(legacy,{name:'Nome escolhido pelo dono'});assert.equal(edited.step,1);assert.equal(ownerNameSuggestion(edited),undefined);
+ const long=ownerIntakeSchema.parse({...legacy,source:{url:masterUrl.replace('master-pizzas---buzios-sao-jose','a'.repeat(110))}});assert.equal(ownerNameSuggestion(long),undefined,'An unusable URL label must leave the editable name field visible');
+});
+
+test('changing stores drops old suggestions and telephone while explicit answers and design survive',()=>{
+ let state=nextOwnerIntake(emptyOwnerIntake(),'Minha pizzaria se chama Casa Verde. Quero amarelo e azul.').state;
+ state=ownerFromStore(ownerWithMenuSource(state,shared),masterUrl,{telephone:f.whatsapp},'needs_content');
+ assert.equal(state.answers.name,'Casa Verde');assert.equal(ownerNameSuggestion(state),undefined);assert.match(ownerVisualBriefing(state),/Quero amarelo e azul/);
+ const changed=ownerWithMenuSource(state,f.url);assert.equal(changed.source.url,f.url);assert.equal(changed.source.sharedName,undefined);assert.equal(changed.source.telephone,undefined);assert.equal(changed.source.catalogStatus,undefined);assert.equal(changed.answers.name,'Casa Verde');
+});
+
+test('unrecognized and multiple store messages cannot replace a checkpoint source',()=>{
+ const state=ownerFromStore(ownerWithMenuSource(emptyOwnerIntake(),shared),masterUrl,{},'needs_content');
+ assert.equal(ownerWithMenuSource(state,'https://example.test/loja'),state);assert.equal(ownerWithMenuSource(state,masterUrl+'\n'+f.url),state);
+});
+
+test('a successfully supplied menu replaces the blocked notice without losing its source or name choice',()=>{
+ const original=ownerFromStore(ownerWithMenuSource(emptyOwnerIntake(),shared),masterUrl,{},'needs_content'),state=ownerWithMenuContent(original);
+ assert.equal(state.source.catalogStatus,undefined);assert.equal(original.source.catalogStatus,'needs_content');assert.equal(state.source.url,masterUrl);assert.deepEqual(ownerNameSuggestion(state),{name:'Master Pizzas - Búzios',fromShare:true});assert.equal(state.initialMessage,shared);assert.deepEqual(state.answers,original.answers);assert.deepEqual(ownerIntakeSchema.parse(JSON.parse(JSON.stringify(state))),state);
+});
 test('trade names and addresses do not override explicit colours in a suggested design',()=>{
  const original='Minha pizzaria se chama Casa Verde. Quero amarelo.\nEndereço: Rua Azul, 18, Cabo Frio - RJ';
  const state=nextOwnerIntake(emptyOwnerIntake(),original).state,brief=ownerVisualBriefing(state);

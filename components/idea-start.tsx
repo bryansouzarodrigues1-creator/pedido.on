@@ -21,7 +21,7 @@ import {MiniMenu,Spinner,Modal} from "./ui";
 import {imageFromFile,loadBrandAssets,saveBrandAssets,type BrandAssets} from "@/lib/guest-brand-assets";
 import {nameFromBriefing} from "@/lib/studio-policy";
 import OwnerIntakeChat from "./owner-intake-chat";
-import {emptyOwnerIntake,intakeFinished,ownerPreviewDetails,withOwnerAnswers,ownerVisualBriefing,ownerFacts,type OwnerIntake} from "@/lib/owner-intake";
+import {emptyOwnerIntake,intakeFinished,ownerPreviewDetails,withOwnerAnswers,ownerWithMenuContent,ownerVisualBriefing,ownerFacts,type OwnerIntake} from "@/lib/owner-intake";
 
 const FullMenu=lazy(()=>import("./menu"));
 function makePreview(items:ReaderItem[]):RestaurantData{const sample=detailedDemoRestaurant("editorial");if(!items.length)return sample;const base=defaultRestaurant("Sua pizzaria");const ready=items.map(item=>({...item,selected:item.selected&&readerItemReady(item)}));return ready.some(item=>item.selected)?{...base,...applyReaderItems(base,ready)}:base;}
@@ -55,7 +55,7 @@ export default function IdeaStart(){
   for(const file of files){if(file.type.startsWith("image/"))added.push(await prepareMenuPhoto(file));else{const result=await readMenuAttachment(file,8-pages.length-added.length,setReadingLabel);added.push(...result.pages);if(result.text)text=mergeReaderSource(text,result.text);if(result.source)suggestion=result.source;}}
   if(text.length>60000)throw Error("Importe uma parte por vez, com até 60 mil caracteres.");setPages(old=>[...old,...added]);setSourceText(text);
   const facts=ownerFacts(text+"\n"+added.flatMap(page=>page.lines.map(line=>line.text)).join("\n"));
-  setIntake(old=>withOwnerAnswers(old,{...Object.fromEntries(Object.entries(facts).filter(([key])=>old.answers[key as keyof typeof old.answers]===undefined)),...(old.answers.menu===undefined?{menu:""}:{})}));setSourceOpen(true);reading.current=null;setPreview(null);
+  setIntake(old=>ownerWithMenuContent(withOwnerAnswers(old,{...Object.fromEntries(Object.entries(facts).filter(([key])=>old.answers[key as keyof typeof old.answers]===undefined)),...(old.answers.menu===undefined?{menu:""}:{})})));setSourceOpen(true);reading.current=null;setPreview(null);
   if(suggestion)setSourceSuggestion(suggestion);
   setNotice(added.some(page=>!page.lines.length)?"Arquivo recebido. As páginas em imagem serão lidas ao preparar a prévia.":"Cardápio recebido. Os produtos serão organizados na sua prévia.");
  }catch(e){setError(e instanceof Error?e.message:"Não foi possível abrir o arquivo.");}finally{setBusy(false);setReadingLabel("");}}

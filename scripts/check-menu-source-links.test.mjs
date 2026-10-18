@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import 'fake-indexeddb/auto';
-import {parseIfoodStoreLink,inspectMenuSourceText,mergeMenuSourceText} from '../lib/menu-source-links.ts';
+import {parseIfoodStoreLink,inspectMenuSourceText,mergeMenuSourceText,sharedIfoodStoreName} from '../lib/menu-source-links.ts';
 import {assistantAnswer} from '../lib/assistant-help.ts';
 import {creationRequest} from '../lib/creation-request.ts';
 import {readMenuPages,prepareReaderItems,importReaderItems} from '../lib/menu-reader-policy.ts';
@@ -17,6 +17,15 @@ const shared=`Esse lugar é a sua cara! Use o ícone de coração no app pra sal
 const masterUrl='https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b';
 const masterShared='Esse lugar é a sua cara! Use o ícone de coração no app pra salvar a loja na sua área de Favoritos. Master Pizzas - Búzios - '+masterUrl+'?UTM_Medium=share';
 const read=value=>readMenuPages([{id:'text',lines:inspectMenuSourceText(value).menuText.split('\n').map(text=>({text}))}]);
+
+test('a real share caption preserves its accented commercial name as a suggestion',()=>{
+ for(const input of [masterShared,masterShared.replace(' - '+masterUrl,' -\n'+masterUrl),masterShared.replace('! Use','!\nUse').replace('Favoritos. Master','Favoritos.\nMaster')])assert.equal(sharedIfoodStoreName(input),'Master Pizzas - Búzios');
+ assert.equal(sharedIfoodStoreName(shared),'Aione Pizzas');
+});
+
+test('URL labels, unrelated captions, multiple stores and malformed references are not shared commercial names',()=>{
+ for(const input of [masterUrl,'Master Pizzas - Búzios - '+masterUrl,masterShared.replace('Master Pizzas - Búzios','Outra pizzaria'),masterShared+'\n'+url,masterShared.replace('www.ifood.com.br','ifood.com.br.evil.test'),masterShared.replace('Master Pizzas - Búzios','<script>alert(1)</script>')])assert.equal(sharedIfoodStoreName(input),undefined,input);
+});
 
 test('the exact reported Master Pizzas share accepts triple hyphens and preserves the real store path',()=>{
  const source=inspectMenuSourceText(masterShared);assert.equal(source.status,'ifood');assert.equal(source.links.length,1);assert.equal(source.menuText,'');
