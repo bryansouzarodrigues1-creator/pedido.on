@@ -34,7 +34,7 @@ try {
             await page.waitForFunction(() => document.querySelector('#pizzeria-idea')?.disabled === false);
             await page.locator('#pizzeria-idea').fill('Minha pizzaria se chama OCR no navegador. Preserve os preços do arquivo.');
         }
-        await page.getByRole('button', {name: /Anexar (?:arquivos|cardápio)/}).click();
+        await page.getByRole('button', {name: /Anexar (?:arquivos|cardápio)|Enviar cardápio ou imagens/}).click();
         const png = Buffer.from(await page.evaluate(layout => {
             const canvas = document.createElement('canvas'); canvas.width = 1700; canvas.height = 950;
             const ctx = canvas.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);

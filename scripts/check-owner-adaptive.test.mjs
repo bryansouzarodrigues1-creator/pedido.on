@@ -2,7 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {emptyOwnerIntake,nextOwnerIntake,ownerFromStore,withOwnerAnswers,intakeFinished,ownerAnsweredCount,ownerPreviewDetails,ownerIntakeSchema,ownerVisualBriefing,hasOwnerVisualBriefing} from '../lib/owner-intake.ts';
+import {galleryDesign} from '../lib/gallery-styles.ts';
+import {defaultRestaurant} from '../lib/domain.ts';
 const f=JSON.parse(readFileSync(new URL('./fixtures/owner-intake-forno-azul.json',import.meta.url)));
+test('trade names and addresses do not override explicit colours in a suggested design',()=>{
+ const original='Minha pizzaria se chama Casa Verde. Quero amarelo.\nEndereço: Rua Azul, 18, Cabo Frio - RJ';
+ const state=nextOwnerIntake(emptyOwnerIntake(),original).state,brief=ownerVisualBriefing(state);
+ assert.equal(state.initialMessage,original);assert.match(brief,/Quero amarelo/);assert.doesNotMatch(brief,/Casa Verde|Rua Azul/);
+ assert.equal(galleryDesign(defaultRestaurant('Casa Verde'),'forno-classico',brief).accent,'#dfae28');
+ const blue=nextOwnerIntake(emptyOwnerIntake(),'Minha pizzaria se chama Azul. Quero azul e amarelo.').state;
+ assert.match(ownerVisualBriefing(blue),/Quero azul e amarelo/);
+});
 test('a detailed fictitious briefing fills four explicit facts without asking them again',()=>{
  const result=nextOwnerIntake(emptyOwnerIntake(),f.initialMessage);assert.equal(result.error,undefined);
  const s=result.state;assert.equal(s.step,4);assert.equal(ownerAnsweredCount(s),4);
