@@ -1,0 +1,237 @@
+{
+  "issue": "Exact iFood share rejected because the legitimate store slug contains three consecutive hyphens",
+  "canonicalUrl": "https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b",
+  "sourceCommit": "fdf4fd7d15606302c9a93bafe698dde1716732c1",
+  "sourceTree": "bec736c83670e6ca22d89b229ac1ba6dcf9656b6",
+  "github": {
+    "repository": "bryansouzarodrigues1-creator/pedido.on",
+    "pr": 64,
+    "head": "116d3a1ea220c9594db3f7461c8a6a4c187a4b03",
+    "mirrorPr": 21,
+    "mirrorHead": "e7c4819475f2083e95f5b7389c5d8462330d2535",
+    "mirrorMerge": "e2a7a81acd0c7947c03717cc1b71a5ed0eec1cf5",
+    "merge": "9bb1e1799bb616b3eb0f08ecfd2b3c2f16a4d526"
+  },
+  "publication": {
+    "version": 57,
+    "versionId": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_3fe37a78da588191b7757852d9b278ed",
+    "deploymentId": "appgdep_6ad5486c4e6c8191b5054c677eb99736",
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "environmentRevision": 13,
+    "completedAt": "2026-10-18T22:30:30.984272+00:00"
+  },
+  "local": {
+    "tests": 433,
+    "passed": 433,
+    "failed": 0,
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "ci": {
+    "chrome": {
+      "runId": 39172453189,
+      "jobId": 117808182308,
+      "conclusion": "success",
+      "artifactId": 12152853839,
+      "testMergeCommit": "d3c5976003e3f51d47b4d38139b2a6bac42e338c",
+      "artifactDigest": "sha256:5897c74871dcff932fb80a3cdf0a1459f8651f55844ab5fa97efd7731f9de23b"
+    },
+    "windows": {
+      "runId": 39172453048,
+      "conclusion": "success"
+    },
+    "authOrders": {
+      "runId": 39172453214,
+      "conclusion": "success"
+    },
+    "mirror": {
+      "runId": 39172454472,
+      "conclusion": "success"
+    }
+  },
+  "browser": {
+    "device": "Chrome Pixel 7 emulated",
+    "physicalAndroid": false,
+    "sourceResponse": "controlled needs_content; same-origin source POST intercepted; no real application writes",
+    "assertions": [
+      "Exact full message reaches lookup in the same input",
+      "Canonical URL preserves three hyphens and drops tracking",
+      "Blocked catalog offers PDF, photo and pasted products",
+      "320/412/1280px without horizontal overflow",
+      "Preview can continue without invented address or hours"
+    ],
+    "local": {
+      "base": "http://127.0.0.1:5173",
+      "commit": "d3c5976003e3f51d47b4d38139b2a6bac42e338c",
+      "runner": "linux",
+      "browser": "Chrome / Pixel 7 emulado; não é Android físico",
+      "identity": "mock local oficial Sites; nenhum provedor financeiro ou IA",
+      "results": [
+        {
+          "name": "guest",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "calculator",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "handoff",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "owner",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "ocr",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "styles",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "intake-options",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "documents",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "shared-ifood",
+          "code": 0,
+          "signal": null
+        }
+      ]
+    },
+    "localRegression": {
+      "base": "http://127.0.0.1:5173",
+      "commit": "d3c5976003e3f51d47b4d38139b2a6bac42e338c",
+      "checks": [
+        {
+          "name": "exact share message reaches the lookup in the same composer, preserving three hyphens and removing tracking",
+          "ok": true
+        },
+        {
+          "name": "blocked response offers visible PDF/photo/text actions without inventing store facts or overflowing the mobile viewport",
+          "ok": true
+        },
+        {
+          "name": "owner can continue to preview with the supplied name and defer unverified address and hours",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "lookups": 1,
+      "controlledUpstream": true,
+      "scope": "UI and browser storage only; source POST intercepted; no remote application mutation; not a real catalog import",
+      "passed": true
+    },
+    "public": {
+      "base": "https://forno-cardapios.waves4845.chatgpt.site",
+      "commit": "d3c5976003e3f51d47b4d38139b2a6bac42e338c",
+      "scope": "UI pública; nenhum cadastro, pedido, upload remoto ou geração; armazenamento apenas no navegador",
+      "checks": [
+        {
+          "name": "guest",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "calculator",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "ocr",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "styles",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "documents",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "shared-ifood",
+          "code": 0,
+          "signal": null
+        }
+      ]
+    },
+    "publicRegression": {
+      "base": "https://forno-cardapios.waves4845.chatgpt.site",
+      "commit": "d3c5976003e3f51d47b4d38139b2a6bac42e338c",
+      "checks": [
+        {
+          "name": "exact share message reaches the lookup in the same composer, preserving three hyphens and removing tracking",
+          "ok": true
+        },
+        {
+          "name": "blocked response offers visible PDF/photo/text actions without inventing store facts or overflowing the mobile viewport",
+          "ok": true
+        },
+        {
+          "name": "owner can continue to preview with the supplied name and defer unverified address and hours",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "lookups": 1,
+      "controlledUpstream": true,
+      "scope": "UI and browser storage only; source POST intercepted; no remote application mutation; not a real catalog import",
+      "passed": true
+    },
+    "publicScreenshotVisuallyInspected": true
+  },
+  "realLookup": {
+    "checkedAt": "2026-10-18T22:26:01.023Z",
+    "httpStatus": 403,
+    "status": "needs_content",
+    "productCount": 0,
+    "metadataFields": [],
+    "store": null
+  },
+  "preservation": {
+    "completeRestaurantsCompared": 7,
+    "unchanged": true,
+    "environmentChanged": false,
+    "migrations": false,
+    "paidGeneration": false,
+    "billingChanged": false
+  },
+  "limits": [
+    "No real catalog imported in this round",
+    "No official iFood connector configured",
+    "No physical Android test"
+  ],
+  "reportedScreenshotLocalTime": "19:23",
+  "completedAt": "2026-10-18T22:35:14.696Z",
+  "realLookupRunner": {
+    "checkedAt": "2026-10-18T22:33:33.381Z",
+    "url": "https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b",
+    "httpStatus": 403,
+    "status": "needs_content",
+    "productCount": 0,
+    "metadataFields": [],
+    "store": null,
+    "message": "O iFood não liberou o catálogo por esse link. Abra sua loja e envie PDF, TXT/CSV, página salva ou prints do cardápio.",
+    "note": "An anonymous public-page lookup. Does not validate official iFood API access or guarantee a full catalog."
+  }
+}
