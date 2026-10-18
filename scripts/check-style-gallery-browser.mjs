@@ -14,8 +14,10 @@ try{
  context=await browser.newContext({...devices["Pixel 7"],locale:"pt-BR",serviceWorkers:"block"});
  await guardPublicGuestContext(context,errors);page=await context.newPage();page.setDefaultTimeout(20_000);page.on("pageerror",e=>errors.push(e.message));
  await page.goto(base+"/criar",{waitUntil:"domcontentloaded",timeout:90_000});
- await page.waitForFunction(()=>document.querySelector("#pizzeria-idea")?.disabled===false);
- const current=await page.getByRole("button",{name:"Criar 12 modelos",exact:true}).count()>0;
+ const guided=await page.locator("#owner-intake-message").count()>0;
+ if(guided)await page.waitForFunction(()=>document.querySelector("#owner-intake-message")?.disabled===false);
+ else await page.waitForFunction(()=>document.querySelector("#pizzeria-idea")?.disabled===false);
+ const current=guided||await page.getByRole("button",{name:"Criar 12 modelos",exact:true}).count()>0;
  if(!current){
   assert.equal(publicReadOnly,true,"O candidato local precisa oferecer os 12 modelos.");
   await writeFile(path.join(output,"style-gallery-browser.json"),JSON.stringify({base,checks,errors,skipped:"Publicação anterior aos 12 estilos; esta rodada não os homologa."},null,2));

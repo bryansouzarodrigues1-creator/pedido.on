@@ -17,16 +17,19 @@ import {applyReaderItems,readMenuPages,readerItemReady,type ReaderPage} from "@/
 import {MiniMenu,Spinner,Modal} from "./ui";
 import {imageFromFile,loadBrandAssets,saveBrandAssets,type BrandAssets} from "@/lib/guest-brand-assets";
 import {nameFromBriefing} from "@/lib/studio-policy";
+import OwnerIntakeChat from "./owner-intake-chat";
+import {emptyOwnerIntake,intakeFinished,ownerPreviewDetails,type OwnerIntake} from "@/lib/owner-intake";
 
 function makePreview(items:ReaderItem[]):RestaurantData{const sample={...demoRestaurant("editorial"),name:"Sua pizzaria"};if(!items.length)return sample;const base=defaultRestaurant("Sua pizzaria");const ready=items.map(item=>({...item,selected:item.selected&&readerItemReady(item)}));return ready.some(item=>item.selected)?{...base,...applyReaderItems(base,ready)}:base;}
 export default function IdeaStart(){
+ const [intake,setIntake]=useState<OwnerIntake>(emptyOwnerIntake);
  const [initialized,setInitialized]=useState(false),[brandAssets,setBrandAssets]=useState<BrandAssets|null>(null),[brandName,setBrandName]=useState(""),[storageError,setStorageError]=useState("");
  const [referenceId,setReferenceId]=useState<GalleryStyleId|null>(null);
  const [styleId,setStyleId]=useState<GalleryStyleId|null>(null),[round,setRound]=useState(0),[refinement,setRefinement]=useState(""),[feedback,setFeedback]=useState(""),[localFeedbackNote,setLocalFeedbackNote]=useState(""),[chatOpen,setChatOpen]=useState(false);
  const [idea,setIdea]=useState(""),[sourceOpen,setSourceOpen]=useState(false),[sourceText,setSourceText]=useState(""),[pages,setPages]=useState<ReaderPage[]>([]),[preview,setPreview]=useState<RestaurantData|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[readingLabel,setReadingLabel]=useState(""),[imported,setImported]=useState(0),[saving,setSaving]=useState(false);
  const abort=useRef<AbortController|null>(null),alive=useRef(true),reading=useRef<Reading|null>(null),launch=useRef<MenuLaunch|null>(null),galleryRef=useRef<HTMLElement|null>(null),styleGridRef=useRef<HTMLDivElement|null>(null),scrollToResult=useRef(false);
- useEffect(()=>{alive.current=true;void loadLaunchCheckpoint().then(async saved=>{if(!saved||!alive.current)return;launch.current=saved;setIdea(saved.idea);setSourceText(saved.sourceText);setBrandName(saved.brandName||"");if(saved.sourceText||saved.hasPhotos||saved.hasAssets)setSourceOpen(true);setStyleId(saved.styleId||null);setRefinement(saved.refinement||"");const [v,images]=await Promise.all([loadReading(guestReadingKey(saved.id)).catch(()=>null),loadBrandAssets(guestReadingKey(saved.id)).catch(()=>null)]);if(!alive.current)return;if(v){setPages(v.pages);reading.current=v;setImported(v.items.length);}if(images)setBrandAssets(images);if(saved.hasPhotos&&!v?.pages.length||saved.hasAssets&&!images?.logo&&!images?.cover)setNotice("Sua ideia foi recuperada, mas alguns anexos não estão disponíveis. Envie esses arquivos novamente antes de continuar.");if(saved.previewReady)setPreview(makePreview(v?.items||[]));}).catch(()=>{if(alive.current)setStorageError("Não foi possível recuperar o projeto deste aparelho.");}).finally(()=>{if(alive.current)setInitialized(true);});return()=>{alive.current=false;abort.current?.abort();};},[]);
- useEffect(()=>{if(!initialized||!idea&&!brandName&&!sourceText&&!pages.length&&!brandAssets&&!preview)return;const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,sourceText,hasPhotos:!!pages.length,hasAssets:!!(brandAssets?.logo||brandAssets?.cover),styleId:styleId||undefined,refinement,previewReady:!!preview};launch.current=value;void saveLaunchCheckpoint(value).then(()=>{if(alive.current)setStorageError("");}).catch(e=>{if(alive.current)setStorageError(e instanceof Error?e.message:"Não foi possível guardar sua ideia.");});},[idea,brandName,sourceText,pages.length,brandAssets,styleId,refinement,preview,initialized]);
+ useEffect(()=>{alive.current=true;void loadLaunchCheckpoint().then(async saved=>{if(!saved||!alive.current)return;launch.current=saved;setIntake(saved.ownerIntake||emptyOwnerIntake());setIdea(saved.idea);setSourceText(saved.sourceText);setBrandName(saved.brandName||"");if(saved.sourceText||saved.hasPhotos||saved.hasAssets)setSourceOpen(true);setStyleId(saved.styleId||null);setRefinement(saved.refinement||"");const [v,images]=await Promise.all([loadReading(guestReadingKey(saved.id)).catch(()=>null),loadBrandAssets(guestReadingKey(saved.id)).catch(()=>null)]);if(!alive.current)return;if(v){setPages(v.pages);reading.current=v;setImported(v.items.length);}if(images)setBrandAssets(images);if(saved.hasPhotos&&!v?.pages.length||saved.hasAssets&&!images?.logo&&!images?.cover)setNotice("Sua ideia foi recuperada, mas alguns anexos não estão disponíveis. Envie esses arquivos novamente antes de continuar.");if(saved.previewReady&&saved.ownerIntake&&intakeFinished(saved.ownerIntake))setPreview(makePreview(v?.items||[]));}).catch(()=>{if(alive.current)setStorageError("Não foi possível recuperar o projeto deste aparelho.");}).finally(()=>{if(alive.current)setInitialized(true);});return()=>{alive.current=false;abort.current?.abort();};},[]);
+ useEffect(()=>{if(!initialized||!idea&&!brandName&&!sourceText&&!pages.length&&!brandAssets&&!preview&&!intake.step)return;const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,ownerIntake:intake,sourceText,hasPhotos:!!pages.length,hasAssets:!!(brandAssets?.logo||brandAssets?.cover),styleId:styleId||undefined,refinement,previewReady:!!preview};launch.current=value;void saveLaunchCheckpoint(value).then(()=>{if(alive.current)setStorageError("");}).catch(e=>{if(alive.current)setStorageError(e instanceof Error?e.message:"Não foi possível guardar sua ideia.");});},[idea,brandName,intake,sourceText,pages.length,brandAssets,styleId,refinement,preview,initialized]);
  useEffect(()=>{if(preview&&scrollToResult.current){scrollToResult.current=false;requestAnimationFrame(()=>galleryRef.current?.scrollIntoView({behavior:"smooth",block:"start"}));}},[preview]);
  useEffect(()=>{if(!initialized||!launch.current||!pages.length&&!sourceText)return;const id=launch.current.id,timer=setTimeout(()=>{const checkpoint={restaurantId:guestReadingKey(id),savedAt:Date.now(),pages,items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText};void saveReading(checkpoint).catch(()=>{if(alive.current&&pages.length)setNotice("As fotos estão nesta página, mas o navegador não conseguiu guardá-las. Libere o armazenamento antes de continuar.");});},400);return()=>clearTimeout(timer);},[initialized,pages,sourceText]);
  async function files(e:ChangeEvent<HTMLInputElement>){const files=Array.from(e.target.files||[]);e.target.value="";if(!files.length)return;setError("");setBusy(true);try{
@@ -36,16 +39,26 @@ export default function IdeaStart(){
   if(text.length>60000)throw Error("Importe uma parte por vez, com até 60 mil caracteres.");setPages(old=>[...old,...added]);setSourceText(text);setSourceOpen(true);reading.current=null;setPreview(null);
  }catch(e){setError(e instanceof Error?e.message:"Não foi possível abrir o arquivo.");}finally{setBusy(false);}}
  async function uploadBrand(e:ChangeEvent<HTMLInputElement>,kind:"logo"|"cover"){const file=e.target.files?.[0];e.target.value="";if(!file||busy||saving)return;setBusy(true);setError("");try{
-   const image=await imageFromFile(file),id=launch.current?.id||crypto.randomUUID(),value:MenuLaunch={id,savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,sourceText,hasPhotos:!!pages.length,hasAssets:true,styleId:styleId||undefined,refinement,previewReady:!!preview};
+   const image=await imageFromFile(file),id=launch.current?.id||crypto.randomUUID(),value:MenuLaunch={id,savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,ownerIntake:intake,sourceText,hasPhotos:!!pages.length,hasAssets:true,styleId:styleId||undefined,refinement,previewReady:!!preview};
    const old=brandAssets||{key:guestReadingKey(id)},next={...old,key:guestReadingKey(id),[kind]:image};
    await saveBrandAssets(next);await saveLaunchCheckpoint(value);launch.current=value;setBrandAssets(next);setSourceOpen(true);
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível guardar a imagem da marca.");}finally{setBusy(false);}}
  async function generate(e?:FormEvent){
+  if(!intakeFinished(intake)){setError("Conclua as cinco perguntas para personalizar os modelos.");return;}
   e?.preventDefault();if(busy)return;setError("");setNotice("");setBusy(true);const controller=new AbortController();abort.current=controller;
   try{
    let text=sourceText,source=inspectMenuSourceText(text),ready=pages;
    if(source.links.length===1&&!source.menuText&&!pages.length){
-    setReadingLabel("Consultando o link do iFood…");const result=await fetchMenuSource(source.links[0].url);setNotice(result.message);if(result.text){text=source.links[0].url+"\n"+result.text;setSourceText(text);source=inspectMenuSourceText(text);}else setSourceOpen(true);
+    setReadingLabel("Consultando o link do cardápio…");
+    try{
+      const result=await fetchMenuSource(source.links[0].url);
+      setNotice(result.message);
+      if(result.text){text=source.links[0].url+"\n"+result.text;setSourceText(text);source=inspectMenuSourceText(text);}
+      else setSourceOpen(true);
+    }catch{
+      setNotice("Não consegui ler automaticamente o link do cardápio. Vou mostrar os modelos; depois você pode enviar fotos, CSV ou cadastrar produtos manualmente.");
+      setSourceOpen(true);
+    }
    }
    const missing=pages.filter(p=>!p.lines.length);
    if(missing.length){const scanned=await recognizeMenuPhotos(missing,controller.signal,(_,label)=>{if(alive.current)setReadingLabel(label);});ready=pages.map(p=>scanned.find(s=>s.id===p.id)||p);if(!alive.current)return;setPages(ready);}
@@ -61,17 +74,18 @@ export default function IdeaStart(){
  async function removeBrand(kind:"logo"|"cover"){if(!brandAssets||busy||saving)return;setBusy(true);setError("");try{const next={...brandAssets,[kind]:undefined};await saveBrandAssets(next);setBrandAssets(next);}catch{setError("Não foi possível remover esta imagem. Tente novamente.");}finally{setBusy(false);}}
  async function continueSetup(requestAi=false){
   if(busy||saving)return;setSaving(true);setError("");try{
+   if(!intakeFinished(intake)){setError("Responda às perguntas principais antes de criar o cardápio.");setSaving(false);return;}
    if(!styleId&&!requestAi){setError("Escolha um dos modelos antes de continuar.");setSaving(false);return;}
    const selected=styleId||styles[0];
-   const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,sourceText,hasPhotos:!!pages.length,hasAssets:!!(brandAssets?.logo||brandAssets?.cover),styleId:selected,refinement,previewReady:true,aiRequested:requestAi};await saveLaunchCheckpoint(value);launch.current=value;
+   const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,ownerIntake:intake,sourceText,hasPhotos:!!pages.length,hasAssets:!!(brandAssets?.logo||brandAssets?.cover),styleId:selected,refinement,previewReady:true,aiRequested:requestAi};await saveLaunchCheckpoint(value);launch.current=value;
    if(pages.length)await saveReading({...reading.current,restaurantId:guestReadingKey(value.id),savedAt:Date.now(),pages,items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText});
    else if(sourceText)await saveReading({restaurantId:guestReadingKey(value.id),savedAt:Date.now(),pages:[],items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText}).catch(()=>{});
    location.assign(await menuLaunchAccountPath());
   }catch{setError("O navegador não conseguiu guardar sua ideia. Libere o armazenamento deste site para levar o conteúdo até o cadastro.");setSaving(false);}
  }
  const styles=suggestedGalleryStyles(idea,refinement),visible=styles.slice(round*4,round*4+4),rounds=Math.ceil(styles.length/4);
- const explicitName=nameFromBriefing(idea);
- const design=(id:GalleryStyleId)=>{const data=galleryDesign(preview!,id,idea,refinement);return {...data,...(brandName.trim().length>=2?{name:brandName.trim()}:{}),...(brandAssets?.logo?{logo:brandAssets.logo.data}:{}),...(brandAssets?.cover?{cover:brandAssets.cover.data}:{})};};
+ const explicitName=intake.answers.name||nameFromBriefing(idea);
+ const design=(id:GalleryStyleId)=>{const data=galleryDesign(preview!,id,idea,refinement);return {...data,...ownerPreviewDetails(intake),...(brandName.trim().length>=2?{name:brandName.trim()}:{}),...(brandAssets?.logo?{logo:brandAssets.logo.data}:{}),...(brandAssets?.cover?{cover:brandAssets.cover.data}:{})};};
  function refine(e:FormEvent){e.preventDefault();if(!feedback.trim()){setError("Descreva com suas palavras o que você quer mudar.");return;}
   const combined=(refinement?refinement+"\n":"")+feedback.trim();
   if(combined.length>600){setError("Resuma as mudanças em até 600 caracteres.");return;}
@@ -81,10 +95,17 @@ export default function IdeaStart(){
  }
  return <section className={"idea-start ai-landing "+(preview?"has-results":"waiting-prompt")} id="ideia"><div className="saas-container">
    <div className={"idea-workspace"+(preview?" has-gallery":"")}><div className="idea-composer-wrap">
-     <form className="idea-composer" onSubmit={generate}><label htmlFor="pizzeria-idea"><Sparkles size={19}/>Descreva sua pizzaria. A gente cria as opções.</label>
-       <textarea id="pizzeria-idea" rows={4} maxLength={1600} value={idea} onChange={e=>{setIdea(e.target.value);setPreview(null);setStyleId(null);}} placeholder="Ex.: Minha pizzaria se chama Sapore di Napoli. Quero um cardápio italiano, elegante, com fotos grandes e verde escuro…" disabled={busy||saving||!initialized}/>
-       <div className="idea-composer-bottom"><button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>setSourceOpen(!sourceOpen)}><Paperclip size={17}/>Anexar cardápio / iFood {pages.length>0?"("+pages.length+")":""}</button><button className="btn primary" disabled={busy||saving||!initialized}>{busy?<Spinner/>:<Sparkles size={17}/>} {busy?"Preparando…":preview?"Atualizar modelos":"Criar 12 modelos"}<ArrowRight size={17}/></button></div>
-     </form>
+     <div className="idea-conversation">
+       <OwnerIntakeChat value={intake} disabled={busy||saving||!initialized}
+        onChange={next=>{
+          setIntake(next);setPreview(null);setStyleId(null);setRound(0);
+          if(next.step===1&&intake.step===0)setIdea(next.initialMessage);
+          if(next.answers.name!==intake.answers.name)setBrandName(next.answers.name||"");
+          if(next.answers.menu!==intake.answers.menu)setSourceText(old=>old&&old!==intake.answers.menu?old:next.answers.menu||"");
+        }}
+        onReady={()=>{void generate();}}/>
+       <div className="idea-composer-bottom idea-conversation-attachments"><button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>setSourceOpen(!sourceOpen)}><Paperclip size={17}/>Anexar cardápio / iFood {pages.length>0?"("+pages.length+")":""}</button><small>Sem chamadas pagas para criar os 12 modelos.</small></div>
+     </div>
      {sourceOpen&&<div className="idea-source"><div><strong><Link2 size={17}/>Seu cardápio atual</strong><button className="icon-btn" type="button" aria-label="Recolher importação" onClick={()=>setSourceOpen(false)}><X size={16}/></button></div><label htmlFor="idea-source-text">Link do iFood ou texto dos produtos</label>
        <textarea id="idea-source-text" rows={4} maxLength={60000} value={sourceText} disabled={busy||saving||!initialized} onChange={e=>{setSourceText(e.target.value);setPreview(null);reading.current=null;}} placeholder={"Cole o link do iFood ou os nomes e preços dos produtos.\nCalabresa P R$ 29,90 · G R$ 49,90"}/>
        <div className="idea-file-actions"><label><ImagePlus size={16}/>Fotos do cardápio<input type="file" hidden multiple accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={files}/></label><label><FileText size={16}/>TXT / CSV<input type="file" hidden accept=".txt,.csv,text/plain,text/csv" disabled={busy||saving||!initialized} onChange={files}/></label><label><ImagePlus size={16}/>Logo<input type="file" hidden accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={e=>void uploadBrand(e,"logo")}/></label><label><ImagePlus size={16}/>Capa / referência<input type="file" hidden accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={e=>void uploadBrand(e,"cover")}/></label><a href="/modelo-cardapio.csv" download>Modelo CSV</a></div>

@@ -261,7 +261,24 @@ function CreateRestaurant({theme,plan,launch,onCreate}:{theme:ThemeId;plan:strin
  const [name,setName]=useState(""),[slug,setSlug]=useState(""),[manualSlug,setManualSlug]=useState(false),[vision,setVision]=useState(""),[step,setStep]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState("");
  useEffect(()=>{if(launch){setVision(launch.idea);setStep(launch.styleId||launch.idea.trim()?1:0);const explicitName=launch.brandName||nameFromBriefing(launch.idea);if(explicitName){setName(current=>current||explicitName);setSlug(current=>current||slugify(explicitName));}}},[launch?.id]);
  const sample=demoRestaurant(theme),visual={...sample,...proposalPatch(localStudio(vision||"Lista artesanal",sample),sample),...(name?{name}:{})};
- async function create(event:FormEvent){event.preventDefault();setError("");if(step===0){setStep(1);return;}if(!slugSchema.safeParse(slug).success){setError("Escolha um endereço com ao menos três caracteres, começando com uma letra.");return;}setBusy(true);try{const body=await api("/api/restaurants","POST",{name,slug,theme,plan,vision,styleId:launch?.styleId,refinement:launch?.refinement||""});await onCreate(body.restaurant,(vision.trim()||"Quero uma lista artesanal com letras elegantes.")+(launch?.refinement?"\nMeu pedido de personalização: "+launch.refinement:""));}catch(e){setError(e instanceof Error?e.message:"Não foi possível criar seu cardápio.");}finally{setBusy(false);}}
+ async function create(event:FormEvent){event.preventDefault();setError("");if(step===0){setStep(1);return;}if(!slugSchema.safeParse(slug).success){setError("Escolha um endereço com ao menos três caracteres, começando com uma letra.");return;}setBusy(true);try{const body=await api("/api/restaurants","POST",{name,slug,theme,plan,vision,styleId:launch?.styleId,refinement:launch?.refinement||""});
+   // Apply chat-collected contact details to the actual new restaurant draft.
+   // Never publish, never set products/prices from illustrative style images.
+   let restaurant=body.restaurant;
+   const a=launch?.ownerIntake?.answers;
+   if(a&&(a.address||a.hours||a.whatsapp)){
+     try{
+       const data=restaurantSchema.parse(JSON.parse(restaurant.data));
+       const patch=restaurantSchema.parse({...data,
+         ...(a.address?{address:a.address}:{}),
+         ...(a.hours?{hours:a.hours}:{}),
+         ...(a.whatsapp?{whatsapp:a.whatsapp}:{})
+       });
+       const saved=await api(`/api/restaurants/${restaurant.id}`,"PUT",{data:patch,revision:restaurant.revision});
+       restaurant=saved.restaurant;
+     }catch{setError("Sua pizzaria foi criada, mas houve um problema ao salvar os dados de contato. Abra a aba Pizzaria e confira antes de publicar.");}
+   }
+   await onCreate(restaurant,(vision.trim()||"Quero uma lista artesanal com letras elegantes.")+(launch?.refinement?"\nMeu pedido de personalização: "+launch.refinement:""));}catch(e){setError(e instanceof Error?e.message:"Não foi possível criar seu cardápio.");}finally{setBusy(false);}}
  return <form className="create-shop idea-create" onSubmit={create}><fieldset disabled={busy} className="editor-fieldset">
   {step===0?<><p className="create-intro">Comece pelo que imagina. Você pode ajustar tudo antes de publicar.</p><Field label="Qual é a ideia da sua pizzaria?"><textarea autoFocus rows={4} maxLength={1600} value={vision} onChange={e=>setVision(e.target.value)} placeholder="Ex.: artesanal italiana, verde, letras elegantes e sabores em lista."/></Field><details className="create-visual-preview"><summary>Ver direção visual</summary><MiniMenu data={visual} large/><small>Produtos e preços de exemplo.</small></details></>:<><div className="create-idea-summary"><Sparkles size={19}/><p>{vision||"Lista artesanal, simples de escolher e pedir."}</p><button type="button" className="text-button" onClick={()=>setStep(0)}>Ajustar</button></div><Field label="Nome da pizzaria"><input autoFocus required minLength={2} maxLength={100} value={name} autoComplete="organization" onChange={e=>{setName(e.target.value);if(!manualSlug)setSlug(slugify(e.target.value));}} placeholder="O nome da sua pizzaria"/></Field><details className="create-link-options"><summary>Seu link: /p/{slug||"nome-da-pizzaria"}</summary><Field label="Endereço do cardápio"><input minLength={3} maxLength={60} value={slug} onChange={e=>{setManualSlug(true);setSlug(slugify(e.target.value));}} placeholder="nome-da-pizzaria"/></Field></details><p className="create-intro">WhatsApp, entrega e pagamento ficam para a configuração da loja.</p></>}
  </fieldset>{error&&<p className="field-error" role="alert">{error}</p>}<button type="submit" className="btn primary full" disabled={busy}>{busy?<Spinner/>:<ArrowRight size={18}/>} {step===0?"Continuar com esta ideia":"Criar meu rascunho"}</button><p className="create-no-charge">Sem cobrança nesta etapa. Você decide quando publicar.</p></form>;

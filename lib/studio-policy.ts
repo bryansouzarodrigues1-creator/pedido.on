@@ -1,4 +1,5 @@
 import {z} from "zod";
+import {extractOwnerName} from "./owner-intake.ts";
 import {designFromMessage,presentationSchema} from "./menu-design.ts";
 import {restaurantSchema,type RestaurantData} from "./domain.ts";
 export const studioInput=z.object({requestId:z.string().uuid(),mode:z.enum(["local","ai"]).default("local"),message:z.string().trim().min(5).max(1600),snapshot:restaurantSchema,productId:z.string().max(80).optional(),history:z.array(z.object({role:z.enum(["user","assistant"]),content:z.string().max(1000)}).strict()).max(4).default([])}).strict();
@@ -10,6 +11,7 @@ export function studioEndpoint(raw:string|undefined){try{const u=new URL(raw||""
 export function proposalPatch(raw:unknown,data:RestaurantData):Partial<RestaurantData>{const p=studioProposal.parse(raw);if(p.productDescriptions.some(d=>!data.products.some(item=>item.id===d.id))||new Set(p.productDescriptions.map(d=>d.id)).size!==p.productDescriptions.length)throw new Error("Os textos precisam corresponder aos produtos desta pizzaria.");if(p.imageBrief?.asset==="product"&&!data.products.some(item=>item.id===p.imageBrief!.productId))throw new Error("A imagem precisa corresponder a um produto desta pizzaria.");const patch:Partial<RestaurantData>={};for(const k of ["name","theme","accent","presentation","tagline","description"] as const)if(p[k]!==undefined)(patch as Record<string,unknown>)[k]=p[k];if(p.productDescriptions.length)patch.products=data.products.map(item=>({...item,description:p.productDescriptions.find(d=>d.id===item.id)?.description??item.description}));restaurantSchema.parse({...data,...patch});return patch;}
 /** Extract a brand name from the way a pizzaiolo actually types, with or without accents. */
 export function nameFromBriefing(message:string):string|undefined{
+ const structured=extractOwnerName(message);if(structured)return structured;
  const input=message.trim();
  const patterns=[
   /\b(?:o )?nome da (?:minha |nossa |sua )?pizzaria\s*(?::|=|(?:é|e|será)(?=\s|["“]))\s*["“]?([^\n.!?;,"”]{2,100})/i,
