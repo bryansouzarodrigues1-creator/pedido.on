@@ -3,8 +3,8 @@ import {createRequire} from 'node:module';
 import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
-import {browserQaTarget} from './browser-qa-target.mjs';
-const {base,publicReadOnly}=browserQaTarget();if(publicReadOnly)throw Error('Document QA requires isolated data.');
+import {browserQaTarget,guardPublicGuestContext} from './browser-qa-target.mjs';
+const {base,publicReadOnly}=browserQaTarget();
 const require=createRequire(import.meta.url),{chromium,devices}=require(process.env.QA_PLAYWRIGHT_MODULE||'playwright-core');
 const fixtures=JSON.parse(await readFile(new URL('./fixtures/menu-documents.json',import.meta.url),'utf8'));
 const output=path.resolve(process.env.QA_BROWSER_OUTPUT||'.sites-runtime/browser-ci/documents');await mkdir(output,{recursive:true});
@@ -12,6 +12,7 @@ const browser=await chromium.launch({executablePath:process.env.QA_CHROME_PATH,h
 let context,page,signup=[];
 async function start(){
  context=await browser.newContext({...devices['Pixel 7'],locale:'pt-BR',serviceWorkers:'block'});
+ await guardPublicGuestContext(context,errors);
  await context.route('**/*',async route=>{
   const r=route.request(),u=new URL(r.url());
   if(u.origin===base&&u.pathname==='/api/auth/config')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({enabled:true,registrationEnabled:true,recoveryEnabled:false,inviteRequired:false,googleEnabled:false,csrf:'document-qa-csrf'})});
@@ -19,6 +20,7 @@ async function start(){
    signup.push(r.postDataJSON());assert.equal(r.headers()['x-pedido-csrf'],'document-qa-csrf');return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({message:'Cadastro fictício recebido no teste.'})});
   }
   if(u.origin===base&&['GET','HEAD','OPTIONS'].includes(r.method()))return route.continue();
+  if(publicReadOnly)return route.fallback();
   errors.push(r.method()+' '+u.pathname);return route.abort();
  });
  page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>errors.push(e.message));
@@ -50,14 +52,14 @@ try{
   const size=await page.locator('.ai-selected-preview').boundingBox();assert.ok(size.height<=601);assert.equal(await page.locator('.ai-selected .mini-pizza').count(),0);
   const font=await page.locator('.ai-selected .mini-product strong').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize));assert.ok(font>=14);
  }
- await page.screenshot({path:path.join(output,'pdf-texto-desktop.png'),fullPage:true});await page.setViewportSize({width:412,height:915});await page.screenshot({path:path.join(output,'pdf-texto-mobile.png'),fullPage:true});
+ await page.waitForTimeout(400);await page.screenshot({path:path.join(output,'pdf-texto-desktop.png'),fullPage:true});await page.setViewportSize({width:412,height:915});await page.screenshot({path:path.join(output,'pdf-texto-mobile.png'),fullPage:true});
  await page.reload({waitUntil:'networkidle'});await page.locator('.ai-selected .mini-menu').waitFor();assert.equal((await storedItems(4)).pages.length,2);
  checks.push({name:'two-page text PDF: four exact names/prices, supplied owner facts, readable bounded preview and persisted pages',ok:true});await context.close();
 
  await start();await say('Forno Azul de Teste');await attach('cardapio-escaneado.pdf',Buffer.from(fixtures.scan,'base64'));await page.locator('.idea-photos img').waitFor();
  await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor({timeout:180000});
  const scan=await storedItems(3);assert.equal(scan.pages.length,1);assert.ok(scan.pages[0].lines.length>0);for(const [name,price] of [['Água mineral',500],['Suco de laranja',1250],['Refrigerante lata',790]])assert.equal(scan.items.find(p=>p.name===name)?.price,price,name);
- await page.screenshot({path:path.join(output,'pdf-escaneado-mobile.png'),fullPage:true});checks.push({name:'scanned PDF actually runs local OCR: three exact products and prices',ok:true});await context.close();
+ await page.waitForTimeout(400);await page.screenshot({path:path.join(output,'pdf-escaneado-mobile.png'),fullPage:true});checks.push({name:'scanned PDF actually runs local OCR: three exact products and prices',ok:true});await context.close();
 
  await start();await attach('cardapio.txt',Buffer.from('Nome: Forno Azul de Teste\nBEBIDAS\nÁgua mineral R$ 5,00\nSuco de laranja R$ 12,50'),'text/plain');await page.waitForFunction(()=>document.querySelector('#idea-source-text')?.value.includes('Suco de laranja'));
  const before=await page.locator('#idea-source-text').inputValue();

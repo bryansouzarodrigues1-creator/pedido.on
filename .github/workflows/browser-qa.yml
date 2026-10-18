@@ -88,3 +88,4 @@ jobs:
             .sites-runtime/browser-ci/public/calculator/
             .sites-runtime/browser-ci/public/ocr/
             .sites-runtime/browser-ci/public/styles/
+            .sites-runtime/browser-ci/public/documents/
