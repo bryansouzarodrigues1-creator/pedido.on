@@ -1,5 +1,6 @@
 import {menuIdentityId} from "./menu-identity.ts";
-import {designFromMessage,brandPaletteFromBriefing,type MenuPresentation} from "./menu-design.ts";
+import {designFromMessage,type MenuPresentation} from "./menu-design.ts";
+import {resolveBrandPalette} from "./brand-palette.ts";
 import {defaultRestaurant,type RestaurantData,type ThemeId} from "./domain.ts";
 import {nameFromBriefing} from "./studio-policy.ts";
 
@@ -79,7 +80,7 @@ export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:str
  const preset=galleryStyle(id);
  const requested=designFromMessage(briefing,data);
  const voice=galleryVoices[id];
- const palette=brandPaletteFromBriefing(briefing,feedback)||brandPaletteFromBriefing(briefing);
+ const palette=resolveBrandPalette(briefing,feedback);
  const requestWords=normalized(briefing);
  // Only honor explicit geometry preferences; keep the preset layouts diverse.
  const geometry={
