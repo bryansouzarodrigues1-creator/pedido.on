@@ -15,11 +15,18 @@ export function Modal({open,onClose,title,children,wide=false}:{open:boolean;onC
   return <div className="modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}><div ref={ref} role="dialog" aria-modal="true" aria-labelledby={id} className={`modal ${wide?"wide":""}`}><div className="modal-head"><h2 id={id}>{title}</h2><button type="button" className="icon-btn" aria-label="Fechar janela" onClick={onClose}><X size={21}/></button></div><div className="modal-body">{children}</div></div></div>;
 }
 export function inkOn(color:string){const v=parseInt(color.slice(1),16);const r=v>>16,g=(v>>8)&255,b=v&255;return (0.299*r+0.587*g+0.114*b)>165?"#20231a":"#ffffff";}
-export function themeStyle(data:RestaurantData):CSSProperties{return {"--menu-accent":data.accent,"--menu-ink":inkOn(data.accent)} as CSSProperties;}
+export function themeStyle(data:RestaurantData):CSSProperties{
+ const palette=data.presentation?.palette;
+ return {"--menu-accent":data.accent,"--menu-ink":inkOn(data.accent),
+  ...(palette?{"--menu-bg":palette.background,"--menu-card":palette.surface,
+    "--menu-text":palette.text,"--menu-muted":palette.muted,"--menu-line":palette.line,
+    "--menu-secondary":palette.secondary,"--menu-secondary-ink":inkOn(palette.secondary)}:{})
+ } as CSSProperties;
+}
 export function MiniMenu({data,large=false}:{data:RestaurantData;large?:boolean}){
   const presentation=menuPresentation(data);
   const products=data.products.filter(p=>p.enabled).slice(0,large?3:2);
-  return <div className={`mini-menu theme-${data.theme} layout-${presentation.layout} hero-${presentation.hero} font-${presentation.font} corners-${presentation.corners}${menuIdentityClass(presentation.identity)} ${large?"large":""}`} style={themeStyle(data)}>
+  return <div className={`mini-menu theme-${data.theme} layout-${presentation.layout} hero-${presentation.hero} font-${presentation.font} corners-${presentation.corners}${menuIdentityClass(presentation.identity)} ${presentation.palette?"has-brand-palette":""} ${presentation.motif==="sea-cheese"?"motif-sea-cheese":""} ${large?"large":""}`} style={themeStyle(data)}>
     <div className="mini-top"><span>{data.logo?<img src={data.logo} alt=""/>:<Pizza size={large?23:16}/>}</span><strong>{data.name||"Sua pizzaria"}</strong><span className="mini-open">● Aberto</span></div>
     <div className="mini-cover">{data.cover?<img src={data.cover} alt=""/>:<div className="cover-empty"><Pizza size={50}/></div>}<div><span>FEITA DO SEU JEITO</span><h3>{data.tagline||"Uma boa pizza muda a noite."}</h3></div></div>
     {data.address&&<div className="mini-store-address">⌖ {data.address}{data.city?` · ${data.city}`:""}</div>}
