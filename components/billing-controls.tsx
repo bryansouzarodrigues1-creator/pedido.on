@@ -19,7 +19,12 @@ export function BillingControls({initialPlan: _initialPlan}:{initialPlan:string}
  async function sync(){setBusy(true);setError("");try{await send("/api/billing/sync",{});await load();setNotice("Assinatura atualizada.");}catch(e){setError(e instanceof Error?e.message:"Não foi possível atualizar.");}finally{setBusy(false);}}
  async function cancel(){setBusy(true);setError("");try{await send("/api/billing/cancel",{subscriptionId:state?.subscription?.id,confirm:true});setCancelOpen(false);requestId.current=null;await load();setNotice("Renovação cancelada. O período pago continua disponível.");}catch(e){setError(e instanceof Error?e.message:"Não foi possível cancelar.");}finally{setBusy(false);}}
  if(!state)return error?<div><p className="field-error" role="alert">{error}</p><button type="button" className="btn outline small" onClick={()=>{setError("");void load().catch(e=>setError(e.message));}}>Tentar novamente</button></div>:<p className="billing-load" role="status"><Spinner/>Consultando assinatura…</p>;
- if(!state.enabled)return <p>{state.provider==="asaas"?"Assinatura Asaas em configuração. As cobranças ainda estão desativadas.":"Pré-lançamento sem cobrança. A assinatura ainda está em configuração."}</p>;
+ if(!state.enabled)return <div className="billing-controls">
+  <p><strong>{publicPlanName} · {price(publicPlanCatalog.essencial.amount)}/mês</strong></p>
+  <div className="billing-plan-benefits" aria-label="Benefícios do plano único"><ul>{publicPlanCatalog.essencial.features.map(feature=><li key={feature}>{feature}</li>)}</ul></div>
+  <p role="status">Assinatura em preparação. Nenhuma cobrança será realizada neste ambiente beta.</p>
+  <small>As funções de IA paga e o Asaas ainda não estão disponíveis neste beta.</small>
+ </div>;
  const current=state.subscription,asaas=state.provider==="asaas",canSubscribe=!current||["canceled","incomplete_expired"].includes(current.status);
  return <div className="billing-controls">
   {asaas&&state.mode==="sandbox"&&<span className="pill">Ambiente de teste · sem pagamento real</span>}
