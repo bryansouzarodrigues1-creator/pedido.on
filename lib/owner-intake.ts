@@ -27,7 +27,9 @@ const simplified=(text:string)=>text.normalize("NFD").replace(/[\u0300-\u036f]/g
 const skip=(text:string)=>/^(?:depois|pular|nao tenho|ainda nao|sem (?:endereco|cardapio)|prefiro depois|vou cadastrar depois|não tenho|ainda não|ignorar)$/i.test(text.trim());
 function clean(text:string){return text.replace(/[\t ]+/g," ").replace(/^[\s"'“”]+|[\s"'“”.,;:]+$/g,"").trim();}
 const locationBoundary=/\s+(?:e\s+)?(?:fica\s+(?:em|na|no)|fica\s+localizada?\s+(?:em|na|no)|localizad[ao]\s+(?:em|na|no)|é\s+em|e\s+em|em\s+(?:búzios|buzios|cabo frio|rio de janeiro))\b/i;
-const descriptorBoundary=/\s+(?:e\s+)?(?:quero|gostaria|as cores?|cores?|vermelh[ao]|amarel[ao]|azul|verde|escuro|claro|com\s+(?:as?\s+)?cores?)\b/i;
+// Colour words may be part of the trade name ("Forno Azul", "Casa Verde").
+// Split at actual design instructions, not at a colour adjective by itself.
+const descriptorBoundary=/\s+(?:e\s+)?(?:quero|gostaria|as cores?|cores?|com\s+(?:as?\s+)?cores?)\b/i;
 /** Conservative: never display an entire paragraph as a business name. */
 export function extractOwnerName(text:string):string|undefined {
  const t=clean(text.slice(0,1600));
