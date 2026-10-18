@@ -1,0 +1,28 @@
+/* Owner workspace: three destinations, one editor for each task. */
+.simple-dashboard .simple-mobile-nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+.simple-dashboard .menu-workspace-nav{display:flex;gap:6px;padding:5px;background:#eeece6;border-radius:14px;margin:0 0 24px;max-width:540px}
+.menu-workspace-nav button{flex:1;min-height:44px;border:0;border-radius:10px;background:transparent;color:#68695e;font:inherit;font-size:14px;font-weight:650;cursor:pointer}
+.menu-workspace-nav button.active{background:white;color:#27251f;box-shadow:0 1px 5px #2d281210}
+.simple-dashboard .dashboard-header .dashboard-header-actions>.btn.menu-view-action{display:inline-flex;white-space:nowrap}
+.simple-dashboard .sales-workspace{grid-template-columns:minmax(0,1fr)}
+.dashboard-next-step{display:flex;align-items:center;gap:24px;justify-content:space-between;margin-bottom:24px}
+.dashboard-next-step h2{margin:0 0 8px}.dashboard-next-step p{margin:0;color:#747469;font-size:14px;line-height:1.6}
+.simple-dashboard .menu-reader-entry{display:flex;align-items:center;justify-content:space-between;gap:26px;padding:28px}
+.menu-import-choices{display:flex;flex-direction:column;gap:10px;min-width:230px}.menu-import-choices .btn{justify-content:center}
+.simple-dashboard .table-empty{padding:28px 20px}.simple-dashboard .table-empty h3{font-size:20px}
+.ifood-import-source{display:grid;gap:16px}.ifood-import-source p{margin:0;line-height:1.6}.ifood-import-source label{font-weight:650}
+.ifood-import-source input{width:100%;border:1px solid #d9d8d0;border-radius:10px;padding:15px;font:inherit;font-size:16px}
+.creation-advanced,.creation-history{margin:18px 0;padding:16px 0;border-top:1px solid #e5e3da}.creation-advanced>summary,.creation-history>summary{font-size:14px;cursor:pointer;color:#6d6d60;font-weight:600}.creation-advanced[open]>summary{margin-bottom:20px}
+.creation-current-heading{display:flex;align-items:center;gap:9px;padding:16px 20px;background:white;border-bottom:1px solid #e5e3da;font-size:13px}.creation-current-heading span{margin-left:auto;color:#78786c}
+.creation-current-menu{height:620px;overflow:auto;background:#faf8f2;border-radius:18px;border:1px solid #e4e1d8}.creation-current-menu .customer-menu{min-height:100%}
+.simple-dashboard .creation-menu-preview{height:620px;overflow:auto}.simple-dashboard .creation-menu-preview>.customer-menu{min-height:100%}
+.simple-dashboard .creation-styles{margin-top:12px}
+@media(max-width:760px){
+ .simple-dashboard .dashboard-header{padding:12px 16px}.simple-dashboard .dashboard-header-actions{gap:8px}.simple-dashboard .dashboard-header-actions .btn{padding:11px 12px;font-size:12px;min-height:43px}
+ .simple-dashboard .dashboard-title{margin-bottom:20px}.simple-dashboard .dashboard-title h1{font-size:30px}.simple-dashboard .dashboard-title p{font-size:14px}
+ .simple-dashboard .menu-reader-entry{flex-direction:column;align-items:stretch;gap:20px;padding:23px}.menu-import-choices{min-width:0}.menu-import-choices .btn{min-height:48px;font-size:14px}
+ .dashboard-next-step{align-items:stretch;flex-direction:column;gap:16px}.menu-workspace-nav button{font-size:13px}
+ .simple-dashboard .creation-heading h2{font-size:23px}.simple-dashboard .creation-form{padding:23px}.simple-dashboard .creation-heading p{font-size:14px}
+ .creation-current-menu,.simple-dashboard .creation-menu-preview{height:510px}.simple-dashboard .pizza-studio{gap:22px}
+ .simple-dashboard .dashboard-footer{padding:25px 0 15px;margin-top:32px}.simple-dashboard .empty-orders{padding:28px 18px}
+}
