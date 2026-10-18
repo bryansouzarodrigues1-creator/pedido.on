@@ -18,5 +18,6 @@ for (const [name,script] of suites) await run(name,script);
 const guest=await readFile(path.join(output,'guest/evidence/guest-browser.json'),'utf8').then(JSON.parse).catch(()=>null);
 if(guest?.features?.pdf)await run('documents','scripts/check-menu-documents-browser.mjs');
 else checks.push({name:'documents',skipped:true,reason:'A publicação ainda não contém o novo leitor PDF.'});
+await run('shared-ifood','scripts/check-shared-ifood-browser.mjs');
 await writeFile(path.join(output, 'summary.json'), JSON.stringify({base, commit: process.env.GITHUB_SHA, scope: 'UI pública; nenhum cadastro, pedido, upload remoto ou geração; armazenamento apenas no navegador', checks}, null, 2));
 if (checks.some(check => !check.skipped&&check.code !== 0)) process.exitCode = 1;
