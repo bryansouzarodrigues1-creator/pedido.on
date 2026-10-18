@@ -49,7 +49,16 @@ export default function IdeaStart(){
   try{
    let text=sourceText,source=inspectMenuSourceText(text),ready=pages;
    if(source.links.length===1&&!source.menuText&&!pages.length){
-    setReadingLabel("Consultando o link do iFood…");const result=await fetchMenuSource(source.links[0].url);setNotice(result.message);if(result.text){text=source.links[0].url+"\n"+result.text;setSourceText(text);source=inspectMenuSourceText(text);}else setSourceOpen(true);
+    setReadingLabel("Consultando o link do cardápio…");
+    try{
+      const result=await fetchMenuSource(source.links[0].url);
+      setNotice(result.message);
+      if(result.text){text=source.links[0].url+"\n"+result.text;setSourceText(text);source=inspectMenuSourceText(text);}
+      else setSourceOpen(true);
+    }catch{
+      setNotice("Não consegui ler automaticamente o link do cardápio. Vou mostrar os modelos; depois você pode enviar fotos, CSV ou cadastrar produtos manualmente.");
+      setSourceOpen(true);
+    }
    }
    const missing=pages.filter(p=>!p.lines.length);
    if(missing.length){const scanned=await recognizeMenuPhotos(missing,controller.signal,(_,label)=>{if(alive.current)setReadingLabel(label);});ready=pages.map(p=>scanned.find(s=>s.id===p.id)||p);if(!alive.current)return;setPages(ready);}
