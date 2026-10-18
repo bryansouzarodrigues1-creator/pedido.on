@@ -62,7 +62,8 @@ export function validateOwnerAnswer(field:OwnerField,raw:string):{value?:string;
  if(field!=="name"&&skip(simplified(text)))return {value:""};
  if(field==="name"){
   const compact=clean(text.split(locationBoundary)[0].split(descriptorBoundary)[0]);
-  const name=extractOwnerName(text)||(/^[^\n.!?]{2,100}$/.test(compact)&&compact.split(/\s+/).length<=8?compact:undefined);
+  const genericSentence=/^(?:quero|queria|gostaria|prefiro|preciso|cores?|fundo|fica|delivery|sem|com|tenho|localiza[cç][ãa]o|endere[cç]o)\b/i.test(compact);
+  const name=extractOwnerName(text)||(!genericSentence&&/^[^\n.!?]{2,100}$/.test(compact)&&compact.split(/\s+/).length<=8?compact:undefined);
   if(!name||name.length<2||name.length>100)return {error:"Não consegui identificar o nome. Escreva só o nome da pizzaria, por exemplo: Pizzaria Della Mama."};
   return {value:name};
  }
