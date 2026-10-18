@@ -135,3 +135,27 @@
  .ai-landing.has-results{padding:18px 0 45px}
  .ai-landing .ai-style-grid{grid-auto-columns:minmax(250px,89%)}
 }
+
+
+/* Guided pizzeria intake. Text is DOM content, photos remain reusable assets. */
+.idea-conversation{background:#fffefa;border:1px solid #dadbd0;border-radius:18px;padding:clamp(14px,2.6vw,25px);box-shadow:0 12px 34px #23251e0d}
+.owner-intake{display:grid;gap:14px;min-width:0}
+.owner-intake-title{display:flex;gap:11px;align-items:flex-start;color:#30392d}
+.owner-intake-title>svg{color:#698551;flex-shrink:0;margin-top:2px}
+.owner-intake-title strong{display:block;font-size:16px}.owner-intake-title small{display:block;color:#657260;font-size:11px;line-height:1.65;margin-top:4px}
+.owner-intake-progress{height:5px;background:#e6eadf;border-radius:99px;overflow:hidden}.owner-intake-progress span{display:block;height:100%;background:#608349;transition:width .25s ease}
+.owner-intake-history{display:grid;gap:10px;max-height:415px;overflow-y:auto;padding-right:4px;scrollbar-width:thin}
+.owner-intake-turn{display:grid;gap:7px}.owner-intake-question,.owner-intake-answer{font-size:13px;line-height:1.55;display:flex;gap:9px;align-items:flex-start;max-width:95%;margin:0;padding:12px 14px;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.owner-intake-question{background:#eef0e8;color:#2f4031;border-top-left-radius:3px}.owner-intake-question svg{flex:0 0 16px;margin-top:2px;color:#6a8a53}
+.owner-intake-answer{justify-self:end;background:#dfe8d8;color:#334c32;border-top-right-radius:3px;font-weight:650}.owner-intake-answer svg{flex:0 0 15px;margin-top:2px}
+.owner-intake-hint{display:flex;gap:7px;align-items:flex-start;font-size:12px;line-height:1.55;margin:3px 0;color:#726144;background:#fbf5e9;padding:9px 12px;border-radius:9px}
+.owner-intake-hint svg{flex-shrink:0}.owner-intake-reply{display:grid;gap:8px}.owner-intake-reply label{font-weight:750;font-size:12px;color:#414b3c}
+.owner-intake-reply textarea{display:block;width:100%;min-height:72px;max-height:200px;resize:vertical;border:1px solid #d9ddcf;border-radius:12px;background:#fff;color:#263327;font:inherit;line-height:1.55;font-size:14px;padding:12px}
+.owner-intake-reply textarea:focus{outline:2px solid #91a87d;outline-offset:1px}.owner-intake-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.owner-intake-controls small{font-size:11px;line-height:1.5;color:#758070;max-width:390px}
+.owner-intake-controls .btn{margin-left:auto}.owner-intake-error{font-size:12px;color:#b23f27;line-height:1.5}
+.owner-intake-done{display:flex;align-items:flex-start;gap:10px;background:#ecf2e8;border:1px solid #bfd0b7;border-radius:12px;padding:14px;color:#30512a}.owner-intake-done p{font-size:12px;line-height:1.6;margin:5px 0 0}
+.owner-intake-ready{display:grid;gap:8px}.owner-intake-ready .btn{width:100%;justify-content:center}.owner-intake-ready small{text-align:center;font-size:11px;color:#758070;line-height:1.5}
+.idea-conversation-attachments{margin-top:14px}.idea-conversation-attachments small{color:#7b8877;font-size:11px}
+.mini-menu .mini-store-address,.mini-menu .mini-store-hours{padding:6px 10px;font-size:10px;line-height:1.5;overflow-wrap:anywhere;background:var(--menu-card,#fff);color:var(--menu-text,#444);border-bottom:1px solid var(--menu-line,#e0ded8)}
+.mini-menu .mini-store-address{font-weight:700}.mini-menu .mini-top strong{min-width:0;overflow-wrap:anywhere;line-height:1.25}
+@media(max-width:640px){.owner-intake-history{max-height:335px}.owner-intake-question,.owner-intake-answer{max-width:100%;font-size:12px}.owner-intake-controls small{max-width:100%}.idea-conversation{padding:14px}.owner-intake-title strong{font-size:14px}}
