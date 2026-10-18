@@ -4,7 +4,7 @@ import {fixture,site,csrf} from './test-backend-fixture.mjs';
 import {ifoodApi,requestIfoodCode,importAuthorizedIfood} from '../lib/ifood-api.ts';
 import {categories,merchantId,storeUrl,officialTransport} from './ifood-official-fixture.mjs';
 function connection(){const f=fixture();Object.assign(f.env,{PEDIDO_IFOOD_ENABLED:'true',IFOOD_CLIENT_ID:'synthetic-client-id',IFOOD_CLIENT_SECRET:'synthetic-client-secret'});f.state.user=null;const route=f.load('app/api/ifood/import/route.ts');let cookie='__Host-pedido-csrf='+csrf;
- const request=(body,extra={})=>new Request(site+'/api/ifood/import',{method:body?'POST':'GET',headers:{Origin:site,cookie,'x-pedido-csrf':csrf,...(body?{'content-type':'application/json'}:{}),...extra},body:body?JSON.stringify(body):undefined});
+ const request=(body,extra={})=>new Request(site+'/api/ifood/import',{method:body?'POST':'GET',headers:{Origin:site,cookie,'x-pedido-csrf':csrf,...(body?{'content-type':'application/json'}:{}),...extra},body:body?JSON.stringify(body.action==='complete'?{url:storeUrl,...body}:body):undefined});
  return {...f,route,request,async call(body,extra){const response=await route[body?'POST':'GET'](request(body,extra));const set=response.headers.get('set-cookie');if(set)cookie='__Host-pedido-csrf='+csrf+'; '+set.split(';')[0];return response;},getCookie:()=>cookie};}
 test('authorized guest import uses encrypted pending state, returns review data and never changes either account',async()=>{
  const f=connection(),original=globalThis.fetch,calls=[];globalThis.fetch=officialTransport(calls);const before=f.db.prepare('SELECT * FROM restaurants ORDER BY id').all();
@@ -29,6 +29,11 @@ test('invalid code stays retryable, cancel clears the authorization and throttle
  try{await f.call({action:'start',url:storeUrl});let response=await f.call({action:'complete',authorizationCode:'wrong-code'});assert.equal(response.status,401);assert.doesNotMatch(await response.text(),/must not leak/);assert.equal(response.headers.has('set-cookie'),false);assert.equal((await (await f.call()).json()).pending.userCode,'HJLX-LPSQ');
   await f.call({action:'cancel'});assert.equal((await f.call({action:'complete',authorizationCode:'test-code'})).status,409);
   for(let i=0;i<4;i++)assert.equal((await f.call({action:'start',url:storeUrl})).status,200);assert.equal((await f.call({action:'start',url:storeUrl})).status,429);assert.equal(calls.filter(c=>c.url.endsWith('/userCode')).length,5);
+ }finally{globalThis.fetch=original;f.close();}
+});
+test('a second tab cannot complete an authorization for a different visible store',async()=>{
+ const f=connection(),original=globalThis.fetch,calls=[];globalThis.fetch=officialTransport(calls);
+ try{await f.call({action:'start',url:storeUrl});const response=await f.call({action:'complete',url:storeUrl.replace(merchantId,'c3fad304-a342-4898-a12b-80919ae3f599'),authorizationCode:'returned-test-code'});assert.equal(response.status,409);assert.equal((await response.json()).reconnect,true);assert.equal(calls.length,1);assert.match(response.headers.get('set-cookie'),/Max-Age=0/);
  }finally{globalThis.fetch=original;f.close();}
 });
 test('provider redirect, oversized responses and unsafe verification URLs never expose credentials',async()=>{

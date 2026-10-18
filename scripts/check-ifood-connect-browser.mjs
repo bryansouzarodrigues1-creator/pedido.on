@@ -19,7 +19,7 @@ try{
    if(request.method()==='GET')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({enabled:true,...(pending?{pending}:{})})});
    assert.equal(request.headers()['x-pedido-csrf'],'ifood-grant-ui-test');const body=request.postDataJSON();
    if(body.action==='start'){assert.equal(body.url,storeUrl);starts++;pending={url:storeUrl,userCode:'HJLX-LPSQ',verificationUrl:'https://portal.ifood.com.br/apps/code?c=HJLX-LPSQ',expiresAt:Math.floor(Date.now()/1000)+600};return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({pending})});}
-   if(body.action==='complete'){assert.equal(body.authorizationCode,'returned-test-code');imports++;pending=null;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});}
+   if(body.action==='complete'){assert.equal(body.url,storeUrl);assert.equal(body.authorizationCode,'returned-test-code');imports++;pending=null;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});}
    if(body.action==='cancel'){pending=null;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({cancelled:true})});}
    throw Error('Unexpected authorization action');
   }

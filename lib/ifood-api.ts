@@ -65,6 +65,7 @@ export async function importAuthorizedIfood(url:string,token:string,fetcher?:typ
    if(!single&&all.some(v=>record(v).catalogId===undefined))throw new HttpError(422,"O iFood retornou vários catálogos sem identificar as categorias de delivery. Confira por arquivo.");
    categories=all.filter(v=>single||record(v).catalogId===id);
   }
+  categories=categories.filter(v=>record(v).catalogId===undefined||record(v).catalogId===id);
   if(categories.length>30)throw new HttpError(422,"O catálogo tem muitas categorias. Importe uma parte por arquivo para conferir todos os itens.");
   for(let i=0;i<categories.length;i++){
    const category=record(categories[i]);if(!officialIfoodItemAvailable(category)||Array.isArray(category.items))continue;

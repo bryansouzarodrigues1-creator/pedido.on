@@ -20,7 +20,7 @@ Quando a configuração está desligada ou incompleta, a interface não apresent
 
 - No mesmo compositor ou leitor existente, colar o link e escolher **Conectar minha loja no iFood**, quando disponível.
 - O servidor pede um código temporário ao iFood. O responsável abre **Autorizar no Portal do Parceiro**, escolhe/autoriza a loja e copia o código de retorno.
-- O código é trocado no servidor. A leitura confere o identificador exato da loja do link e consulta dados cadastrais, horários e o catálogo de delivery ativo.
+- O código é trocado no servidor. A leitura confere o identificador exato da loja do link e consulta dados cadastrais, horários e o catálogo de delivery ativo. A conclusão também confere o link da tela, para impedir trocas de loja entre abas.
 - A interface pede confirmação dos dados e dos produtos. Campos já preenchidos são preservados. Telefone nunca vira WhatsApp automaticamente. A importação de produtos só salva no rascunho após revisão; publicação continua explícita.
 - Não é necessário criar uma conta Pizzaria.on para começar a revisão no compositor público. A autorização do responsável ocorre no próprio iFood.
 
