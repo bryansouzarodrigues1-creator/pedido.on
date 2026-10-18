@@ -82,6 +82,7 @@ jobs:
             .sites-runtime/browser-ci/intake-options/
             .sites-runtime/browser-ci/documents/
             .sites-runtime/browser-ci/shared-ifood/
+            .sites-runtime/browser-ci/ifood-connect/
             .sites-runtime/browser-ci/ocr/
             .sites-runtime/browser-ci/styles/
             .sites-runtime/browser-ci/public/summary.json
@@ -91,3 +92,4 @@ jobs:
             .sites-runtime/browser-ci/public/styles/
             .sites-runtime/browser-ci/public/documents/
             .sites-runtime/browser-ci/public/shared-ifood/
+            .sites-runtime/browser-ci/public/ifood-connect/

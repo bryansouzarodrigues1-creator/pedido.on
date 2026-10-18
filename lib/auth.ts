@@ -106,7 +106,4 @@ export async function logout(request:Request){
   if(token&&authConfig().enabled){const id=await sha256(token),db=getDb(),row=await db.select().from(authSessions).where(eq(authSessions.id,id)).get();await db.delete(authSessions).where(eq(authSessions.id,id));if(row)try{const vault=await openTokens<TokenVault>(row.sealedTokens,authConfig().seal,id+":"+row.ownerId);await providerRequest("logout?scope=local","POST",undefined,vault.access);}catch{/* local deletion is authoritative for this application */}}
   return sessionCookie("",secure,0);
 }
-export function csrfCookieName(secure:boolean){return secure?"__Host-pedido-csrf":"pedido-csrf";}
-export function issueCsrf(request:Request){const secure=new URL(request.url).protocol==="https:",key=csrfCookieName(secure),existing=request.headers.get("cookie")?.split(";").map(v=>v.trim()).find(v=>v.startsWith(key+"="))?.slice(key.length+1);const value=existing&&/^[a-f0-9]{64}$/.test(existing)?existing:randomToken();return {token:value,cookie:key+"="+value+"; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600"+(secure?"; Secure":"")};}
-export function assertCsrf(request:Request){const key=csrfCookieName(new URL(request.url).protocol==="https:"),cookie=request.headers.get("cookie")?.split(";").map(v=>v.trim()).find(v=>v.startsWith(key+"="))?.slice(key.length+1);if(!cookie||!/^[a-f0-9]{64}$/.test(cookie)||request.headers.get("x-pedido-csrf")!==cookie)throw new HttpError(403,"Atualize a página e tente novamente.");}
-
+export {csrfCookieName,issueCsrf,assertCsrf} from "./csrf";
