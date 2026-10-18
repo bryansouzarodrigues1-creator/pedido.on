@@ -38,6 +38,8 @@ export function extractOwnerName(text:string):string|undefined {
  // A location or colour sentence is not part of the name.
  value=clean(value.split(locationBoundary)[0].split(descriptorBoundary)[0]);
  if(/\s+(?:localizada?|situada?|endere[cç]o)\b/i.test(value))value=clean(value.split(/\s+(?:localizada?|situada?|endere[cç]o)\b/i)[0]);
+ // A phrase describing the business is not its commercial name.
+ if(/^(?:uma?|loja|neg[oó]cio|pequen[ao]|artesanal|tradicional|modern[ao]|simples|familiar|nov[ao]|de bairro|muito|escura?|clara?|premium|delivery|italian[ao]|caseir[ao]|especial)\b/i.test(value))return;
  // A sentence without a name is not a valid extraction.
  if(!value||value.length>75||value.split(/\s+/).length>10||/^(?:uma?|fica|em|no|na|aqui|com|de\s+bairro)\b/i.test(value))return;
  // Some owners say "pizzaria e Della Mama": here the 'e' is the verb "é".
