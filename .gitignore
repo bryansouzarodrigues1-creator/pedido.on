@@ -72,3 +72,7 @@ public/pwa/
 public/pwa-release.js
 __pycache__/
 *.pyc
+
+/public/pdf/
+
+/tmp/

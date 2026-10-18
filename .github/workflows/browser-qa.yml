@@ -31,7 +31,7 @@ concurrency:
 jobs:
   browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,6 +54,7 @@ jobs:
         run: |
           node scripts/prepare-pwa.mjs
           node scripts/prepare-ocr.mjs
+          node scripts/prepare-pdf.mjs
       - name: Guest creation and calculator in real Chrome
         env:
           QA_HEADLESS: "true"
@@ -79,6 +80,7 @@ jobs:
             .sites-runtime/browser-ci/handoff/
             .sites-runtime/browser-ci/owner/
             .sites-runtime/browser-ci/intake-options/
+            .sites-runtime/browser-ci/documents/
             .sites-runtime/browser-ci/ocr/
             .sites-runtime/browser-ci/styles/
             .sites-runtime/browser-ci/public/summary.json
@@ -86,3 +88,4 @@ jobs:
             .sites-runtime/browser-ci/public/calculator/
             .sites-runtime/browser-ci/public/ocr/
             .sites-runtime/browser-ci/public/styles/
+            .sites-runtime/browser-ci/public/documents/

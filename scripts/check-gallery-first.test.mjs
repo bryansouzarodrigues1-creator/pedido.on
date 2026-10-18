@@ -70,8 +70,8 @@ test("new restaurant route stores the chosen real preset, respects the explicit 
 test("the guest creator has a dedicated entry and public menus link to it before signup",()=>{
  const f=fixture();try{
   const Page=f.load("app/criar/page.tsx").default,html=renderToStaticMarkup(createElement(Page));
-  assert.match(html,/id="owner-intake-message"/);assert.match(html,/Anexar cardápio/);
-  assert.match(html,/Vamos preparar sua pizzaria juntos/);assert.doesNotMatch(html,/<input[^>]*(?:type="email"|type="password")/);
+  assert.match(html,/id="owner-intake-message"/);assert.match(html,/Enviar PDF, foto ou TXT/);
+  assert.match(html,/Como você quer seu cardápio/);assert.doesNotMatch(html,/<input[^>]*(?:type="email"|type="password")/);
   const Menu=f.load("components/menu.tsx").default;
   const menu=renderToStaticMarkup(createElement(Menu,{data:demoRestaurant(),slug:"pizza"}));
   assert.match(menu,/\/criar/);

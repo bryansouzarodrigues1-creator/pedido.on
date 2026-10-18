@@ -24,7 +24,7 @@ export const ownerQuestions=[
   "Onde fica a pizzaria? Informe rua, número, bairro, cidade e estado. Se não tiver endereço para divulgar, responda 'depois'.",
   "Qual WhatsApp os clientes devem usar para fazer pedidos? Inclua o DDD. Pode responder 'depois'.",
   "Qual é o horário de funcionamento? Ex.: terça a domingo, 18h às 23h. Se ainda não definiu, responda 'depois'.",
-  "Você já tem cardápio? Cole o link do iFood ou do seu cardápio. Também pode enviar foto, TXT ou CSV em 'Anexar cardápio'. Se vai cadastrar os produtos depois, escreva 'depois'.",
+  "Traga seu cardápio por link do iFood, PDF, TXT ou foto. Também pode colar os produtos com preços aqui.",
 ] as const;
 
 const simplified=(text:string)=>text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
@@ -157,5 +157,14 @@ export function ownerPreviewDetails(v:OwnerIntake){
 }
 
 export const ownerVisualChoices=[{id:"artesanal",label:"Artesanal",prompt:"Quero um cardápio artesanal, com fotos grandes e letras elegantes."},{id:"moderno",label:"Moderno",prompt:"Quero um cardápio moderno, organizado e fácil de ler no celular."},{id:"divertido",label:"Divertido",prompt:"Quero um cardápio alegre, com letras fortes e fotos em destaque."},{id:"sugestoes",label:"Me ajude a escolher",prompt:"Quero sugestões de visual para minha pizzaria."}] as const;
-export function ownerVisualBriefing(state:OwnerIntake){const choice=ownerVisualChoices.find(c=>c.id===state.visualChoice);return choice?state.initialMessage.slice(0,1500)+"\n"+choice.prompt:state.initialMessage;}
+export function ownerVisualBriefing(state:OwnerIntake){
+ const choice=ownerVisualChoices.find(c=>c.id===state.visualChoice);
+ // A trade name or street is not a request for a colour or a layout.
+ // Preserve the original conversation in initialMessage; remove only the first
+ // occurrence of each supplied fact so later explicit design requests survive.
+ let brief=state.initialMessage;
+ for(const field of ["name","address","whatsapp","hours"] as const){const fact=state.answers[field];if(fact)brief=brief.replace(new RegExp(fact.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i"),"");}
+ brief=inspectMenuSourceText(brief).menuText;
+ return choice?brief.slice(0,1500)+"\n"+choice.prompt:brief;
+}
 export function hasOwnerVisualBriefing(state:OwnerIntake){return !!state.visualChoice||/\b(?:quero|prefiro|estilo|visual|design|layout|letras|fotos|cores)\b/i.test(state.initialMessage.replace(state.answers.name||"", ""));}

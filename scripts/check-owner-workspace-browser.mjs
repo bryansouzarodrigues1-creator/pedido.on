@@ -38,7 +38,7 @@ try{
  await page.getByRole('button',{name:'Buscar produtos do iFood',exact:true}).click();
  await page.getByText('O iFood não liberou o catálogo por esse link.',{exact:true}).waitFor();
  assert.equal((await rows())[0].data,old.data);
- await page.getByRole('button',{name:'Enviar prints ou colar texto',exact:true}).click();
+ await page.getByRole('button',{name:'Enviar PDF, prints ou texto',exact:true}).click();
  await page.locator('#reader-menu-text').waitFor();
  assert.match(await page.locator('#reader-menu-text').inputValue(),/Suco natural/);
  checks.push({name:'blocked iFood lookup exposes a usable fallback and keeps the previous source and restaurant unchanged',ok:true});
