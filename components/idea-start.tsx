@@ -1,7 +1,8 @@
 "use client";
-import {useEffect,useRef,useState,type ChangeEvent,type FormEvent} from "react";
+import {lazy,Suspense,useEffect,useRef,useState,type ChangeEvent,type FormEvent} from "react";
 import {ArrowRight,Check,Link2,Paperclip,Sparkles,X,FileText,ImagePlus,RefreshCw} from "lucide-react";
-import {demoRestaurant,defaultRestaurant,type RestaurantData} from "@/lib/domain";
+import {defaultRestaurant,type RestaurantData} from "@/lib/domain";
+import {detailedDemoRestaurant} from "@/lib/demo-rich";
 import type {ReaderItem} from "@/lib/menu-reader-policy";
 import {galleryDesign,galleryStyle,galleryReference,suggestedGalleryStyles,supportsLocalRefinement,type GalleryStyleId} from "@/lib/gallery-styles";
 import {resolveBrandPalette} from "@/lib/brand-palette";
@@ -21,17 +22,25 @@ import {nameFromBriefing} from "@/lib/studio-policy";
 import OwnerIntakeChat from "./owner-intake-chat";
 import {emptyOwnerIntake,intakeFinished,ownerPreviewDetails,type OwnerIntake} from "@/lib/owner-intake";
 
-function makePreview(items:ReaderItem[]):RestaurantData{const sample={...demoRestaurant("editorial"),name:"Sua pizzaria"};if(!items.length)return sample;const base=defaultRestaurant("Sua pizzaria");const ready=items.map(item=>({...item,selected:item.selected&&readerItemReady(item)}));return ready.some(item=>item.selected)?{...base,...applyReaderItems(base,ready)}:base;}
+const FullMenu=lazy(()=>import("./menu"));
+function makePreview(items:ReaderItem[]):RestaurantData{const sample=detailedDemoRestaurant("editorial");if(!items.length)return sample;const base=defaultRestaurant("Sua pizzaria");const ready=items.map(item=>({...item,selected:item.selected&&readerItemReady(item)}));return ready.some(item=>item.selected)?{...base,...applyReaderItems(base,ready)}:base;}
 export default function IdeaStart(){
  const [intake,setIntake]=useState<OwnerIntake>(emptyOwnerIntake);
  const [initialized,setInitialized]=useState(false),[brandAssets,setBrandAssets]=useState<BrandAssets|null>(null),[brandName,setBrandName]=useState(""),[storageError,setStorageError]=useState("");
  const [referenceId,setReferenceId]=useState<GalleryStyleId|null>(null);
+ const [fullPreview,setFullPreview]=useState(false);
+ const fullPreviewRef=useRef<HTMLDivElement|null>(null);
  const [styleId,setStyleId]=useState<GalleryStyleId|null>(null),[round,setRound]=useState(0),[refinement,setRefinement]=useState(""),[feedback,setFeedback]=useState(""),[localFeedbackNote,setLocalFeedbackNote]=useState(""),[chatOpen,setChatOpen]=useState(false);
  const [idea,setIdea]=useState(""),[sourceOpen,setSourceOpen]=useState(false),[sourceText,setSourceText]=useState(""),[pages,setPages]=useState<ReaderPage[]>([]),[preview,setPreview]=useState<RestaurantData|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[readingLabel,setReadingLabel]=useState(""),[imported,setImported]=useState(0),[saving,setSaving]=useState(false);
  const abort=useRef<AbortController|null>(null),alive=useRef(true),reading=useRef<Reading|null>(null),launch=useRef<MenuLaunch|null>(null),galleryRef=useRef<HTMLElement|null>(null),styleGridRef=useRef<HTMLDivElement|null>(null),scrollToResult=useRef(false);
  useEffect(()=>{alive.current=true;void loadLaunchCheckpoint().then(async saved=>{if(!saved||!alive.current)return;launch.current=saved;setIntake(saved.ownerIntake||emptyOwnerIntake());setIdea(saved.idea);setSourceText(saved.sourceText);setBrandName(saved.brandName||"");if(saved.sourceText||saved.hasPhotos||saved.hasAssets)setSourceOpen(true);setStyleId(saved.styleId||null);setRefinement(saved.refinement||"");const [v,images]=await Promise.all([loadReading(guestReadingKey(saved.id)).catch(()=>null),loadBrandAssets(guestReadingKey(saved.id)).catch(()=>null)]);if(!alive.current)return;if(v){setPages(v.pages);reading.current=v;setImported(v.items.length);}if(images)setBrandAssets(images);if(saved.hasPhotos&&!v?.pages.length||saved.hasAssets&&!images?.logo&&!images?.cover)setNotice("Sua ideia foi recuperada, mas alguns anexos não estão disponíveis. Envie esses arquivos novamente antes de continuar.");if(saved.previewReady&&saved.ownerIntake&&intakeFinished(saved.ownerIntake))setPreview(makePreview(v?.items||[]));}).catch(()=>{if(alive.current)setStorageError("Não foi possível recuperar o projeto deste aparelho.");}).finally(()=>{if(alive.current)setInitialized(true);});return()=>{alive.current=false;abort.current?.abort();};},[]);
  useEffect(()=>{if(!initialized||!idea&&!brandName&&!sourceText&&!pages.length&&!brandAssets&&!preview&&!intake.step)return;const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,ownerIntake:intake,sourceText,hasPhotos:!!pages.length,hasAssets:!!(brandAssets?.logo||brandAssets?.cover),styleId:styleId||undefined,refinement,previewReady:!!preview};launch.current=value;void saveLaunchCheckpoint(value).then(()=>{if(alive.current)setStorageError("");}).catch(e=>{if(alive.current)setStorageError(e instanceof Error?e.message:"Não foi possível guardar sua ideia.");});},[idea,brandName,intake,sourceText,pages.length,brandAssets,styleId,refinement,preview,initialized]);
  useEffect(()=>{if(preview&&scrollToResult.current){scrollToResult.current=false;requestAnimationFrame(()=>galleryRef.current?.scrollIntoView({behavior:"smooth",block:"start"}));}},[preview]);
+ useEffect(()=>{if(!fullPreview)return;const previous=document.activeElement as HTMLElement|null,scroll=document.body.style.overflow;document.body.style.overflow="hidden";
+  requestAnimationFrame(()=>fullPreviewRef.current?.querySelector<HTMLButtonElement>("button")?.focus());
+  const key=(event:KeyboardEvent)=>{if(event.key!=="Escape")return;const dialogs=document.querySelectorAll("[role=dialog]");if(dialogs[dialogs.length-1]===fullPreviewRef.current)setFullPreview(false);};
+  document.addEventListener("keydown",key);return()=>{document.body.style.overflow=scroll;document.removeEventListener("keydown",key);previous?.focus();};
+ },[fullPreview]);
  useEffect(()=>{if(!initialized||!launch.current||!pages.length&&!sourceText)return;const id=launch.current.id,timer=setTimeout(()=>{const checkpoint={restaurantId:guestReadingKey(id),savedAt:Date.now(),pages,items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText};void saveReading(checkpoint).catch(()=>{if(alive.current&&pages.length)setNotice("As fotos estão nesta página, mas o navegador não conseguiu guardá-las. Libere o armazenamento antes de continuar.");});},400);return()=>clearTimeout(timer);},[initialized,pages,sourceText]);
  async function files(e:ChangeEvent<HTMLInputElement>){const files=Array.from(e.target.files||[]);e.target.value="";if(!files.length)return;setError("");setBusy(true);try{
   const photos=files.filter(f=>f.type.startsWith("image/"));if(pages.length+photos.length>8)throw Error("Envie até oito fotos por vez.");
@@ -123,7 +132,7 @@ export default function IdeaStart(){
      {!explicitName&&styleId&&<label className="ai-brand-name"><span>Como se chama sua pizzaria? <small>Opcional por enquanto</small></span><input type="text" autoComplete="organization" maxLength={100} value={brandName} onChange={e=>setBrandName(e.target.value)} placeholder="Nome da sua pizzaria" disabled={busy||saving}/></label>}
      {preview.products.some(item=>item.id==="margherita"&&item.name==="Margherita")&&imported===0&&<p className="ai-gallery-sample" role="note">Sabores e preços ilustrativos para visualizar o design. Nenhum valor de exemplo será cadastrado na sua loja.</p>}
      {styleId?<div className="ai-selected"><div className="ai-selected-bar"><div><strong>{galleryStyle(styleId).title}</strong><small>{galleryStyle(styleId).summary}</small></div><button type="button" onClick={()=>{setStyleId(null);setChatOpen(false);}}>Escolher outro</button></div><div className="ai-selected-preview"><MiniMenu data={design(styleId)} large rich/></div><div className="ai-selected-actions">
-       <a className="btn outline" href={"/demo/"+styleId} target="_blank" rel="noopener noreferrer" aria-label={"Testar o cardápio completo "+galleryStyle(styleId).title}>Testar cardápio completo <ArrowRight size={15}/></a>
+       <button type="button" className="btn outline" onClick={()=>setFullPreview(true)} aria-label={"Testar o cardápio completo personalizado "+galleryStyle(styleId).title}>Testar meu cardápio completo <ArrowRight size={15}/></button>
        <button type="button" className="btn primary" disabled={busy||saving} onClick={()=>void continueSetup()}>{saving?<Spinner/>:<><Check size={17}/>Usar este modelo</>}</button>
       </div><details className="ai-selected-more"><summary>Mais opções de personalização</summary><div>
        <button type="button" className="btn outline" onClick={()=>setReferenceId(styleId)}>Ver imagem de referência</button>
@@ -137,6 +146,10 @@ export default function IdeaStart(){
    </section>}
    </div>
    
+   {fullPreview&&styleId&&preview&&<div ref={fullPreviewRef} className="ai-full-preview" role="dialog" aria-modal="true" aria-label="Teste do cardápio personalizado">
+      <div className="ai-full-preview-top"><div><strong>Teste do seu cardápio completo</strong><small>Com suas cores, nome e produtos. Simulação: não envia pedidos nem cobra.</small></div><button type="button" className="btn outline" onClick={()=>setFullPreview(false)} aria-label="Fechar teste e voltar aos modelos"><X size={18}/>Voltar aos modelos</button></div>
+      <Suspense fallback={<p className="ai-full-preview-loading" role="status">Preparando seu cardápio completo…</p>}><FullMenu data={design(styleId)} demo preview/></Suspense>
+     </div>}
    <Modal open={!!referenceId} onClose={()=>setReferenceId(null)} title={referenceId?galleryStyle(referenceId).title:"Referência visual"} wide>
     {referenceId&&<div className="ai-reference-view"><p>Referência de estilo. Na prévia, usamos o nome, os produtos e as imagens da sua pizzaria. Valores da imagem são ilustrativos.</p><img src={galleryReference(referenceId)} width={768} height={1152} alt={"Referência visual de "+galleryStyle(referenceId).title}/><div><a className="btn outline" href={"/demo/"+referenceId} target="_blank" rel="noopener noreferrer">Testar cardápio</a><button type="button" className="btn primary" onClick={()=>{setStyleId(referenceId);setReferenceId(null);setChatOpen(false);}}>Escolher este estilo</button></div></div>}
    </Modal>
