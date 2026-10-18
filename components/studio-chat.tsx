@@ -11,7 +11,6 @@ import {galleryStyles,galleryDesign,type GalleryStyleId} from "@/lib/gallery-sty
 import {MiniMenu,Spinner} from "./ui";
 import Menu from "./menu";
 import {z} from "zod";
-import PromotionStudio from "./promotion-studio";
 import SavedCreations from "./saved-creations";
 import type {SavedCreation} from "@/lib/creation-history-policy";
 
@@ -151,5 +150,5 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
     <footer><p>{generated?.asset==="product"?"Imagem ilustrativa. Confira se representa o produto que você vende.":"Só entra no cardápio depois de você publicar."}</p>{onApply?<button className="btn dark full" type="button" disabled={busy||!changes.length||applied||stale} onClick={apply}>{applied?<><Check size={17}/> Usando no rascunho</>:<>Usar no cardápio <ArrowRight size={17}/></>}</button>:<a className="btn primary" href="/cadastro?next=%2Fapp%3Fnew%3D1">Criar minha pizzaria <ArrowRight size={17}/></a>}{applied&&<small>Agora use Publicar ou Atualizar no painel.</small>}{onClose&&<button className="text-button" onClick={onClose}>Voltar ao painel</button>}</footer>
    </>}
   </section>
- </div>{restaurantId&&!demo&&data.products.length>0&&<div className="pizza-studio-promotion"><PromotionStudio data={data} restaurantId={restaurantId} slug={restaurantSlug||""} onPrepare={onPrepare} onMenu={()=>onNavigate?.("menu")}/></div>}</>;
+ </div></>;
 }

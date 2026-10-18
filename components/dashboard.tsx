@@ -7,6 +7,7 @@ import AiImport from "./ai-import";
 import GuestBrandPanel from "./guest-brand-panel";
 import OperationGuide from "./operation-guide";
 import DailyPromotions from "./daily-promotions";
+import PromotionStudio from "./promotion-studio";
 import {presentationForTheme} from "@/lib/menu-design";
 import {type MenuLaunch} from "@/lib/menu-launch";
 import {loadLaunchCheckpoint,saveLaunchCheckpoint} from "@/lib/menu-launch-checkpoint";
@@ -175,7 +176,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const menuSection = tab === "menu" || tab === "studio" || tab === "offers";
   const sectionName = menuSection ? "Cardápio" : navigation.find(n => n.id === tab)?.label;
 
-  return <div className="dashboard simple-dashboard"><PwaSetup hasUnsaved={dirty||saving||readerActive||promotionActive||readerPending||!!productEdit||createOpen||tab==="studio"}/>
+  return <div className="dashboard simple-dashboard"><PwaSetup hasUnsaved={dirty||saving||readerActive||promotionActive||readerPending||!!productEdit||createOpen||(tab==="studio"||tab==="offers")}/>
     <aside className={`sidebar ${mobileNav ? "visible" : ""}`}>
       <div className="sidebar-brand"><Brand /><button className="icon-btn mobile-nav" aria-label="Fechar menu" onClick={() => setMobileNav(false)}><X size={20} /></button></div>
       <div className="shop-picker"><label><span>SUA PIZZARIA</span><select value={activeId} disabled={saving} onChange={e => switchRestaurant(e.target.value)}>{!restaurants.length && <option value="">Criar minha pizzaria</option>}{restaurants.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label><span className={`shop-status ${active?.published ? "live" : ""}`}><i />{active?.published ? "Cardápio no ar" : "Ainda não publicado"}</span></div>
@@ -220,7 +221,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
               <DetailsPanel title="Cupom de desconto" subtitle={draft.coupon.enabled ? `${draft.coupon.code} · ${draft.coupon.percent}%` : "Opcional · você define o desconto e o pedido mínimo"}><ToggleRow label="Ativar cupom" text="Vale sobre os produtos, sem a taxa de entrega." value={draft.coupon.enabled} onChange={enabled => change({ coupon: { ...draft.coupon, enabled } })} /><Field label="Código do cupom"><input value={draft.coupon.code} maxLength={30} onChange={e => change({ coupon: { ...draft.coupon, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, "") } })} placeholder="Ex.: PIZZA10" /></Field><div className="form-row"><Field label="Desconto (%)"><input type="number" min="1" max="50" value={draft.coupon.percent} onChange={e => change({ coupon: { ...draft.coupon, percent: Number(e.target.value) } })} /></Field><MoneyField label="Pedido mínimo para usar" value={draft.coupon.minTotal} onChange={minTotal => change({ coupon: { ...draft.coupon, minTotal } })} /></div></DetailsPanel>
               </DetailsPanel>
             </>}
-            {tab === "offers" && <>              <DailyPromotions data={draft} slug={active.slug} onChange={change} canShare={active.published&&!dirty&&active.revision===active.liveRevision} onActivityChange={setPromotionActive}/></>}
+            {tab === "offers" && <>              <DailyPromotions data={draft} slug={active.slug} onChange={change} canShare={active.published&&!dirty&&active.revision===active.liveRevision} onActivityChange={setPromotionActive}/>{draft.products.length>0&&<DetailsPanel title="Artes para divulgar" subtitle="Baixe imagens e legendas das suas ofertas"><PromotionStudio data={draft} restaurantId={active.id} slug={active.slug} onPrepare={async()=>{const row=await save();return row?restaurantSchema.parse(JSON.parse(row.data)):null;}} onMenu={()=>document.querySelector(".daily-promotions")?.scrollIntoView({behavior:"smooth",block:"start"})}/></DetailsPanel>}</>}
             {tab === "store" && <>
                <GuestBrandPanel key={active.id+(handoffRetry?"-pending":"-ready")} restaurantId={active.id} onApply={(kind,url)=>change({[kind]:url})}/>
 

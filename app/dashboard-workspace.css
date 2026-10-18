@@ -3,7 +3,7 @@
 .simple-dashboard .menu-workspace-nav{display:flex;gap:6px;padding:5px;background:#eeece6;border-radius:14px;margin:0 0 24px;max-width:540px}
 .menu-workspace-nav button{flex:1;min-height:44px;border:0;border-radius:10px;background:transparent;color:#68695e;font:inherit;font-size:14px;font-weight:650;cursor:pointer}
 .menu-workspace-nav button.active{background:white;color:#27251f;box-shadow:0 1px 5px #2d281210}
-.simple-dashboard .dashboard-header-actions .menu-view-action{display:inline-flex;white-space:nowrap}
+.simple-dashboard .dashboard-header .dashboard-header-actions>.btn.menu-view-action{display:inline-flex;white-space:nowrap}
 .simple-dashboard .sales-workspace{grid-template-columns:minmax(0,1fr)}
 .dashboard-next-step{display:flex;align-items:center;gap:24px;justify-content:space-between;margin-bottom:24px}
 .dashboard-next-step h2{margin:0 0 8px}.dashboard-next-step p{margin:0;color:#747469;font-size:14px;line-height:1.6}
@@ -16,7 +16,7 @@
 .creation-current-heading{display:flex;align-items:center;gap:9px;padding:16px 20px;background:white;border-bottom:1px solid #e5e3da;font-size:13px}.creation-current-heading span{margin-left:auto;color:#78786c}
 .creation-current-menu{height:620px;overflow:auto;background:#faf8f2;border-radius:18px;border:1px solid #e4e1d8}.creation-current-menu .customer-menu{min-height:100%}
 .simple-dashboard .creation-menu-preview{height:620px;overflow:auto}.simple-dashboard .creation-menu-preview>.customer-menu{min-height:100%}
-.simple-dashboard .creation-styles{margin-top:12px}.simple-dashboard .pizza-studio-promotion{display:none}
+.simple-dashboard .creation-styles{margin-top:12px}
 @media(max-width:760px){
  .simple-dashboard .dashboard-header{padding:12px 16px}.simple-dashboard .dashboard-header-actions{gap:8px}.simple-dashboard .dashboard-header-actions .btn{padding:11px 12px;font-size:12px;min-height:43px}
  .simple-dashboard .dashboard-title{margin-bottom:20px}.simple-dashboard .dashboard-title h1{font-size:30px}.simple-dashboard .dashboard-title p{font-size:14px}
