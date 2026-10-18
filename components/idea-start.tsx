@@ -4,6 +4,7 @@ import {ArrowRight,Check,Link2,Paperclip,Sparkles,X,FileText,ImagePlus,RefreshCw
 import {demoRestaurant,defaultRestaurant,type RestaurantData} from "@/lib/domain";
 import type {ReaderItem} from "@/lib/menu-reader-policy";
 import {galleryDesign,galleryStyle,galleryReference,suggestedGalleryStyles,supportsLocalRefinement,type GalleryStyleId} from "@/lib/gallery-styles";
+import {brandPaletteFromBriefing} from "@/lib/brand-palette";
 
 import {guestReadingKey,type MenuLaunch} from "@/lib/menu-launch";
 import {loadLaunchCheckpoint,saveLaunchCheckpoint} from "@/lib/menu-launch-checkpoint";
