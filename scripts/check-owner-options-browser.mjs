@@ -28,7 +28,7 @@ async function start(mode){
 }
 async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();}
 async function pause(){if(process.env.QA_RECORD_INTAKE==='true')await page.waitForTimeout(1400);}
-async function ready(){await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-template-options').evaluate(el=>el.open),false);}
+async function ready(){await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-template-options').evaluate(el=>el.open),false);assert.equal(await page.locator('.creator-briefing').evaluate(el=>el.open),false);}
 async function close(name){const video=page.video();await context.close();if(video)await rename(await video.path(),path.join(output,name+'.webm'));}
 try{
  await start('complete');

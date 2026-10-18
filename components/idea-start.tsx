@@ -117,6 +117,7 @@ export default function IdeaStart(){
  return <section className={"idea-start ai-landing creator-flow "+(preview?"has-results":"waiting-prompt")} id="ideia"><div className="saas-container">
    {!preview&&<div className="creator-intro"><span>SEU CARDÁPIO. DO SEU JEITO.</span><h1>Sua pizzaria começa<br/>com uma ideia.</h1><p>Conte como você imagina. Traga seu cardápio e veja tudo ganhar forma.</p></div>}
    <div className={"idea-workspace"+(preview?" has-gallery":"")}><div className="idea-composer-wrap">
+     <details className="creator-briefing" open={!preview}><summary>Sua ideia e dados da pizzaria <span>Conferir ou editar</span></summary>
      <div className="idea-conversation">
        <OwnerIntakeChat value={intake} disabled={busy||saving||!initialized}
         onChange={next=>{
@@ -139,6 +140,7 @@ export default function IdeaStart(){
        <small>Confira os preços e tamanhos antes de publicar. Logo e capa ficam guardados neste aparelho até você aplicá-los no painel.</small>
      </div>}
      {storageError&&<p className="idea-error" role="status">{storageError}</p>}{notice&&<p className="idea-notice" role="status">{notice}</p>}{error&&<p className="idea-error" role="alert">{error}</p>}{busy&&readingLabel&&<p className="idea-notice" role="status">{readingLabel}</p>}
+     </details>
    </div>
    {preview&&<section ref={galleryRef} className="ai-gallery" aria-label="Escolha o visual do seu cardápio">
      <div className="ai-gallery-heading"><div><h2>Sua pizzaria está ganhando forma.</h2><p>{imported?imported+" itens identificados. ":""}Confira a prévia e ajuste do seu jeito.</p></div><span className="ai-round-count">PRÉVIA</span></div>

@@ -81,6 +81,7 @@ try{
   return actual;
  });
  await record("importação de cardápio CSV/TXT mantém preços como dados, não como arte",async()=>{
+  await page.locator('.creator-briefing>summary').click();
   await page.getByRole("button",{name:/Anexar cardápio/}).click();
   const file=page.locator('input[type=file][accept*=".txt"]');
   await file.setInputFiles({name:"cardapio.txt",mimeType:"text/plain",buffer:Buffer.from("BEBIDAS\nRefrigerante lata R$ 6,00\nÁgua mineral R$ 4,00")});
@@ -94,6 +95,7 @@ try{
   assert.ok((await page.locator(".ai-style-card .mini-product").count())>=1);
  });
  await record("assets reutilizáveis e refinamento de estilo persistem em checkpoint",async()=>{
+  await page.locator('.creator-briefing>summary').click();
   const png=Buffer.from(await page.evaluate(()=>{
    const c=document.createElement("canvas");c.width=400;c.height=300;const x=c.getContext("2d");x.fillStyle="#f0aa66";x.fillRect(0,0,400,300);x.fillStyle="#663300";x.font="bold 30px sans-serif";x.fillText("BELLA MASSA QA",20,160);return c.toDataURL("image/png").split(",")[1];
   }),"base64");
