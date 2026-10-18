@@ -49,6 +49,18 @@ export function inspectMenuSourceText(input:string):MenuSourceText{
  return {status:links.length>1?"multiple":links.length?"ifood":hasUrls?"unsupported":"none",links,menuText};
 }
 
+/** A share caption is a name suggestion, never a verified catalog fact. */
+export function sharedIfoodStoreName(input:string):string|undefined{
+ const source=inspectMenuSourceText(input);if(source.links.length!==1)return;
+ const match=[...input.slice(0,60000).matchAll(urls)].find(match=>parseIfoodStoreLink(match[0])?.storeId===source.links[0].storeId);if(!match)return;
+ const prefix=input.slice(0,match.index),header=/^\s*Esse lugar [ée] a sua cara[!.]?\s*Use o [íi]cone de cora[çc][ãa]o[\s\S]*?Favoritos[!.]?\s*/i;
+ if(!header.test(prefix))return;
+ const name=prefix.replace(header,"").replace(/\s*[-–—]\s*$/,"").replace(/\s+/g," ").trim();
+ if(name.length<2||name.length>100||name.split(/\s+/).length>12||/[<>:{}]|\/\/|R\s*\$/i.test(name))return;
+ const caption=captionLabel(name),pathName=captionLabel(source.links[0].storeLabel);
+ return caption&&(pathName===caption||pathName.startsWith(caption+" "))?name:undefined;
+}
+
 /** Merge a chat handoff after loading the owner's checkpoint, without truncating it. */
 export function mergeMenuSourceText(current:string,incoming:string){
  const next=incoming.trim(),source=inspectMenuSourceText(next);

@@ -1,7 +1,7 @@
 "use client";
 import {useState,useEffect,useRef,type FormEvent} from "react";
 import {ArrowRight,Bot,Check,MessageCircle,MapPin,Link2,Paperclip,ExternalLink} from "lucide-react";
-import {intakeFinished,nextOwnerIntake,ownerFieldIds,ownerQuestions,extractLocationHint,validateOwnerAnswer,ownerAnsweredCount,ownerFromStore,withOwnerAnswers,ownerReadyForPreview,ownerVisualChoices,hasOwnerVisualBriefing,type OwnerField,type OwnerIntake} from "@/lib/owner-intake";
+import {intakeFinished,nextOwnerIntake,ownerFieldIds,ownerQuestions,extractLocationHint,validateOwnerAnswer,ownerAnsweredCount,ownerFromStore,ownerWithMenuSource,ownerWithMenuContent,ownerNameSuggestion,withOwnerAnswers,ownerReadyForPreview,ownerVisualChoices,hasOwnerVisualBriefing,type OwnerField,type OwnerIntake} from "@/lib/owner-intake";
 import {inspectMenuSourceText} from "@/lib/menu-source-links";
 import {fetchMenuSource} from "@/lib/menu-source-client";
 import type {IfoodImportResult} from "@/lib/ifood-import";
@@ -15,17 +15,19 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
  const [editing,setEditing]=useState<OwnerField|null>(null),[linkHint,setLinkHint]=useState(false),[reading,setReading]=useState(false);
  const [found,setFound]=useState<{result:IfoodImportResult;base:OwnerIntake}|null>(null);
  const input=useRef<HTMLTextAreaElement|null>(null),alive=useRef(true);
- const [blockedSource,setBlockedSource]=useState<string|null>(null);
+ const blockedSource=value.source?.catalogStatus==="needs_content"?value.source.url:null;
  const seenSuggestion=useRef<IfoodImportResult|null>(null);
  useEffect(()=>{if(sourceSuggestion?.store&&sourceSuggestion!==seenSuggestion.current){seenSuggestion.current=sourceSuggestion;setFound({result:sourceSuggestion,base:value});}},[sourceSuggestion,value]);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const finished=intakeFinished(value),hint=value.step===1?extractLocationHint(value.initialMessage):undefined;
  const blocked=disabled||reading||!!found,field=editing||ownerFieldIds[value.step],count=ownerAnsweredCount(value);
  const first=!value.initialMessage&&!value.answers.name&&!value.source&&!editing;
+ const nameSuggestion=ownerNameSuggestion(value),choosingName=field==="name"&&!editing&&!found&&!reading&&!!nameSuggestion;
  function acceptAnswer(answer:string){
   const result=nextOwnerIntake(value,answer);if(result.error){setError(result.error);return;}
   const hasProducts=onText?.(answer);
-  const next=hasProducts&&result.state.answers.menu===undefined?withOwnerAnswers(result.state,{menu:""}):result.state;
+  let next=hasProducts&&result.state.answers.menu===undefined?withOwnerAnswers(result.state,{menu:""}):result.state;
+  if(hasProducts)next=ownerWithMenuContent(next);
   setError("");setReply("");setLinkHint(false);onChange(next);
   setNotice(next.step===0&&next.initialMessage?"Sua ideia ficou guardada. Como se chama a pizzaria?":"");
  }
@@ -33,9 +35,9 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
   if(blocked)return;setReading(true);setError("");setNotice("");
   try{
    const result=await fetchMenuSource(url);if(!alive.current)return;
-   onSource?.(result);setReply("");setLinkHint(false);setBlockedSource(null);
+   onSource?.(result);setReply("");setLinkHint(false);
    if(result.store)setFound({result,base});
-   else{onChange(ownerFromStore(base,url));if(!result.count)setBlockedSource(url);else setNotice(`${result.count} produtos encontrados. Continue com os dados que faltam.`);}
+   else{onChange(ownerFromStore(base,url,{},result.status));if(result.count)setNotice(`${result.count} produtos encontrados. Continue com os dados que faltam.`);}
   }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Não consegui consultar o link agora. Tente novamente ou continue pela sua ideia.");}
   finally{if(alive.current)setReading(false);}
  }
@@ -43,7 +45,7 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
   e.preventDefault();if(blocked||(finished&&!editing))return;
   const current=reply.trim();if(!current){setError("Escreva sua ideia, cole um link ou escolha uma opção.");return;}
   if(editing){
-   if(editing==="menu"&&onText?.(current)){onChange(withOwnerAnswers(value,{menu:value.answers.menu||""}));setEditing(null);setReply("");setError("");return;}
+   if(editing==="menu"&&onText?.(current)){onChange(ownerWithMenuContent(withOwnerAnswers(value,{menu:value.answers.menu||""})));setEditing(null);setReply("");setError("");return;}
    const checked=validateOwnerAnswer(editing,current);if(checked.error){setError(checked.error);return;}
    onChange(withOwnerAnswers(value,{[editing]:checked.value}));setEditing(null);setReply("");setError("");return;
   }
@@ -52,13 +54,14 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
   if(source.links.length===1){
    let base=value;
    if(value.step===0){const parsed=nextOwnerIntake(value,current);if(!parsed.error)base=parsed.state;}
+   base=ownerWithMenuSource(base,current);
    onText?.(current);void lookup(source.links[0].url,base);return;
   }
   if(source.status==="unsupported"&&!source.menuText){setError("Esse endereço não é um link completo de loja no iFood. Você também pode colar os produtos com preços ou enviar uma foto.");return;}
   acceptAnswer(current);
  }
  function keepSource(useFacts:boolean){
-  if(!found)return;onChange(ownerFromStore(found.base,found.result.url,useFacts?found.result.store:{}));
+  if(!found)return;onChange(ownerFromStore(found.base,found.result.url,useFacts?found.result.store:{},found.result.status));
   setNotice(useFacts?"Dados do link confirmados. Vou perguntar apenas o que falta.":"Link guardado. Use os dados que quiser na sua pizzaria.");setFound(null);
  }
  function previewNow(){
@@ -71,15 +74,16 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
   {count>0&&!first&&<div className="owner-intake-progress" aria-label={`${count} de 5 informações organizadas`}><span style={{width:`${count/5*100}%`}}/></div>}
   <div className="owner-intake-history" aria-live="polite">
    {count>0&&!first&&<details className="owner-known"><summary>Dados já informados</summary>{ownerFieldIds.map(id=>value.answers[id]!==undefined?<div key={id} className="owner-intake-answer"><Check size={15}/><div><small>{({name:"Nome",address:"Endereço",whatsapp:"WhatsApp",hours:"Horários",menu:"Cardápio"})[id]}</small><span>{value.answers[id]||"Vou preencher depois."}</span></div><button type="button" className="owner-intake-edit" disabled={blocked} aria-label={"Alterar "+id} onClick={()=>{setEditing(id);setReply(value.answers[id]||"");setError("");}}>Editar</button></div>:null)}</details>}
-   {!first&&!found&&!reading&&(!finished||editing)&&<p className="owner-intake-question"><Bot size={16} aria-hidden="true"/><span>{value.step===0&&!editing?"Qual é o nome da pizzaria?":ownerQuestions[editing?ownerFieldIds.indexOf(editing):value.step]}</span></p>}
+   {!first&&!found&&!reading&&!choosingName&&(!finished||editing)&&<p className="owner-intake-question"><Bot size={16} aria-hidden="true"/><span>{value.step===0&&!editing?"Qual é o nome da pizzaria?":ownerQuestions[editing?ownerFieldIds.indexOf(editing):value.step]}</span></p>}
+   {choosingName&&nameSuggestion&&<section className="owner-source-confirm owner-name-confirm" aria-label="Confirme o nome da pizzaria"><small>{nameSuggestion.fromShare?"Nome no compartilhamento":"Nome sugerido pelo endereço"}</small><h3>{nameSuggestion.name}</h3><p>{nameSuggestion.fromShare?"Podemos usar este nome no seu cardápio?":"Este nome veio do endereço do link. Confira ou edite antes de usar."}</p><div><button type="button" className="btn primary" disabled={blocked} onClick={()=>acceptAnswer(nameSuggestion.name)}>Usar este nome<Check size={16}/></button><button type="button" className="text-button" disabled={blocked} onClick={()=>{setEditing("name");setReply(nameSuggestion.name);setError("");}}>Alterar nome</button></div></section>}
    {hint&&<p className="owner-intake-hint"><MapPin size={15}/>Você mencionou: {hint}. Confirme ou complete o endereço.</p>}
    {found&&<section className="owner-source-confirm" aria-label="Confira os dados encontrados no link"><h3>Encontrei estes dados no link</h3><p>Confira se são da sua loja. Os dados que você já informou serão mantidos.</p><dl>{([['name','Nome'],['address','Endereço'],['hours','Horários'],['telephone','Telefone informado']] as const).map(([key,label])=>found.result.store?.[key]?<div key={key}><dt>{label}</dt><dd>{found.result.store[key]}</dd></div>:null)}</dl><small>O telefone só será usado como WhatsApp se você confirmar.</small><div><button type="button" className="btn primary" onClick={()=>keepSource(true)}>Usar dados encontrados<Check size={16}/></button><button type="button" className="text-button" onClick={()=>keepSource(false)}>Prefiro preencher</button></div></section>}
    {notice&&<p className="owner-intake-hint" role="status">{notice}</p>}
-   {blockedSource&&<aside className="owner-source-fallback" aria-label="Trazer o cardápio do iFood"><strong>O iFood não liberou os produtos por esse link.</strong><p>Abra sua loja e traga o cardápio como PDF, foto ou texto. Sua ideia continua aqui.</p><div><a href={blockedSource} target="_blank" rel="noopener noreferrer">Abrir loja no iFood<ExternalLink size={15}/></a><button type="button" disabled={blocked} onClick={attach}><Paperclip size={15}/>Enviar PDF ou foto</button><button type="button" disabled={blocked} onClick={()=>{setLinkHint(false);setEditing("menu");input.current?.focus();}}>Colar produtos</button></div><details><summary>Como trazer os produtos?</summary><p>No computador: abra a loja, expanda as categorias e use Imprimir → Salvar como PDF. Também pode salvar a página em HTML ou copiar os nomes e preços. No celular, envie prints ou um PDF do cardápio.</p></details></aside>}
+   {blockedSource&&<aside className="owner-source-fallback" aria-label="Trazer o cardápio do iFood"><strong>Link guardado. Falta trazer os produtos.</strong><p>O iFood não liberou a leitura automática do catálogo.</p><details><summary>Trazer cardápio por PDF, foto ou texto</summary><div className="owner-source-actions"><a href={blockedSource} target="_blank" rel="noopener noreferrer">Abrir loja no iFood<ExternalLink size={15}/></a><button type="button" disabled={blocked} onClick={attach}><Paperclip size={15}/>Enviar PDF ou foto</button><button type="button" disabled={blocked} onClick={()=>{setLinkHint(false);setEditing("menu");input.current?.focus();}}>Colar produtos</button></div><p>No celular, envie prints ou um PDF do cardápio. No computador, expanda as categorias da loja e use Imprimir → Salvar como PDF. Também pode salvar a página em HTML ou copiar os nomes e preços.</p></details></aside>}
    {reading&&<p className="owner-intake-hint" role="status"><Spinner/>Consultando os dados públicos da loja…</p>}
    {finished&&!editing&&!found&&<div className="owner-intake-done" role="status"><Check size={18}/><div><strong>Já podemos montar sua prévia.</strong><p>Você poderá ajustar o visual e completar os dados antes de publicar.</p></div></div>}
   </div>
-  {(!finished||editing)?<form className="owner-intake-reply" onSubmit={submit}>
+  {(!finished||editing)?<form className="owner-intake-reply" hidden={choosingName} onSubmit={submit}>
    <label htmlFor="owner-intake-message">{editing==="menu"?"Cole os produtos com preços":editing?"Corrigir informação":first?"Sua ideia, link ou cardápio":({name:"Nome da pizzaria",address:"Endereço da pizzaria",whatsapp:"WhatsApp de pedidos",hours:"Dias e horários",menu:"Seu cardápio atual"})[field]}</label>
    <textarea ref={input} id="owner-intake-message" rows={first?6:3} maxLength={field==="name"?6000:field==="menu"?6000:600} value={reply}
     onChange={e=>{setReply(e.target.value);setError("");}} onKeyDown={e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();e.currentTarget.form?.requestSubmit();}}}
