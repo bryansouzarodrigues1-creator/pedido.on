@@ -4,6 +4,7 @@ import {ArrowRight,Check,Link2,Paperclip,Sparkles,X,FileText,ImagePlus,RefreshCw
 import {demoRestaurant,defaultRestaurant,type RestaurantData} from "@/lib/domain";
 import type {ReaderItem} from "@/lib/menu-reader-policy";
 import {galleryDesign,galleryStyle,galleryReference,suggestedGalleryStyles,supportsLocalRefinement,type GalleryStyleId} from "@/lib/gallery-styles";
+import {resolveBrandPalette} from "@/lib/brand-palette";
 
 import {guestReadingKey,type MenuLaunch} from "@/lib/menu-launch";
 import {loadLaunchCheckpoint,saveLaunchCheckpoint} from "@/lib/menu-launch-checkpoint";
@@ -85,7 +86,8 @@ export default function IdeaStart(){
  }
  const styles=suggestedGalleryStyles(idea,refinement),visible=styles.slice(round*4,round*4+4),rounds=Math.ceil(styles.length/4);
  const explicitName=intake.answers.name||nameFromBriefing(idea);
- const design=(id:GalleryStyleId)=>{const data=galleryDesign(preview!,id,idea,refinement);return {...data,...ownerPreviewDetails(intake),...(brandName.trim().length>=2?{name:brandName.trim()}:{}),...(brandAssets?.logo?{logo:brandAssets.logo.data}:{}),...(brandAssets?.cover?{cover:brandAssets.cover.data}:{})};};
+ const design=(id:GalleryStyleId)=>{const data=galleryDesign(preview!,id,idea,refinement);return {...data,...ownerPreviewDetails(intake),...(intake.answers.name?{name:intake.answers.name}:brandName.trim().length>=2?{name:brandName.trim()}:{}),...(brandAssets?.logo?{logo:brandAssets.logo.data}:{}),...(brandAssets?.cover?{cover:brandAssets.cover.data}:{})};};
+ const interpretedPalette=resolveBrandPalette(idea,refinement);
  function refine(e:FormEvent){e.preventDefault();if(!feedback.trim()){setError("Descreva com suas palavras o que você quer mudar.");return;}
   const combined=(refinement?refinement+"\n":"")+feedback.trim();
   if(combined.length>600){setError("Resuma as mudanças em até 600 caracteres.");return;}
@@ -117,6 +119,7 @@ export default function IdeaStart(){
    </div>
    {preview&&<section ref={galleryRef} className="ai-gallery" aria-label="Escolha o visual do seu cardápio">
      <div className="ai-gallery-heading"><div><h2>{styleId?"Seu modelo":"12 modelos para sua pizzaria"}</h2><p>{imported?imported+" itens identificados. ":""}Escolha o que mais combina com você.</p></div><span className="ai-round-count">{styleId?"ESCOLHIDO":`${round*4+1}–${Math.min(round*4+4,styles.length)} DE ${styles.length}`}</span></div>
+     {interpretedPalette&&<div className="ai-visual-summary" aria-live="polite"><div><strong>Identidade visual aplicada</strong><small>{interpretedPalette.motif==="sea-cheese"?"Azul do mar + amarelo-queijo · cabeçalho, destaques, fundos e fotos com composição adaptada":"Duas cores combinadas em superfícies, navegação, botões e conteúdo"}</small></div><span className="ai-palette-swatches" aria-label="Cores da identidade"><i title="Cor principal" style={{background:interpretedPalette.primary}}/><i title="Cor secundária" style={{background:interpretedPalette.palette.secondary}}/><i title="Fundo do cardápio" style={{background:interpretedPalette.palette.background}}/></span></div>}
      {!explicitName&&styleId&&<label className="ai-brand-name"><span>Como se chama sua pizzaria? <small>Opcional por enquanto</small></span><input type="text" autoComplete="organization" maxLength={100} value={brandName} onChange={e=>setBrandName(e.target.value)} placeholder="Nome da sua pizzaria" disabled={busy||saving}/></label>}
      {preview.products.some(item=>item.id==="margherita"&&item.name==="Margherita")&&imported===0&&<p className="ai-gallery-sample" role="note">Sabores e preços ilustrativos para visualizar o design. Nenhum valor de exemplo será cadastrado na sua loja.</p>}
      {styleId?<div className="ai-selected"><div className="ai-selected-bar"><div><strong>{galleryStyle(styleId).title}</strong><small>{galleryStyle(styleId).summary}</small></div><button type="button" onClick={()=>{setStyleId(null);setChatOpen(false);}}>Escolher outro</button></div><div className="ai-selected-preview"><MiniMenu data={design(styleId)} large/></div><div className="ai-selected-actions"><button type="button" className="btn outline" onClick={()=>setReferenceId(styleId)}>Ver referência do estilo</button><a className="btn outline" href={"/demo/"+styleId} target="_blank" rel="noopener noreferrer">Testar cardápio</a><button type="button" className="btn primary" disabled={busy||saving} onClick={()=>void continueSetup()}>{saving?<Spinner/>:<><Check size={17}/>Continuar com este cardápio</>}</button><button type="button" className="btn outline" onClick={()=>setChatOpen(true)}>Quero ajustar o design</button></div></div>:

@@ -1,6 +1,8 @@
 import {z} from "zod";
 import type {RestaurantData,ThemeId} from "./domain.ts";
 import {menuIdentityId} from "./menu-identity.ts";
+import {brandPaletteFromBriefing} from "./brand-palette.ts";
+export {brandPaletteFromBriefing};
 
 export const presentationSchema=z.object({
   layout:z.enum(["cards","list","poster","compact"]),
@@ -8,6 +10,8 @@ export const presentationSchema=z.object({
   font:z.enum(["modern","serif","bold"]),
   corners:z.enum(["soft","square"]),
   identity:menuIdentityId.optional(),
+  palette:z.object({background:z.string().regex(/^#[0-9a-fA-F]{6}$/),surface:z.string().regex(/^#[0-9a-fA-F]{6}$/),secondary:z.string().regex(/^#[0-9a-fA-F]{6}$/),text:z.string().regex(/^#[0-9a-fA-F]{6}$/),muted:z.string().regex(/^#[0-9a-fA-F]{6}$/),line:z.string().regex(/^#[0-9a-fA-F]{6}$/)}).strict().optional(),
+  motif:z.enum(["sea-cheese","two-tone"]).optional(),
 }).strict();
 export type MenuPresentation=z.infer<typeof presentationSchema>;
 export const layoutNames:Record<MenuPresentation["layout"],string>={cards:"Cartões",list:"Lista artesanal",poster:"Fotos em destaque",compact:"Lista compacta"};

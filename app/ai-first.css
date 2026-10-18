@@ -163,3 +163,13 @@
 .owner-intake-answer>span{flex:1;min-width:0;overflow-wrap:anywhere}
 .owner-intake-edit{border:0;background:transparent;color:#306337;font:inherit;font-size:11px;font-weight:750;padding:3px;cursor:pointer;text-decoration:underline;text-underline-offset:2px;align-self:flex-start}
 .owner-intake-edit:focus-visible{outline:2px solid #306337;outline-offset:2px}
+
+
+/* Show exactly what the local visual adapter understood, not a vague "AI applied" claim. */
+.ai-gallery .ai-visual-summary{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 16px;margin:0 0 16px;border-radius:12px;border:1px solid #615b46;background:#252831;color:#f9f5eb}
+.ai-gallery .ai-visual-summary>div{display:grid;gap:5px;min-width:0}
+.ai-gallery .ai-visual-summary strong{font-size:12px;letter-spacing:.01em}
+.ai-gallery .ai-visual-summary small{font-size:11px;line-height:1.6;color:#cfcfc9;max-width:570px}
+.ai-gallery .ai-palette-swatches{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.ai-gallery .ai-palette-swatches i{display:block;width:28px;height:28px;border-radius:50%;border:2px solid #ffffff9c;box-shadow:0 0 0 1px #15151555}
+@media(max-width:520px){.ai-gallery .ai-visual-summary{align-items:flex-start}.ai-gallery .ai-palette-swatches i{width:23px;height:23px}}

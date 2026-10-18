@@ -31,3 +31,43 @@
 .customer-menu .menu-store-location>svg{flex-shrink:0}
 .customer-menu .menu-store-location:hover,.customer-menu .menu-store-location:focus-visible{border-color:var(--menu-accent,currentColor);text-decoration:underline;text-underline-offset:3px}
 .customer-menu .menu-store-location:focus-visible{outline:2px solid var(--menu-accent,currentColor);outline-offset:2px}
+
+
+/* Semantic brand palette: accent alone is not a visual identity.
+   Used equally by the static gallery, editor preview and live customer menu.
+   The photographs are reusable assets; no baked-in text or image generation. */
+.mini-menu.has-brand-palette{background:var(--menu-bg);color:var(--menu-text);border-top:4px solid var(--menu-secondary);overflow:hidden}
+.mini-menu.has-brand-palette .mini-top{background:var(--menu-secondary);color:var(--menu-text);border-bottom:3px solid var(--menu-accent)}
+.mini-menu.has-brand-palette .mini-top strong{font-weight:800}
+.mini-menu.has-brand-palette .mini-open{color:var(--menu-text);opacity:.8}
+.mini-menu.has-brand-palette .mini-cover{border-bottom:3px solid var(--menu-secondary)}
+.mini-menu.has-brand-palette.hero-cover .mini-cover>div:last-child{background:linear-gradient(90deg,#112e45e8,#123b5d48);color:#fff}
+.mini-menu.has-brand-palette.hero-split .mini-cover>div:last-child{background:linear-gradient(135deg,var(--menu-card),var(--menu-bg));color:var(--menu-text)}
+.mini-menu.has-brand-palette.hero-compact .mini-cover{background:linear-gradient(115deg,var(--menu-bg),var(--menu-secondary))}
+.mini-menu.has-brand-palette .mini-meta{background:var(--menu-bg);color:var(--menu-muted);font-weight:650}
+.mini-menu.has-brand-palette .mini-tabs{background:var(--menu-bg);border-color:var(--menu-line)}
+.mini-menu.has-brand-palette .mini-tabs span.active{background:var(--menu-accent);color:var(--menu-ink)}
+.mini-menu.has-brand-palette .mini-products{background:var(--menu-bg)}
+.mini-menu.has-brand-palette .mini-product{border-color:var(--menu-line)}
+.mini-menu.has-brand-palette .mini-product b{color:var(--menu-accent);font-weight:850}
+.mini-menu.has-brand-palette .mini-product>img{outline:2px solid var(--menu-secondary);outline-offset:-1px}
+.mini-menu.has-brand-palette .mini-cart{background:var(--menu-accent);color:var(--menu-ink)}
+/* Mar + queijo: warm sunlit surfaces, clear blue navigation and a subtle
+   wave geometry, rendered in CSS (not AI-generated bitmaps). */
+.mini-menu.motif-sea-cheese .mini-cover{background-color:var(--menu-secondary);background-image:radial-gradient(ellipse at 100% 0%,#ffffff45 0%,transparent 60%)}
+.mini-menu.motif-sea-cheese.hero-split .mini-cover>div:last-child{background:linear-gradient(155deg,var(--menu-secondary) -10%,var(--menu-card) 70%)}
+.mini-menu.motif-sea-cheese .mini-cart{border-top:3px solid var(--menu-secondary)}
+.customer-menu.has-brand-palette{background:var(--menu-bg);color:var(--menu-text)}
+.customer-menu.has-brand-palette .menu-topbar{background:var(--menu-secondary);border-bottom:5px solid var(--menu-accent)}
+.customer-menu.has-brand-palette .restaurant-brand{color:var(--menu-text);font-weight:800}
+.customer-menu.has-brand-palette .open-pill{color:var(--menu-text)}
+.customer-menu.has-brand-palette .menu-hero{background:linear-gradient(125deg,var(--menu-secondary) -35%,var(--menu-card) 48%,var(--menu-bg) 120%);border-bottom:5px solid var(--menu-accent)}
+.customer-menu.has-brand-palette .menu-hero h1{color:var(--menu-text)}
+.customer-menu.has-brand-palette .menu-eyebrow{color:var(--menu-accent);font-weight:750}
+.customer-menu.has-brand-palette .menu-hero-image{border:4px solid var(--menu-secondary)}
+.customer-menu.has-brand-palette .menu-search{background:var(--menu-card)}
+.customer-menu.has-brand-palette .category-tabs{border-color:var(--menu-line)}
+.customer-menu.has-brand-palette .category-tabs button[aria-pressed=true]{background:var(--menu-accent);color:var(--menu-ink)}
+.customer-menu.has-brand-palette .menu-product{background:var(--menu-card);border-color:var(--menu-line)}
+.customer-menu.has-brand-palette .desktop-cart{background:var(--menu-card)}
+.customer-menu.motif-sea-cheese .menu-hero{background:linear-gradient(145deg,var(--menu-secondary) -28%,var(--menu-card) 55%,var(--menu-bg) 100%)}
