@@ -4,7 +4,7 @@ import {ArrowRight,Check,Link2,Paperclip,Sparkles,X,FileText,ImagePlus,RefreshCw
 import {demoRestaurant,defaultRestaurant,type RestaurantData} from "@/lib/domain";
 import type {ReaderItem} from "@/lib/menu-reader-policy";
 import {galleryDesign,galleryStyle,galleryReference,suggestedGalleryStyles,supportsLocalRefinement,type GalleryStyleId} from "@/lib/gallery-styles";
-import {brandPaletteFromBriefing} from "@/lib/brand-palette";
+import {resolveBrandPalette} from "@/lib/brand-palette";
 
 import {guestReadingKey,type MenuLaunch} from "@/lib/menu-launch";
 import {loadLaunchCheckpoint,saveLaunchCheckpoint} from "@/lib/menu-launch-checkpoint";
@@ -87,7 +87,7 @@ export default function IdeaStart(){
  const styles=suggestedGalleryStyles(idea,refinement),visible=styles.slice(round*4,round*4+4),rounds=Math.ceil(styles.length/4);
  const explicitName=intake.answers.name||nameFromBriefing(idea);
  const design=(id:GalleryStyleId)=>{const data=galleryDesign(preview!,id,idea,refinement);return {...data,...ownerPreviewDetails(intake),...(intake.answers.name?{name:intake.answers.name}:brandName.trim().length>=2?{name:brandName.trim()}:{}),...(brandAssets?.logo?{logo:brandAssets.logo.data}:{}),...(brandAssets?.cover?{cover:brandAssets.cover.data}:{})};};
- const interpretedPalette=brandPaletteFromBriefing(idea,refinement)||brandPaletteFromBriefing(idea);
+ const interpretedPalette=resolveBrandPalette(idea,refinement);
  function refine(e:FormEvent){e.preventDefault();if(!feedback.trim()){setError("Descreva com suas palavras o que você quer mudar.");return;}
   const combined=(refinement?refinement+"\n":"")+feedback.trim();
   if(combined.length>600){setError("Resuma as mudanças em até 600 caracteres.");return;}
