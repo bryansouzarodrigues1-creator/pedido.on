@@ -186,3 +186,15 @@
 .ai-selected-actions{align-items:center}
 .ai-selected-actions .btn.primary{font-weight:800}
 @media(max-width:520px){.ai-selected-more summary{width:100%;justify-content:center}.ai-selected-more>div{flex-direction:column}.ai-selected-more .btn{width:100%}}
+
+/* Current brand and menu, not a generic /demo/<style> page.
+   Full viewport avoids shrinking the real cart inside a small gallery modal. */
+.ai-full-preview{position:fixed;z-index:90;inset:0;overflow-y:auto;overscroll-behavior:contain;background:#101217;color:#f7f5f1}
+.ai-full-preview-top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px max(20px,calc((100vw - 1160px)/2));background:#1d1f27;border-bottom:1px solid #42434c;box-shadow:0 6px 18px #0003}
+.ai-full-preview-top>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ai-full-preview-top strong{font-size:15px;color:#fff}
+.ai-full-preview-top small{font-size:11px;color:#c4c2c7;line-height:1.5}
+.ai-full-preview-top button{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;border:1px solid #5b5d66;border-radius:9px;padding:11px 13px;background:#2d303a;color:#fff;cursor:pointer}
+.ai-full-preview-top button:hover{background:#3b404b}
+.ai-full-preview-loading{padding:46px 24px;text-align:center;color:#f1e3db}
+@media(max-width:650px){.ai-full-preview-top{padding:11px 13px}.ai-full-preview-top strong{font-size:13px}.ai-full-preview-top small{font-size:9px}.ai-full-preview-top button{padding:9px;max-width:142px;font-size:10px}}
