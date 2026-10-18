@@ -2,6 +2,16 @@
 
 Base auditada: `185317b05d5052026ff22b6da775086b967810ae` (PR #58). Plano vigente: **uma pizzaria, R$49/mês**. Não reutilizar o catálogo histórico de R$89/R$149 como oferta atual. Contas Sites, Supabase, D1/R2 anteriores e serviço Lovable preservados.
 
+## Resultado confirmado
+
+- [PR #59](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/59) integrada à main em `8f5826fa532420c09eb8ab1b982f8bbffbc7ea5c`.
+- Código publicado: `20e0e435c71c2ad413d66ab055ab8fe2f18b3810`; deploy Cloudflare `ada463ba-5cdd-416c-a6ed-15832b3e22b6`, concluído em **18/10 às 09:01 de Brasília**. `/healthz` confirmou esse SHA na URL real.
+- **399 testes**, TypeScript, build e **7/7 workflows** aprovados, incluindo Chrome/Pixel 7 emulado, Windows, benchmark de OCR e standalone.
+- [Duas contas reais / tentativa 2](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/39125480307): **31 verificações aprovadas**, exatamente duas contas criadas, dois cardápios despublicados e sessões encerradas. A primeira tentativa terminou antes do deploy, sem criar contas; a espera de readiness agora aceita a página 404 anterior à publicação.
+- O disparo automático de criação de contas foi retirado após a prova. Novas rodadas exigem `workflow_dispatch`, SHA revisado e a autorização escrita `create-two-test-accounts`.
+- [Chrome / evidências](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/39125480151): conversa, prévia personalizada, 12 estilos, importação e OCR em navegador aprovados. A rodada remota antiga do Sites permanece identificada como v46; não é prova da nova publicação Cloudflare.
+- Persistem bloqueios concretos: **chave Asaas Sandbox ausente**, oito referências do OCR real não aptas à importação automática e Android físico indisponível. Nada disso foi marcado como concluído.
+
 ## Ambiente e publicação
 
 - Worker beta: `pizzaria-on-backend-staging-20261017`.
@@ -13,7 +23,7 @@ Base auditada: `185317b05d5052026ff22b6da775086b967810ae` (PR #58). Plano vigent
 
 ## Cadastro, contas e pedidos
 
-O ensaio externo está em `scripts/qa-beta-two-accounts.mjs`, com workflow `beta-two-accounts-once.yml`. Executa somente na abertura desta PR e após a URL servir o SHA esperado. Cria exatamente duas contas fictícias, sem confirmação por e-mail, e mantém senhas/cookies/tokens exclusivamente na memória do processo. Não exporta credenciais em logs ou artefatos.
+O ensaio externo está em `scripts/qa-beta-two-accounts.mjs`, com workflow `beta-two-accounts-once.yml`. A rodada inicial executou na abertura da PR, somente após a URL servir o SHA esperado. O gatilho automático foi aposentado após a prova; novas execuções são manuais e exigem autorização específica. Cria exatamente duas contas fictícias, sem confirmação por e-mail, e mantém senhas/cookies/tokens exclusivamente na memória do processo. Não exporta credenciais em logs ou artefatos.
 
 Verifica sessão, login incorreto/correto, saída, duas lojas privadas, revisão concorrente, publicação, totais recalculados, idempotência, acompanhamento com token, confirmação/cancelamento de pedidos e recusa de acesso/alterações entre proprietários. Os pedidos são fictícios, em dinheiro, sem envio de WhatsApp ou cobrança. Ao terminar, os dois cardápios são retirados do ar e as sessões encerradas. O relatório público é sanitizado; sua execução externa deve ser conferida no Actions, não inferida dos testes locais.
 

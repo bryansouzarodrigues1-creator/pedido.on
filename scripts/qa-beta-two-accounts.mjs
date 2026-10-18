@@ -20,7 +20,7 @@ async function request(c,path,method='GET',body,extra={}){
  if(body!==undefined)headers['content-type']='application/json';
  const response=await fetch(origin+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body),redirect:'manual',signal:AbortSignal.timeout(25000)});
  for(const cookie of response.headers.getSetCookie()){const pair=cookie.split(';')[0],at=pair.indexOf('=');c.cookies.set(pair.slice(0,at),pair.slice(at+1));}
- let data;try{data=await response.json();}catch{throw Error('Non-JSON response on '+path.split('/').slice(0,3).join('/'));}
+ let data;try{data=await response.json();}catch{if(path==='/healthz')data={};else throw Error('Non-JSON response on '+path.split('/').slice(0,3).join('/'));}
  return {status:response.status,data,headers:response.headers};
 }
 function check(name,condition){assert.ok(condition,name);report.checks.push({name,ok:true});}

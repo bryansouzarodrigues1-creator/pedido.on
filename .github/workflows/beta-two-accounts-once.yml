@@ -1,18 +1,26 @@
-name: Two beta accounts - authorized one-time integration
+name: Two beta accounts - manual authorized integration
 on:
-  pull_request:
-    types: [opened]
+  workflow_dispatch:
+    inputs:
+      authorization:
+        description: 'Type create-two-test-accounts to authorize two new fictitious beta accounts'
+        required: true
+        type: string
+      expected_release:
+        description: 'Full reviewed SHA already deployed on the isolated beta'
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
   integration:
-    if: github.head_ref == 'feat/homologacao-integrada-sandbox-20261018'
+    if: inputs.authorization == 'create-two-test-accounts'
     runs-on: ubuntu-latest
     timeout-minutes: 23
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ inputs.expected_release }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -24,7 +32,7 @@ jobs:
         env:
           CI: 'true'
           QA_BETA_WRITE_ACK: two-test-accounts-20261018
-          QA_EXPECTED_RELEASE: ${{ github.event.pull_request.head.sha }}
+          QA_EXPECTED_RELEASE: ${{ inputs.expected_release }}
         run: node --experimental-strip-types scripts/qa-beta-two-accounts.mjs
       - uses: actions/upload-artifact@v4
         if: always()

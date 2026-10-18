@@ -1,0 +1,143 @@
+{
+  "origin": "https://pizzaria-on-backend-staging-20261017.bryansouzarodrigues06.workers.dev",
+  "expectedRelease": "20e0e435c71c2ad413d66ab055ab8fe2f18b3810",
+  "mode": "real Supabase Auth + beta D1; no Asaas/AI calls",
+  "accountsCreated": 2,
+  "checks": [
+    {
+      "name": "deployed source matches the reviewed PR",
+      "ok": true
+    },
+    {
+      "name": "direct signup and authenticated session a",
+      "ok": true
+    },
+    {
+      "name": "stale editor revision is rejected a",
+      "ok": true
+    },
+    {
+      "name": "direct signup and authenticated session b",
+      "ok": true
+    },
+    {
+      "name": "stale editor revision is rejected b",
+      "ok": true
+    },
+    {
+      "name": "private store list is owner-bound a",
+      "ok": true
+    },
+    {
+      "name": "other owner cannot read orders a",
+      "ok": true
+    },
+    {
+      "name": "other owner cannot publish a",
+      "ok": true
+    },
+    {
+      "name": "private store list is owner-bound b",
+      "ok": true
+    },
+    {
+      "name": "other owner cannot read orders b",
+      "ok": true
+    },
+    {
+      "name": "other owner cannot publish b",
+      "ok": true
+    },
+    {
+      "name": "anonymous private API is denied",
+      "ok": true
+    },
+    {
+      "name": "server rejects manipulated total a",
+      "ok": true
+    },
+    {
+      "name": "order retry is idempotent a",
+      "ok": true
+    },
+    {
+      "name": "tracking without token is denied a",
+      "ok": true
+    },
+    {
+      "name": "wrong tracking token is denied a",
+      "ok": true
+    },
+    {
+      "name": "owner receives exactly its own order a",
+      "ok": true
+    },
+    {
+      "name": "other owner cannot approve order a",
+      "ok": true
+    },
+    {
+      "name": "stale order decision is rejected a",
+      "ok": true
+    },
+    {
+      "name": "customer sees owner confirmation a",
+      "ok": true
+    },
+    {
+      "name": "server rejects manipulated total b",
+      "ok": true
+    },
+    {
+      "name": "order retry is idempotent b",
+      "ok": true
+    },
+    {
+      "name": "tracking without token is denied b",
+      "ok": true
+    },
+    {
+      "name": "wrong tracking token is denied b",
+      "ok": true
+    },
+    {
+      "name": "owner receives exactly its own order b",
+      "ok": true
+    },
+    {
+      "name": "other owner cannot approve order b",
+      "ok": true
+    },
+    {
+      "name": "stale order decision is rejected b",
+      "ok": true
+    },
+    {
+      "name": "customer sees owner confirmation b",
+      "ok": true
+    },
+    {
+      "name": "logout revokes application session",
+      "ok": true
+    },
+    {
+      "name": "wrong password is rejected",
+      "ok": true
+    },
+    {
+      "name": "password login restores the same isolated account",
+      "ok": true
+    }
+  ],
+  "cleanup": [
+    {
+      "account": "a",
+      "menuUnpublished": true
+    },
+    {
+      "account": "b",
+      "menuUnpublished": true
+    }
+  ],
+  "passed": true
+}
