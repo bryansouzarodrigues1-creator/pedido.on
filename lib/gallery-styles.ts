@@ -55,7 +55,7 @@ const signals:Record<GalleryStyleId,RegExp>={
  * Unrecognized requests should be retained for the authenticated AI studio, never treated as applied. */
 export function supportsLocalRefinement(message:string){
  const m=normalized(message);
- return /(?:#[a-f0-9]{6}\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|lista|uma coluna|duas colunas|cartoes|cards|grade|fotos? grandes?|fotos? em destaque|vitrine|sem capa|capa grande|capa inteira|foto de fundo|sem serifa|serifa|elegante|italia|artesanal|letras? (?:fortes?|grandes?)|fonte (?:forte|grossa)|arredond|cantos? (?:retos?|suaves?)|quadrad|compact|minimal|sem fotos?|premium|luxuos|sofistic|delivery (?:direto|rapido)|(?:slogan|frase|chamada)\s*[:=])/.test(m);
+ return /(?:#[a-f0-9]{6}\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|queijo|oceano|marinho|cor de queijo|azul de mar|lista|uma coluna|duas colunas|cartoes|cards|grade|fotos? grandes?|fotos? em destaque|vitrine|sem capa|capa grande|capa inteira|foto de fundo|sem serifa|serifa|elegante|italia|artesanal|letras? (?:fortes?|grandes?)|fonte (?:forte|grossa)|arredond|cantos? (?:retos?|suaves?)|quadrad|compact|minimal|sem fotos?|premium|luxuos|sofistic|delivery (?:direto|rapido)|(?:slogan|frase|chamada)\s*[:=])/.test(m);
 }
 /** Three balanced rounds, four distinct compositions in each, zero provider calls. */
 export function suggestedGalleryStyles(briefing:string,feedback=""){
