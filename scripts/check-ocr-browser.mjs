@@ -59,7 +59,8 @@ try {
         if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).click();
         else await page.getByRole('button', {name: legacy ? 'Criar opções' : current ? 'Criar 12 modelos' : 'Criar 8 modelos', exact: true}).click();
         await page.locator(composer?'.ai-selected .mini-menu':'.ai-style-card').first().waitFor({timeout: 120_000});
-        if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).waitFor();
+        if(composer)await page.waitForFunction(()=>Array.from(document.querySelectorAll('.ai-selected-actions button')).some(button=>button.textContent.includes('Usar este modelo')&&!button.disabled));
+        else if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).waitFor();
         else await page.waitForFunction(expected => Array.from(document.querySelectorAll('button')).some(button => button.textContent.includes(expected) && !button.disabled), legacy ? 'Atualizar prévias' : 'Atualizar modelos');
         const ms = Math.round(performance.now() - started);
         const result = await page.evaluate(() => new Promise((resolve, reject) => {
