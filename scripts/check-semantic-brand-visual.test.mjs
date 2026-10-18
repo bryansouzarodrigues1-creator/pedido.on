@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {brandPaletteFromBriefing} from "../lib/brand-palette.ts";
+import {brandPaletteFromBriefing,resolveBrandPalette} from "../lib/brand-palette.ts";
 import {galleryDesign,galleryStyles,supportsLocalRefinement,chosenGalleryDraft} from "../lib/gallery-styles.ts";
 import {nameFromBriefing} from "../lib/studio-policy.ts";
 import {validateOwnerAnswer} from "../lib/owner-intake.ts";
@@ -20,6 +20,10 @@ test("regression: yellow cheese and sea blue are separate, contrasting roles",()
  assert.notEqual(result.palette.text,result.palette.surface);
  assert.equal(brandPaletteFromBriefing("Quero só azul"),null);
  assert.equal(brandPaletteFromBriefing("Nada definido ainda"),null);
+ assert.equal(resolveBrandPalette("Quero verde","Quero verde com cantos arredondados\nAgora azul e uma lista compacta"),null);
+ assert.equal(resolveBrandPalette("Quero amarelo-queijo e azul-mar","Agora só amarelo"),null);
+ assert.equal(resolveBrandPalette(briefing,"Deixe os cantos redondos")?.motif,"sea-cheese");
+
  assert.equal(supportsLocalRefinement("amarelo-queijo e azul-mar"),true);
 });
 test("name and location never contaminate the verified store title",()=>{
