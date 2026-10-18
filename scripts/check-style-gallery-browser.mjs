@@ -26,6 +26,8 @@ try{
    try{
     await page.goto(base+"/demo/"+id,{waitUntil:"load",timeout:90_000});
     await page.locator(".customer-menu.identity-"+id).waitFor();
+    // The server-rendered search can exist before its client handlers hydrate.
+    await page.waitForLoadState("networkidle");
     const geometry=[];
     for(const width of [320,412]){
      await page.setViewportSize({width,height:839});

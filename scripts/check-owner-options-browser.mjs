@@ -26,6 +26,7 @@ async function start(mode){
  assert.doesNotMatch(await page.locator('body').textContent(),/cr[eé]ditos|geraç[aã]o paga|sem gastar/i);
 }
 async function say(text){await page.locator('#owner-intake-message').fill(text);await page.getByRole('button',{name:'Enviar',exact:true}).click();}
+async function showStep(){if(process.env.QA_RECORD_INTAKE==='true')await page.waitForTimeout(1600);}
 async function close(name){const video=page.video();await context.close();if(video)await rename(await video.path(),path.join(output,name+'.webm'));}
 try{
  await start('complete');await page.getByRole('button',{name:'Ainda não tenho cardápio',exact:true}).click();await say(sample.initialMessage);
@@ -33,15 +34,19 @@ try{
  await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).click();await page.locator('.ai-style-card').first().waitFor();
  assert.equal(await page.locator('.ai-style-card .mini-top strong').first().textContent(),sample.name);await page.screenshot({path:path.join(output,'briefing-completo.png'),fullPage:true});
  checks.push({name:'complete fictitious briefing skips repeated address, WhatsApp and hours questions',ok:true});await close('descricao-completa');
- await start('metadata');await page.getByRole('button',{name:'Tenho um link do iFood',exact:true}).click();await page.locator('#owner-intake-message').fill(sample.url);await page.getByRole('button',{name:'Consultar loja',exact:true}).click();
- const found=page.getByRole('region',{name:'Confira os dados encontrados no link'});await found.waitFor();assert.match(await found.textContent(),/Rua Fornalha de Teste/);await page.screenshot({path:path.join(output,'link-dados-encontrados.png'),fullPage:true});
+ await start('metadata');await showStep();await page.getByRole('button',{name:'Tenho um link do iFood',exact:true}).click();await page.locator('#owner-intake-message').fill(sample.url);await showStep();await page.getByRole('button',{name:'Consultar loja',exact:true}).click();
+ const found=page.getByRole('region',{name:'Confira os dados encontrados no link'});await found.waitFor();assert.match(await found.textContent(),/Rua Fornalha de Teste/);await found.scrollIntoViewIfNeeded();await showStep();await page.screenshot({path:path.join(output,'link-dados-encontrados.png'),fullPage:true});
  await page.getByRole('button',{name:'Usar dados encontrados',exact:true}).click();
  assert.equal(await page.locator('.owner-intake-question').count(),1);assert.match(await page.locator('.owner-intake-question').textContent(),/WhatsApp/);
+ await page.locator('.owner-intake-question').scrollIntoViewIfNeeded();await showStep();
  await page.getByRole('button',{name:'Usar '+sample.whatsapp+' como WhatsApp',exact:true}).click();
+ await page.getByRole('button',{name:'Artesanal',exact:true}).scrollIntoViewIfNeeded();await showStep();
  await page.getByRole('button',{name:'Artesanal',exact:true}).click();await page.getByRole('button',{name:/Ver meus 12 modelos personalizados/}).click();await page.locator('.ai-style-card').first().waitFor();
  assert.match(await page.locator('.ai-gallery-heading').textContent(),/11 itens/);assert.match(await page.locator('.mini-store-hours').first().textContent(),/23:30/);assert.equal(lookups,1);
+ await page.locator('.ai-style-card').first().scrollIntoViewIfNeeded();await showStep();
  await page.locator('.ai-style-card').first().getByRole('button',{name:/Escolher/}).click();await page.getByRole('button',{name:/Testar o cardápio completo personalizado/}).click();
  const full=page.getByRole('dialog',{name:'Teste do cardápio personalizado'});await full.waitFor();await full.locator('.customer-menu').waitFor();assert.match(await full.textContent(),/Margherita de Teste/);assert.match(await full.textContent(),/Calabresa da Fornalha/);
+ await showStep();
  await page.screenshot({path:path.join(output,'cardapio-ficticio-completo.png'),fullPage:true});
  checks.push({name:'confirmed public metadata leaves only WhatsApp confirmation and an optional visual choice; eleven fictitious items reach preview',ok:true});await close('fluxo-link-ficticio');
  await start('blocked');await page.getByRole('button',{name:'Tenho um link do iFood',exact:true}).click();await page.locator('#owner-intake-message').fill(sample.url);await page.getByRole('button',{name:'Consultar loja',exact:true}).click();
