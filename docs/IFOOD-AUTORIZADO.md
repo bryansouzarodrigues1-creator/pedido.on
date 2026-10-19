@@ -44,7 +44,7 @@ O Chrome no GitHub Actions cobre retomada após recarga, confirmação de endere
 
 ## Publicação e evidências
 
-A v62 foi publicada em 19/10/2026 às 08h14 de Brasília, ambiente 13. Passaram 454 testes, tipos/build e Chrome nas dez suítes locais e sete públicas. A confirmação recolhe o formulário repetido e a captura da prévia espera a animação terminar. Os sete cadastros completos comparados permaneceram iguais. A leitura autenticada de uma loja real e a validação em Android físico continuam pendentes. [Registro reproduzível](EVIDENCIA-IFOOD-AUTORIZADO-20261019.json).
+A v63 foi publicada em 19/10/2026 às 08h25 de Brasília, ambiente 13. Passaram 455 testes, tipos/build e Chrome nas dez suítes locais e sete públicas. A confirmação recolhe o formulário repetido; pedidos de cores na mesma linha do link são preservados e conferidos no CSS da prévia. A captura espera a animação terminar. Os sete cadastros completos comparados permaneceram iguais. A leitura autenticada de uma loja real e a validação em Android físico continuam pendentes. [Registro reproduzível](EVIDENCIA-IFOOD-AUTORIZADO-20261019.json).
 
 ## Fontes oficiais verificadas
 

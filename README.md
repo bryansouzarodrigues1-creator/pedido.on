@@ -1,6 +1,6 @@
 # pizzaria.on
 
-**Continuidade de 19/10/2026 — v62:** fluxo iFood com autorização distribuída implementado e confirmação sem campo de nome repetido. Passaram 454 testes e Chrome local/público. A importação oficial real continua desligada, aguardando cadastro/verificação e permissões externas. [Estado, limites e ativação](docs/IFOOD-AUTORIZADO.md).
+**Continuidade de 19/10/2026 — v63:** confirma dados do iFood sem campo de nome repetido e preserva as cores pedidas junto do link. Passaram 455 testes e Chrome local/público, incluindo as cores no CSS real da prévia. A importação oficial real continua desligada, aguardando cadastro/verificação e permissões externas. [Estado, limites e ativação](docs/IFOOD-AUTORIZADO.md).
 
 **Continuidade de 18/10/2026:** o plano atual é único, **R$49/mês**. A homologação integrada do beta Cloudflare, OCR e Asaas exclusivamente Sandbox está documentada em [HOMOLOGACAO-INTEGRADA-20261018](docs/HOMOLOGACAO-INTEGRADA-20261018.md). Os relatos de versões e de planos abaixo são históricos; não equivalem à homologação externa atual.
 

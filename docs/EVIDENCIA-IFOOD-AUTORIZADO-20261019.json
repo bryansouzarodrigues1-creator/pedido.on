@@ -3,26 +3,29 @@
   "date": "2026-10-19",
   "timezone": "America/Sao_Paulo",
   "source": {
-    "siteCommit": "b169f6cae8b4fcc14bb20e5d41f6aafd37510c04",
-    "appTree": "c9aae152ad6ed3883565c854375ae869e8f4917d",
+    "siteCommit": "73da8b601eb1728562565f46840f26de7a66f720",
+    "appTree": "da58d4143883c422ea42228fd79a16ef1a0cfc72",
     "mainFeatureHead": "6f4e00a3ab2b295d89445a344f6ce56a96170612",
     "mainUiHead": "18a77128c566cde820f72679dedaf7878ad7bf7e",
     "prs": [
       66,
-      67
+      67,
+      68
     ],
     "mirrorPrs": [
       23,
-      24
+      24,
+      25
     ],
-    "mergedMain": "4e9cab92049bfd708fd31a43656c31a799448f8d",
-    "mergedMirror": "1d9399aded6ae21b8db4e3b2adbe7342390504a8"
+    "mergedMain": "df723d7870bd158256144febc5046f10262f7563",
+    "mergedMirror": "49308745e19509bd73eb23ca883c5bc8715711f9",
+    "mainVisualHead": "2a9541e4be2d6f33c72ea71b62a7a02bc502459c"
   },
   "deployment": {
-    "id": "appgdep_6ad5fb7654a48191907a9ac9aa17b40c",
+    "id": "appgdep_6ad5fe13ce208191b205f4c89caf1ba2",
     "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
     "title": "pizzaria.on — Cardápio e pedidos para pizzarias",
-    "version_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_007e84b0e3208191b12de7fd7d7f5c57",
+    "version_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_6650a711acfc81918b62e84bb6afdc8e",
     "type": "publish",
     "status": "succeeded",
     "url": "https://forno-cardapios.waves4845.chatgpt.site",
@@ -31,12 +34,12 @@
     "provider_deployment_id": "site---6ac6d3ea9f7881918f315a156338ed52",
     "failure_message": null,
     "env_set_revision": 13,
-    "updated_at": "2026-10-19T11:14:24.014274+00:00"
+    "updated_at": "2026-10-19T11:25:33.181401+00:00"
   },
   "validation": {
-    "automatedTests": 454,
+    "automatedTests": 455,
     "windows": {
-      "runId": 39179457644,
+      "runId": 39244267918,
       "conclusion": "success"
     },
     "authOrders": {
@@ -45,25 +48,26 @@
       "scope": "Conector; backend idêntico no ajuste seguinte de UI"
     },
     "mirror": {
-      "runId": 39179459018,
+      "runId": 39244270793,
       "conclusion": "success"
     },
     "chrome": {
-      "runId": 39179457631,
-      "attempt": 2,
+      "runId": 39244267928,
+      "attempt": 1,
       "conclusion": "success",
       "localSuites": 10,
       "publicSuites": 7,
-      "artifactId": 12181479383,
-      "scope": "Interface com endpoints iFood simulados; nenhuma escrita remota no teste público"
+      "artifactId": 12183246146,
+      "scope": "Dados iFood simulados; cor principal/secundária conferidas no CSS real da prévia; nenhuma escrita remota no QA público"
     },
     "upstream": "iFood simulado nos testes",
     "realStoreImport": false,
     "physicalAndroid": false,
     "typecheck": "passed",
     "build": "passed",
-    "linuxTests": "454/454 antes da recuperação; mesma árvore validada em Windows",
-    "cliPublicProbe": "urllib recebeu 403 do acesso público; publicação nativa e Chrome público confirmados"
+    "linuxTests": "455/455",
+    "cliPublicProbe": "urllib recebeu 403 do acesso público; publicação nativa e Chrome público confirmados",
+    "visualInstructions": "Pedido de azul e amarelo junto da URL chega à prévia; teste confere swatches e CSS real do cardápio."
   },
   "production": {
     "public": true,
@@ -84,5 +88,20 @@
     "Permissões/homologação externas",
     "Importação autenticada com loja autorizada",
     "Verificação em Android físico"
-  ]
+  ],
+  "previousDeployment": {
+    "id": "appgdep_6ad5fb7654a48191907a9ac9aa17b40c",
+    "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "title": "pizzaria.on — Cardápio e pedidos para pizzarias",
+    "version_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_007e84b0e3208191b12de7fd7d7f5c57",
+    "type": "publish",
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "has_mcp": false,
+    "screenshot_asset_pointer": null,
+    "provider_deployment_id": "site---6ac6d3ea9f7881918f315a156338ed52",
+    "failure_message": null,
+    "env_set_revision": 13,
+    "updated_at": "2026-10-19T11:14:24.014274+00:00"
+  }
 }
