@@ -182,6 +182,9 @@ export function ownerVisualBriefing(state:OwnerIntake){
  // occurrence of each supplied fact so later explicit design requests survive.
  let brief=state.initialMessage;
  for(const field of ["name","address","whatsapp","hours"] as const){const fact=state.answers[field];if(fact)brief=brief.replace(new RegExp(fact.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i"),"");}
+ // The product reader intentionally drops URL captions. A first-person design
+ // request beside the URL is still part of the owner's visual instructions.
+ brief=brief.split(/\r?\n/).map(line=>/\b(?:quero|prefiro|gostaria|desejo)\b/i.test(line)&&inspectMenuSourceText(line).links.length&&!sharedIfoodStoreName(line)?line.replace(/https?:\/\/[^\s<>"']+/gi,"").trim():line).join("\n");
  brief=inspectMenuSourceText(brief).menuText;
  return choice?brief.slice(0,1500)+"\n"+choice.prompt:brief;
 }

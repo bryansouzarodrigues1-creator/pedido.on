@@ -42,6 +42,10 @@ Não há migração, novo cadastro, alteração de assinatura ou mudança de cha
 
 O Chrome no GitHub Actions cobre retomada após recarga, confirmação de endereço/horários, confirmação separada de WhatsApp e prévia de três produtos fictícios. A conta existente recebe produtos revisados sem sobrescrever seus dados. A parte pública intercepta todas as escritas da aplicação. Pixel 7 emulado não equivale a um aparelho Android físico.
 
+## Publicação e evidências
+
+A v62 foi publicada em 19/10/2026 às 08h14 de Brasília, ambiente 13. Passaram 454 testes, tipos/build e Chrome nas dez suítes locais e sete públicas. A confirmação recolhe o formulário repetido e a captura da prévia espera a animação terminar. Os sete cadastros completos comparados permaneceram iguais. A leitura autenticada de uma loja real e a validação em Android físico continuam pendentes. [Registro reproduzível](EVIDENCIA-IFOOD-AUTORIZADO-20261019.json).
+
 ## Fontes oficiais verificadas
 
 - [Autenticação distribuída](https://developer.ifood.com.br/en-US/docs/food/guides/modules/authentication/distributed)
