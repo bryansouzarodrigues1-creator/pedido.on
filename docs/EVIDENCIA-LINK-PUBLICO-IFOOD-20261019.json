@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-19",
+  "purpose": "Real public iFood URL import attempt after the Anota AI reference",
+  "chrome": {
+    "checkedAt": "2026-10-19T18:23:55.658Z",
+    "browser": "155.0.8059.39",
+    "scope": "Anonymous public pages; GET/HEAD plus the normal Cloudflare security resources only; no login, business writes, message, order, payment, proxy, stealth, interactive challenge solving or model call.",
+    "stores": [
+      {
+        "url": "https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b",
+        "initialDocumentStatus": 403,
+        "documentStatus": 403,
+        "outcome": "blocked",
+        "productCount": 0,
+        "metadataFields": [],
+        "jsonResponses": [],
+        "blockedWrites": 0,
+        "normalSecurityChecks": 8,
+        "errors": []
+      },
+      {
+        "url": "https://www.ifood.com.br/delivery/cabo-frio-rj/aione-pizzas-jardim-pero/900caad5-258e-4bf7-9458-353cb0bffe60",
+        "initialDocumentStatus": 403,
+        "documentStatus": 403,
+        "outcome": "blocked",
+        "productCount": 0,
+        "metadataFields": [],
+        "jsonResponses": [],
+        "blockedWrites": 0,
+        "normalSecurityChecks": 8,
+        "errors": []
+      }
+    ]
+  },
+  "independentHttpProbe": {
+    "checkedAt": "2026-10-19T18:18:06.764Z",
+    "url": "https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b",
+    "httpStatus": 403,
+    "status": "needs_content",
+    "productCount": 0,
+    "metadataFields": [],
+    "store": null,
+    "message": "O iFood não liberou o catálogo por esse link. Abra sua loja e envie PDF, TXT/CSV, página salva ou prints do cardápio.",
+    "note": "An anonymous public-page lookup. Does not validate official iFood API access or guarantee a full catalog."
+  },
+  "github": {
+    "pr": 71,
+    "run": 39302118477,
+    "head": "d247b661558f07ab0c40e4671423a5c5c16517cc",
+    "artifactId": 12211294429,
+    "artifactSha256": "b16a836997afc092c7cea67db9e6284bda995217787de802ebe1df775383c4f0",
+    "diagnosticExecution": "success",
+    "realCatalogImport": false
+  },
+  "preliminaryRun": {
+    "id": 39301747322,
+    "limitation": "Restricted normal security resources; superseded by the corrected final probe."
+  },
+  "effect": {
+    "publishedRuntimeVersion": 67,
+    "applicationChanged": false,
+    "accountOrRestaurantWrites": 0,
+    "realPayments": 0,
+    "messages": 0,
+    "paidGenerations": 0
+  },
+  "sources": [
+    "https://anota.ai/blog/baixar-anota-ai/",
+    "https://anota.ai/ajuda/primeiros-passos/"
+  ],
+  "limit": "The observed blocks apply to these public URLs in these environments; they do not reveal the implementation used by Anota AI."
+}

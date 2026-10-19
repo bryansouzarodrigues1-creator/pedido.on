@@ -4,6 +4,8 @@ O link público continua aceitando mensagens compartilhadas de qualquer pessoa. 
 
 ## Estado da integração
 
+**Teste do link público em 19/10/2026:** Master Pizzas e Aione foram abertas em Chrome padrão, permitindo a verificação normal de segurança do iFood. Ambas permaneceram no desafio humano, HTTP 403 e zero produtos/metadados. O Anota AI documenta importação por link, mas não publica seu mecanismo técnico; isso não comprovou acesso para nosso importador. [Diagnóstico real e capturas](TESTE-LINK-PUBLICO-IFOOD-20261019.md). O ensaio não alterou o aplicativo público v67.
+
 Código implementado com autorização distribuída, importação pontual e revisão. **Ainda não ativado com credenciais reais.** O cadastro do aplicativo no iFood e a verificação pessoal no portal estão pendentes. Testes automatizados usam transporte fictício, inclusive quando executados no runtime real de Workers. Não houve importação autenticada de uma loja real.
 
 ## Configuração do aplicativo
