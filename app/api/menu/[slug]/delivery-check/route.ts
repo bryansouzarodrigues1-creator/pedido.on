@@ -10,11 +10,13 @@ import {sha256} from "@/lib/auth-policy";
 import {queueOwnerNotice} from "@/lib/push";
 import {quoteNeighborhood,neighborhoodKey,approvedDeliveryFee} from "@/lib/delivery-zone-policy";
 import type {RestaurantData} from "@/lib/domain";
+import {assertStoreVerified} from "@/lib/store-verification";
 export const dynamic="force-dynamic";
 type Context={params:Promise<{slug:string}>};
 async function published(slug:string){
  const row=await getDb().select().from(restaurants).where(and(eq(restaurants.slug,slug),eq(restaurants.published,true))).get();
  if(!row?.publishedData||!await canServeMenu(row.ownerId,row.id))throw new HttpError(404,"Pizzaria indisponível.");
+ await assertStoreVerified(row);
  if(!deliveryApprovalEnabled())throw new HttpError(503,"A consulta de entrega ainda não está ativada.");
  const data=JSON.parse(row.publishedData) as {deliveryEnabled?:boolean};
  if(!data.deliveryEnabled)throw new HttpError(400,"Esta pizzaria não realiza entregas.");

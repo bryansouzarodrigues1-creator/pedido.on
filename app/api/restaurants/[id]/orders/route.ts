@@ -8,6 +8,7 @@ import {readJson,privateHeaders} from "@/lib/http";
 import {assertCsrf} from "@/lib/auth";
 import {orderActionSchema,decideOrder} from "@/lib/order-policy";
 import {safeManagedOrder} from "@/lib/order-server";
+import {assertStoreVerified,verificationWriteGuard,verificationGuardArgs} from "@/lib/store-verification";
 export const dynamic="force-dynamic";
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){try{
  const {id}=await params;await ownedRestaurant(id);const db=getDb(),day=salesDay();
@@ -23,12 +24,13 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  sameOrigin(request);assertCsrf(request);const {id}=await params,store=await ownedRestaurant(id),input=orderActionSchema.parse(await readJson(request));
  const row=await getDb().select().from(orders).where(and(eq(orders.id,input.orderId),eq(orders.restaurantId,id))).get();
  if(!row)throw new HttpError(404,"Pedido não encontrado.");
+ const verification=["accept","confirm","verify_payment"].includes(input.action)?await assertStoreVerified(store):null;
  let changes;try{changes=decideOrder(row,input);}catch(e){throw new HttpError(input.version!==row.version?409:400,e instanceof Error?e.message:"Confira o pedido.");}
  const columns={acceptedAt:"accepted_at",acceptedEtaMinutes:"accepted_eta_minutes",status:"status",paymentStatus:"payment_status",estimatedAt:"estimated_at",decisionReason:"decision_reason",approvedAt:"approved_at",version:"version",updatedAt:"updated_at"};
- const pairs=Object.entries(changes),statement=`UPDATE orders SET ${pairs.map(([key])=>columns[key as keyof typeof columns]+" = ?").join(", ")} WHERE id = ? AND restaurant_id = ? AND version = ?`;
+ const pairs=Object.entries(changes),statement=`UPDATE orders SET ${pairs.map(([key])=>columns[key as keyof typeof columns]+" = ?").join(", ")} WHERE id = ? AND restaurant_id = ? AND version = ?${verification?" AND "+verificationWriteGuard:""}`;
  const message=input.action==="accept"?"A pizzaria aceitou atender este pedido. O preparo depende da confirmação do pagamento quando houver Pix.":input.action==="verify_payment"?"A pizzaria conferiu o Pix no banco e confirmou o preparo. Prazo de "+input.etaMinutes+" minutos.":input.action==="confirm"?"Pedido aprovado pela pizzaria. Prazo de "+input.etaMinutes+" minutos.":input.action==="reject_receipt"?"Comprovante recusado: "+input.reason:input.action==="cancel"?"Pedido cancelado: "+input.reason:input.action==="eta"?"Prazo atualizado para "+input.etaMinutes+" minutos.":input.action==="prepare"?"A pizzaria começou a preparar seu pedido.":input.action==="dispatch"?"Seu pedido saiu para entrega.":"Pedido concluído pela pizzaria.";
  const results=await env.DB!.batch([
-  env.DB!.prepare(statement).bind(...pairs.map(([,value])=>value),row.id,id,input.version),
+  env.DB!.prepare(statement).bind(...pairs.map(([,value])=>value),row.id,id,input.version,...(verification?verificationGuardArgs(verification):[])),
   env.DB!.prepare("INSERT INTO order_events (id, order_id, version, actor_id, action, message, created_at) SELECT ?, id, version, ?, ?, ?, ? FROM orders WHERE id = ? AND restaurant_id = ? AND version = ? AND updated_at = ? ON CONFLICT(order_id, version) DO NOTHING").bind(crypto.randomUUID(),store.ownerId,input.action,message,changes.updatedAt,row.id,id,changes.version,changes.updatedAt),
  ]);
  if(!results[0].meta.changes)throw new HttpError(409,"O pedido mudou em outra tela. Atualize e confira antes de decidir.");

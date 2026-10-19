@@ -1,5 +1,7 @@
 # pizzaria.on
 
+**Verificação de lojas — em validação de 19/10/2026:** carrinho pelo WhatsApp antes da aprovação manual, bloqueio de pedidos/Pix/comprovantes no servidor, solicitação do dono e denúncia pelo comprador. [Fluxo, proteções e testes](docs/VERIFICACAO-DE-LOJAS-20261019.md). A publicação vigente continua a indicada abaixo até a confirmação da próxima implantação.
+
 **Continuidade de 19/10/2026 — v63:** confirma dados do iFood sem campo de nome repetido e preserva as cores pedidas junto do link. Passaram 455 testes e Chrome local/público, incluindo as cores no CSS real da prévia. A importação oficial real continua desligada, aguardando cadastro/verificação e permissões externas. [Estado, limites e ativação](docs/IFOOD-AUTORIZADO.md).
 
 **Continuidade de 18/10/2026:** o plano atual é único, **R$49/mês**. A homologação integrada do beta Cloudflare, OCR e Asaas exclusivamente Sandbox está documentada em [HOMOLOGACAO-INTEGRADA-20261018](docs/HOMOLOGACAO-INTEGRADA-20261018.md). Os relatos de versões e de planos abaixo são históricos; não equivalem à homologação externa atual.

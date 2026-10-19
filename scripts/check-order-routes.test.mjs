@@ -41,7 +41,9 @@ test('upload routes reject forged origins, oversized files, disguised scripts an
   const second=await f.call('upload','POST',{id:order.id},png,headers);assert.equal(second.status,201);assert.equal(f.objects.size,2);
   assert.equal((await f.call('admin','PATCH',{id:'shop-a'},{orderId:order.id,version:2,action:'confirm',receivedPix:true,etaMinutes:50})).status,409);
   f.db.prepare('update restaurants set published_data=? where id=?').run(JSON.stringify({...f.data,pix:{...f.data.pix,key:'other@example.test'}}),'shop-a');
-  const view=(await (await f.call('customer','GET',{id:order.id},undefined,headers)).json()).order;assert.equal(view.pix.key,'pizza@example.test');assert.equal(view.receiptCount,2);
+  const view=(await (await f.call('customer','GET',{id:order.id},undefined,headers)).json()).order;assert.equal(view.pix,null);assert.equal(view.siteOrderingAllowed,false);assert.equal(view.receiptCount,2);
+  // Re-review the synthetic fixture before continuing the receipt-limit checks.
+  f.verifyStore();
   // Start a new rate window after the malformed/racing upload scenarios.
   f.db.exec('DELETE FROM rate_buckets');
   for(let version=4;version<=8;version+=2){assert.equal((await f.call('admin','PATCH',{id:'shop-a'},{orderId:order.id,version,action:'reject_receipt',reason:'Comprovante de exemplo ainda incorreto.'})).status,200);assert.equal((await f.call('upload','POST',{id:order.id},png,headers)).status,201);}
