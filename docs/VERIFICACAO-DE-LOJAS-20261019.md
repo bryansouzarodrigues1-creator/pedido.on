@@ -1,6 +1,6 @@
 # Verificação da loja e relatos de compradores
 
-Implementação de 19/10/2026. A publicação e os identificadores finais de validação serão registrados após a implantação.
+Publicada na **v65 em 19/10/2026, às 13:03:15 de Brasília**, ambiente 13. Fonte Sites `aa9f94d9e3cc309fdfe06a089ccb731d0670713f`, implantação `appgdep_6ad63f27afa88191a3551bd68e627dd2`. PR principal [#69](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/69) e mirror [#26](https://github.com/bryansouzarodrigues1-creator/pizzaria.on-chat/pull/26) integradas. [Evidência estruturada](EVIDENCIA-VERIFICACAO-DE-LOJAS-20261019.json).
 
 ## Comportamento
 
@@ -32,3 +32,9 @@ Verificação é uma análise manual da plataforma. Não é garantia de entrega,
 - TypeScript e build Sites. Sem envio de mensagem, transferência Pix, geração paga ou Android físico.
 
 Contas, sessões, restaurantes existentes, assinatura Asaas e configurações externas são preservados. A importação oficial iFood permanece no estado anterior, aguardando as autorizações externas descritas em `IFOOD-AUTORIZADO.md`.
+
+## Resultado e pendências da rodada
+
+Passaram **472 testes locais, TypeScript e build**. O cardápio existente respondeu HTTP 200, exibindo WhatsApp e denúncia. A leitura passou a normalizar os campos novos de cardápios antigos antes da renderização e do checkout, sem alterar o JSON armazenado. A falha 500 também foi reproduzida na v63 anterior; a v64 foi revertida durante a investigação e substituída pela v65. Os sete cadastros completos permanecem iguais; as três tabelas novas estão vazias.
+
+Os workflows Chrome `39282288748`, Windows `39282288802`, auth/pedidos `39282288818`, chat `39282288774` e mirror `39282291275` permanecem **queued**, sem etapas executadas na última consulta. A implementação e o GET real foram validados; a nova rodada visual não foi concluída, e não há teste em Android físico. Consultar os resultados antes de registrar aprovação do CI.

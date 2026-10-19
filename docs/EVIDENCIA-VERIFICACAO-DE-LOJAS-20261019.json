@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-19",
+  "site": {
+    "projectId": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "version": 65,
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "sourceCommit": "aa9f94d9e3cc309fdfe06a089ccb731d0670713f",
+    "tree": "bc0fb7de1a4afe3955ada7bd722bb4b3bf9fb49b",
+    "deploymentId": "appgdep_6ad63f27afa88191a3551bd68e627dd2",
+    "deployedAt": "2026-10-19T16:03:15.192440+00:00",
+    "environmentRevision": 13,
+    "audience": "public"
+  },
+  "validation": {
+    "tests": 472,
+    "passed": 472,
+    "failed": 0,
+    "typecheck": "passed",
+    "build": "passed",
+    "workerd": "passed; real D1/R2 and app sessions, simulated Supabase transport",
+    "publicStoreGet": {
+      "httpStatus": 200,
+      "whatsappVisible": true,
+      "reportActionVisible": true,
+      "verifiedMessageVisible": false
+    },
+    "physicalAndroid": false,
+    "browserVisualThisRound": "pending GitHub queue"
+  },
+  "preservation": {
+    "restaurantsCompared": 7,
+    "completeRowsEqual": true,
+    "environmentUnchanged": true,
+    "newTables": [
+      "store_reports",
+      "store_verification_events",
+      "store_verifications"
+    ],
+    "newTablesEmpty": true,
+    "realStoresAutoApproved": 0,
+    "realCharges": 0,
+    "messagesSent": 0,
+    "paidGenerations": 0
+  },
+  "github": {
+    "mainPR": 69,
+    "merge": "e0e7155f0100add40a24f5f0954b9918738d08df",
+    "mirrorPR": 26,
+    "mirrorMerge": "2191428d65c6e0096cb3ba17eb510cd03a69326a",
+    "runs": {
+      "chrome": 39282288748,
+      "windows": 39282288802,
+      "authOrders": 39282288818,
+      "chat": 39282288774,
+      "mirror": 39282291275
+    },
+    "lastObservedState": "queued; no steps executed"
+  },
+  "limits": [
+    "Official iFood remains disabled pending external permissions.",
+    "Manual merchant review does not guarantee delivery or bank receipt.",
+    "No physical Android or new visual browser pass in this round."
+  ],
+  "legacyCompatibility": {
+    "reproducedOnPreviousVersion": 63,
+    "oldPublishedFieldsNormalizedOnRead": true,
+    "storedRestaurantJsonRewritten": false
+  }
+}
