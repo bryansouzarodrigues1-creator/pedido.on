@@ -2,7 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture,site,csrf} from './test-backend-fixture.mjs';
 import {ifoodApi,requestIfoodCode,importAuthorizedIfood} from '../lib/ifood-api.ts';
-import {categories,merchantId,storeUrl,officialTransport} from './ifood-official-fixture.mjs';
+import {categories,merchantId,storeUrl,officialTransport,largeCategories} from './ifood-official-fixture.mjs';
+import {mergeReaderSource} from '../lib/menu-source-links.ts';
+import {launchSchema} from '../lib/menu-launch.ts';
+import {readMenuPages} from '../lib/menu-reader-policy.ts';
 function connection(){const f=fixture();Object.assign(f.env,{PEDIDO_IFOOD_ENABLED:'true',IFOOD_CLIENT_ID:'synthetic-client-id',IFOOD_CLIENT_SECRET:'synthetic-client-secret'});f.state.user=null;const route=f.load('app/api/ifood/import/route.ts');let cookie='__Host-pedido-csrf='+csrf;
  const request=(body,extra={})=>new Request(site+'/api/ifood/import',{method:body?'POST':'GET',headers:{Origin:site,cookie,'x-pedido-csrf':csrf,...(body?{'content-type':'application/json'}:{}),...extra},body:body?JSON.stringify(body.action==='complete'?{url:storeUrl,...body}:body):undefined});
  return {...f,route,request,async call(body,extra){const response=await route[body?'POST':'GET'](request(body,extra));const set=response.headers.get('set-cookie');if(set)cookie='__Host-pedido-csrf='+csrf+'; '+set.split(';')[0];return response;},getCookie:()=>cookie};}
@@ -58,4 +61,12 @@ test('flat item hydration and controlled category-route fallback preserve exact 
  });assert.equal(result.count,3);
  result=await importAuthorizedIfood(storeUrl,'test-token',async(url,options)=>url.endsWith('/opening-hours')?Response.json({}, {status:503}):transport(url,options));assert.equal(result.count,3);assert.equal(result.store.hours,undefined);assert.match(result.warnings.join(' '),/horários/);
  result=await importAuthorizedIfood(storeUrl,'test-token',officialTransport([],{noCatalog:true}));assert.equal(result.status,'needs_content');assert.equal(result.count,0);assert.match(result.store.address,/240/);assert.match(result.warnings.join(' '),/permissões/);
+});
+test('a large authorized catalog fits the real URL handoff, saved idea and review reader',async()=>{
+ const transport=officialTransport([]),result=await importAuthorizedIfood(storeUrl,'test-token',async(url,options)=>url.includes('/categories?')?Response.json(largeCategories()):transport(url,options));
+ assert.equal(result.status,'imported');assert.equal(result.count,99);assert.match(result.warnings.join(' '),/limite de texto/);
+ const sourceText=mergeReaderSource('',result.url+'\n'+result.text);assert.ok(sourceText.length<=60000);assert.ok(sourceText.startsWith(storeUrl+'\n'));
+ assert.equal(launchSchema.safeParse({id:merchantId,savedAt:Date.now(),idea:'Cardápio de teste',sourceText}).success,true);
+ const read=readMenuPages([{id:'large-authorized-ifood',lines:sourceText.split('\n').map(text=>({text}))}]);
+ assert.equal(read.items.length,result.count);assert.ok(read.items.every(item=>item.price===1234));assert.doesNotMatch(sourceText,/Bebida teste 100/);
 });
