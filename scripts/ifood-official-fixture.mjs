@@ -14,6 +14,10 @@ export function pizza(){return {
   ...['crust-free','edge-free','calabresa','marguerita'].map(id=>({id,productId:id,status:'AVAILABLE',price:{value:id==='marguerita'?2:0}}))]
 };}
 export function categories(){return [{id:'pizzas',name:'Pizzas salgadas',status:'AVAILABLE',items:[pizza()]},{id:'drinks',name:'Bebidas',status:'AVAILABLE',items:[{item:{id:'water',type:'DEFAULT',status:'AVAILABLE',price:{value:8.9}},products:[{id:'water-product',name:'Água mineral',description:'500 ml'}],optionGroups:[],options:[]}]}];}
+// 100 complete rows plus separators occupy exactly 60,000 characters by default.
+export function largeCategories(lastDescriptionLength=534){return [{id:'drinks',name:'Bebidas',status:'AVAILABLE',items:Array.from({length:100},(_,i)=>{
+ const id=String(i+1).padStart(3,'0');return {item:{id:'item-'+id,type:'DEFAULT',status:'AVAILABLE',price:{value:12.34}},products:[{id:'product-'+id,name:'Bebida teste '+id,description:'a'.repeat(i===99?lastDescriptionLength:533)}],optionGroups:[],options:[]};
+})}];}
 export function officialTransport(log=[],mode={}){return async (url,options={})=>{
  const path=new URL(url).pathname+new URL(url).search;log.push({url,options});
  if(path.endsWith('/oauth/userCode'))return Response.json({userCode:'HJLX-LPSQ',authorizationCodeVerifier:'private-test-verifier',verificationUrlComplete:'https://portal.ifood.com.br/apps/code?c=HJLX-LPSQ',expiresIn:600});

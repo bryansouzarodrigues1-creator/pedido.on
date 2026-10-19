@@ -84,6 +84,7 @@ export async function importAuthorizedIfood(url:string,token:string,fetcher?:typ
    (record(categories[value.index]).items as unknown[])[value.position]=graph;
   }));
  }catch(e){warnings.push(e instanceof HttpError?e.message:"Não foi possível ler o catálogo nesta conexão.");return {status:"needs_content",url:link.url,text:"",count:0,message:"Dados da loja recebidos. O catálogo ainda precisa ser fornecido.",store,warnings};}
- const catalog=officialIfoodCatalog(categories);warnings.push(...catalog.warnings);
+ // The browser carries the source URL and catalog together in a 60k reading.
+ const catalog=officialIfoodCatalog(categories,60000-link.url.length-1);warnings.push(...catalog.warnings);
  return {status:catalog.count?"imported":"needs_content",url:link.url,text:catalog.text,count:catalog.count,message:catalog.count?`${catalog.count} produtos recebidos da sua conta iFood. Confira antes de usar.`:"Dados da loja recebidos. Confira os avisos para trazer os produtos.",store,warnings:[...new Set(warnings)].slice(0,20)};
 }

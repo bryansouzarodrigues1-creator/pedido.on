@@ -171,6 +171,8 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
     for(const raw of page.lines){
       const text=raw.text.replace(/\s+/g," ").trim();if(!text)continue;
       const norm=normalizeMenuText(text),matches=[...text.matchAll(priceRE)],prices=matches.map(m=>menuAmount(m[0]));
+      const description=text.match(/^descri[cç][aã]o\s*:\s*(.*)$/i);
+      if(pending&&description){pending.description=((pending.description?pending.description+" ":"")+description[1]).slice(0,600);pending.sourceText=(pending.sourceText+"\n"+text).slice(0,2000);pending.box=union(pending.box,raw.box);continue;}
       const labels=sizesIn(matches.length?withoutSku(text.slice(0,matches[0].index))+" "+text.slice(matches[0].index):text);
       if(interfaceText.test(norm)||storeStats.test(norm)){flush();unmatched.push({sourceId:page.id,text});continue;}
       if(raw.confidence!==undefined&&raw.confidence<45&&!matches.length){unmatched.push({sourceId:page.id,text});continue;}

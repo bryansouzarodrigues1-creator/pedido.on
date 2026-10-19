@@ -49,13 +49,15 @@ export function officialIfoodStore(merchant:Obj,hours:unknown):MenuStoreInfo{
 }
 type Entry={name:string;description:string;category:string;kind:"pizza"|"simple";price:number|null;sizes:{p:number|null;m:number|null;g:number|null}};
 const sizeName=(name:string):"p"|"m"|"g"|null=>/^(p|pequen[ao]|brotinho)$/.test(norm(name))?"p":/^(m|medi[ao])$/.test(norm(name))?"m":/^(g|grande)$/.test(norm(name))?"g":null;
-export function officialIfoodCatalog(categories:unknown[]){
+export function officialIfoodCatalog(categories:unknown[],textLimit=60000){
+ const limit=Number.isFinite(textLimit)?Math.max(0,Math.min(60000,Math.floor(textLimit))):0;
  const entries=new Map<string,Entry>(),conflicts=new Set<string>(),warnings:string[]=[];let seen=0;
  const warn=(text:string)=>{if(!warnings.includes(text)&&warnings.length<20)warnings.push(text.slice(0,180));};
  function put(entry:Entry){
-  if(!entry.name||entry.name.length<2||/R\s*\$|[{}<>|\[\]]/i.test(entry.name)||entries.size>=500)return;
+  if(!entry.name||entry.name.length<2||/R\s*\$|[{}<>|\[\]]/i.test(entry.name))return;
   const key=norm(entry.kind+":"+entry.category+":"+entry.name),old=entries.get(key);if(conflicts.has(key))return;
   if(old&&JSON.stringify({...old,name:"",description:""})!==JSON.stringify({...entry,name:"",description:""})){entries.delete(key);conflicts.add(key);warn(`${entry.name}: preços divergentes; confira manualmente.`);return;}
+  if(!old&&entries.size>=500){warn("A leitura atingiu o limite de 500 produtos. Confira o restante do catálogo por arquivo.");return;}
   entries.set(key,entry);
  }
  for(const raw of categories.slice(0,30)){
@@ -102,11 +104,12 @@ export function officialIfoodCatalog(categories:unknown[]){
    }
   }
  }
- const rows:string[]=[];let count=0;
+ const rows:string[]=[];let count=0,length=0;
  for(const entry of entries.values()){
   const sizes=Object.entries(entry.sizes).filter(([,price])=>price!==null).map(([size,price])=>`${size.toUpperCase()} R$ ${currency(price!)}`).join(" · ");
-  const line=`Categoria: ${entry.category} [${entry.kind}]\n${entry.name} ${sizes||"R$ "+currency(entry.price!)}${entry.description?"\n"+entry.description:""}\n`;
-  if(rows.join("\n").length+line.length>60000){warn("A leitura atingiu o limite de texto. Confira o restante por arquivo.");break;}rows.push(line);count++;
+  const line=`Categoria: ${entry.category} [${entry.kind}]\n${entry.name} ${sizes||"R$ "+currency(entry.price!)}${entry.description?"\nDescrição: "+entry.description:""}\n`;
+  const added=line.length+(rows.length?1:0);
+  if(length+added>limit){warn("A leitura atingiu o limite de texto. Confira o restante por arquivo.");break;}rows.push(line);length+=added;count++;
  }
  return {text:rows.join("\n"),count,warnings};
 }
