@@ -1,0 +1,88 @@
+{
+  "title": "Importação autorizada iFood e confirmação da loja",
+  "date": "2026-10-19",
+  "timezone": "America/Sao_Paulo",
+  "source": {
+    "siteCommit": "b169f6cae8b4fcc14bb20e5d41f6aafd37510c04",
+    "appTree": "c9aae152ad6ed3883565c854375ae869e8f4917d",
+    "mainFeatureHead": "6f4e00a3ab2b295d89445a344f6ce56a96170612",
+    "mainUiHead": "18a77128c566cde820f72679dedaf7878ad7bf7e",
+    "prs": [
+      66,
+      67
+    ],
+    "mirrorPrs": [
+      23,
+      24
+    ],
+    "mergedMain": "4e9cab92049bfd708fd31a43656c31a799448f8d",
+    "mergedMirror": "1d9399aded6ae21b8db4e3b2adbe7342390504a8"
+  },
+  "deployment": {
+    "id": "appgdep_6ad5fb7654a48191907a9ac9aa17b40c",
+    "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "title": "pizzaria.on — Cardápio e pedidos para pizzarias",
+    "version_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_007e84b0e3208191b12de7fd7d7f5c57",
+    "type": "publish",
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "has_mcp": false,
+    "screenshot_asset_pointer": null,
+    "provider_deployment_id": "site---6ac6d3ea9f7881918f315a156338ed52",
+    "failure_message": null,
+    "env_set_revision": 13,
+    "updated_at": "2026-10-19T11:14:24.014274+00:00"
+  },
+  "validation": {
+    "automatedTests": 454,
+    "windows": {
+      "runId": 39179457644,
+      "conclusion": "success"
+    },
+    "authOrders": {
+      "runId": 39178900106,
+      "conclusion": "success",
+      "scope": "Conector; backend idêntico no ajuste seguinte de UI"
+    },
+    "mirror": {
+      "runId": 39179459018,
+      "conclusion": "success"
+    },
+    "chrome": {
+      "runId": 39179457631,
+      "attempt": 2,
+      "conclusion": "success",
+      "localSuites": 10,
+      "publicSuites": 7,
+      "artifactId": 12181479383,
+      "scope": "Interface com endpoints iFood simulados; nenhuma escrita remota no teste público"
+    },
+    "upstream": "iFood simulado nos testes",
+    "realStoreImport": false,
+    "physicalAndroid": false,
+    "typecheck": "passed",
+    "build": "passed",
+    "linuxTests": "454/454 antes da recuperação; mesma árvore validada em Windows",
+    "cliPublicProbe": "urllib recebeu 403 do acesso público; publicação nativa e Chrome público confirmados"
+  },
+  "production": {
+    "public": true,
+    "environmentRevision": 13,
+    "ifoodEnabled": false,
+    "financialOperation": false,
+    "paidGeneration": false,
+    "migration": false
+  },
+  "data": {
+    "before": 7,
+    "completeSnapshot": true,
+    "unchanged": true,
+    "after": 7
+  },
+  "pending": [
+    "Cadastro/verificação pessoal do aplicativo iFood",
+    "Permissões/homologação externas",
+    "Importação autenticada com loja autorizada",
+    "Verificação em Android físico"
+  ]
+}

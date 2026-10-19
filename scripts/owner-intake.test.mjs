@@ -1,11 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {emptyOwnerIntake,extractOwnerName,extractLocationHint,nextOwnerIntake,intakeFinished,ownerPreviewDetails,ownerQuestions,validateOwnerAnswer} from "../lib/owner-intake.ts";
+import {emptyOwnerIntake,extractOwnerName,extractLocationHint,nextOwnerIntake,intakeFinished,ownerPreviewDetails,ownerQuestions,validateOwnerAnswer,ownerVisualBriefing,withOwnerAnswers} from "../lib/owner-intake.ts";
+import {resolveBrandPalette} from "../lib/brand-palette.ts";
 import {nameFromBriefing} from "../lib/studio-policy.ts";
 import {launchSchema} from "../lib/menu-launch.ts";
 
 const sample="o nome dela e pizzaria e della mama e em buzios tucuns em frente a igreja na guilhermina amarela e vermelha";
+test("design instructions beside an iFood link survive import without treating a share caption as a color request",()=>{
+ const url="https://www.ifood.com.br/delivery/cabo-frio-rj/forno-azul-de-teste/900caad5-258e-4bf7-9458-353cb0bffe60",state=withOwnerAnswers({...emptyOwnerIntake(),initialMessage:"Quero um visual artesanal azul e amarelo. "+url},{name:"Forno Azul de Teste"});
+ const brief=ownerVisualBriefing(state),palette=resolveBrandPalette(brief);assert.match(brief,/azul e amarelo/);assert.doesNotMatch(brief,/https?:/);assert.deepEqual(new Set([palette.primary,palette.palette.secondary]),new Set(["#2169AC","#F2BD38"]));
+ const shared="Esse lugar é a sua cara! Use o ícone de coração no app pra salvar a loja na sua área de Favoritos. Forno Azul de Teste - "+url;assert.equal(ownerVisualBriefing({...state,initialMessage:shared}),"");assert.equal(resolveBrandPalette(ownerVisualBriefing({...state,initialMessage:url})),null);
+});
 
 test("real reported bug: user free message yields only restaurant name, never full address",()=>{
  assert.equal(extractOwnerName(sample),"Pizzaria Della Mama");

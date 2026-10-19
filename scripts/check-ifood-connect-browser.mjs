@@ -44,6 +44,8 @@ try{
   checks.push({name:'address and overnight hours enter only after confirmation; phone requires explicit WhatsApp confirmation',ok:true});
   await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),merchant.name);assert.match(await page.locator('.ai-gallery-heading').textContent(),/3 itens/);assert.match(await page.locator('.ai-selected .mini-store-address').textContent(),/240/);assert.match(await page.locator('.ai-selected .mini-store-hours').textContent(),/00:30/);
   await page.waitForFunction(()=>{const el=document.querySelector('.ai-gallery');return el&&Number(getComputedStyle(el).opacity)>=.99;});
+  await page.locator('.ai-visual-summary').waitFor();assert.deepEqual(await page.locator('.ai-palette-swatches i').evaluateAll(nodes=>nodes.slice(0,2).map(el=>getComputedStyle(el).backgroundColor)),['rgb(33, 105, 172)','rgb(242, 189, 56)']);
+  assert.deepEqual(await page.locator('.ai-selected .mini-menu').evaluate(el=>['--menu-accent','--menu-secondary'].map(key=>getComputedStyle(el).getPropertyValue(key).trim().toLowerCase())),['#2169ac','#f2bd38']);
   await page.screenshot({path:path.join(output,'ifood-previa-com-produtos-mobile.png'),fullPage:true,animations:'disabled'});assert.equal(starts,1);assert.equal(imports,1);assert.deepEqual(errors,[]);
   checks.push({name:'three reviewed synthetic products and confirmed store data reach the preview without registration or paid generation',ok:true});
  }
