@@ -3,7 +3,7 @@ import {phoneNumber,type RestaurantData} from "./domain.ts";
 
 export type StoreVerificationStatus="unverified"|"pending"|"approved"|"rejected"|"revoked"|"changed";
 export const verificationLabels:Record<StoreVerificationStatus,string>={unverified:"Verificação não solicitada",pending:"Em análise",approved:"Loja verificada",rejected:"Revisão necessária",revoked:"Verificação suspensa",changed:"Dados alterados · nova análise"};
-export function verificationIdentity(data:RestaurantData){return {name:data.name.trim(),whatsapp:phoneNumber(data.whatsapp),address:data.address.trim(),city:data.city.trim(),pix:data.pix.enabled?{enabled:true,type:data.pix.type,key:data.pix.key.trim(),recipient:data.pix.recipient.trim()}:{enabled:false}};}
+export function verificationIdentity(data:RestaurantData){return {name:data.name.trim(),whatsapp:phoneNumber(data.whatsapp),address:data.address.trim(),city:data.city.trim(),pix:data.pix?.enabled?{enabled:true,type:data.pix.type,key:data.pix.key.trim(),recipient:data.pix.recipient.trim()}:{enabled:false}};}
 export const verificationRequestSchema=z.object({expectedVersion:z.number().int().min(0),liveRevision:z.number().int().min(0),note:z.string().trim().max(500).default("")}).strict();
 export const verificationDecisionSchema=z.object({restaurantId:z.string().min(1).max(100),expectedVersion:z.number().int().positive(),identityHash:z.string().regex(/^[a-f0-9]{64}$/),decision:z.enum(["approved","rejected","revoked"]),reason:z.string().trim().min(8).max(500),confirmedReview:z.literal(true)}).strict();
 export const reportCategories={non_delivery:"Pedido não entregue",payment:"Problema com pagamento",impersonation:"Suspeita de loja falsa",other:"Outro problema"} as const;

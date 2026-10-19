@@ -12,6 +12,10 @@ async function decide(f,decision='approved',patch={}){
 }
 const count=(f,table)=>f.db.prepare('SELECT count(*) n FROM '+table).get().n;
 
+test('legacy drafts without a Pix field retain their data and can open the verification panel',async()=>{const f=fixture({verified:false});try{
+ const data={...f.data};delete data.pix;f.db.prepare('UPDATE restaurants SET data=?,published_data=NULL,published=0 WHERE id=?').run(JSON.stringify(data),'shop-a');const before=f.db.prepare('SELECT data FROM restaurants WHERE id=?').get('shop-a');const current=await state(f);assert.equal(current.status,'unverified');assert.equal(current.siteOrderingAllowed,false);assert.deepEqual(f.db.prepare('SELECT data FROM restaurants WHERE id=?').get('shop-a'),before);
+}finally{f.close();}});
+
 test('unverified legacy stores cannot accept site orders, even with forged client approval fields',async()=>{const f=fixture({verified:false});try{
  assert.equal((await state(f)).status,'unverified');
  for(const payment of ['Pix','Dinheiro','Cartão de crédito']){const r=await f.call('create','POST',{slug:'pizzaria-a'},f.input({payment,verified:true,siteOrderingAllowed:true}));assert.equal(r.status,403,await r.clone().text());assert.match((await r.json()).error,/WhatsApp/);}
