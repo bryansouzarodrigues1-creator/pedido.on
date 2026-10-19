@@ -57,4 +57,5 @@ test('flat item hydration and controlled category-route fallback preserve exact 
   if(url.endsWith('/items/pizza-test/flat'))return Response.json(categories()[0].items[0]);if(url.endsWith('/items/water/flat'))return Response.json(categories()[1].items[0]);return transport(url,options);
  });assert.equal(result.count,3);
  result=await importAuthorizedIfood(storeUrl,'test-token',async(url,options)=>url.endsWith('/opening-hours')?Response.json({}, {status:503}):transport(url,options));assert.equal(result.count,3);assert.equal(result.store.hours,undefined);assert.match(result.warnings.join(' '),/horários/);
+ result=await importAuthorizedIfood(storeUrl,'test-token',officialTransport([],{noCatalog:true}));assert.equal(result.status,'needs_content');assert.equal(result.count,0);assert.match(result.store.address,/240/);assert.match(result.warnings.join(' '),/permissões/);
 });
