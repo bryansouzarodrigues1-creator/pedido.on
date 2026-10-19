@@ -88,7 +88,7 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
    {reading&&<p className="owner-intake-hint" role="status"><Spinner/>Consultando os dados públicos da loja…</p>}
    {finished&&!editing&&!found&&<div className="owner-intake-done" role="status"><Check size={18}/><div><strong>Já podemos montar sua prévia.</strong><p>Você poderá ajustar o visual e completar os dados antes de publicar.</p></div></div>}
   </div>
-  {(!finished||editing)?<form className="owner-intake-reply" hidden={choosingName} onSubmit={submit}>
+  {(!finished||editing)?<form className="owner-intake-reply" hidden={choosingName||!!found} onSubmit={submit}>
    <label htmlFor="owner-intake-message">{editing==="menu"?"Cole os produtos com preços":editing?"Corrigir informação":first?"Sua ideia, link ou cardápio":({name:"Nome da pizzaria",address:"Endereço da pizzaria",whatsapp:"WhatsApp de pedidos",hours:"Dias e horários",menu:"Seu cardápio atual"})[field]}</label>
    <textarea ref={input} id="owner-intake-message" rows={first?6:3} maxLength={field==="name"?6000:field==="menu"?6000:600} value={reply}
     onChange={e=>{setReply(e.target.value);setError("");}} onKeyDown={e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();e.currentTarget.form?.requestSubmit();}}}
