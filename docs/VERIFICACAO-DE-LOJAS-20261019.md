@@ -1,6 +1,6 @@
 # Verificação da loja e relatos de compradores
 
-Publicada na **v65 em 19/10/2026, às 13:03:15 de Brasília**, ambiente 13. Fonte Sites `aa9f94d9e3cc309fdfe06a089ccb731d0670713f`, implantação `appgdep_6ad63f27afa88191a3551bd68e627dd2`. PR principal [#69](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/69) e mirror [#26](https://github.com/bryansouzarodrigues1-creator/pizzaria.on-chat/pull/26) integradas. [Evidência estruturada](EVIDENCIA-VERIFICACAO-DE-LOJAS-20261019.json).
+Publicada na **v67 em 19/10/2026, às 14:50:20 de Brasília**, ambiente 13. Fonte Sites `610a912f56c950d28cc7e32e5ae8d5e78967ace0`, árvore `f5c649999b5672bf18cf9a428441a8e042dfcdde`, implantação `appgdep_6ad6583de59c8191af22f401a6e8066e`. PR principal [#70](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/70) e mirror [#27](https://github.com/bryansouzarodrigues1-creator/pizzaria.on-chat/pull/27) integradas. [Evidência estruturada](EVIDENCIA-VERIFICACAO-DE-LOJAS-20261019.json).
 
 ## Comportamento
 
@@ -33,8 +33,14 @@ Verificação é uma análise manual da plataforma. Não é garantia de entrega,
 
 Contas, sessões, restaurantes existentes, assinatura Asaas e configurações externas são preservados. A importação oficial iFood permanece no estado anterior, aguardando as autorizações externas descritas em `IFOOD-AUTORIZADO.md`.
 
-## Resultado e pendências da rodada
+## Resultado final e limites
 
-Passaram **472 testes locais, TypeScript e build**. O cardápio existente respondeu HTTP 200, exibindo WhatsApp e denúncia. A leitura passou a normalizar os campos novos de cardápios antigos antes da renderização e do checkout, sem alterar o JSON armazenado. A falha 500 também foi reproduzida na v63 anterior; a v64 foi revertida durante a investigação e substituída pela v65. Os sete cadastros completos permanecem iguais; as três tabelas novas estão vazias.
+Passaram **472 testes**, TypeScript e build Sites. O Chrome concluiu **11 suítes locais e 7 públicas**, incluindo os **6 cenários completos de verificação**: carrinho WhatsApp sem pedido/Pix, solicitação do dono, aprovação administrativa, pedido fictício com Pix privado, denúncia com protocolo/análise e revogação bloqueando novamente pedido/Pix/comprovante. O último cenário conferiu também larguras 320/412/1280. As capturas de aprovação, Pix fictício, protocolo e cardápio após suspensão foram inspecionadas. Zero erros no resumo do fluxo.
 
-Os workflows Chrome `39282288748`, Windows `39282288802`, auth/pedidos `39282288818`, chat `39282288774` e mirror `39282291275` permanecem **queued**, sem etapas executadas na última consulta. A implementação e o GET real foram validados; a nova rodada visual não foi concluída, e não há teste em Android físico. Consultar os resultados antes de registrar aprovação do CI.
+Os controles de pagamento, categoria da denúncia e decisões administrativas agora têm nomes acessíveis associados explicitamente ao rótulo visível. O teste do aviso após suspensão usa a região de status, preservando o texto explicativo filho. Não foram relaxadas as asserções de segurança. O guardião offline do mirror foi atualizado para a migração revisada 0015: **16 migrações e 30 tabelas**, com **5 testes**, rejeição de migrações não revisadas e proteção contra sobrescrita.
+
+CI aprovado: Chrome `39296703580` (artefato `12209232040`), Windows `39296703881`, auth/pedidos `39296703739` e mirror `39296711101`. Merges finais: principal `fdca3f262fd43f34d477184605ba8d40ec4da60f`, mirror `692123dd4b11afd94ba91d8944e82403048275ab`. A v66 foi somente salva; a publicação final é a v67.
+
+O cardápio existente respondeu **HTTP 200**, com WhatsApp e denúncia visíveis. Os **sete cadastros completos** continuam iguais, o ambiente permanece na revisão 13 e as três tabelas novas continuam vazias. Nenhuma loja real foi aprovada automaticamente. A normalização de cardápios antigos acontece na leitura, sem regravar o JSON. O erro 500 também existia na v63; a v64 foi revertida durante a investigação e substituída pela v65 antes desta correção final.
+
+**Limites reais:** Pixel 7 foi emulado no Chrome; não houve teste em Android físico, pagamento bancário, mensagem enviada ou geração paga. O teste local usa D1/R2 descartáveis e identidade simulada; o teste público bloqueia mutações. A importação oficial real do iFood permanece desligada, aguardando as autorizações externas descritas em `IFOOD-AUTORIZADO.md`.

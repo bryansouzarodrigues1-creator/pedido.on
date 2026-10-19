@@ -1,6 +1,6 @@
 # pizzaria.on
 
-**Publicação vigente — v65, 19/10/2026:** carrinho WhatsApp antes da aprovação manual da loja; pedidos/Pix/comprovantes protegidos no servidor, solicitação do dono e denúncia do comprador. Cardápios antigos voltam a abrir sem regravar cadastros. Passaram 472 testes, TypeScript/build e GET público real (HTTP 200); sete cadastros preservados. Chrome/Windows e demais CIs seguem na fila do GitHub, sem validação visual concluída nesta rodada. [Fluxo, provas e limites](docs/VERIFICACAO-DE-LOJAS-20261019.md).
+**Publicação vigente — v67, 19/10/2026:** carrinho WhatsApp antes da aprovação manual; pedidos/Pix/comprovantes protegidos no servidor, solicitação do dono e denúncia com protocolo. Passaram 472 testes, TypeScript/build, Chrome (11 suítes locais e 7 públicas, incluindo 6 cenários de verificação), Windows, auth/pedidos e mirror. Sete cadastros preservados e cardápio antigo HTTP 200. Pixel 7 emulado; Android físico e importação oficial real iFood continuam pendentes. [Fluxo, provas e limites](docs/VERIFICACAO-DE-LOJAS-20261019.md).
 
 **Publicação anterior — v63, 19/10/2026:** confirma dados do iFood sem campo de nome repetido e preserva as cores pedidas junto do link. Passaram 455 testes e Chrome local/público, incluindo as cores no CSS real da prévia. A importação oficial real continua desligada, aguardando cadastro/verificação e permissões externas. [Estado, limites e ativação](docs/IFOOD-AUTORIZADO.md).
 
