@@ -16,6 +16,13 @@ test('legacy drafts without a Pix field retain their data and can open the verif
  const data={...f.data};delete data.pix;f.db.prepare('UPDATE restaurants SET data=?,published_data=NULL,published=0 WHERE id=?').run(JSON.stringify(data),'shop-a');const before=f.db.prepare('SELECT data FROM restaurants WHERE id=?').get('shop-a');const current=await state(f);assert.equal(current.status,'unverified');assert.equal(current.siteOrderingAllowed,false);assert.deepEqual(f.db.prepare('SELECT data FROM restaurants WHERE id=?').get('shop-a'),before);
 }finally{f.close();}});
 
+test('legacy published menus without promotions, presentation or delivery zones render and retain a valid WhatsApp/order flow',async()=>{const f=fixture({verified:false});try{
+ const data={...f.data};for(const key of ['promotions','presentation','deliveryZones','deliveryOutside'])delete data[key];const legacy=JSON.stringify(data);f.db.prepare('UPDATE restaurants SET data=?,published_data=? WHERE id=?').run(legacy,legacy,'shop-a');
+ const page=await f.load('app/p/[slug]/page.tsx').default({params:Promise.resolve({slug:'pizzaria-a'})});assert.match(renderToStaticMarkup(page),/Margherita/);assert.match(renderToStaticMarkup(page),/loja ainda não verificada/);assert.equal(page.props.data.pix.key,'');
+ const whatsapp=await f.call('whatsapp','POST',{slug:'pizzaria-a'},f.input());assert.equal(whatsapp.status,200,await whatsapp.clone().text());assert.equal((await request(f)).status,201);assert.equal((await decide(f)).status,200);await f.create();
+ const saved=f.db.prepare('SELECT data,published_data FROM restaurants WHERE id=?').get('shop-a');assert.equal(saved.data,legacy);assert.equal(saved.published_data,legacy);
+}finally{f.close();}});
+
 test('unverified legacy stores cannot accept site orders, even with forged client approval fields',async()=>{const f=fixture({verified:false});try{
  assert.equal((await state(f)).status,'unverified');
  for(const payment of ['Pix','Dinheiro','Cartão de crédito']){const r=await f.call('create','POST',{slug:'pizzaria-a'},f.input({payment,verified:true,siteOrderingAllowed:true}));assert.equal(r.status,403,await r.clone().text());assert.match((await r.json()).error,/WhatsApp/);}

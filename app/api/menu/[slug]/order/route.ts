@@ -1,7 +1,7 @@
 import {and,eq,gte,count} from "drizzle-orm";
 import {getDb} from "@/db";
 import {restaurants,orders} from "@/db/schema";
-import {orderInputSchema,whatsappMessage,phoneNumber,type RestaurantData} from "@/lib/domain";
+import {restaurantSchema,orderInputSchema,whatsappMessage,phoneNumber,type RestaurantData} from "@/lib/domain";
 import {sameOrigin,errorResponse,HttpError} from "@/lib/server";
 import {canServeMenu} from "@/lib/billing";
 import {readJson,privateHeaders,throttle} from "@/lib/http";
@@ -18,7 +18,7 @@ export async function POST(request:Request,{params}:{params:Promise<{slug:string
  if(!row?.publishedData||!await canServeMenu(row.ownerId,row.id))throw new HttpError(404,"Cardápio indisponível.");
  const verification=await assertStoreVerified(row);
  const input=orderInputSchema.parse(await readJson(request,30000));if(!input.trackingToken)throw new HttpError(400,"Atualize o cardápio antes de finalizar seu pedido.");
- const data=JSON.parse(row.publishedData) as RestaurantData,hash=await sha256(input.trackingToken);
+ const data=restaurantSchema.parse(JSON.parse(row.publishedData)),hash=await sha256(input.trackingToken);
  const result=(saved:typeof orders.$inferSelect)=>{
   if(saved.trackingHash!==hash)throw new HttpError(404,"Pedido não encontrado.");
   return {id:saved.id,code:saved.id.slice(0,8).toUpperCase(),total:saved.total,trackingUrl:`/pedido/${saved.id}#${input.trackingToken}`,whatsappUrl:`https://wa.me/${phoneNumber(data.whatsapp)}?text=${encodeURIComponent(whatsappMessage(data,JSON.parse(saved.data),saved.id.slice(0,8).toUpperCase()))}`};
