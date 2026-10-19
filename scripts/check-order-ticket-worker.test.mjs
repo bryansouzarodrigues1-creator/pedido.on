@@ -1,6 +1,8 @@
 // Actual workerd, D1, R2, application login/session and order routes.
 // Only Supabase transport is simulated. All storage is disposable; no external financial/model calls.
 import test from 'node:test';
+import {createHash} from 'node:crypto';
+import {verificationIdentity} from '../lib/store-verification-policy.ts';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {readFileSync,readdirSync} from 'node:fs';
@@ -23,13 +25,17 @@ async function runtime(){
  import * as ticket from './app/api/restaurants/[id]/orders/[orderId]/print/route.ts';
  import * as upload from './app/api/orders/[id]/receipt/route.ts';
  import * as customer from './app/api/orders/[id]/route.ts';
+ import * as verification from './app/api/restaurants/[id]/verification/route.ts';
+ import * as verificationAdmin from './app/api/admin/store-verifications/route.ts';
+ import * as report from './app/api/menu/[slug]/report/route.ts';
+ import * as reportAdmin from './app/api/admin/store-reports/route.ts';
  const routes=[[/^\\/api\\/auth\\/([^/]+)$/,auth,['action']],[/^\\/api\\/menu\\/([^/]+)\\/order$/,create,['slug']],[/^\\/api\\/menu\\/([^/]+)\\/whatsapp$/,whatsapp,['slug']],[/^\\/api\\/restaurants\\/([^/]+)\\/orders\\/([^/]+)\\/print$/,ticket,['id','orderId']],[/^\\/api\\/restaurants\\/([^/]+)\\/orders$/,admin,['id']],[/^\\/api\\/orders\\/([^/]+)\\/receipt$/,upload,['id']],[/^\\/api\\/orders\\/([^/]+)$/,customer,['id']]];
- export default {fetch(request){return requestContext.run(request,()=>{const path=new URL(request.url).pathname;for(const [pattern,route,keys] of routes){const match=path.match(pattern);if(match){const fn=route[request.method];return fn?fn(request,{params:Promise.resolve(Object.fromEntries(keys.map((k,i)=>[k,match[i+1]])))}):new Response(null,{status:405});}}return new Response(null,{status:404});});}};`,resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,format:'esm',platform:'neutral',external:['cloudflare:workers','node:async_hooks'],plugins:[{name:'ticket-framework-context',setup(build){
+ export default {fetch(request){return requestContext.run(request,()=>{const path=new URL(request.url).pathname;const segments=path.split('/');if(path==='/api/admin/store-verifications')return verificationAdmin[request.method](request);if(path==='/api/admin/store-reports')return reportAdmin[request.method](request);if(segments[1]==='api'&&segments[2]==='restaurants'&&segments[4]==='verification')return verification[request.method](request,{params:Promise.resolve({id:segments[3]})});if(segments[1]==='api'&&segments[2]==='menu'&&segments[4]==='report')return report[request.method](request,{params:Promise.resolve({slug:segments[3]})});for(const [pattern,route,keys] of routes){const match=path.match(pattern);if(match){const fn=route[request.method];return fn?fn(request,{params:Promise.resolve(Object.fromEntries(keys.map((k,i)=>[k,match[i+1]])))}):new Response(null,{status:405});}}return new Response(null,{status:404});});}};`,resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,format:'esm',platform:'neutral',external:['cloudflare:workers','node:async_hooks'],plugins:[{name:'ticket-framework-context',setup(build){
   build.onResolve({filter:/^(ticket-test-context|next\/headers|next\/navigation|@\/app\/chatgpt-auth)$/},a=>({path:a.path,namespace:'ticket-context'}));
   build.onLoad({filter:/.*/,namespace:'ticket-context'},a=>({loader:'js',contents:a.path==='ticket-test-context'?"import {AsyncLocalStorage} from 'node:async_hooks';export const requestContext=new AsyncLocalStorage();":a.path==='next/headers'?"import {requestContext} from 'ticket-test-context';export async function headers(){return requestContext.getStore().headers;}":a.path==='next/navigation'?"export function redirect(){throw Error('Unexpected redirect');}":"export async function getChatGPTUser(){return null;}"}));
  }}]});
  const outbound=[];
- const mf=new Miniflare({modules:true,script:(await bundle).outputFiles[0].text,compatibilityDate:'2026-05-15',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'ticket-local'},d1Persist:false,r2Buckets:{BUCKET:'ticket-local'},r2Persist:false,bindings:{AUTH_SESSION_KEY:'ab'.repeat(32),SUPABASE_URL:'https://fixture.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_fixture',PEDIDO_AUTH_MODE:'open'},outboundService:async request=>{
+ const mf=new Miniflare({modules:true,script:(await bundle).outputFiles[0].text,compatibilityDate:'2026-05-15',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'ticket-local'},d1Persist:false,r2Buckets:{BUCKET:'ticket-local'},r2Persist:false,bindings:{PLATFORM_ADMIN_ACCOUNT_ID:'supabase:'+identities.b.id,AUTH_SESSION_KEY:'ab'.repeat(32),SUPABASE_URL:'https://fixture.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_fixture',PEDIDO_AUTH_MODE:'open'},outboundService:async request=>{
   const url=new URL(request.url);outbound.push(url.origin+url.pathname);assert.equal(url.host,'fixture.supabase.co','financial/model requests are forbidden');
   if(url.pathname==='/auth/v1/token'&&url.searchParams.get('grant_type')==='password'){
    const input=await request.json(),entry=Object.entries(identities).find(([,u])=>u.email===input.email);if(!entry||input.password!==password)return Response.json({error:'Invalid credentials'},{status:400});
@@ -46,6 +52,11 @@ async function runtime(){
   for(const file of readdirSync('drizzle').filter(v=>v.endsWith('.sql')).sort())for(const sql of readFileSync('drizzle/'+file,'utf8').split(';').map(s=>s.trim()).filter(Boolean))await db.prepare(sql).run();
   const data={...demoRestaurant(),whatsapp:'(11) 99999-9999',pix:{enabled:true,type:'email',key:'pix@example.test',recipient:'Pizzaria fictícia'}};
   for(const key of ['a','b']){const stamp=new Date().toISOString();await db.prepare('INSERT INTO restaurants(id,owner_id,slug,name,data,published_data,published,created_at,updated_at) VALUES(?,?,?,?,?,?,1,?,?)').bind('shop-'+key,'supabase:'+identities[key].id,'pizzaria-'+key,'Pizzaria fictícia',JSON.stringify(data),JSON.stringify(data),stamp,stamp).run();}
+  async function verifyStore(id='shop-a'){
+   const row=await db.prepare('SELECT published_data FROM restaurants WHERE id=?').bind(id).first(),identity=JSON.stringify(verificationIdentity(JSON.parse(row.published_data))),hash=createHash('sha256').update(identity).digest('hex'),stamp=new Date().toISOString();
+   await db.prepare("INSERT INTO store_verifications(restaurant_id,status,identity_hash,identity_json,request_note,requested_at,reason,version,updated_at) VALUES(?,'approved',?,?,'Synthetic approved fixture',?,'Synthetic approved fixture',1,?) ON CONFLICT(restaurant_id) DO UPDATE SET status='approved',identity_hash=excluded.identity_hash,identity_json=excluded.identity_json,version=store_verifications.version+1,updated_at=excluded.updated_at").bind(id,hash,identity,stamp,stamp).run();
+  }
+  await verifyStore('shop-a');await verifyStore('shop-b');
   async function call(path,{method='GET',body,jar,headers={}}={}){
    const h={origin,...(jar?{cookie:Object.entries(jar.cookies).map(([k,v])=>k+'='+v).join('; '),'x-pedido-csrf':jar.csrf}:{}),...headers};
    if(body!==undefined&&!ArrayBuffer.isView(body))h['content-type']='application/json';
@@ -59,9 +70,31 @@ async function runtime(){
   const print=(id,jar,copy='kitchen',extra='')=>call('/api/restaurants/shop-a/orders/'+id+'/print?copy='+copy+extra,{jar});
   const action=(id,jar,body)=>call('/api/restaurants/shop-a/orders',{method:'PATCH',jar,body:{orderId:id,...body}});
   const orderRow=id=>db.prepare('SELECT * FROM orders WHERE id=?').bind(id).first();
-  return {mf,db,bucket,data,outbound,call,login,input,create,print,action,orderRow,close:()=>mf.dispose()};
+  return {mf,db,bucket,data,outbound,verifyStore,call,login,input,create,print,action,orderRow,close:()=>mf.dispose()};
  }catch(e){await mf.dispose();throw e;}
 }
+
+test('workerd/D1/R2: merchant request, admin review, WhatsApp cart, report and revocation use real route storage',async()=>{
+ const f=await runtime();try{
+  const owner=await f.login('a'),admin=await f.login('b');await f.db.prepare("DELETE FROM store_verifications WHERE restaurant_id='shop-a'").run();
+  const input=f.input(),create=()=>f.call('/api/menu/pizzaria-a/order',{method:'POST',body:input});
+  assert.equal((await create()).status,403);assert.equal((await f.db.prepare('SELECT COUNT(*) n FROM orders').first()).n,0);
+  const whatsapp=await f.call('/api/menu/pizzaria-a/whatsapp',{method:'POST',body:input});assert.equal(whatsapp.status,200);const message=new URL((await whatsapp.json()).whatsappUrl).searchParams.get('text');assert.match(message,/2x Margherita \+ Calabresa especial/);assert.match(message,/A combinar/);assert.doesNotMatch(message,/Pix antecipado|pix@example.test/);
+  const request=await f.call('/api/restaurants/shop-a/verification',{method:'POST',jar:owner,body:{expectedVersion:0,liveRevision:0,note:'Solicitação fictícia no runtime Workers.'}});assert.equal(request.status,201,await request.clone().text());const pending=(await request.json()).verification;
+  const decision={restaurantId:'shop-a',expectedVersion:pending.version,identityHash:pending.identityHash,decision:'approved',reason:'Verificação fictícia de vínculo e titular no D1 local.',confirmedReview:true};
+  assert.equal((await f.call('/api/admin/store-verifications',{method:'PATCH',jar:owner,body:decision})).status,403);
+  const approve=await f.call('/api/admin/store-verifications',{method:'PATCH',jar:admin,body:decision});assert.equal(approve.status,200,await approve.clone().text());const verified=(await approve.json()).verification;
+  const created=await create();assert.equal(created.status,201,await created.clone().text());const order=await created.json(),token={'x-pedido-order-token':input.trackingToken};
+  assert.equal((await (await f.call('/api/orders/'+order.id,{headers:token})).json()).order.pix.key,'pix@example.test');
+  const report={requestId:crypto.randomUUID(),category:'payment',detail:'Relato fictício no teste D1 de revisão e denúncia.'};assert.equal((await f.call('/api/menu/pizzaria-a/report',{method:'POST',body:report})).status,201);assert.equal((await f.call('/api/menu/pizzaria-a/report',{method:'POST',body:report})).status,200);
+  assert.equal((await f.call('/api/admin/store-verifications',{jar:owner})).status,403);const queue=await (await f.call('/api/admin/store-verifications',{jar:admin})).json();assert.equal(queue.reports.length,1);
+  const resolution=await f.call('/api/admin/store-reports',{method:'PATCH',jar:admin,body:{id:queue.reports[0].id,expectedVersion:1,status:'resolved',resolution:'Relato de teste conferido e evidência preservada.'}});assert.equal(resolution.status,200);
+  const revoke=await f.call('/api/admin/store-verifications',{method:'PATCH',jar:admin,body:{...decision,expectedVersion:verified.version,decision:'revoked'}});assert.equal(revoke.status,200,await revoke.clone().text());
+  const tracking=await (await f.call('/api/orders/'+order.id,{headers:token})).json();assert.equal(tracking.order.pix,null);assert.equal(tracking.order.siteOrderingAllowed,false);
+  assert.equal((await f.call('/api/orders/'+order.id+'/receipt',{method:'POST',body:png,headers:{...token,'content-type':'image/png'}})).status,403);assert.equal((await f.bucket.list()).objects.length,0);assert.equal((await f.db.prepare('SELECT COUNT(*) n FROM order_receipts').first()).n,0);assert.equal((await f.db.prepare('SELECT COUNT(*) n FROM store_verification_events').first()).n,3);
+  assert.equal((await f.db.prepare('PRAGMA foreign_key_check').all()).results.length,0);assert.ok(f.outbound.every(url=>url.startsWith('https://fixture.supabase.co/')));
+ }finally{await f.close();}
+});
 
 test('workerd/D1/R2: application login, Pix proof, owner confirmation and ticket preserve the original order',async()=>{
  const f=await runtime();try{
@@ -109,7 +142,7 @@ test('workerd: idempotent order submission, competing owner updates and audit fa
 
 test('workerd: cash/card/Pix on delivery, pickup, cancellation and completed orders show the correct collection instruction',async()=>{
  const f=await runtime();try{
-  const owner=await f.login('a'),withoutPix={...f.data,payments:['Pix','Dinheiro','Cartão de crédito','Cartão de débito'],pix:{...f.data.pix,enabled:false}};await f.db.prepare('UPDATE restaurants SET published_data=? WHERE id=?').bind(JSON.stringify(withoutPix),'shop-a').run();
+  const owner=await f.login('a'),withoutPix={...f.data,payments:['Pix','Dinheiro','Cartão de crédito','Cartão de débito'],pix:{...f.data.pix,enabled:false}};await f.db.prepare('UPDATE restaurants SET published_data=? WHERE id=?').bind(JSON.stringify(withoutPix),'shop-a').run();await f.verifyStore();
   for(const payment of ['Dinheiro','Cartão de crédito','Cartão de débito','Pix']){
    const {order}=await f.create({payment});assert.equal((await f.action(order.id,owner,{version:1,action:'accept',etaMinutes:35})).status,200);
    const html=await (await f.print(order.id,owner,'delivery')).text();assert.ok(html.includes('Cobrar na entrega · '+payment));assert.ok(html.includes(money(order.total)));assert.doesNotMatch(html,/Nada a cobrar|Pix conferido/);

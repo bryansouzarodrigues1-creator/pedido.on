@@ -9,12 +9,14 @@ import {sameOrigin,readJson,privateHeaders,throttle,errorResponse,HttpError} fro
 import {sha256} from "@/lib/auth-policy";
 import {queueOwnerNotice} from "@/lib/push";
 import {quoteNeighborhood,neighborhoodKey,approvedDeliveryFee} from "@/lib/delivery-zone-policy";
-import type {RestaurantData} from "@/lib/domain";
+import {restaurantSchema,type RestaurantData} from "@/lib/domain";
+import {assertStoreVerified} from "@/lib/store-verification";
 export const dynamic="force-dynamic";
 type Context={params:Promise<{slug:string}>};
 async function published(slug:string){
  const row=await getDb().select().from(restaurants).where(and(eq(restaurants.slug,slug),eq(restaurants.published,true))).get();
  if(!row?.publishedData||!await canServeMenu(row.ownerId,row.id))throw new HttpError(404,"Pizzaria indisponível.");
+ await assertStoreVerified(row);
  if(!deliveryApprovalEnabled())throw new HttpError(503,"A consulta de entrega ainda não está ativada.");
  const data=JSON.parse(row.publishedData) as {deliveryEnabled?:boolean};
  if(!data.deliveryEnabled)throw new HttpError(400,"Esta pizzaria não realiza entregas.");
@@ -24,7 +26,7 @@ export async function POST(request:Request,{params}:Context){try{
  sameOrigin(request);
  const {slug}=await params,row=await published(slug);
  const input=deliveryCheckRequest.parse(await readJson(request,4000));
- const settings=JSON.parse(row.publishedData!) as RestaurantData,quote=quoteNeighborhood(settings,input.neighborhood||"");
+ const settings=restaurantSchema.parse(JSON.parse(row.publishedData!)),quote=quoteNeighborhood(settings,input.neighborhood||"");
  if(quote.mode==="rejected")throw new HttpError(400,"Não atendemos este bairro. Você pode escolher retirada, se disponível.");
  const tokenHash=await sha256(input.token);
  const previous=await getDb().select().from(deliveryChecks).where(and(eq(deliveryChecks.restaurantId,row.id),eq(deliveryChecks.requestId,input.requestId))).get();
@@ -56,7 +58,7 @@ export async function GET(request:Request,{params}:Context){try{
  if(!/^[a-f0-9-]{36}$/i.test(id)||!/^[a-f0-9]{64}$/.test(token))throw new HttpError(404,"Consulta não encontrada.");
  const check=await getDb().select({status:deliveryChecks.status,expiresAt:deliveryChecks.expiresAt,deliveryFee:deliveryChecks.deliveryFee,zoneId:deliveryChecks.zoneId}).from(deliveryChecks).where(and(eq(deliveryChecks.id,id),eq(deliveryChecks.restaurantId,row.id),eq(deliveryChecks.tokenHash,await sha256(token)))).get();
  if(!check)throw new HttpError(404,"Consulta não encontrada.");
- let state=check.expiresAt>Date.now()/1000?check.status:"expired";if(state==="approved")try{approvedDeliveryFee(check,JSON.parse(row.publishedData!) as RestaurantData);}catch{state="expired";}
+ let state=check.expiresAt>Date.now()/1000?check.status:"expired";if(state==="approved")try{approvedDeliveryFee(check,restaurantSchema.parse(JSON.parse(row.publishedData!)));}catch{state="expired";}
  return Response.json({status:state,expiresAt:check.expiresAt,deliveryFee:check.deliveryFee},{headers:privateHeaders});
  }catch(error){return errorResponse(error);}
 }

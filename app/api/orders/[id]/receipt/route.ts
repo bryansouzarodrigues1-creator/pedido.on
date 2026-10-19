@@ -7,9 +7,11 @@ import {queueRestaurantNotice} from "@/lib/push";
 import {receiptType,MAX_PROOF_BYTES,MAX_PROOFS,receiptSql} from "@/lib/order-policy";
 import {bucket} from "@/lib/server";
 import {sameOrigin,readBytes,HttpError,errorResponse,privateHeaders,throttle} from "@/lib/http";
+import {verifiedRestaurant,verificationWriteGuard,verificationGuardArgs} from "@/lib/store-verification";
 export const dynamic="force-dynamic";
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){try{
  sameOrigin(request);const {id}=await params,row=await trackedOrder(request,id);
+ const verification=await verifiedRestaurant(row.restaurantId);
  if(row.status!=="awaiting_payment"||!["pending","rejected"].includes(row.paymentStatus))throw new HttpError(409,"O pedido já mudou. Atualize antes de enviar um comprovante.");
  if(row.receiptCount>=MAX_PROOFS)throw new HttpError(400,"O limite de comprovantes foi atingido. Fale com a pizzaria.");
  await throttle("receipt:"+id,6,600);
@@ -19,7 +21,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
  await storage.put(key,bytes,{httpMetadata:{contentType:file.type,cacheControl:"private, no-store"}});
  try{
   const results=await env.DB!.batch([
-   env.DB!.prepare(receiptSql.insert).bind(receiptId,key,file.type,bytes.length,stamp,id,row.version),
+   env.DB!.prepare(receiptSql.insert+" AND "+verificationWriteGuard).bind(receiptId,key,file.type,bytes.length,stamp,id,row.version,...verificationGuardArgs(verification)),
    env.DB!.prepare(receiptSql.attach).bind(receiptId,stamp,id,row.version,receiptId),
    env.DB!.prepare("INSERT INTO order_events (id, order_id, version, action, message, created_at) SELECT ?, id, version, 'receipt', 'Comprovante enviado. A pizzaria vai conferir o recebimento.', ? FROM orders WHERE id = ? AND receipt_id = ? AND version = ?").bind(crypto.randomUUID(),stamp,id,receiptId,row.version+1),
   ]);

@@ -63,3 +63,20 @@ export const imageJobs=sqliteTable("image_jobs",{id:text("id").primaryKey(),owne
 export const studioJobs=sqliteTable("studio_jobs",{id:text("id").primaryKey(),ownerId:text("owner_id").notNull(),restaurantId:text("restaurant_id").notNull().references(()=>restaurants.id),requestId:text("request_id").notNull(),inputHash:text("input_hash").notNull(),tokenHash:text("token_hash").notNull(),prompt:text("prompt").notNull(),state:text("state").notNull(),periodKey:text("period_key").notNull(),result:text("result"),createdAt:text("created_at").notNull(),expiresAt:text("expires_at").notNull(),updatedAt:text("updated_at").notNull()},t=>[uniqueIndex("studio_jobs_request_idx").on(t.ownerId,t.restaurantId,t.requestId),index("studio_jobs_owner_period_idx").on(t.ownerId,t.periodKey),index("studio_jobs_created_idx").on(t.createdAt)]);
 
 export const aiBudgetReservations=sqliteTable("ai_budget_reservations",{id:text("id").primaryKey(),ownerId:text("owner_id").notNull(),kind:text("kind").notNull(),periodKey:text("period_key").notNull(),budgetPeriod:text("budget_period").notNull(),cohort:text("cohort").notNull(),units:integer("units").notNull(),state:text("state").notNull(),createdAt:text("created_at").notNull()},t=>[index("ai_budget_month_idx").on(t.budgetPeriod,t.state),index("ai_budget_owner_idx").on(t.ownerId,t.periodKey)]);
+
+// Merchant review is separate from editable menu JSON and from SaaS subscriptions.
+export const storeVerifications=sqliteTable("store_verifications",{
+ restaurantId:text("restaurant_id").primaryKey().references(()=>restaurants.id),status:text("status").notNull(),
+ identityHash:text("identity_hash").notNull(),identityJson:text("identity_json").notNull(),requestNote:text("request_note").notNull(),
+ requestedAt:text("requested_at").notNull(),reviewedAt:text("reviewed_at"),reviewedBy:text("reviewed_by"),reason:text("reason").notNull().default(""),
+ version:integer("version").notNull().default(1),updatedAt:text("updated_at").notNull(),
+},t=>[index("store_verifications_queue_idx").on(t.status,t.requestedAt)]);
+export const storeVerificationEvents=sqliteTable("store_verification_events",{
+ id:text("id").primaryKey(),restaurantId:text("restaurant_id").notNull().references(()=>restaurants.id),actorId:text("actor_id").notNull(),
+ action:text("action").notNull(),reason:text("reason").notNull(),identityHash:text("identity_hash").notNull(),version:integer("version").notNull(),createdAt:text("created_at").notNull(),
+},t=>[uniqueIndex("store_verification_events_version_idx").on(t.restaurantId,t.version)]);
+export const storeReports=sqliteTable("store_reports",{
+ id:text("id").primaryKey(),restaurantId:text("restaurant_id").notNull().references(()=>restaurants.id),requestId:text("request_id").notNull(),reporterHash:text("reporter_hash").notNull(),
+ category:text("category").notNull(),detail:text("detail").notNull(),contact:text("contact").notNull().default(""),orderReference:text("order_reference").notNull().default(""),
+ status:text("status").notNull().default("open"),createdAt:text("created_at").notNull(),reviewedAt:text("reviewed_at"),reviewedBy:text("reviewed_by"),resolution:text("resolution").notNull().default(""),version:integer("version").notNull().default(1),
+},t=>[uniqueIndex("store_reports_request_idx").on(t.restaurantId,t.reporterHash,t.requestId),index("store_reports_queue_idx").on(t.status,t.createdAt)]);
