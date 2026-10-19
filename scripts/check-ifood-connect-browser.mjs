@@ -35,7 +35,7 @@ try{
   await page.reload({waitUntil:'networkidle'});await connect.getByText('HJLX-LPSQ',{exact:true}).waitFor();assert.equal(lookups,1);assert.equal(starts,1);
   checks.push({name:'one composer keeps the idea, resumes authorization after reload and links only to the Partner Portal',ok:true});
   await connect.getByLabel('Depois de autorizar, cole o código de retorno').fill('returned-test-code');await connect.getByRole('button',{name:'Receber dados e cardápio',exact:true}).click();
-  const facts=page.getByRole('region',{name:'Confira os dados encontrados no link'});await facts.waitFor();assert.match(await facts.textContent(),/Rua do Forno Azul, 240/);assert.match(await facts.textContent(),/00:30/);
+  const facts=page.getByRole('region',{name:'Confira os dados encontrados no link'});await facts.waitFor();assert.match(await facts.textContent(),/Rua do Forno Azul, 240/);assert.match(await facts.textContent(),/00:30/);assert.equal(await composer.isVisible(),false);assert.equal(await page.locator('.owner-intake-reply').isVisible(),false);
   let saved=await page.evaluate(()=>Object.values(localStorage).map(s=>{try{return JSON.parse(s);}catch{return null;}}).find(v=>v?.ownerIntake?.source?.url));assert.equal(saved.ownerIntake.answers.address,undefined);assert.equal(saved.ownerIntake.answers.whatsapp,undefined);assert.equal(imports,1);
   for(const width of [320,412,1280]){await page.setViewportSize({width,height:915});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);}
   await page.setViewportSize({width:412,height:915});await facts.scrollIntoViewIfNeeded();await page.screenshot({path:path.join(output,'ifood-dados-para-conferir-mobile.png'),fullPage:true});
@@ -43,7 +43,8 @@ try{
   await page.getByRole('button',{name:'Usar '+merchant.telephone+' como WhatsApp',exact:true}).click();
   checks.push({name:'address and overnight hours enter only after confirmation; phone requires explicit WhatsApp confirmation',ok:true});
   await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),merchant.name);assert.match(await page.locator('.ai-gallery-heading').textContent(),/3 itens/);assert.match(await page.locator('.ai-selected .mini-store-address').textContent(),/240/);assert.match(await page.locator('.ai-selected .mini-store-hours').textContent(),/00:30/);
-  await page.screenshot({path:path.join(output,'ifood-previa-com-produtos-mobile.png'),fullPage:true});assert.equal(starts,1);assert.equal(imports,1);assert.deepEqual(errors,[]);
+  await page.waitForFunction(()=>{const el=document.querySelector('.ai-gallery');return el&&Number(getComputedStyle(el).opacity)>=.99;});
+  await page.screenshot({path:path.join(output,'ifood-previa-com-produtos-mobile.png'),fullPage:true,animations:'disabled'});assert.equal(starts,1);assert.equal(imports,1);assert.deepEqual(errors,[]);
   checks.push({name:'three reviewed synthetic products and confirmed store data reach the preview without registration or paid generation',ok:true});
  }
 }finally{await context?.close();await browser.close();await writeFile(path.join(output,'summary.json'),JSON.stringify({base,commit:process.env.GITHUB_SHA,checks,errors,starts,imports,lookups,skipped,controlledUpstream:true,browser:'Chrome / Pixel 7 emulado, não Android físico',scope:'UI and local browser storage; source and authorization endpoints intercepted; no live iFood import',passed:skipped||checks.length===3&&!errors.length},null,2));}
