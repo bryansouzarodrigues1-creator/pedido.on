@@ -1,0 +1,140 @@
+{
+  "date": "2026-10-19",
+  "scope": "Correção da revisão de catálogo iFood; não equivale a primeira importação real.",
+  "projectId": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+  "sourceCommit": "641923fc5aa4906b37b283ab89ad106839fbfc40",
+  "tree": "4861ac828860a6219ce3457a4f0e362e09cd7efe",
+  "mainPr": 72,
+  "mainHead": "f093a277d6fe86c3c451b5c3829ae80a9dcb1cee",
+  "mirrorPr": 29,
+  "mirrorHead": "21c3d74025561488a0bab9c4efe7ead1d852e0d8",
+  "mirrorMerge": "e1ce0983912ab4fc256b1992463095b74459ae58",
+  "local": {
+    "targetedTests": 17,
+    "tests": 476,
+    "failed": 0,
+    "skipped": 0,
+    "typecheck": "passed",
+    "build": "passed after removing stale generated dist directory (initial ENOTEMPTY)",
+    "initialRegressionFailures": 3,
+    "regressions": "URL/text budget, separators/whole rows, post-cap price conflicts, explicit descriptions"
+  },
+  "ci": {
+    "chrome": 39331706936,
+    "windows": 39331706766,
+    "authOrders": 39331706640,
+    "realPdfBenchmark": 39331706906,
+    "mirror": 39331732694
+  },
+  "ocr": {
+    "scope": "PDF público real; medição, não homologação geral",
+    "expected": 21,
+    "matchedPrices": 13,
+    "ready": 14,
+    "artifactId": 12225170954,
+    "digest": "091683feeb241ddcfec8b8ebc722402838e6fff5a3d52fbd24c9edb92362427a"
+  },
+  "external": {
+    "realIfoodImport": false,
+    "enabled": false,
+    "publicLinkProbe": {
+      "http": 403,
+      "products": 0,
+      "previousRun": 39302118477
+    },
+    "newProviderAccount": false,
+    "newContract": false,
+    "newCharges": false,
+    "externalMessages": false,
+    "paidGeneration": false
+  },
+  "database": {
+    "restaurantsBefore": 7,
+    "completeRowsBefore": true,
+    "migrations": false,
+    "restaurantsAfter": 7,
+    "unchangedFullRows": true,
+    "completeRowsAfter": true
+  },
+  "android": {
+    "physicalDeviceTest": false,
+    "emulation": "Pixel 7 emulado no Chrome"
+  },
+  "deployment": {
+    "id": "appgdep_6ad693e1f9f081919d43ce0d622e4b6d",
+    "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "title": "pizzaria.on — Cardápio e pedidos para pizzarias",
+    "version_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_5e40958425348191ac984f205a87456b",
+    "type": "publish",
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "has_mcp": false,
+    "screenshot_asset_pointer": null,
+    "provider_deployment_id": "site---6ac6d3ea9f7881918f315a156338ed52",
+    "failure_message": null,
+    "env_set_revision": 13,
+    "updated_at": "2026-10-19T22:04:43.711792+00:00"
+  },
+  "version": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_5e40958425348191ac984f205a87456b",
+  "versionNumber": 68,
+  "environmentRevision": 13,
+  "publicRead": {
+    "checkedAt": "2026-10-19T22:05:05.571Z",
+    "results": [
+      {
+        "path": "/",
+        "status": 200
+      },
+      {
+        "path": "/p/pizzaria-do-bryan",
+        "status": 200
+      },
+      {
+        "path": "/api/ifood/import",
+        "status": 200,
+        "enabled": false
+      }
+    ]
+  },
+  "mainMerge": "f6015f776fdc38d9cf21ce6123cbae9d32ecf378",
+  "chromeArtifact": {
+    "id": 12223654406,
+    "sizeBytes": 90882456,
+    "digest": "6c0b728c3f838bc8edcba63e29081400bcd9a7901c4be06ef88279e3a127b3bd",
+    "verifiedDigest": true
+  },
+  "ciConclusions": [
+    {
+      "id": 39331706906,
+      "name": "Real public menu OCR benchmark (read-only)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 39331706640,
+      "name": "Group beta auth and order checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 39331706766,
+      "name": "Windows QA - Pizzaria.on (no production)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 39331706936,
+      "name": "Chrome browser QA (isolated local data)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "chrome": {
+    "localSuites": 11,
+    "publicSuites": 7,
+    "failedSuites": [],
+    "errors": [],
+    "publicBrowserVersion": "v67 before v68 deployment",
+    "localCommit": "3433c89566aeef544faf6d3dad178e2a65611214"
+  }
+}

@@ -1,6 +1,8 @@
 # pizzaria.on
 
-**Publicação vigente — v67, 19/10/2026:** carrinho WhatsApp antes da aprovação manual; pedidos/Pix/comprovantes protegidos no servidor, solicitação do dono e denúncia com protocolo. Passaram 472 testes, TypeScript/build, Chrome (11 suítes locais e 7 públicas, incluindo 6 cenários de verificação), Windows, auth/pedidos e mirror. Sete cadastros preservados e cardápio antigo HTTP 200. Pixel 7 emulado; Android físico e importação oficial real iFood continuam pendentes. [Fluxo, provas e limites](docs/VERIFICACAO-DE-LOJAS-20261019.md).
+**Publicação vigente — v68, 19/10/2026:** revisão iFood mantém descrições no produto, reserva espaço para a URL em catálogos grandes e rejeita conflitos mesmo após 500 itens. Passaram 476 testes, TypeScript/build e CI Chrome/Windows/auth; sete cadastros completos preservados. Link público real ainda bloqueado e conector oficial desligado. Medição OCR de PDF real: 13/21 preços corretos, exigindo revisão. [Mudanças, acesso e provas](docs/IFOOD-ACESSO-E-CATALOGO-20261019.md).
+
+**Publicação anterior — v67, 19/10/2026:** carrinho WhatsApp antes da aprovação manual; pedidos/Pix/comprovantes protegidos no servidor, solicitação do dono e denúncia com protocolo. Passaram 472 testes, TypeScript/build, Chrome (11 suítes locais e 7 públicas, incluindo 6 cenários de verificação), Windows, auth/pedidos e mirror. Sete cadastros preservados e cardápio antigo HTTP 200. Pixel 7 emulado; Android físico e importação oficial real iFood continuam pendentes. [Fluxo, provas e limites](docs/VERIFICACAO-DE-LOJAS-20261019.md).
 
 **Publicação anterior — v63, 19/10/2026:** confirma dados do iFood sem campo de nome repetido e preserva as cores pedidas junto do link. Passaram 455 testes e Chrome local/público, incluindo as cores no CSS real da prévia. A importação oficial real continua desligada, aguardando cadastro/verificação e permissões externas. [Estado, limites e ativação](docs/IFOOD-AUTORIZADO.md).
 
