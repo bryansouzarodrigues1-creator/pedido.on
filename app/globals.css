@@ -43,3 +43,6 @@
 
 /* Beta comercial: um único cartão de assinatura, centralizado em qualquer largura. */
 .pizza-plans .plans-grid-single{grid-template-columns:minmax(0,560px);justify-content:center}
+
+/* Authorized iFood import stays inside the existing composer and reader. */
+.ifood-connect{display:grid;gap:12px;margin:18px 0;padding:20px;border:1px solid #c7d1bb;border-radius:18px;background:#f7faf3;min-width:0}.ifood-connect h3,.ifood-connect p{margin:0}.ifood-connect p,.ifood-connect small{font-size:.9rem;line-height:1.6}.ifood-connect input{width:100%;min-width:0}.ifood-connect .btn{height:auto;min-height:48px;white-space:normal;text-align:center}.ifood-connect label{font-weight:650}.ifood-code{display:grid;gap:4px;padding:12px;background:white;border-radius:12px}.ifood-code strong{font-size:1.35rem;letter-spacing:.1em;overflow-wrap:anywhere}.ifood-store-review{margin:16px 0;padding:18px;border:1px solid #d9dfd0;border-radius:16px}.ifood-store-review dl{display:grid;gap:10px}.ifood-store-review dt{font-size:.8rem;color:#6e7567}.ifood-store-review dd{margin:2px 0;overflow-wrap:anywhere}.ifood-store-review .check-option{margin:12px 0}
