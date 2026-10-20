@@ -1,3 +1,4 @@
+import {chooseMenuPreview} from './choose-menu-preview.mjs';
 // Real UI with fictitious businesses and controlled source responses. No account or order writes.
 import {createRequire} from 'node:module';
 import assert from 'node:assert/strict';
@@ -29,7 +30,7 @@ async function start(mode){
 async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();}
 async function pause(){if(process.env.QA_RECORD_INTAKE==='true')await page.waitForTimeout(1400);}
 async function ready(){
- await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
+ await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await chooseMenuPreview(page);
  assert.equal(await page.locator('.ai-template-options').evaluate(el=>el.open),false);assert.equal(await page.locator('.creator-briefing').evaluate(el=>el.open),false);
  const ratio=await page.locator('.ai-selected .mini-cover.no-cover').evaluate(cover=>{
   const luminance=color=>{const c=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});return c[0]*.2126+c[1]*.7152+c[2]*.0722;};
@@ -48,7 +49,7 @@ try{
  await page.setViewportSize({width:412,height:915});await page.screenshot({path:path.join(output,'campo-principal-mobile.png'),fullPage:true});
  const table=[['Campo','Dados de teste'],['Nome',sample.name],['Endereço',sample.address],['WhatsApp',sample.whatsapp],['Horários',sample.hours],['Cardápio','Oito pizzas em P/M/G e três bebidas'],['Exemplo','Margherita: R$32,90 / R$42,90 / R$52,90']].map(row=>row.join('\t')).join('\n');
  await say(table);assert.equal(await page.getByRole('alert').count(),0);
- await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
+ await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await chooseMenuPreview(page);
  assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),sample.name);
  assert.match(await page.locator('.ai-selected .mini-store-address').textContent(),/Rua Fornalha de Teste/);
  assert.match(await page.locator('.ai-selected .mini-store-hours').textContent(),/23:30/);
@@ -86,16 +87,16 @@ try{
  await page.getByRole('button',{name:/Testar o cardápio completo personalizado/}).click();await page.getByRole('dialog',{name:'Teste do cardápio personalizado'}).locator('.customer-menu').waitFor();await pause();
  checks.push({name:'iFood action keeps the exact same input and draft; confirmed facts leave only WhatsApp and optional visual choices',ok:true});await close('fluxo-campo-unico');
  await start('blocked');await say(sample.url);await page.getByText(/O iFood não liberou a leitura automática/).waitFor();assert.match(await page.locator('.owner-name-confirm').textContent(),/Nome sugerido pelo endereço/);await page.getByRole('button',{name:'Alterar nome',exact:true}).click();await say(sample.name);
- await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
+ await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await chooseMenuPreview(page);
  assert.equal(await page.locator('.ai-selected .mini-store-address').count(),0);assert.equal(await page.locator('.ai-selected .mini-store-hours').count(),0);
- await page.reload({waitUntil:'networkidle'});await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),sample.name);
+ await page.reload({waitUntil:'networkidle'});await chooseMenuPreview(page);assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),sample.name);
  checks.push({name:'blocked source allows preview without inventing missing facts and resumes its selected preview',ok:true});await close('link-bloqueado');
  await start('network');await say(sample.url);await page.getByRole('alert').waitFor();
  assert.equal(await page.locator('#owner-intake-message').inputValue(),sample.url);assert.equal(await page.locator('#owner-intake-message').isEnabled(),true);
  await say('Quero um cardápio artesanal, com letras elegantes e fotos grandes.');assert.equal(await page.getByRole('alert').count(),0);assert.match(await page.locator('.owner-intake-question').textContent(),/nome da pizzaria/);
- await say(sample.name);await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
+ await say(sample.name);await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await chooseMenuPreview(page);
  checks.push({name:'source error preserves the input and a visual-only idea can continue by providing just its name',ok:true});await close('falha-recuperavel');
- await start('complete');await say(sample.initialMessage);await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
+ await start('complete');await say(sample.initialMessage);await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await chooseMenuPreview(page);
  await page.evaluate(()=>{Storage.prototype.setItem=function(){throw Error('storage blocked for QA');};IDBFactory.prototype.open=function(){throw Error('IndexedDB blocked for QA');};});
  await page.getByRole('button',{name:'Usar este modelo',exact:true}).click();
  const storageAlert=page.getByRole('alert').filter({hasText:/navegador.*guardar sua ideia/});await storageAlert.waitFor();assert.equal(await storageAlert.isVisible(),true);assert.match(page.url(),/\/criar$/);

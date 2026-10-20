@@ -10,7 +10,18 @@ await copyFile(path.join(tesseract,'dist/worker.min.js'),path.join(out,'worker.m
 for(const flavor of ['lstm','simd-lstm','relaxedsimd-lstm'])await copyFile(path.join(core,`tesseract-core-${flavor}.wasm.js`),path.join(out,`tesseract-core-${flavor}.wasm.js`));
 const expected='7b0f1749aa255a593b14160c75f74690be740edcae94c5a45efc24ab50235f4d';
 let bytes;try{bytes=await readFile(path.join(out,'por.traineddata.gz'));}catch{}
-if(!bytes){const res=await fetch('https://tessdata.projectnaptha.com/4.0.0_fast/por.traineddata.gz',{redirect:'error',signal:AbortSignal.timeout(30000)});if(!res.ok)throw Error('Não foi possível preparar o idioma OCR.');bytes=Buffer.from(await res.arrayBuffer());}
+if(!bytes){
+  // Both URLs publish the same asset in naptha/tessdata. An official-domain
+  // DNS outage must not block releases; the pinned SHA still governs trust.
+  for(const url of [
+    'https://tessdata.projectnaptha.com/4.0.0_fast/por.traineddata.gz',
+    'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0_fast/por.traineddata.gz'
+  ])try{
+    const res=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(12000)});
+    if(res.ok){bytes=Buffer.from(await res.arrayBuffer());break;}
+  }catch{/* Try the checksum-pinned mirror. */}
+  if(!bytes)throw Error('Não foi possível preparar o idioma OCR em nenhuma das duas fontes conferidas.');
+}
 if(createHash('sha256').update(bytes).digest('hex')!==expected)throw Error('O arquivo de idioma OCR difere da versão conferida.');
 await writeFile(path.join(out,'por.traineddata.gz'),bytes);
 await copyFile(path.join(tesseract,'LICENSE.md'),path.join(out,'TESSERACT-LICENSE.txt'));

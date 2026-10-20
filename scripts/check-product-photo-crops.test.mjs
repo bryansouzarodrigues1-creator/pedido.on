@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {suggestProductCrops,detectProductPhotoCrops} from "../lib/menu-photo-crops.ts";
+import {suggestProductCrops,detectProductPhotoCrops,chooseProductPhotoCrop} from "../lib/menu-photo-crops.ts";
 import {readerItemSchema,applyReaderItems} from "../lib/menu-reader-policy.ts";
 import {defaultRestaurant} from "../lib/domain.ts";
 
@@ -35,6 +35,40 @@ test("the photo search stays clear of neighboring products and never uses anothe
  for(let y=100;y<144;y++)for(let x=165;x<209;x++){const i=(y*220+x)*4,light=(x+y)%2===0;raster.data[i]=light?240:160;raster.data[i+1]=light?100:40;raster.data[i+2]=light?60:20;}
  const box={x0:50,y0:160,x1:405,y1:240},neighbors=[{x0:50,y0:450,x1:405,y1:540}];
  assert.deepEqual(detectProductPhotoCrops(1100,1000,box,raster,neighbors),[]);
+});
+
+test("digital PDF cards can attach a photo above its product caption",()=>{
+ const raster={width:220,height:200,data:new Uint8ClampedArray(220*200*4).fill(255)};
+ for(let y=45;y<87;y++)for(let x=18;x<86;x++){
+  const i=(y*220+x)*4,v=(x+y)%2===0;
+  raster.data[i]=v?241:126;raster.data[i+1]=v?107:56;raster.data[i+2]=v?65:24;
+ }
+ const box={x0:110,y0:480,x1:400,y1:575};
+ const result=detectProductPhotoCrops(1100,1000,box,raster);
+ assert.deepEqual(result.map(x=>x.side),['top']);
+ const crop=result[0].rect;
+ assert.ok(crop.y1<=box.y0&&crop.x0>=0&&crop.x1<=1100);
+ // A real product above this caption blocks image search into that row.
+ const blocked=detectProductPhotoCrops(1100,1000,box,raster,[{x0:120,y0:245,x1:395,y1:460}]);
+ assert.deepEqual(blocked,[]);
+});
+
+test('photo association prefers the caption-above card over a neighboring photo',()=>{
+ const top={side:'top',rect:{x0:100,y0:250,x1:450,y1:440}};
+ const neighbor={side:'right',rect:{x0:600,y0:250,x1:950,y1:440}};
+ assert.deepEqual(chooseProductPhotoCrop([neighbor,top]),top);
+ assert.equal(chooseProductPhotoCrop([neighbor,{...neighbor,side:'left'}]),null);
+ assert.equal(chooseProductPhotoCrop([]),null);
+});
+
+test('a broad banner separated from the product row is not attributed to that product',()=>{
+ const raster={width:220,height:200,data:new Uint8ClampedArray(220*200*4).fill(255)};
+ for(let y=60;y<100;y++)for(let x=18;x<85;x++){
+  const i=(y*220+x)*4,m=(x+y)%2===0;
+  raster.data[i]=m?238:118;raster.data[i+1]=m?108:39;raster.data[i+2]=m?59:18;
+ }
+ const item={x0:110,y0:630,x1:395,y1:730};
+ assert.deepEqual(detectProductPhotoCrops(1100,1000,item,raster),[]);
 });
 
 test("owner-approved screenshot photo follows existing product schema and importer, without automatic replacement",()=>{

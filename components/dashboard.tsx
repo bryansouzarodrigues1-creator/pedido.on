@@ -110,7 +110,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   async function importMenu(patch:Partial<RestaurantData>){
     if(!active||savingRef.current)throw Error("Aguarde o salvamento atual antes de importar.");
     const next=restaurantSchema.parse({...draft,...patch});
-    savingRef.current=true;setSaving(true);setError("");
+    savingRef.current=true;setSaving(true);setError("");setToast("");
     try{
       const result=await api(`/api/restaurants/${active.id}`,"PUT",{data:next,revision:active.revision});
       updateRecord(result.restaurant);setDraft(restaurantSchema.parse(JSON.parse(result.restaurant.data)));setDirty(false);

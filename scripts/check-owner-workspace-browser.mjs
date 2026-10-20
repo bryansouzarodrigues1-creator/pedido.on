@@ -56,6 +56,7 @@ try{
  await page.getByText('Água QA',{exact:true}).first().waitFor();
  await page.getByLabel('Conferi os nomes, os tamanhos e os preços selecionados.',{exact:true}).check();
  await page.getByRole('button',{name:/Adicionar \d+ ao rascunho/}).click();
+ await page.locator('.menu-reader-review').waitFor({state:'hidden'});
  await page.getByText('Produtos importados e rascunho salvo. Publique quando estiver pronto.',{exact:true}).waitFor();
  const imported=(await rows())[0],data=JSON.parse(imported.data);
  assert.equal(imported.published,false);assert.equal(data.products.find(p=>p.name==='Água QA').price,700);assert.equal(data.products.find(p=>p.name==='Suco QA').price,900);
@@ -66,6 +67,7 @@ try{
  await page.getByRole('region',{name:'Confira os dados da loja autorizada'}).waitFor();await page.getByText('Água da conexão oficial QA',{exact:true}).first().waitFor();assert.equal((await rows())[0].data,imported.data);
  checks.push({name:'authorized owner import exposes store facts and product review without silently changing the existing restaurant',ok:true});
  await page.getByLabel('Conferi os nomes, os tamanhos e os preços selecionados.',{exact:true}).check();await page.getByRole('button',{name:/Adicionar \d+ ao rascunho/}).click();
+ await page.locator('.menu-reader-review').waitFor({state:'hidden'});
  await page.getByText('Produtos importados e rascunho salvo. Publique quando estiver pronto.',{exact:true}).waitFor();
  const authorized=(await rows())[0],authorizedData=JSON.parse(authorized.data);assert.equal(authorized.published,false);assert.equal(authorizedData.products.find(p=>p.name==='Água da conexão oficial QA').price,890);for(const key of ['name','address','hours','whatsapp'])assert.equal(authorizedData[key],data[key]);assert.equal(officialReads,1);
  checks.push({name:'explicit product confirmation saves only the reviewed draft and preserves existing name, address, hours and WhatsApp',ok:true});

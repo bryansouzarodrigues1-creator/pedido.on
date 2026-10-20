@@ -1,3 +1,4 @@
+import {chooseMenuPreview} from './choose-menu-preview.mjs';
 // Exact reported share message; a controlled blocked response, with no remote writes.
 import {createRequire} from 'node:module';
 import assert from 'node:assert/strict';
@@ -63,7 +64,7 @@ try{
  await nameChoice.getByRole('button',{name:'Usar este nome',exact:true}).click();
  assert.match(await page.locator('.owner-intake-question').textContent(),/Onde fica/);
  await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();
- await page.locator('.ai-selected .mini-menu').waitFor();
+ await chooseMenuPreview(page);
  assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),'Master Pizzas - Búzios');
  assert.equal(await page.locator('.ai-selected .mini-store-address').count(),0);
  assert.equal(await page.locator('.ai-selected .mini-store-hours').count(),0);

@@ -36,7 +36,7 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
  function receiveSource(result:IfoodImportResult,base:OwnerIntake){
   onSource?.(result);setReply("");setLinkHint(false);
   if(result.store&&Object.keys(result.store).length)setFound({result,base});
-  else{onChange(ownerFromStore(base,result.url,{},result.status));if(result.count)setNotice(`${result.count} produtos encontrados. Continue com os dados que faltam.`);}
+  else{onChange(ownerFromStore(base,result.url,{},result.status));if(result.count)setNotice(result.message||`${result.count} produtos encontrados. Continue com os dados que faltam.`);}
  }
  async function lookup(url:string,base:OwnerIntake){
   if(blocked)return;setReading(true);setError("");setNotice("");
