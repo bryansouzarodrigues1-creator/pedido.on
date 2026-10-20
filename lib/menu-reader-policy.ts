@@ -2,7 +2,7 @@ import {z} from "zod";
 import {restaurantSchema,type RestaurantData,type Product,type Size} from "./domain.ts";
 
 export type SourceBox={x0:number;y0:number;x1:number;y1:number};
-export type ReaderLine={text:string;confidence?:number;priceConfidence?:number;priceDisagreement?:boolean;box?:SourceBox};
+export type ReaderLine={text:string;confidence?:number;priceConfidence?:number;priceDisagreement?:boolean;textUncertain?:boolean;layoutUncertain?:boolean;box?:SourceBox};
 export type ReaderWord={text:string;confidence:number;box:SourceBox};
 export type ReaderPage={id:string;name:string;image:string;width:number;height:number;lines:ReaderLine[]};
 const amount=z.number().int().min(1).max(1000000).nullable();
@@ -10,15 +10,18 @@ export const readerItemSchema=z.object({id:z.string().max(100),sourceId:z.string
 export type ReaderItem=z.infer<typeof readerItemSchema>;
 export type ReaderResult={items:ReaderItem[];unmatched:{sourceId:string;text:string}[];pages:number};
 export const normalizeMenuText=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
+// PDF text often puts the cents in a smaller, separate span: "10 ,50".
+// Keep the explicit separator and digits; never supply a missing decimal.
+export const normalizeMenuPriceSpacing=(s:string)=>s.replace(/(\d)[\t ]+(?=[,.]\d{2}(?!\d))/g,"$1");
 export function menuAmount(s:string){
-  const clean=s.replace(/R\s*\$/gi,"").trim();
+  const clean=normalizeMenuPriceSpacing(s.replace(/R\s*\$/gi,"").trim());
   if(!/^\d{1,6}(?:\.\d{3})*(?:[,.]\d{2})?$/.test(clean))return null;
   const decimal=clean.includes(",")?clean.replace(/\./g,"").replace(",","."):/^\d+\.\d{2}$/.test(clean)?clean:clean.replace(/\./g,"");
   const cents=Math.round(Number(decimal)*100);
   return Number.isInteger(cents)&&cents>0&&cents<=1000000?cents:null;
 }
-const priceRE=/(?:R\s*\$\s*[-+−]?\s*\d(?:[\d.,]*\d)?(?![\d.,a-z])|(?<![\d.,+−-])[-+−]?\d{1,6}(?:\.\d{3})*[,.]\d{2}(?![\d.,a-z]))/gi;
-export const menuLineAmounts=(text:string)=>[...text.matchAll(priceRE)].map(m=>menuAmount(m[0]));
+const priceRE=/(?:R\s*\$\s*[-+−]?\s*\d(?:[\d.,]*\d)?(?:[\t ]+[,.]\d{2})?(?![\d.,a-z]|[\t ]+[,.]\d)|(?<![\d.,+−-])[-+−]?\d{1,6}(?:\.\d{3})*[\t ]*[,.]\d{2}(?![\d.,a-z]))/gi;
+export const menuLineAmounts=(text:string)=>[...normalizeMenuPriceSpacing(text).matchAll(priceRE)].map(m=>menuAmount(m[0]));
 const sizesIn=(s:string)=>[...normalizeMenuText(s).matchAll(/\b(pequena|pequeno|media|medio|grande|gg|familia|gigante|brotinho|p|m|g)\b/g)].map(m=>({size:({pequena:"p",pequeno:"p",media:"m",medio:"m",grande:"g",p:"p",m:"m",g:"g"} as Record<string,Size>)[m[1]]||null,index:m.index!}));
 // Public dark-menu examples use catalog SKU IDs such as "M: 118 | G: 218".
  // Those numbers identify variants; they are not amounts and must not enter the product name.
@@ -57,7 +60,7 @@ const validProductName=(name:string)=>{
 };
 /** A product detail screenshot has one base product, not a catalogue of UI labels. */
 export function readProductDetail(page:Pick<ReaderPage,"id"|"lines">):ReaderItem|null{
- const lines=page.lines.map(l=>({...l,text:l.text.replace(/\s+/g," ").trim()})).filter(l=>l.text),norms=lines.map(l=>normalizeMenuText(l.text));
+ const lines=page.lines.map(l=>({...l,text:normalizeMenuPriceSpacing(l.text.replace(/\s+/g," ").trim())})).filter(l=>l.text),norms=lines.map(l=>normalizeMenuText(l.text));
  const markers=norms.filter(n=>interfaceText.test(n));if(markers.length<2||!norms.some(n=>/adicionar\b|preco com desconto/.test(n)))return null;
  const optional=norms.findIndex(n=>/^(deseja (?:uma?|alguma?)|escolha ate)/.test(n)),end=optional<0?lines.length:optional;
  let start=0;for(let i=0;i<end;i++)if(storeStats.test(norms[i]))start=i+1;
@@ -73,7 +76,7 @@ export function readProductDetail(page:Pick<ReaderPage,"id"|"lines">):ReaderItem
  const pizzaContext=explicitPizza||/pizz/.test(merchantNorm)||/\b(margherita|marguerita|calabresa|portuguesa|quatro queijos|frango com catupiry)\b/.test(titleNorm);
  const kind:ReaderItem["kind"]=!combo&&!drink&&!burger&&pizzaContext?"pizza":"simple",promotional=norms.some(n=>/voltar a pedir|cupons|preco com desconto/.test(n))||prices.length!==1||(prices[0]||0)<300;
  const relevant=[title,...content.slice(titleIndex+1),lines[priceIndex]],box=relevant.reduce<SourceBox|undefined>((box,line)=>union(box,line.box),undefined);
- const weakPrice=(lines[priceIndex].priceConfidence??lines[priceIndex].confidence??100)<75;
+ const weakPrice=(lines[priceIndex].priceConfidence??lines[priceIndex].confidence??100)<75||lines.slice(start,priceIndex+1).some(l=>l.textUncertain||l.layoutUncertain);
  return {id:page.id+"-detail",sourceId:page.id,sourceText:relevant.map(l=>l.text).join("\n").slice(0,2000),box,name:title.text.slice(0,100),description,category:kind==="pizza"?"Pizzas":drink?"Bebidas":combo?"Combos":burger?"Lanches":"Produtos",kind,price:prices[0]||null,sizes:{p:null,m:null,g:null},issues:[...(promotional?["Este print mostra uma oferta do aplicativo. Defina o preço que sua loja realmente vai praticar."]:[]),...(weakPrice?["Confira o preço: a leitura desse valor tem baixa confiança."]:[]),...(optional>=0?["Bebidas e adicionais opcionais não foram incluídos no produto."]:[]),...(kind==="pizza"?["Escolha o tamanho desse preço."]:[])],reviewRequired:promotional||weakPrice,selected:!promotional&&!weakPrice&&kind!=="pizza",action:"add"};
 }
 export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
@@ -169,7 +172,7 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
     let categoryExplicit=false,category="Pizzas",kind:ReaderItem["kind"]="pizza",header:(Size|null)[]=[],headerUnsupported=false,shared:Partial<Record<Size,number>>={},pending:ReaderItem|null=null;
     const flush=()=>{if(pending){if(!validProductName(pending.name)||!pending.price&&!Object.values(pending.sizes).some(Boolean)&&!pending.sourceText.match(priceRE)&&!(categoryExplicit&&pending.name.split(/\s+/).length<=5&&!/[.!?:]/.test(pending.name)&&!pending.reviewRequired))unmatched.push({sourceId:page.id,text:pending.sourceText});else{if(pending.kind==="pizza"&&!Object.values(pending.sizes).some(Boolean))pending.issues.push(pending.price?"Escolha o tamanho desse preço.":"Confira o preço e o tamanho.");if(pending.kind!=="pizza"&&!pending.price)pending.issues.push("Informe o preço.");items.push(pending);}pending=null;}};
     for(const raw of page.lines){
-      const text=raw.text.replace(/\s+/g," ").trim();if(!text)continue;
+      const text=normalizeMenuPriceSpacing(raw.text.replace(/\s+/g," ").trim());if(!text)continue;
       const norm=normalizeMenuText(text),matches=[...text.matchAll(priceRE)],prices=matches.map(m=>menuAmount(m[0]));
       const description=text.match(/^descri[cç][aã]o\s*:\s*(.*)$/i);
       if(pending&&description){pending.description=((pending.description?pending.description+" ":"")+description[1]).slice(0,600);pending.sourceText=(pending.sourceText+"\n"+text).slice(0,2000);pending.box=union(pending.box,raw.box);continue;}
@@ -204,6 +207,8 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
       if(name&&raw.confidence!==undefined&&raw.confidence<75)requireReview(pending!,"Confira a leitura deste trecho.");
       if(matches.length&&raw.priceConfidence!==undefined&&raw.priceConfidence<75)requireReview(pending!,"Confira o preço: a leitura desse valor tem baixa confiança.");
       if(raw.priceDisagreement)requireReview(pending!,"As leituras do preço divergiram. Confira o valor na foto.");
+      if(raw.textUncertain)requireReview(pending!,"O PDF contém caracteres ilegíveis neste trecho. Confira o nome e o preço na página.");
+      if(raw.layoutUncertain)requireReview(pending!,"Este trecho pode misturar colunas do cardápio. Separe os produtos e confira os preços na página.");
       // An OCR scan may lose the comma in "R$ 11,50" and show "R$ 1150".
       // Do not infer the intended decimal; flag suspicious high integer prices.
       if(matches.some((match,i)=>{
