@@ -42,6 +42,21 @@ test("live menus and miniatures use the selected identity while legacy menus hav
   assert.doesNotMatch(renderToStaticMarkup(createElement(Menu,{data:demoRestaurant(),demo:true})),/identity-/);
  }finally{f.close();}
 });
+test("all twelve layouts keep a confirmed product photo and exact price visible, including compact styles",()=>{
+ const f=fixture();try{
+  const Menu=f.load("components/menu.tsx").default,Mini=f.load("components/ui.tsx").MiniMenu;
+  for(const {id} of galleryStyles){
+   const data=galleryDesign(demoRestaurant(),id,"");
+   const product=data.products[0];product.image='/media/test-product/photo.jpg';product.price=2900;
+   if(product.kind==='pizza')product.sizes={p:2900,m:4500,g:5900};
+   for(const [component,props] of [[Menu,{data,preview:true}],[Mini,{data,large:true}]]){
+    const html=renderToStaticMarkup(createElement(component,props));
+    assert.match(html,/\/media\/test-product\/photo.jpg/,id);
+    assert.match(html,/R\$[\s\u00a0]*29,00/,id);
+   }
+  }
+ }finally{f.close();}
+});
 test("each newly added style reaches the private restaurant record without examples or AI jobs",async()=>{
  for(const styleId of ["forno-brasa","napoli-rua","fatia-pop","pizza-vinho"]){
   const f=fixture();try{

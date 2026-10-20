@@ -1,3 +1,4 @@
+import {chooseMenuPreview} from './choose-menu-preview.mjs';
 import {createRequire} from 'node:module';
 import assert from 'node:assert/strict';
 import {mkdir, writeFile} from 'node:fs/promises';
@@ -58,7 +59,7 @@ try {
         const legacy = publicReadOnly && await page.getByRole('button', {name: 'Criar opções', exact: true}).count() > 0;
         if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).click();
         else await page.getByRole('button', {name: legacy ? 'Criar opções' : current ? 'Criar 12 modelos' : 'Criar 8 modelos', exact: true}).click();
-        await page.locator(composer?'.ai-selected .mini-menu':'.ai-style-card').first().waitFor({timeout: 120_000});
+        if(composer)await chooseMenuPreview(page);else await page.locator('.ai-style-card').first().waitFor({timeout:120000});
         if(composer)await page.waitForFunction(()=>Array.from(document.querySelectorAll('.ai-selected-actions button')).some(button=>button.textContent.includes('Usar este modelo')&&!button.disabled));
         else if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).waitFor();
         else await page.waitForFunction(expected => Array.from(document.querySelectorAll('button')).some(button => button.textContent.includes(expected) && !button.disabled), legacy ? 'Atualizar prévias' : 'Atualizar modelos');

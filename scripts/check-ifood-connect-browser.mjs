@@ -1,3 +1,4 @@
+import {chooseMenuPreview} from './choose-menu-preview.mjs';
 // Distributed grant UI with intercepted responses; no live provider or app writes.
 import {createRequire} from 'node:module';
 import assert from 'node:assert/strict';
@@ -42,7 +43,7 @@ try{
   await facts.getByRole('button',{name:'Usar dados encontrados',exact:true}).click();assert.match(await page.locator('.owner-intake-question').textContent(),/WhatsApp/);assert.doesNotMatch(await page.locator('.owner-intake-question').textContent(),/Onde fica|horário/);
   await page.getByRole('button',{name:'Usar '+merchant.telephone+' como WhatsApp',exact:true}).click();
   checks.push({name:'address and overnight hours enter only after confirmation; phone requires explicit WhatsApp confirmation',ok:true});
-  await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),merchant.name);assert.match(await page.locator('.ai-gallery-heading').textContent(),/3 itens/);assert.match(await page.locator('.ai-selected .mini-store-address').textContent(),/240/);assert.match(await page.locator('.ai-selected .mini-store-hours').textContent(),/00:30/);
+  await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await chooseMenuPreview(page);assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),merchant.name);assert.match(await page.locator('.ai-gallery-heading').textContent(),/3 itens/);assert.match(await page.locator('.ai-selected .mini-store-address').textContent(),/240/);assert.match(await page.locator('.ai-selected .mini-store-hours').textContent(),/00:30/);
   await page.waitForFunction(()=>{const el=document.querySelector('.ai-gallery');return el&&Number(getComputedStyle(el).opacity)>=.99;});
   await page.locator('.ai-visual-summary').waitFor();assert.deepEqual(await page.locator('.ai-palette-swatches i').evaluateAll(nodes=>nodes.slice(0,2).map(el=>getComputedStyle(el).backgroundColor)),['rgb(33, 105, 172)','rgb(242, 189, 56)']);
   assert.deepEqual(await page.locator('.ai-selected .mini-menu').evaluate(el=>['--menu-accent','--menu-secondary'].map(key=>getComputedStyle(el).getPropertyValue(key).trim().toLowerCase())),['#2169ac','#f2bd38']);

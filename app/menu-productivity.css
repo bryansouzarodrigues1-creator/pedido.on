@@ -5,3 +5,12 @@
 @media(max-width:700px){.daily-promotions.panel-card{padding:16px}.promotion-fields{grid-template-columns:1fr}.promotion-editor{padding:17px;gap:14px}.bundle-item{grid-template-columns:minmax(0,1fr) 90px 34px}.bundle-product{grid-column:1/-1}.bundle-size{grid-column:1}.bundle-quantity{grid-column:2}.bundle-remove{grid-column:3}.promotion-editor .promotion-form-actions{flex-wrap:wrap}.daily-offer .bundle-description{font-size:11px}.daily-offer>span:first-child{min-width:0}.daily-offer strong{overflow-wrap:anywhere}.menu-reader-entry{padding:16px;gap:12px}.menu-reader-entry h3{font-size:16px}.menu-reader-entry p{font-size:12px;line-height:1.5;margin-bottom:4px}.simple-dashboard .details-panel>summary{padding:18px}.simple-dashboard .details-panel>summary strong{font-size:16px}}
 
 .billing-controls>label{display:grid;gap:7px;font-weight:600;max-width:420px}.billing-controls>label input,.billing-controls>label select{width:100%;font-size:16px;min-height:44px}.billing-invoices{width:100%;margin:8px 0}.billing-invoices summary{cursor:pointer;font-weight:650;padding:8px 0}.billing-invoice{display:flex;justify-content:space-between;align-items:center;gap:16px;border-top:1px solid #e7e4df;padding:13px 0}.billing-invoice span{display:grid;gap:4px}.billing-invoice small{color:var(--muted,#78756d)}
+.reader-photo-suggestion{display:flex;align-items:center;gap:12px;text-align:left;width:100%;margin-top:12px;padding:8px 10px;border:1px solid #d5ddcb;border-radius:9px;background:#f5faef;color:#335027;cursor:pointer;font:inherit;font-size:12px;line-height:1.5}
+.reader-photo-suggestion img{width:70px;height:62px;object-fit:cover;flex:none;border-radius:6px}
+.reader-photo-suggestion span{display:flex;align-items:center;gap:6px;flex:1}
+.reader-photo-batch-note{padding:10px 12px;border-radius:9px;background:#f2f8ec;border:1px solid #d9e6cb;color:#34512d;font-size:12px;line-height:1.55}
+.reader-photo-approval{margin-top:12px;border:1px solid #d5ddcb;border-radius:10px;padding:9px;background:#fafcf7}
+.reader-photo-approval .reader-photo-suggestion{margin:0;border:0;background:transparent;padding:2px 4px}
+.reader-photo-approval>label{display:flex;align-items:flex-start;gap:9px;font-size:12px;line-height:1.5;color:#31452d;padding:9px 5px 3px;cursor:pointer}
+.reader-photo-approval>label input{margin-top:3px;flex:none}
+.reader-photo-approval>label:has(input:disabled){opacity:.65;cursor:not-allowed}

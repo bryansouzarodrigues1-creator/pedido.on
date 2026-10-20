@@ -42,12 +42,16 @@ function categoryFor(s:string):{category:string;kind:ReaderItem["kind"]}|null{
   if(/^(pizzas? (salgadas?|tradicionais?|especiais?|classicas?)|pizzas?|sabores|salgadas?|classicas?)(?: (?:media|grande|pequena))*$/.test(n))return {category:"Pizzas",kind:"pizza"};
   if(/^(pizzas? doces?|doces)$/.test(n))return {category:"Pizzas doces",kind:"pizza"};
   if(/^(bebidas?|refrigerantes?|sucos?|cervejas?)$/.test(n))return {category:"Bebidas",kind:"simple"};
+  if(/^(para refrescar|bebidas e sucos)$/.test(n))return {category:"Bebidas",kind:"simple"};
+  if(/^(entradas?|entradas e porcoes?)$/.test(n))return {category:"Entradas",kind:"simple"};
   if(/^(combos?|combos? da casa)$/.test(n))return {category:"Combos",kind:"simple"};
   if(/^(hamburgueres?|hamburguer|hamburgers?|lanches?|sanduiches?)$/.test(n))return {category:"Lanches",kind:"simple"};
   if(/^(produtos?|porcoes?|acompanhamentos?|sobremesas?)$/.test(n))return {category:s.trim(),kind:"simple"};
+  if(/^(docinhos extras|doces individuais)$/.test(n))return {category:"Sobremesas",kind:"simple"};
   if(/^(bordas?( recheadas?)?|adicionais? de borda)$/.test(n))return {category:"Bordas",kind:"crust"};
   if(/^(?:r )?bordas especiais$/.test(n))return {category:"Bordas",kind:"crust"};
   if(/^(?:acrescimos|acrescimos na pizza)$/.test(n))return {category:"Adicionais",kind:"simple"};
+  if(/^adicionais$/.test(n))return {category:"Adicionais",kind:"simple"};
   return null;
 }
 function union(a?:SourceBox,b?:SourceBox){return !a?b:!b?a:{x0:Math.min(a.x0,b.x0),y0:Math.min(a.y0,b.y0),x1:Math.max(a.x1,b.x1),y1:Math.max(a.y1,b.y1)};}
@@ -58,6 +62,18 @@ const validProductName=(name:string)=>{
  const letters=name.match(/[\p{L}]/gu)?.length||0;
  return letters>=3&&letters/Math.max(1,name.replace(/\s/g,"").length)>.55&&!/[{}<>*=|]/.test(name)&&name.split(/\s+/).length<=16;
 };
+/** Product explanations frequently occupy a separate PDF text span. A prose
+ * sentence must not become a new sellable product simply because a price is
+ * printed in the next column or on the following line. */
+function descriptionProse(text:string){
+ const value=text.trim();if(!value)return false;
+ const words=value.split(/\s+/);
+ return words.length===1&&/^[a-zà-ú][\p{L}-]*[.!?]$/u.test(value)
+  ||words.length>=2&&/^(?:ingredientes?|molho|mussarela|mu[cç]arela|mozzarella|tomate|massa|queijo)\b/i.test(value)
+  ||words.length>=2&&/^[a-zà-ú]/u.test(value)
+  ||words.length>=3&&/[.!?]\s*$/.test(value)
+  ||words.length>=6&&/[,;]/.test(value);
+}
 /** A product detail screenshot has one base product, not a catalogue of UI labels. */
 export function readProductDetail(page:Pick<ReaderPage,"id"|"lines">):ReaderItem|null{
  const lines=page.lines.map(l=>({...l,text:normalizeMenuPriceSpacing(l.text.replace(/\s+/g," ").trim())})).filter(l=>l.text),norms=lines.map(l=>normalizeMenuText(l.text));
@@ -131,11 +147,42 @@ export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
     }
     if(gutter.rows.size>=2||left>=2&&right>=2)boundaries.push(boundary);
   }
+  // Digital PDFs of restaurant menus often put names, descriptions and M/G
+  // prices on three *different* baselines. The old gutter detector expected
+  // names and prices on one line and merged whole side-by-side catalogues.
+  // Two independent rows of textual content on opposing halves are enough to
+  // identify a persistent column split; a lone mixed row is not.
+  if(!boundaries.length){
+    const middle=width/2;
+    const named=(part:ReaderWord[])=>{
+      const value=part.map(w=>w.text).join(" ").trim();
+      return validProductName(value)&&!value.match(priceRE)&&!categoryFor(value)&&
+        (value.match(/[\p{L}]/gu)?.length||0)>=4&&
+        !/^(?:R\s*\$|[PMG]\s*(?:[:;]|R\s*\$)|\d)/i.test(value);
+    };
+    let paired=0;
+    for(const row of rows){
+      // PDF columns may start only ~1.9% beyond the page midpoint. A 2%
+      // exclusion margin silently merged *every* pair in the owner's menu.
+      const left=row.words.filter(w=>w.box.x1<=middle-width*.01);
+      const right=row.words.filter(w=>w.box.x0>=middle+width*.01);
+      if(!left.length||!right.length)continue;
+      const gap=Math.min(...right.map(w=>w.box.x0))-Math.max(...left.map(w=>w.box.x1));
+      if(gap>=width*.06&&named(left)&&named(right)&&++paired>=2){boundaries.push(middle);break;}
+    }
+  }
   if(!boundaries.length)for(const row of rows){
     const chunks:ReaderWord[][]=[];
     for(const word of row.words.sort((a,b)=>a.box.x0-b.box.x0)){const last=chunks.at(-1);if(!last||word.box.x0-last.at(-1)!.box.x1>Math.max(80,width*.09))chunks.push([word]);else last.push(word);}
     const headings=chunks.filter(chunk=>!!categoryFor(chunk.map(w=>w.text).join(" ")));
-    if(headings.length>=2)for(let i=1;i<headings.length;i++){const x=(headings[i-1].at(-1)!.box.x1+headings[i][0].box.x0)/2;if(!boundaries.some(b=>Math.abs(b-x)<width*.1))boundaries.push(x);}
+    if(headings.length>=2)for(let i=1;i<headings.length;i++){
+      const end= headings[i-1].at(-1)!.box.x1,start=headings[i][0].box.x0;
+      // Category titles are shorter than product rows. A midpoint between
+      // headings can cut the left column's right-aligned price off and attach
+      // it to the next column's product (e.g. drinks next to desserts).
+      const x=end<width/2&&start>width/2?width/2:(end+start)/2;
+      if(!boundaries.some(b=>Math.abs(b-x)<width*.1))boundaries.push(x);
+    }
   }
   boundaries.sort((a,b)=>a-b);
   const columns:ReaderLine[][]=Array.from({length:boundaries.length+1},()=>[]);
@@ -169,34 +216,72 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
   }
   for(const page of pages){
     const detail=readProductDetail(page);if(detail){items.push(detail);continue;}
-    let categoryExplicit=false,category="Pizzas",kind:ReaderItem["kind"]="pizza",header:(Size|null)[]=[],headerUnsupported=false,shared:Partial<Record<Size,number>>={},pending:ReaderItem|null=null;
-    const flush=()=>{if(pending){if(!validProductName(pending.name)||!pending.price&&!Object.values(pending.sizes).some(Boolean)&&!pending.sourceText.match(priceRE)&&!(categoryExplicit&&pending.name.split(/\s+/).length<=5&&!/[.!?:]/.test(pending.name)&&!pending.reviewRequired))unmatched.push({sourceId:page.id,text:pending.sourceText});else{if(pending.kind==="pizza"&&!Object.values(pending.sizes).some(Boolean))pending.issues.push(pending.price?"Escolha o tamanho desse preço.":"Confira o preço e o tamanho.");if(pending.kind!=="pizza"&&!pending.price)pending.issues.push("Informe o preço.");items.push(pending);}pending=null;}};
+    let category="Pizzas",kind:ReaderItem["kind"]="pizza",header:(Size|null)[]=[],headerUnsupported=false,shared:Partial<Record<Size,number>>={},pending:ReaderItem|null=null;
+    const flush=()=>{if(pending){
+      // A heading/footer has no price evidence; keeping it as a product makes
+      // fake, empty cards. Unpriced text remains in the manual-review list.
+      const noPrice=!pending.price&&!Object.values(pending.sizes).some(Boolean)&&!pending.sourceText.match(priceRE);
+      // Preserve an unmistakable but unpriced drink, accompaniment or combo
+      // for the owner's later review ("Água"), without turning page headings,
+      // disclaimers and size labels into empty sellable products.
+      const reviewableWithoutPrice=pending.kind!=="pizza"&&pending.name.split(/\s+/).length<=5&&
+        !/[\d/:;,.!?]/.test(pending.name)&&pending.description.length<90;
+      if(!validProductName(pending.name)||noPrice&&!reviewableWithoutPrice)unmatched.push({sourceId:page.id,text:pending.sourceText});
+      else{if(pending.kind==="pizza"&&!Object.values(pending.sizes).some(Boolean))pending.issues.push(pending.price?"Escolha o tamanho desse preço.":"Confira o preço e o tamanho.");if(pending.kind!=="pizza"&&!pending.price){pending.issues.push("Informe o preço.");pending.selected=false;}items.push(pending);}pending=null;
+    }};
     for(const raw of page.lines){
       const text=normalizeMenuPriceSpacing(raw.text.replace(/\s+/g," ").trim());if(!text)continue;
       const norm=normalizeMenuText(text),matches=[...text.matchAll(priceRE)],prices=matches.map(m=>menuAmount(m[0]));
+      if(!matches.length&&/\b(?:exemplo ficticio|valores ilustrativos|fotos geradas para ilustracao|nao representa(?:m)? oferta comercial)\b/.test(norm)){
+        flush();unmatched.push({sourceId:page.id,text});continue;
+      }
+      if(pending&&!matches.length&&raw.box&&pending.box&&descriptionProse(text)&&
+        raw.box.y0-pending.box.y1>Math.max(90,(pending.box.y1-pending.box.y0)*.65)){
+        // A remote footer, editorial tip or legal notice belongs to the page,
+        // not to the last sellable product in that column.
+        flush();unmatched.push({sourceId:page.id,text});continue;
+      }
       const description=text.match(/^descri[cç][aã]o\s*:\s*(.*)$/i);
       if(pending&&description){pending.description=((pending.description?pending.description+" ":"")+description[1]).slice(0,600);pending.sourceText=(pending.sourceText+"\n"+text).slice(0,2000);pending.box=union(pending.box,raw.box);continue;}
       const labels=sizesIn(matches.length?withoutSku(text.slice(0,matches[0].index))+" "+text.slice(matches[0].index):text);
       if(interfaceText.test(norm)||storeStats.test(norm)){flush();unmatched.push({sourceId:page.id,text});continue;}
       if(raw.confidence!==undefined&&raw.confidence<45&&!matches.length){unmatched.push({sourceId:page.id,text});continue;}
       const section=categoryFor(text);
-      if(section){flush();({category,kind}=section);categoryExplicit=true;header=labels.map(v=>v.size);headerUnsupported=false;shared={};continue;}
+      if(section){flush();({category,kind}=section);header=labels.map(v=>v.size);headerUnsupported=false;shared={};continue;}
       if(/\b(promocao|promocoes|oferta|ofertas)\b/.test(norm)){flush();unmatched.push({sourceId:page.id,text:"Oferta da foto: "+text});continue;}
        if(!matches.length&&(/^(?:10%\s*opcional|taxa\s*(?:de\s*)?servico|sucos?\s+e|vitaminas?)$/.test(norm)||/\bbordas especiais\b/.test(norm))){flush();unmatched.push({sourceId:page.id,text});continue;}
        
       if(/^(whatsapp|telefone|contato|endereco|rua |av\.|avenida|pix|delivery|entrega|frete\b|taxa |horario|funcionamento|aberto|peca|pedido|minimo|instagram|www\.|@)/.test(norm)||/\(?\d{2}\)?\s*9?\d{4}[- ]\d{4}/.test(norm)){flush();unmatched.push({sourceId:page.id,text});continue;}
-      const unsupported=/\b(gg|familia|gigante|brotinho)\b|\b\d{2}\s*cm\b/.test(norm);
+      // "Noite em Família" is a combo name, not a forbidden pizza size.
+      const unsupported=kind==="pizza"&&/\b(gg|familia|gigante|brotinho)\b|\b\d{2}\s*cm\b/.test(norm);
       if(!matches.length&&labels.length&&/^(sabores?|tamanhos?|pequena|pequeno|media|medio|grande|gg\b|familia\b|gigante\b|brotinho\b|p\b|m\b|g\b)/.test(norm)){flush();header=labels.map(v=>v.size);headerUnsupported=unsupported;if(unsupported)unmatched.push({sourceId:page.id,text:"Tamanho a conferir: "+text});continue;}
       if(matches.length&&/^(todas|todos|qualquer sabor|preco unico|pizzas? (grandes?|medias?|pequenas?))/.test(norm)){
         flush();shared={};if(!unsupported&&labels.length===prices.length)labels.forEach((v,i)=>{if(v.size&&prices[i])shared[v.size]=prices[i]!;});else unmatched.push({sourceId:page.id,text:"Preço compartilhado a conferir: "+text});continue;
       }
-      const before=matches.length?text.slice(0,matches[0].index).replace(/\b(?:GG|P|M|G|pequena|média|grande|família|gigante|brotinho)\s*[-:·]?\s*$/i,"").replace(/[.\-:·|\s]+$/g,""):text;
+      const before=matches.length?text.slice(0,matches[0].index).replace(/\b(?:GG|P|M|G|pequena|média|grande|família|gigante|brotinho)\s*[-:·]?\s*$/i,"").replace(/[+.\-:·|\s]+$/g,""):text;
       const bare=withoutSku(before.replace(/^\d{1,3}\s*[.)\-:]\s*/,"")).trim();
        const unbulleted=bare.replace(/^[•●▪»*]\s+/,"");
        const name=(kind==="pizza"?unbulleted.replace(/^x\s+(?!tudo\b|salada\b|bacon\b|burger\b)/i,"").replace(header.length>=2?/\s+\d{3,5}\s*[|/]\s*\d{3,5}$/:/$^/,""):unbulleted.replace(/^x\s+(?=coca[ -]|[aá]gua\b|refrigerante\b|guaran[aá]\b)/i,"")).trim();
-      const ingredients=/^(ingredientes?\s*:|molho\b|mucarela\b|mussarela\s+(?:e|com)\b|mozzarella\b|queijo\b|tomate\b|massa\b)/.test(norm)||!matches.length&&text.includes(",");
+      const ingredients=/^(ingredientes?\s*:|(?:molho|mucarela|mozzarella|queijo|tomate|massa)\s+\S|mussarela\s+(?:e|com)\b)/.test(norm)||!matches.length&&text.includes(",");
       if(pending&&ingredients&&!matches.length){pending.description=(pending.description?pending.description+" ":"")+text.replace(/^ingredientes?\s*:\s*/i,"");pending.description=pending.description.slice(0,600);pending.sourceText=(pending.sourceText+"\n"+text).slice(0,2000);pending.box=union(pending.box,raw.box);continue;}
-      if(matches.length&&!name&&pending){
+      const prose=text.slice(0,matches[0]?.index??text.length).trim();
+      const markedProduct=skuSizes(text).length>0||/\b(?:GG|[PMG]|[wv]|6)\s*[:;]\s*\d{3,5}\b/i.test(text)||/^(?:[•●▪»*]\s*|x\s+(?=[A-ZÀ-Ü]))/u.test(prose);
+      // A new priced accompaniment can begin with an ingredient word:
+      // "Tomate-cereja + R$ 6" and "Molho da casa + R$ 4" are products,
+      // not descriptions to concatenate onto "Bacon + R$ 8".
+      const pricedSimpleName=kind!=="pizza"&&matches.length>0&&prose.split(/\s+/).length<=5&&!/[.!?]\s*$/.test(prose);
+      // A combo description can mention "pizza grande" without being a
+      // size/price header. Size words are meaningful here only with amounts.
+      if(descriptionProse(prose)&&(!matches.length||!labels.length)&&!markedProduct&&!pricedSimpleName){
+       if(!pending){
+        unmatched.push({sourceId:page.id,text});continue;
+       }
+       if(pending){
+       pending.description=[pending.description,prose].filter(Boolean).join(" ").slice(0,600);
+       if(!matches.length){pending.sourceText=(pending.sourceText+"\n"+text).slice(0,2000);pending.box=union(pending.box,raw.box);continue;}
+       }
+      }
+      if(matches.length&&pending&&(!name||descriptionProse(prose)&&!labels.length&&!markedProduct&&!pricedSimpleName)){
         pending.sourceText=(pending.sourceText+"\n"+text).slice(0,2000);pending.box=union(pending.box,raw.box);
       }else{
         flush();

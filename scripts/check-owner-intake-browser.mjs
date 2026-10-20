@@ -1,3 +1,4 @@
+import {chooseMenuPreview} from './choose-menu-preview.mjs';
 // Real Chrome e2e for the new zero-credit guided owner intake.
 // Uses a local, synthetic D1 and mock identity; no paid AI or customer data.
 import {createRequire} from "node:module";
@@ -48,7 +49,7 @@ try{
  });
  await record("12 templates usam mesmo nome e endereço HTML sem imagens novas",async()=>{
   await page.getByRole("button",{name:/Criar minha prévia/}).click();
-  await page.locator(".ai-selected").waitFor({timeout:90000});
+  await chooseMenuPreview(page);
   assert.equal(await page.locator(".ai-template-options").evaluate(el=>el.open),false);
   await page.getByRole("button",{name:"Escolher outro",exact:true}).click();
   await page.locator(".ai-style-card").first().waitFor();
@@ -60,7 +61,7 @@ try{
  });
  await record("teste completo abre as 18 demonstrações com as cores e o nome do briefing, sem pedidos reais",async()=>{
   await page.locator(".ai-style-card").first().locator(".ai-style-footer button").last().click();
-  await page.locator(".ai-selected").waitFor();
+  await chooseMenuPreview(page);
   const chosen=await page.locator(".ai-selected .mini-menu").evaluate(el=>({accent:el.style.getPropertyValue("--menu-accent"),secondary:el.style.getPropertyValue("--menu-secondary"),bg:el.style.getPropertyValue("--menu-bg")}));
   assert.equal(chosen.accent.toUpperCase(),"#2169AC");assert.equal(chosen.secondary.toUpperCase(),"#F2BD38");
   await page.getByRole("button",{name:/Testar o cardápio completo personalizado/}).click();
@@ -89,7 +90,7 @@ try{
   await file.setInputFiles({name:"cardapio.csv",mimeType:"text/csv",buffer:Buffer.from("categoria;nome;preco\nBebidas;Suco natural;8,00")});
   await page.waitForFunction(()=>document.querySelector("#idea-source-text")?.value.includes("Suco natural"));
   await page.getByRole("button",{name:/Criar minha prévia/}).click();
-  await page.locator(".ai-selected").waitFor({timeout:90_000});
+  await chooseMenuPreview(page);
   await page.getByRole("button",{name:"Escolher outro",exact:true}).click();
   await page.locator(".ai-style-card").first().waitFor();
   assert.ok((await page.locator(".ai-style-card .mini-product").count())>=1);
@@ -105,7 +106,7 @@ try{
   await page.getByRole("button",{name:"Remover capa"}).waitFor();
   const first=page.locator(".ai-style-card").first();
   await first.locator(".ai-style-footer button").last().click();
-  await page.locator(".ai-selected").waitFor();
+  await chooseMenuPreview(page);
   await page.locator(".ai-selected-more summary").click();
    for(const prompt of ["Quero verde com cantos arredondados","Agora azul e uma lista compacta","Quero azul com animação 3D da lua"]){
    await page.getByRole("button",{name:"Ajustar cores, fotos e textos"}).click();
