@@ -1,6 +1,17 @@
 import {defaultRestaurant,type RestaurantData,type Product} from "./domain.ts";
 import {applyReaderItems,normalizeMenuText,readerItemReady,type ReaderItem} from "./menu-reader-policy.ts";
 
+/** Display confirmed local photos before upload. The returned view must never
+ * be persisted: applyReaderItems still produces the validated draft patch. */
+export function previewReviewedMenu(data:RestaurantData,items:ReaderItem[],photos:Record<string,string>,approved:Record<string,boolean>):RestaurantData{
+ let index=0;const preview={...data,...applyReaderItems(data,items,()=>`import-preview-${++index}`)};
+ const selected=new Map(items.filter(item=>item.selected&&item.kind!=="crust"&&approved[item.id]&&!item.image&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(photos[item.id]||"")).map(item=>[item.kind+":"+normalizeMenuText(item.name),photos[item.id]]));
+ return {...preview,products:preview.products.map(product=>{
+  const photo=selected.get(product.kind+":"+normalizeMenuText(product.name));
+  return photo?{...product,image:photo}:product;
+ })};
+}
+
 /** The guest preview is never saved as a sellable menu. In particular, a pizza
  * price without its size must not be silently assigned to P, M or G. */
 export function previewMenuWithReaderItems(items:ReaderItem[],photos:Record<string,string>={}):RestaurantData{

@@ -14,20 +14,24 @@ const output=path.resolve(process.env.QA_BROWSER_OUTPUT||'.sites-runtime/browser
 const url=restaurantUrl(),menu=apifyIfoodMenu(exampleDataset({menuSource:'catalog-search',menuCompletenessStatus:'partial-fallback'}),url);
 assert.equal(menu.count,3);
 const browser=await chromium.launch({executablePath:process.env.QA_CHROME_PATH,headless:true});
-const checks=[],errors=[];let context,lookups=0;
-try{
+const checks=[],errors=[];let context,lookups=0,responseMode="partial";
+async function start(){
  context=await browser.newContext({...devices['Pixel 7'],locale:'pt-BR',serviceWorkers:'block'});
  await context.route('**/*',async route=>{
   const request=route.request(),target=new URL(request.url());
   if(target.origin===base&&target.pathname==='/api/auth/config'&&request.method()==='GET')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({enabled:true,registrationEnabled:true,csrf:'synthetic-apify-qa'})});
   if(target.origin===base&&target.pathname==='/api/menu-source'&&request.method()==='POST'){
    assert.equal(request.postDataJSON().url,url);lookups++;
-   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({status:'imported',url,text:menu.text,count:menu.count,message:'Trouxemos uma parte do catálogo: 3 produtos para conferir. Revise preços, tamanhos e complementos antes de adicionar.'})});
+   const value=responseMode==='partial'?{status:'imported',url,text:menu.text,count:menu.count,message:'Trouxemos uma parte do catálogo: 3 produtos para conferir. Revise preços, tamanhos e complementos antes de adicionar.'}:{status:'needs_content',url,text:'',count:0,message:'Não recebemos produtos verificáveis dessa loja. Continue com PDF, TXT/CSV ou fotos do cardápio.'};
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(value)});
   }
   if(target.origin===base&&['GET','HEAD','OPTIONS'].includes(request.method()))return route.continue();
   errors.push(request.method()+' '+target.origin+target.pathname);return route.abort();
  });
- const page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>errors.push(e.message));
+ const page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>errors.push(e.message));return page;
+}
+try{
+ let page=await start();
  await page.goto(base+'/criar',{waitUntil:'networkidle',timeout:90000});await page.waitForFunction(()=>document.querySelector('#owner-intake-message')?.disabled===false);
  await page.locator('#owner-intake-message').fill(url);await page.locator('.owner-intake-reply button[type=submit]').click();
  const nameChoice=page.getByRole('region',{name:'Confirme o nome da pizzaria'});await nameChoice.waitFor();assert.match(await nameChoice.textContent(),/Forno Azul De Teste/);
@@ -46,7 +50,18 @@ try{
  assert.ok(checkpoint.sourceText.includes('Calabresa da Forno Azul R$ 49,90'));assert.ok(checkpoint.sourceText.includes('Água mineral sem gás R$ 5,50'));assert.ok(checkpoint.sourceText.includes('Guaraná da casa R$ 11,50'));
  checks.push({name:'prices appear in the display-only preview; the unsized pizza stays pending in the checkpoint and reload never repeats the lookup',ok:true});
  for(const width of [320,412,1280]){await page.setViewportSize({width,height:915});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);}
+ await context.close();responseMode='empty';page=await start();
+ await page.goto(base+'/criar',{waitUntil:'networkidle',timeout:90000});await page.waitForFunction(()=>document.querySelector('#owner-intake-message')?.disabled===false);
+ await page.locator('#owner-intake-message').fill(url);await page.locator('.owner-intake-reply button[type=submit]').click();
+ await page.getByRole('region',{name:'Confirme o nome da pizzaria'}).getByRole('button',{name:'Usar este nome',exact:true}).click();
+ await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await chooseMenuPreview(page);
+ assert.equal(await page.locator('.mini-product').count(),0,'An empty linked catalogue must never turn into sample pizzas');
+ assert.match(await page.locator('.idea-notice').textContent(),/Não recebemos produtos verificáveis/);assert.equal(lookups,2);
+ await page.screenshot({path:path.join(output,'catalogo-vazio-sem-produtos-inventados.png'),fullPage:true});
+ await page.reload({waitUntil:'networkidle'});await chooseMenuPreview(page);
+ assert.equal(await page.locator('.mini-product').count(),0);assert.match(await page.locator('.idea-notice').textContent(),/O link não trouxe produtos/);assert.equal(lookups,2,'Reload must not repeat the collector');
+ checks.push({name:'an empty or blocked source remains empty with a recovery notice after preview and reload, never fictional products or a repeated collection',ok:true});
  assert.deepEqual(errors,[]);
 }finally{
- await context?.close();await browser.close();await writeFile(path.join(output,'summary.json'),JSON.stringify({checks,errors,lookups,fictitious:true,scope:'UI + local browser storage with normalized simulated Apify dataset; no real Actor, account, order or payment',passed:checks.length===2&&!errors.length},null,2));
+ await context?.close();await browser.close();await writeFile(path.join(output,'summary.json'),JSON.stringify({checks,errors,lookups,fictitious:true,scope:'UI + local browser storage with normalized simulated Apify dataset; no real Actor, account, order or payment',passed:checks.length===3&&!errors.length},null,2));
 }

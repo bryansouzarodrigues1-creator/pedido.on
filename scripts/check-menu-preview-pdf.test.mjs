@@ -1,9 +1,40 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readMenuPages,readerItemReady} from '../lib/menu-reader-policy.ts';
-import {previewMenuWithReaderItems} from '../lib/menu-preview.ts';
+import {previewMenuWithReaderItems,previewReviewedMenu} from '../lib/menu-preview.ts';
+import {defaultRestaurant,restaurantSchema} from '../lib/domain.ts';
+import {applyReaderItems,prepareReaderItems} from '../lib/menu-reader-policy.ts';
 
 const scan=(rows)=>readMenuPages([{id:'pdf-1',lines:rows.map(text=>({text}))}]);
+
+test('owner preview shows only confirmed selected local photos without uploading or changing the validated draft',()=>{
+ const data=defaultRestaurant('Forno de teste'),{items}=scan(['Bebidas','Água mineral R$ 5,00','Suco natural R$ 12,00']);
+ const original=structuredClone({data,items}),photo='data:image/jpeg;base64,AAAA';
+ const photos=Object.fromEntries(items.map(item=>[item.id,photo]));
+ const approved={[items[0].id]:true};
+ const preview=previewReviewedMenu(data,items,photos,approved);
+ assert.deepEqual(preview.products.map(product=>[product.name,product.image]),[['Água mineral',photo],['Suco natural','']]);
+ assert.deepEqual({data,items},original);
+ const patch=applyReaderItems(data,items);assert.equal(patch.products.every(product=>product.image===''),true);
+ restaurantSchema.parse({...data,...patch});
+ assert.equal(previewReviewedMenu(data,items,photos,{}).products.every(product=>product.image===''),true);
+ items[0].selected=false;
+ assert.deepEqual(previewReviewedMenu(data,items,photos,approved).products.map(product=>product.name),['Suco natural']);
+});
+
+test('review preview keeps existing photos and rejects remote or malformed suggestions',()=>{
+ const data=defaultRestaurant('Forno de teste'),{items}=scan(['Bebidas','Água mineral R$ 5,00']);
+ data.products=applyReaderItems(data,items).products;data.products[0].image='/media/shop/existing.jpg';
+ const [item]=prepareReaderItems(items,data);item.selected=true;
+ const original=structuredClone(data);
+ for(const photo of ['https://external.invalid/image.jpg','data:image/svg+xml;base64,AAAA','data:image/jpeg;base64,not valid']){
+  const preview=previewReviewedMenu(data,[item],{[item.id]:photo},{[item.id]:true});
+  assert.equal(preview.products[0].image,'/media/shop/existing.jpg');
+ }
+ item.image='/media/shop/already-confirmed.jpg';
+ assert.equal(previewReviewedMenu(data,[item],{[item.id]:'data:image/jpeg;base64,AAAA'},{[item.id]:true}).products[0].image,item.image);
+ assert.deepEqual(data,original);
+});
 
 test('PDF descriptions on separate lines do not become products with the next price',()=>{
  const parsed=scan(['Pizzas','Margherita R$ 55,00','fresco e azeite.','Chocolate R$ 48,00','Ganache e morangos frescos.']);
