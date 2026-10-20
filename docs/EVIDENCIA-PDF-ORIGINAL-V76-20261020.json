@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-20",
+  "phase": "published-and-public-browser-verified",
+  "projectId": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+  "versionNumber": 76,
+  "versionId": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_4fb31017e5fc8191bfc0ef4ee712c302",
+  "sourceCommit": "571d8905221c81407d8ff18d9964a91e65020285",
+  "tree": "bb26f3644ba70b6caecba60fba33c5ec32465da0",
+  "github": {
+    "pr": 74,
+    "head": "b6276753e8390ee6d453484ba1032e3db49d05bd",
+    "merge": "13f3618aa5c1f4c9fa8d16de99a11189312b2aae",
+    "mirrorPr": 31,
+    "mirrorMerge": "6b920118429e332199e8fe3fea3e23f9a6d7e573"
+  },
+  "deployment": {
+    "id": "appgdep_6ad7ce9f6e68819195bbb051d702abc6",
+    "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "title": "pizzaria.on — Cardápio e pedidos para pizzarias",
+    "version_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_4fb31017e5fc8191bfc0ef4ee712c302",
+    "type": "publish",
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "has_mcp": false,
+    "screenshot_asset_pointer": null,
+    "provider_deployment_id": "site---6ac6d3ea9f7881918f315a156338ed52",
+    "failure_message": null,
+    "env_set_revision": 13,
+    "updated_at": "2026-10-20T20:27:38.313198+00:00"
+  },
+  "pdf": {
+    "name": "cardapio_pizzaria_forno_mangericao.pdf",
+    "sha256": "0647b8cd28ae3638a17fdefa1ae121111f8f8d59915625a8d56a5a6ca8fdb75b",
+    "pages": 7,
+    "expected": 48,
+    "recognized": 48,
+    "exactPrices": 48,
+    "extra": 0,
+    "ready": 45,
+    "reviewRequired": 3,
+    "individualPhotoCandidates": 3,
+    "photoProof": "Local raster and geometric association; not a real production upload",
+    "originalUploadedToRepository": false
+  },
+  "checks": {
+    "tests": 526,
+    "failed": 0,
+    "typecheck": "passed",
+    "build": "passed",
+    "chromeLocalSuites": 12,
+    "chromePublicSuites": 7,
+    "chromePublicVersion": 76,
+    "publicScreenshotInspected": true,
+    "physicalAndroid": false,
+    "windows": "passed",
+    "authOrders": "passed",
+    "mirror": "passed",
+    "digitalBenchmark": "passed",
+    "photoOcrExact": 13,
+    "photoOcrExpected": 21,
+    "photoOcrReady": 14
+  },
+  "ci": {
+    "chrome": 39491215446,
+    "attempts": [
+      1,
+      2
+    ],
+    "windows": 39491215480,
+    "authOrders": 39491215479,
+    "pdfBenchmark": 39491215488,
+    "mirror": 39491272396
+  },
+  "artifacts": {
+    "chromeInitial": {
+      "id": 12296910037,
+      "sha256": "97d55e4e1a0bbfa475441713db185c3652a2d8f41c5381b49e2a1df86de72762",
+      "digestVerified": true
+    },
+    "chromePublicFinal": {
+      "id": 12296517142,
+      "sha256": "950d189a96307a733c834c616eb64fc64d55a72bba9e98825446728b03b08c49",
+      "digestVerified": true
+    },
+    "pdfBenchmark": {
+      "id": 12296176951,
+      "sha256": "b780041f0032a666ce49ab3a890d197ebb966b29dcda2947ce1f0a222bfe8846"
+    }
+  },
+  "database": {
+    "restaurantsBefore": 7,
+    "restaurantsAfter": 7,
+    "completeRows": true,
+    "unchangedFullRows": true,
+    "migrations": false,
+    "afterPublicChrome": true
+  },
+  "apify": {
+    "serverBridgeImplemented": true,
+    "enabled": false,
+    "serverTokenPresent": false,
+    "realCatalogImported": false,
+    "previousRealTrials": 3,
+    "previousRealProducts": 0,
+    "newRealActorRuns": 0,
+    "transportTests": "simulated"
+  },
+  "externalActions": {
+    "environmentChanged": false,
+    "paidImageGeneration": false,
+    "newCharges": false,
+    "outboundMessages": false
+  },
+  "limitations": [
+    "Older PDF line associations may require re-upload of the original; replacement preserves the previous source on failure",
+    "Ambiguous photos and price conflicts need review",
+    "No physical Android test",
+    "No real iFood catalogue captured; Apify remains disabled",
+    "Photo OCR benchmark remains 13/21 exact prices"
+  ]
+}

@@ -1,10 +1,10 @@
 # pizzaria.on
 
-**Retomada em validação — 20/10/2026:** PDF original com 48/48 nomes e preços, fotos individuais localizadas, escolha explícita de modelo e prévia sem corte de valores. Leitura antiga do convidado é reconstruída da fonte preservada. Produção segue v69 até conclusão de build/Chrome. [Provas e limites](docs/PDF-ORIGINAL-PREVIA-20261020.md).
+**Publicação vigente — v76, 20/10/2026, 17:27 de Brasília:** PDF original com 48/48 nomes e preços, sugestões de fotos da fonte, escolha explícita do modelo e prévia rolável sem ocultar valores. Reenvio do mesmo PDF substitui suas páginas sem perder a leitura anterior se falhar. 526 testes, TypeScript/build, Chrome local/público na v76, Windows, autenticação/pedidos e mirror aprovados. Sete cadastros completos preservados; Apify do servidor preparada e desligada, sem catálogo real importado. [Provas e limites](docs/PDF-ORIGINAL-PREVIA-20261020.md).
 
-**Em validação — integração Apify do servidor, 20/10/2026:** ponte protegida e conversão para revisão implementadas, desativadas por padrão. 499 testes (17 novos) e TypeScript aprovados na candidata final; build/Chrome/publicação pendentes. Três ensaios reais anteriores continuam com zero produtos; não anunciar importação iFood resolvida. [Ativação, limites e provas](docs/APIFY-INTEGRACAO-SERVIDOR-20261020.md).
 
-**Publicação vigente — v69, 20/10/2026, 08:28 de Brasília:** PDF digital preserva centavos separados e exige revisão de texto corrompido/colunas ambíguas. 482 testes, TypeScript/build, Chrome, Windows, autenticação/pedidos e mirror aprovados; sete cadastros completos preservados. Apify conectada, três testes reais e zero produtos: iFood continua pendente. Foto OCR permanece 13/21. [Resultados e limites](docs/PDF-APIFY-20261020.md).
+
+**Publicação anterior — v69, 20/10/2026, 08:28 de Brasília:** PDF digital preserva centavos separados e exige revisão de texto corrompido/colunas ambíguas. 482 testes, TypeScript/build, Chrome, Windows, autenticação/pedidos e mirror aprovados; sete cadastros completos preservados. Apify conectada, três testes reais e zero produtos: iFood continua pendente. Foto OCR permanece 13/21. [Resultados e limites](docs/PDF-APIFY-20261020.md).
 
 **Publicação anterior — v68, 19/10/2026:** revisão iFood mantém descrições no produto, reserva espaço para a URL em catálogos grandes e rejeita conflitos mesmo após 500 itens. Passaram 476 testes, TypeScript/build e CI Chrome/Windows/auth; sete cadastros completos preservados. Link público real ainda bloqueado e conector oficial desligado. Medição OCR de PDF real: 13/21 preços corretos, exigindo revisão. [Mudanças, acesso e provas](docs/IFOOD-ACESSO-E-CATALOGO-20261019.md).
 

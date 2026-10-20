@@ -1,5 +1,7 @@
 # Coletor iFood: integração do servidor preparada — 20/10/2026
 
+**Ponte publicada na v76, ainda desativada.** 526 testes, TypeScript/build, Chrome local/público, Windows e mirror aprovados; ambiente 13 preservado, sem token/flags Apify. [Resultado final e limites](PDF-ORIGINAL-PREVIA-20261020.md).
+
 **O catálogo real ainda não foi obtido.** Os três ensaios externos anteriores retornaram zero produtos. Esta continuação implementa a ponte do servidor e a revisão, com transporte simulado; não repete esses ensaios nem ativa o coletor em produção. A conexão Apify do chat não disponibiliza sua credencial para os visitantes do site.
 
 ## Comportamento implementado
@@ -47,7 +49,7 @@ Nesta entrega, as flags e o token estão ausentes do ambiente de produção, que
 
 ## Testes e publicação
 
-Passaram 499 testes (17 novos) e TypeScript na candidata final. A verificação final, build, CI Chrome/Windows, publicação e comparação dos sete cadastros serão registrados após a conclusão.
+A primeira candidata passou em 499 testes (17 novos). A entrega final v76 passou em 526, TypeScript/build e CI Chrome/Windows; os sete cadastros completos permaneceram iguais, inclusive após a conferência pública. Os dados dos ensaios novos de coletor são simulados.
 
 Os cenários novos usam a fictícia **Forno Azul de Teste**: Calabresa R$49,90, água R$5,50 e guaraná R$11,50. Cobrem sucesso/partial, vazio/bloqueio, outra loja, moeda/contagem inválida, centavos, preços conflitantes/adicionais, limite de texto, cancelamento/erro/redirect/stream grande, segredo e cabeçalhos, cache/TTL, concorrência e cotas em workerd com D1 real local. O QA Chrome adicional usa a mesma resposta simulada normalizada e armazenamento local do navegador: não é uma importação externa real, nem Android físico. OCR de fotos permanece na medição anterior 13/21; nenhuma melhora geral foi medida aqui.
 
