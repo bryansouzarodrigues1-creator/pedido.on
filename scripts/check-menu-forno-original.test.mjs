@@ -131,3 +131,18 @@ test('drinks priced at the right edge of the left PDF column stay separate from 
   assert.equal(item.price,price,name);assert.equal(readerItemReady(item),true,name);
  }
 });
+
+test('three separated product columns never become two invented midpoint associations',()=>{
+ const w=1488,h=2105;
+ const s=(str,x,y,pixels)=>({str,width:pixels,height:24,transform:[24,0,0,24,x,h-y]});
+ const spans=[s('PIZZAS',196,100,120),
+  s('Ouro branco',196,300,160),s('Calabresa',648,300,145),s('Champignon R$ 3,50',1137,300,280),
+  s('R$ 4',526,335,65),s('R$ 7',980,335,65),
+  s('Sonho de valsa',196,440,180),s('Bacon',648,440,90),s('Tomate R$ 2,50',1137,440,280),
+  s('R$ 4',526,475,65),s('R$ 7',980,475,65)];
+ const lines=pdfMenuLines(spans,[1,0,0,-1,0,h],1,w,h);
+ const mixed=lines.find(line=>line.text.includes('Sonho de valsa')&&line.text.includes('Bacon')&&line.text.includes('Tomate'));
+ assert.ok(mixed,JSON.stringify(lines));assert.equal(mixed.layoutUncertain,true);
+ const parsed=readMenuPages([{id:'three-columns',lines}]);
+ assert.equal(parsed.items.some(item=>item.name.includes('Sonho')&&readerItemReady(item)),false);
+});

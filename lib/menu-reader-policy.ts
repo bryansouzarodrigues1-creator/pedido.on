@@ -95,7 +95,7 @@ export function readProductDetail(page:Pick<ReaderPage,"id"|"lines">):ReaderItem
  const weakPrice=(lines[priceIndex].priceConfidence??lines[priceIndex].confidence??100)<75||lines.slice(start,priceIndex+1).some(l=>l.textUncertain||l.layoutUncertain);
  return {id:page.id+"-detail",sourceId:page.id,sourceText:relevant.map(l=>l.text).join("\n").slice(0,2000),box,name:title.text.slice(0,100),description,category:kind==="pizza"?"Pizzas":drink?"Bebidas":combo?"Combos":burger?"Lanches":"Produtos",kind,price:prices[0]||null,sizes:{p:null,m:null,g:null},issues:[...(promotional?["Este print mostra uma oferta do aplicativo. Defina o preço que sua loja realmente vai praticar."]:[]),...(weakPrice?["Confira o preço: a leitura desse valor tem baixa confiança."]:[]),...(optional>=0?["Bebidas e adicionais opcionais não foram incluídos no produto."]:[]),...(kind==="pizza"?["Escolha o tamanho desse preço."]:[])],reviewRequired:promotional||weakPrice,selected:!promotional&&!weakPrice&&kind!=="pizza",action:"add"};
 }
-export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
+export function arrangeMenuWords(words:ReaderWord[],width:number,options:{digitalPdf?:boolean}={}):ReaderLine[]{
   // Keep prices with their row and preserve parallel menu columns using word positions.
   const rows:{y:number;height:number;words:ReaderWord[]}[]=[];
   for(const word of words.filter(w=>w.text.trim()).sort((a,b)=>a.box.y1-b.box.y1)){
@@ -152,10 +152,14 @@ export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
   // names and prices on one line and merged whole side-by-side catalogues.
   // Two independent rows of textual content on opposing halves are enough to
   // identify a persistent column split; a lone mixed row is not.
-  if(!boundaries.length){
+  if(!boundaries.length&&options.digitalPdf){
     const middle=width/2;
     const named=(part:ReaderWord[])=>{
-      const value=part.map(w=>w.text).join(" ").trim();
+      const sorted=[...part].sort((a,b)=>a.box.x0-b.box.x0);
+      // Two names in the same half can belong to a three-column catalogue.
+      // Splitting that page at its midpoint invents a product association.
+      if(sorted.some((word,i)=>i>0&&word.box.x0-sorted[i-1].box.x1>=width*.06))return false;
+      const value=sorted.map(w=>w.text).join(" ").trim();
       return validProductName(value)&&!value.match(priceRE)&&!categoryFor(value)&&
         (value.match(/[\p{L}]/gu)?.length||0)>=4&&
         !/^(?:R\s*\$|[PMG]\s*(?:[:;]|R\s*\$)|\d)/i.test(value);
@@ -180,7 +184,7 @@ export function arrangeMenuWords(words:ReaderWord[],width:number):ReaderLine[]{
       // Category titles are shorter than product rows. A midpoint between
       // headings can cut the left column's right-aligned price off and attach
       // it to the next column's product (e.g. drinks next to desserts).
-      const x=end<width/2&&start>width/2?width/2:(end+start)/2;
+      const x=options.digitalPdf&&end<width/2&&start>width/2?width/2:(end+start)/2;
       if(!boundaries.some(b=>Math.abs(b-x)<width*.1))boundaries.push(x);
     }
   }

@@ -12,7 +12,7 @@ export function pdfMenuLines(items:PdfTextItem[],matrix:number[],scale:number,wi
   const box={x0:Math.max(0,Math.min(width-1,x)),y0:Math.max(0,Math.min(height-1,y-h)),x1:Math.min(width,x+w),y1:Math.min(height,y)};
   if(box.x1>box.x0&&box.y1>box.y0)words.push({text,confidence:100,box});
  }
- return arrangeMenuWords(words,width).map(line=>{
+ return arrangeMenuWords(words,width,{digitalPdf:true}).map(line=>{
   // A PDF font can map visible accents to unrelated Unicode characters.
   // Do not repair names by guessing, or treat every digital span as reliable.
   const textUncertain=/\uFFFD|[\p{L}][„˙…·][\p{L}]|¡[\p{L}]/u.test(line.text);
