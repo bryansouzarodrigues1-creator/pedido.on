@@ -1,6 +1,6 @@
 {
   "date": "2026-10-20",
-  "phase": "candidate-validated-locally",
+  "phase": "published-and-verified",
   "projectId": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
   "scope": "PDF digital: centavos separados, revisão de texto corrompido e colunas misturadas. Não equivale a importação iFood resolvida.",
   "apify": {
@@ -102,7 +102,8 @@
       "exactPriceMatches": 13,
       "ready": 14,
       "improved": false
-    }
+    },
+    "build": "passed"
   },
   "beforeAfterCents": [
     {
@@ -129,7 +130,11 @@
   "database": {
     "restaurantsBefore": 7,
     "completeRowsBefore": true,
-    "migrations": false
+    "migrations": false,
+    "restaurantsAfter": 7,
+    "completeRowsAfter": true,
+    "unchangedFullRows": true,
+    "afterFinalBrowserQA": true
   },
   "limitations": [
     "No physical Android test",
@@ -143,5 +148,67 @@
     "outboundMessages": false,
     "paidImageGeneration": false,
     "environmentChanged": false
+  },
+  "sourceCommit": "bf6a11dda51924f1db86c2bf279575f38d1927f6",
+  "tree": "c46187cfd8ca089d998b9eac85f2aa058436cfc1",
+  "versionNumber": 69,
+  "versionId": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_b28b4aac40c4819181bfb9ffd17ddfcc",
+  "deployment": {
+    "id": "appgdep_6ad750437cb48191982c68d01fecbbd9",
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "envRevision": 13,
+    "updatedAt": "2026-10-20T11:28:27.486519+00:00"
+  },
+  "mainPr": 73,
+  "mainHead": "ca1134c52752b3772bc7b30c9312f494538510a5",
+  "mainMerge": "9428b43fd97517cc1bfd836a6f3b666fc1e99e2c",
+  "mirrorPr": 30,
+  "mirrorMerge": "53704e8d4803234f0fa5b2062ee0702f480475c7",
+  "ci": {
+    "chrome": 39414453515,
+    "windows": 39414453553,
+    "authOrders": 39414453499,
+    "pdfBenchmark": 39414453549,
+    "mirror": 39414457326,
+    "conclusions": "all success; Chrome attempts 1 and 2 successful"
+  },
+  "chrome": {
+    "localSuites": 11,
+    "publicSuites": 7,
+    "errors": [],
+    "publicVersion": "v68 before v69 deployment",
+    "physicalAndroid": false,
+    "localCommit": "10d2b1fca86d360fd3004f38088be008ce0676d5",
+    "artifactId": 12260916584,
+    "artifactSha256": "ff5f6d145eb128f24b682579fe2682abe7fd1fde1f8acd12b87b3305984a6819",
+    "artifactDigestVerified": true,
+    "screenshotInspected": true,
+    "finalPublicCheck": {
+      "run": 39414453515,
+      "attempt": 2,
+      "status": "success",
+      "localSuites": 11,
+      "publicSuites": 7,
+      "publicVersion": "v69",
+      "errors": [],
+      "artifactId": 12261527040,
+      "artifactSha256": "3ea23ee811bec325de860cfc9804bdefcaa9571aa303889c90e43a314b5d6dd5",
+      "artifactDigestVerified": true,
+      "screenshotInspected": true
+    }
+  },
+  "pdfArtifact": {
+    "id": 12260084787,
+    "digestVerified": true,
+    "sha256": "6bf0c780d0bab0bb3854414f2e41890dad67b3cc2143e51a97508adc94b492e0"
+  },
+  "terminalHttp": {
+    "path": "/",
+    "status": 403,
+    "cloudflareCode": 1010,
+    "notAnApplicationException": true,
+    "browserRecheckPending": false,
+    "browserRecheck": "success, attempt 2 after v69 deployment"
   }
 }
