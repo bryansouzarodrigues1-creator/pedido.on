@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pizzaria.on | Importar cardápio</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main>
+    <header><span class="mark" aria-hidden="true">🍕</span><div><strong>Pizzaria.on</strong><small>Importação assistida do iFood</small></div></header>
+    <section class="intro">
+      <h1>Seu cardápio, sem digitar tudo.</h1>
+      <p>Abra uma loja no iFood e clique abaixo. A leitura acontece neste navegador e não altera a loja.</p>
+      <button id="read" class="primary">Ler cardápio desta aba</button>
+      <p id="notice" class="notice" role="status" aria-live="polite">Nenhuma leitura iniciada.</p>
+    </section>
+    <section id="results" hidden>
+      <h2 id="store">Produtos encontrados</h2>
+      <p id="summary"></p>
+      <div class="toolbar"><button id="selectAll">Selecionar válidos</button><button id="deselectAll">Limpar seleção</button></div>
+      <div id="products" class="products"></div>
+      <div class="actions"><button id="copy" class="primary">Copiar para o Pizzaria.on</button><button id="txt">Baixar TXT</button><button id="json">Baixar JSON + links das fotos</button></div>
+      <p class="hint">Pizzas sem tamanho definido precisam de confirmação no Pizzaria.on. Fotos no JSON são referências, não imagens importadas.</p>
+      <a id="openSite" href="https://forno-cardapios.waves4845.chatgpt.site/criar" target="_blank" rel="noopener noreferrer">Abrir Pizzaria.on ↗</a>
+    </section>
+    <footer>Extensão independente • Sem senha, scraping oculto ou chamadas pagas • Use apenas cardápios que você pode importar.</footer>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
