@@ -1,5 +1,7 @@
 # pizzaria.on
 
+**Correções adicionais em validação — 20/10/2026:** fotos na prévia do painel, leitura antiga atualizada ao avançar para a conta e catálogo vazio quando o link não traz produtos. [Continuidade e provas](docs/CONTINUIDADE-IMPORTACAO-20261020.md).
+
 **Publicação vigente — v76, 20/10/2026, 17:27 de Brasília:** PDF original com 48/48 nomes e preços, sugestões de fotos da fonte, escolha explícita do modelo e prévia rolável sem ocultar valores. Reenvio do mesmo PDF substitui suas páginas sem perder a leitura anterior se falhar. 526 testes, TypeScript/build, Chrome local/público na v76, Windows, autenticação/pedidos e mirror aprovados. Sete cadastros completos preservados; Apify do servidor preparada e desligada, sem catálogo real importado. [Provas e limites](docs/PDF-ORIGINAL-PREVIA-20261020.md).
 
 

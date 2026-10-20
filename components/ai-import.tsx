@@ -4,7 +4,7 @@ import {Upload,Camera,ArrowRight,Check,Trash2,RotateCw,FileText,AlertCircle,Eye,
 import {Modal,Spinner} from "./ui";
 import Menu from "./menu";
 import {money,type RestaurantData,type Size} from "@/lib/domain";
-import {readMenuPages,prepareReaderItems,applyReaderItems,readerItemReady,menuAmount,importReaderItems,reconcileReaderReview,type ReaderItem,type ReaderPage} from "@/lib/menu-reader-policy";
+import {readMenuPages,prepareReaderItems,readerItemReady,menuAmount,importReaderItems,reconcileReaderReview,type ReaderItem,type ReaderPage} from "@/lib/menu-reader-policy";
 import {loadReading,saveReading,removeReading,type Reading} from "@/lib/menu-reader-storage";
 import {prepareMenuPhoto,recognizeMenuPhotos,rotateMenuPhoto} from "@/lib/menu-ocr";
 import ProductPhotoCrop from "./product-photo-crop";
@@ -15,6 +15,7 @@ import type {MenuStoreInfo} from "@/lib/menu-store-info";
 import {readMenuAttachment} from "@/lib/menu-attachment";
 import {previewMenuPhotos} from "@/lib/menu-photo-preview";
 import {attachApprovedMenuPhotos} from "@/lib/menu-photo-upload";
+import {previewReviewedMenu} from "@/lib/menu-preview";
 import {retainedMenuPages,hasLegacyMenuPdf,legacyPdfNotice} from "@/lib/menu-pdf-source";
 import {fetchMenuSource} from "@/lib/menu-source-client";
 import {inspectMenuSourceText,mergeReaderSource} from "@/lib/menu-source-links";
@@ -92,7 +93,7 @@ export default function AiImport({restaurantId,draft,onImport,onActivityChange,i
   async function applyStore(){if(busy||!Object.keys(storePatch).length)return;setBusy(true);setError("");try{await onImport(storePatch);setStoreApplied(true);}catch(e){setError(e instanceof Error?e.message:"Não foi possível guardar os dados. Tente novamente.");}finally{setBusy(false);}}
   function assignSize(size:Size){setConfirmed(false);setItems(old=>old.map(v=>v.kind==="pizza"&&v.price?{...v,price:null,sizes:{...v.sizes,[size]:v.price},issues:v.issues.filter(s=>!s.includes("tamanho desse preço"))}:v));}
   const selected=items.filter(v=>v.selected),pending=items.filter(v=>!readerItemReady(v));
-  let previewData:RestaurantData|null=null;try{let n=0;previewData={...draft,...applyReaderItems(draft,items,()=>`import-preview-${++n}`)};}catch{}
+  let previewData:RestaurantData|null=null;try{previewData=previewReviewedMenu(draft,items,photoSuggestions,approvedPhotos);}catch{}
   async function apply(){
     if(applying.current)return;applying.current=true;setBusy(true);
     try{
