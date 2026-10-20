@@ -1,0 +1,147 @@
+{
+  "date": "2026-10-20",
+  "phase": "candidate-validated-locally",
+  "projectId": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+  "scope": "PDF digital: centavos separados, revisão de texto corrompido e colunas misturadas. Não equivale a importação iFood resolvida.",
+  "apify": {
+    "connected": true,
+    "accountTier": "FREE",
+    "tests": [
+      {
+        "store": "Master Pizzas - Búzios",
+        "actor": "viralanalyzer/ifood-restaurant-intelligence",
+        "runId": "vUCh4zS7xPcxNcQyJ",
+        "datasetId": "rG5Y75bD229fmjhuh",
+        "status": "SUCCEEDED",
+        "products": 0,
+        "menuExtractionStatus": "catalog-blocked-or-empty"
+      },
+      {
+        "store": "Aione Pizzas - Cabo Frio",
+        "actor": "viralanalyzer/ifood-restaurant-intelligence",
+        "runId": "sVxMPYDbUlXCZIZqt",
+        "datasetId": "C1EvGafbydBhxyNCy",
+        "status": "SUCCEEDED",
+        "products": 0,
+        "menuExtractionStatus": "catalog-blocked-or-empty"
+      },
+      {
+        "store": "Master Pizzas - Búzios",
+        "actor": "crawloop/ifood-restaurant-scraper",
+        "runId": "Ug9s0pXodauniPezm",
+        "datasetId": "ic9W1gD2yUgJUS4Y6",
+        "status": "FAILED",
+        "products": 0,
+        "reason": "iFood blocked every restaurant. Brazil residential did not open the menu."
+      }
+    ],
+    "subscriptionPurchased": false,
+    "siteIntegrated": false,
+    "exactBilledAmount": "not exposed by connected tools"
+  },
+  "local": {
+    "tests": 482,
+    "failed": 0,
+    "skipped": 0,
+    "typecheck": "passed",
+    "digitalPdf": {
+      "source": "https://4estylos.com.br/public/archives/CARDAPIO_PIZZARIA_2025.pdf",
+      "sha256": "437c75008bda1d024215f2adcce0ce97fccbabb42e237a330219cc8f340816c1",
+      "pages": [
+        {
+          "page": 11,
+          "items": 23,
+          "ready": 10,
+          "fontWarnings": 7,
+          "layoutWarnings": 4
+        },
+        {
+          "page": 19,
+          "items": 35,
+          "ready": 9,
+          "fontWarnings": 4,
+          "layoutWarnings": 0
+        }
+      ],
+      "checks": [
+        {
+          "name": "Unresolved product columns require review",
+          "ok": true
+        },
+        {
+          "name": "Refrigerante 1Lt",
+          "price": 1050,
+          "exact": true
+        },
+        {
+          "name": "Refigerante lata 350ml",
+          "price": 650,
+          "exact": true
+        },
+        {
+          "name": "Refrigerante Coca cola 1Lt",
+          "price": 1150,
+          "exact": true
+        },
+        {
+          "name": "Refrigerante Coca cola zero 1Lt",
+          "price": 1150,
+          "exact": true
+        },
+        {
+          "name": "Corrupted PDF font requires review",
+          "ok": true
+        }
+      ],
+      "paidAiCalls": 0,
+      "customerData": false,
+      "mode": "PDF.js digital text, not photo OCR"
+    },
+    "photoOcr": {
+      "expected": 21,
+      "exactPriceMatches": 13,
+      "ready": 14,
+      "improved": false
+    }
+  },
+  "beforeAfterCents": [
+    {
+      "source": "Refrigerante 1Lt",
+      "before": 1000,
+      "after": 1050
+    },
+    {
+      "source": "Refigerante lata 350ml",
+      "before": 600,
+      "after": 650
+    },
+    {
+      "source": "Refrigerante Coca cola 1Lt",
+      "before": 1100,
+      "after": 1150
+    },
+    {
+      "source": "Refrigerante Coca cola zero 1Lt",
+      "before": 1100,
+      "after": 1150
+    }
+  ],
+  "database": {
+    "restaurantsBefore": 7,
+    "completeRowsBefore": true,
+    "migrations": false
+  },
+  "limitations": [
+    "No physical Android test",
+    "No real iFood import",
+    "Photo OCR remains 13/21 exact prices on this benchmark",
+    "Corrupt PDF text is flagged, not guessed",
+    "Ambiguous columns require review"
+  ],
+  "externalActions": {
+    "newCharges": false,
+    "outboundMessages": false,
+    "paidImageGeneration": false,
+    "environmentChanged": false
+  }
+}
