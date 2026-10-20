@@ -40,7 +40,15 @@ async function preview(){await page.getByRole('button',{name:'Criar minha prévi
 async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();}
 try{
  await start();await attach('cardapio-texto.pdf',Buffer.from(fixtures.text,'base64'));await page.locator('.idea-photos img').first().waitFor();
- assert.equal(await page.locator('.idea-photos img').count(),2);await page.getByRole('button',{name:'Criar minha prévia',exact:true}).waitFor();
+ assert.equal(await page.locator('.idea-photos img').count(),2);
+ if(!publicReadOnly){
+  await attach('cardapio-texto.pdf',Buffer.from('broken PDF'));await page.getByRole('alert').filter({hasText:/PDF válido/}).waitFor();
+  assert.equal(await page.locator('.idea-photos img').count(),2,'A failed replacement must retain the old pages');
+  await attach('cardapio-texto.pdf',Buffer.from(fixtures.text,'base64'));
+  await page.waitForFunction(()=>document.querySelector('.idea-file-actions input[accept*=".pdf"]')?.disabled===false);
+  assert.equal(await page.locator('.idea-photos img').count(),2,'Re-uploading a PDF replaces its pages instead of duplicating them');
+ }
+ await page.getByRole('button',{name:'Criar minha prévia',exact:true}).waitFor();
  assert.equal(await page.locator('#owner-intake-message').count(),0,'PDF labels should avoid asking again for supplied details');
  await preview();const digital=await storedItems(4);assert.equal(digital.pages.length,2);assert.ok(digital.pages.every(p=>p.lines.length>0));
  assert.equal(digital.items.find(p=>p.name==='Água mineral').price,500);assert.equal(digital.items.find(p=>p.name==='Suco de laranja').price,1250);

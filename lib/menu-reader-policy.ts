@@ -4,7 +4,7 @@ import {restaurantSchema,type RestaurantData,type Product,type Size} from "./dom
 export type SourceBox={x0:number;y0:number;x1:number;y1:number};
 export type ReaderLine={text:string;confidence?:number;priceConfidence?:number;priceDisagreement?:boolean;textUncertain?:boolean;layoutUncertain?:boolean;box?:SourceBox};
 export type ReaderWord={text:string;confidence:number;box:SourceBox};
-export type ReaderPage={id:string;name:string;image:string;width:number;height:number;lines:ReaderLine[]};
+export type ReaderPage={id:string;name:string;image:string;width:number;height:number;lines:ReaderLine[];pdfReaderVersion?:number};
 const amount=z.number().int().min(1).max(1000000).nullable();
 export const readerItemSchema=z.object({id:z.string().max(100),sourceId:z.string().max(100),sourceText:z.string().max(2000),box:z.object({x0:z.number(),y0:z.number(),x1:z.number(),y1:z.number()}).optional(),name:z.string().max(100),description:z.string().max(600),category:z.string().max(60),kind:z.enum(["pizza","simple","crust"]),price:amount,sizes:z.object({p:amount,m:amount,g:amount}),issues:z.array(z.string().max(180)).max(12),reviewRequired:z.boolean().optional(),selected:z.boolean(),action:z.enum(["add","update"]),existingId:z.string().max(80).optional(),image:z.string().regex(/^\/media\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/).optional()});
 export type ReaderItem=z.infer<typeof readerItemSchema>;

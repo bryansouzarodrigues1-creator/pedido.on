@@ -1,5 +1,6 @@
 import type {ReaderPage} from "./menu-reader-policy.ts";
 import {pdfMenuLines,type PdfTextItem} from "./menu-pdf-layout.ts";
+import {MENU_PDF_READER_VERSION} from "./menu-pdf-source.ts";
 
 /** Lazy, browser-only PDF.js. Files and pixels stay on the owner's device. */
 export async function prepareMenuPdf(file:File,remaining=8,onProgress?:(label:string)=>void):Promise<ReaderPage[]>{
@@ -30,7 +31,7 @@ export async function prepareMenuPdf(file:File,remaining=8,onProgress?:(label:st
     // A scanned page may have only a digital header. OCR it rather than losing its products.
     const text=extracted.map(line=>line.text).join("\n");
     const lines=viewport.rotation%360===0&&text.replace(/\s/g,"").length>=30&&/(?:R\s*\$\s*\d|\d+[,.]\d{2})/.test(text)?extracted:[];
-    pages.push({id:crypto.randomUUID(),name:`${file.name.slice(0,75)} · p. ${i}`,image:canvas.toDataURL("image/jpeg",.92),width:canvas.width,height:canvas.height,lines});
+    pages.push({id:crypto.randomUUID(),name:`${file.name.slice(0,75)} · p. ${i}`,image:canvas.toDataURL("image/jpeg",.92),width:canvas.width,height:canvas.height,lines,pdfReaderVersion:MENU_PDF_READER_VERSION});
    }finally{canvas.width=canvas.height=0;page.cleanup();}
   }
   return pages;
