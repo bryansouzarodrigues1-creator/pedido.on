@@ -35,6 +35,7 @@ export default function IdeaStart(){
  const sourceLookup=useRef<IfoodImportResult|null>(null);
  const [sourceSuggestion,setSourceSuggestion]=useState<IfoodImportResult|null>(null);
  const sourcePane=useRef<HTMLDivElement|null>(null);
+ const pdfQuickPicker=useRef<HTMLInputElement|null>(null);
  function openAttachments(){setSourceOpen(true);requestAnimationFrame(()=>sourcePane.current?.scrollIntoView({behavior:"smooth",block:"center"}));}
  const [intake,setIntake]=useState<OwnerIntake>(emptyOwnerIntake);
  const [initialized,setInitialized]=useState(false),[brandAssets,setBrandAssets]=useState<BrandAssets|null>(null),[brandName,setBrandName]=useState(""),[storageError,setStorageError]=useState("");
@@ -151,7 +152,11 @@ export default function IdeaStart(){
         sourceSuggestion={sourceSuggestion}
         onAttach={openAttachments}
         onReady={next=>{void generate(next);}}/>
-       {intakeFinished(intake)&&<div className="idea-composer-bottom idea-conversation-attachments"><button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>sourceOpen?setSourceOpen(false):openAttachments()}><Paperclip size={17}/>Enviar cardápio ou imagens {pages.length>0?"("+pages.length+")":""}</button></div>}
+       <div className="idea-composer-bottom idea-conversation-attachments">
+       <button type="button" className="idea-pdf-shortcut" disabled={busy||saving||!initialized} onClick={()=>pdfQuickPicker.current?.click()}><FileText size={17}/>Importar PDF direto</button>
+       {intakeFinished(intake)&&<button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>sourceOpen?setSourceOpen(false):openAttachments()}><Paperclip size={17}/>Enviar cardápio ou imagens {pages.length>0?"("+pages.length+")":""}</button>}
+       <small>PDF com texto é lido no aparelho; preços e fotos ficam para conferência antes de publicar.</small>
+      </div>
      </div>
      {sourceOpen&&<div ref={sourcePane} className="idea-source"><div><strong><Paperclip size={17}/>Envie seu cardápio</strong><button className="icon-btn" type="button" aria-label="Recolher importação" onClick={()=>setSourceOpen(false)}><X size={16}/></button></div><p>PDF, TXT, CSV, fotos ou uma página salva do iFood. Até 8 páginas por leitura.</p>
        <div className="idea-file-actions"><label><ImagePlus size={16}/>Fotos do cardápio<input type="file" hidden multiple accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={files}/></label><label><FileText size={16}/>PDF, TXT ou CSV<input type="file" hidden accept=".pdf,.txt,.csv,.html,.htm,application/pdf,text/plain,text/csv,text/html" disabled={busy||saving||!initialized} onChange={files}/></label><label><ImagePlus size={16}/>Logo<input type="file" hidden accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={e=>void uploadBrand(e,"logo")}/></label><label><ImagePlus size={16}/>Capa / referência<input type="file" hidden accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={e=>void uploadBrand(e,"cover")}/></label><a href="/modelo-cardapio.csv" download>Modelo CSV</a></div>
@@ -161,6 +166,7 @@ export default function IdeaStart(){
        <small>Confira os preços e tamanhos antes de publicar. Logo e capa ficam guardados neste aparelho até você aplicá-los no painel.</small>
      </div>}
      </details>
+     <input ref={pdfQuickPicker} data-testid="pdf-quick-picker" type="file" hidden accept=".pdf,application/pdf" disabled={busy||saving||!initialized} onChange={files}/>
      {storageError&&<p className="idea-error" role="status">{storageError}</p>}{notice&&<p className="idea-notice" role="status">{notice}</p>}{error&&<p className="idea-error" role="alert">{error}</p>}{busy&&readingLabel&&<p className="idea-notice" role="status">{readingLabel}</p>}
    </div>
    {preview&&<section ref={galleryRef} className="ai-gallery" aria-label="Escolha o visual do seu cardápio">
