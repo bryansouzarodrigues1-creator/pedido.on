@@ -29,3 +29,7 @@
     node --test scripts/check-ifood-extension.test.mjs
 
 Os testes são de DOM/HTML controlado. Não equivalem a importação de um estabelecimento real ou teste num computador do usuário.
+
+## Atualização experimental 0.2.0
+
+O leitor preserva centavos explícitos em vírgula e ponto e rejeita valores incompletos. Para pizzas, o dono pode escolher um tamanho (P/M/G) ou declarar preço único sem tamanhos quando souber que esta é a oferta real. A omissão mantém a revisão no Pizzaria.on; nenhum tamanho é inventado. Fotos continuam como referências JSON, não uploads automáticos.
