@@ -24,8 +24,9 @@
         <p>O responsável solicita no site. O administrador gera um código de uso único na fila de importações. Cole-o aqui depois de conferir esta leitura.</p>
         <label for="pairCode">Código de autorização da importação</label>
         <input id="pairCode" type="text" autocomplete="off" spellcheck="false" placeholder="Código temporário da administração" />
-        <button id="sendSite" type="button" class="primary">Enviar esta leitura para a solicitação</button>
-        <small>Serão enviados os itens identificados, inclusive os pendentes, e os links das fotos. Não publicamos produtos nem enviamos senhas.</small>
+        <label class="photo-consent"><input id="sendPhotos" type="checkbox" checked/> Incluir fotografias que a extensão conseguir acessar com minha autorização</label>
+        <button id="sendSite" type="button" class="primary">Enviar cardápio e fotos acessíveis</button>
+        <small>Todos os itens e links de fotos serão entregues. Se marcar a opção, o navegador pedirá permissão para o domínio das fotografias; somente arquivos JPG, PNG e WebP permitidos vão para o R2. Não publicamos nem enviamos senhas.</small>
       </section>
       <div class="actions"><button id="copy" class="primary">Copiar para o Pizzaria.on</button><button id="txt">Baixar TXT</button><button id="json">Baixar JSON + links das fotos</button></div>
       <p class="hint">Escolha o tamanho quando ele estiver explícito na loja; caso contrário, deixe para conferir no Pizzaria.on. Fotos no JSON são referências, não imagens importadas.</p>
