@@ -7,6 +7,7 @@ export const assistedItem=z.object({
  id:z.string().min(1).max(100),name:title,category:z.string().trim().min(2).max(60),
  description:z.string().max(600).default(""),priceCents:z.number().int().min(1).max(1000000).nullable(),
  rawPrice:z.string().max(120).default(""),imageUrl:photo,
+ imageMediaUrl:z.string().regex(/^\/media\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/).nullable().optional(),
  needsReview:z.boolean(),available:z.boolean(),selected:z.boolean().default(false),
  sizeChoice:z.enum(["p","m","g","unico"]).nullable().optional(),
 }).strict();
@@ -22,7 +23,7 @@ const money=(cents:number)=>String(Math.floor(cents/100))+","+String(cents%100).
 export function assistStats(capture:AssistedCapture){
  const valid=capture.items.filter(i=>i.selected&&i.available&&!i.needsReview&&i.priceCents!==null);
  return {total:capture.items.length,approved:valid.length,pending:capture.items.length-valid.length,
-  photoReferences:capture.items.filter(i=>!!i.imageUrl).length,truncated:capture.truncated};
+  photoReferences:capture.items.filter(i=>!!i.imageUrl).length,uploadedPhotos:capture.items.filter(i=>!!i.imageMediaUrl).length,truncated:capture.truncated};
 }
 /** Never apply directly to a published menu. All entries remain reviewable. */
 export function assistanceToReaderText(capture:AssistedCapture){
