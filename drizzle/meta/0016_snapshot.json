@@ -1581,6 +1581,95 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "menu_import_assistance_photos": {
+      "name": "menu_import_assistance_photos",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "item_id": {
+          "name": "item_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_url": {
+          "name": "source_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "media_url": {
+          "name": "media_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "size_bytes": {
+          "name": "size_bytes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "menu_import_assistance_photos_pair_idx": {
+          "name": "menu_import_assistance_photos_pair_idx",
+          "columns": [
+            "request_id",
+            "item_id"
+          ],
+          "isUnique": true
+        },
+        "menu_import_assistance_photos_request_idx": {
+          "name": "menu_import_assistance_photos_request_idx",
+          "columns": [
+            "request_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "menu_import_assistance_photos_request_id_menu_import_assistance_id_fk": {
+          "name": "menu_import_assistance_photos_request_id_menu_import_assistance_id_fk",
+          "tableFrom": "menu_import_assistance_photos",
+          "tableTo": "menu_import_assistance",
+          "columnsFrom": [
+            "request_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "order_events": {
       "name": "order_events",
       "columns": {
