@@ -110,15 +110,15 @@ test('photo quota and duplicate retries remain atomic and clean up unused R2 obj
 
 test('an upload paused after authorization cannot finish after cancellation or delivery',async()=>{
  for(const action of ['cancel','deliver']){
-  let reached,release;const entered=new Promise(resolve=>{reached=resolve;}),gate=new Promise(resolve=>{release=resolve;});
+  let reached,release,timeout;const entered=new Promise(resolve=>{reached=resolve;}),gate=new Promise(resolve=>{release=resolve;});
   const f=await assistanceRuntime({pauseUploads:true,outbound:async request=>{assert.equal(request.url,'https://upload-barrier.example.test/');reached();await gate;return new Response('released');}});
   try{
    const info=(await (await f.owner('POST',requestBody())).json()).request,code=await f.pair(info.id),upload=f.photo(code);
-   await entered;
+   await Promise.race([entered,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('The isolated upload did not reach its test barrier')),10000);})]);clearTimeout(timeout);
    const response=action==='cancel'?await f.owner('DELETE'):await f.extension('/api/menu-import-deliveries',code,capture());assert.equal(response.status,200);
    release();assert.equal((await upload).status,401);assert.equal((await f.bucket.list()).objects.length,0);
    assert.equal((await f.db.prepare('SELECT COUNT(*) n FROM menu_import_assistance_photos').first()).n,0);
-  }finally{release();await f.close();}
+  }finally{clearTimeout(timeout);release();await f.close();}
  }
 });
 

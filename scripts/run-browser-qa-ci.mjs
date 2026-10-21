@@ -35,7 +35,7 @@ await writeFile(config, JSON.stringify({
     d1_databases: [{binding: 'DB', database_name: 'site-creator-d1', database_id: '00000000-0000-4000-8000-000000000000', migrations_dir: path.join(root, 'drizzle')}],
 }));
 
-const environment = {...process.env, CLOUDFLARE_CF_FETCH_ENABLED: 'false', WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false'};
+const environment = {...process.env, PEDIDO_BROWSER_ASSISTANCE_QA: 'true', CLOUDFLARE_CF_FETCH_ENABLED: 'false', WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false'};
 async function run(args, logName, extraEnv = {}) {
     const log = createWriteStream(path.join(output, logName));
     const child = spawn(process.execPath, args, {cwd: root, env: {...environment, ...extraEnv}, stdio: ['pipe', 'pipe', 'pipe']});

@@ -45,8 +45,8 @@ async function api(path: string, method = "GET", body?: unknown): Promise<ApiRes
   return result;
 }
 
-export default function Dashboard({ initialRestaurants, user, signOutUrl, initialTheme = "editorial", initialPlan = "essencial", startNew = false, startSetup = false, initialRestaurantId, initialOrderId }: {
-  initialRestaurants: RestaurantRecord[]; user: { name: string; email: string;admin?:boolean }; signOutUrl: string; initialTheme?: ThemeId; initialPlan?: string; startNew?: boolean;startSetup?:boolean;initialRestaurantId?:string;initialOrderId?:string;
+export default function Dashboard({ initialRestaurants, user, signOutUrl, initialTheme = "editorial", initialPlan = "essencial", startNew = false, startSetup = false, initialRestaurantId, initialOrderId, initialMenuReview = false }: {
+  initialRestaurants: RestaurantRecord[]; user: { name: string; email: string;admin?:boolean }; signOutUrl: string; initialTheme?: ThemeId; initialPlan?: string; startNew?: boolean;startSetup?:boolean;initialRestaurantId?:string;initialOrderId?:string;initialMenuReview?:boolean;
 }) {
   const [launch,setLaunch]=useState<MenuLaunch|null>(null),[launchLoading,setLaunchLoading]=useState(startSetup),[handoffRetry,setHandoffRetry]=useState<string|null>(null),[retryingHandoff,setRetryingHandoff]=useState(false);
   useEffect(()=>{let alive=true;void loadLaunchCheckpoint().then(value=>{if(!alive)return;const target=value?.targetRestaurantId&&initialRestaurants.find(row=>row.id===value.targetRestaurantId);if(startSetup||target)setLaunch(value);if(target){setHandoffRetry(target.id);setActiveId(target.id);setCreateOpen(false);}}).catch(()=>{}).finally(()=>{if(alive)setLaunchLoading(false);});return()=>{alive=false;};},[startSetup]);
@@ -55,7 +55,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const [activeId, setActiveId] = useState(firstRestaurant?.id || "");
   const [draft, setDraft] = useState<RestaurantData>(firstRestaurant ? restaurantSchema.parse(JSON.parse(firstRestaurant.data)) : defaultRestaurant("Sua pizzaria"));
   const [requestedOrder,setRequestedOrder]=useState(initialOrderId||"");
-  const [tab, setTab] = useState(firstRestaurant && !firstRestaurant.published && !draft.products.length ? "menu" : "overview");
+  const [tab, setTab] = useState(initialMenuReview||firstRestaurant && !firstRestaurant.published && !draft.products.length ? "menu" : "overview");
   useEffect(()=>{if(new URLSearchParams(location.search).has("billing"))setTab("store");},[]);
   const [dirty, setDirty] = useState(false), [saving, setSaving] = useState(false),[readerActive,setReaderActive]=useState(false),[promotionActive,setPromotionActive]=useState(false);
   const [readerSource,setReaderSource]=useState<{restaurantId:string;requestId:string;text:string}|null>(null);
@@ -72,7 +72,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   async function retryGuestHandoff(){if(!launch||handoffRetry!==activeId||retryingHandoff)return;setRetryingHandoff(true);setError("");try{await saveLaunchCheckpoint(launch);const adopted=await adoptMenuLaunch(launch,activeId);if(adopted.sourceText)setReaderSource({restaurantId:activeId,requestId:launch.id,text:adopted.sourceText});setTab(adopted.hasSource?"menu":launch.hasAssets?"store":"studio");setLaunch(null);setHandoffRetry(null);setToast("Seus arquivos foram recuperados. Confira antes de usar no rascunho.");}catch(e){setError(e instanceof Error?e.message:"Não foi possível recuperar os arquivos agora.");}finally{setRetryingHandoff(false);}}
 
   const openNotification=useRef<(url:string)=>void>(()=>{});
-  openNotification.current=async(value)=>{try{if(savingRef.current||promotionActive||readerActive)return;const url=new URL(value,location.origin);if(url.origin!==location.origin||url.pathname!=="/app")return;const shop=url.searchParams.get("loja"),order=url.searchParams.get("pedido");if(shop&&!restaurants.some(r=>r.id===shop))return;if(shop&&shop!==activeId){if(dirty&&!await save())return;setActiveId(shop);}setTab("overview");if(order)setRequestedOrder(order);}catch{}};
+  openNotification.current=async(value)=>{try{if(savingRef.current||promotionActive||readerActive)return;const url=new URL(value,location.origin);if(url.origin!==location.origin||url.pathname!=="/app")return;const shop=url.searchParams.get("loja"),order=url.searchParams.get("pedido");if(shop&&!restaurants.some(r=>r.id===shop))return;if(shop&&shop!==activeId){if(dirty&&!await save())return;setActiveId(shop);}setTab(url.searchParams.get("cardapio")==="revisar"?"menu":"overview");if(order)setRequestedOrder(order);}catch{}};
   useEffect(()=>{const handler=(event:MessageEvent)=>{if(event.data?.type==="OPEN_NOTIFICATION"&&typeof event.data.url==="string")openNotification.current(event.data.url);};navigator.serviceWorker?.addEventListener("message",handler);return()=>navigator.serviceWorker?.removeEventListener("message",handler);},[]);
   useEffect(()=>{if(!requestedOrder)return;const found=orderList.find(row=>row.id===requestedOrder);if(found){setOrderDetail(found);setRequestedOrder("");}},[requestedOrder,orderList]);
   const savingRef=useRef(false);

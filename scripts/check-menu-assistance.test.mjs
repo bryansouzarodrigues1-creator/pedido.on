@@ -38,4 +38,5 @@ test("notification states review is available, never claims the menu is publishe
  assert.match(notice.body,/pronto.*conferir preços/i);
  assert.doesNotMatch(notice.body,/publicad[oa]|concluído/i);
  assert.match(notice.url,/loja=123e4567/);
+ assert.equal(new URL(notice.url,"https://local.test").searchParams.get("cardapio"),"revisar");
 });

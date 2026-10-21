@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {browserQaTarget} from './browser-qa-target.mjs';
+import {pushNotice} from '../lib/push-policy.ts';
 const {base,publicReadOnly}=browserQaTarget();if(publicReadOnly)throw Error('Assistance QA requires isolated local resources.');
 const require=createRequire(import.meta.url),{chromium,devices}=require(process.env.QA_PLAYWRIGHT_MODULE||'playwright-core');
 const output=path.resolve(process.env.QA_BROWSER_OUTPUT||'.sites-runtime/browser-ci/assistance'),profile=path.resolve('.sites-runtime/browser-ci/guest/guest-profile');
@@ -76,5 +77,11 @@ try{
  for(const key of ['name','address','hours','whatsapp','pix'])assert.deepEqual(data[key],before[key]);assert.equal((await api('/api/restaurants/'+shop.id+'/import-assistance')).body.request.id,requestId);
  await page.screenshot({path:path.join(output,'draft-saved-mobile.png'),fullPage:true});assert.equal(handoffs.length,2);assert.deepEqual(errors,[]);
  checks.push({name:'each photo and direct-sale price require approval; only reviewed draft changes, store identity and publication preserved',ok:true});
+ const notification=pushNotice('menu',shop.id).url;
+ await page.goto(base+notification,{waitUntil:'networkidle'});await page.getByRole('button',{name:'Levar produtos ao leitor para revisar',exact:true}).waitFor();
+ await page.goto(base+'/app?loja='+shop.id,{waitUntil:'networkidle'});await page.getByRole('heading',{name:'Pedidos',exact:true}).waitFor();
+ await page.evaluate(url=>navigator.serviceWorker.dispatchEvent(new MessageEvent('message',{data:{type:'OPEN_NOTIFICATION',url}})),notification);
+ await page.getByRole('button',{name:'Levar produtos ao leitor para revisar',exact:true}).waitFor();await page.screenshot({path:path.join(output,'notification-review-mobile.png'),fullPage:true});
+ checks.push({name:'menu-ready URL and simulated service-worker event both open the correct shop review',ok:true});
 }catch(e){errors.push(e.message);await page?.screenshot({path:path.join(output,'failure.png'),fullPage:true}).catch(()=>{});throw e;}
-finally{await writeFile(path.join(output,'summary.json'),JSON.stringify({base,checks,errors,passed:checks.length===4&&!errors.length,browser:'Chrome / Pixel 7 emulated, no physical Android',scope:'Real local app/D1/R2; controlled capture client and intercepted WhatsApp; no real iFood collection or message'},null,2));await context.close();}
+finally{await writeFile(path.join(output,'summary.json'),JSON.stringify({base,checks,errors,passed:checks.length===5&&!errors.length,browser:'Chrome / Pixel 7 emulated, no physical Android',scope:'Real local app/D1/R2; controlled capture client, notification event and intercepted WhatsApp; no real iFood collection or message'},null,2));await context.close();}
