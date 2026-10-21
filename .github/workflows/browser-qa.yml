@@ -60,7 +60,7 @@ jobs:
           QA_HEADLESS: "true"
         run: node scripts/run-browser-qa-ci.mjs
       - name: Published guest UI and calculator (remote mutations blocked)
-        if: ${{ !cancelled() }}
+        if: ${{ success() }}
         run: node scripts/check-public-browser.mjs
       - name: Probe the supplied public iFood URL without credentials or writes
         if: ${{ !cancelled() }}
@@ -75,6 +75,7 @@ jobs:
           path: |
             .sites-runtime/browser-ci/*.json
             .sites-runtime/browser-ci/*.log
+            .sites-runtime/browser-ci/creator/
             .sites-runtime/browser-ci/guest/evidence/
             .sites-runtime/browser-ci/calculator/
             .sites-runtime/browser-ci/handoff/
