@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import {pushNotice} from "../lib/push-policy.ts";
 import {assistedCapture,assistanceToReaderText,assistStats,hasSafeSource} from "../lib/menu-assistance-policy.ts";
 import {readMenuPages} from "../lib/menu-reader-policy.ts";
 const store="https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000";
@@ -29,4 +30,12 @@ test("do not allow malformed products or unbounded uploads",()=>{
  const bad=base();bad.items[0].priceCents=5590.5;assert.equal(assistedCapture.safeParse(bad).success,false);
  const large=base();large.items=Array.from({length:201},(_,i)=>({...base().items[0],id:String(i)}));
  assert.equal(assistedCapture.safeParse(large).success,false);
+});
+
+test("notification states review is available, never claims the menu is published",()=>{
+ const notice=pushNotice("menu","123e4567-e89b-42d3-a456-426614174000");
+ assert.equal(notice.kind,"menu");
+ assert.match(notice.body,/pronto.*conferir preços/i);
+ assert.doesNotMatch(notice.body,/publicad[oa]|concluído/i);
+ assert.match(notice.url,/loja=123e4567/);
 });
