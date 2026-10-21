@@ -83,7 +83,7 @@ export const storeReports=sqliteTable("store_reports",{
 
 export const menuImportAssistance=sqliteTable("menu_import_assistance",{
  id:text("id").primaryKey(),restaurantId:text("restaurant_id").notNull().references(()=>restaurants.id,{onDelete:"cascade"}),
- ownerId:text("owner_id").notNull(),storeUrl:text("store_url").notNull(),ownerNote:text("owner_note").notNull().default(""),notifyWhenReady:integer("notify_when_ready").notNull().default(0),contactWhatsApp:text("contact_whatsapp").notNull(),
+ ownerId:text("owner_id").notNull(),storeUrl:text("store_url").notNull(),ownerNote:text("owner_note").notNull().default(""),notifyWhenReady:integer("notify_when_ready").notNull().default(0),contactWhatsApp:text("contact_whatsapp").notNull(),contactConsentAt:text("contact_consent_at").notNull(),
  status:text("status").notNull().default("requested"),captureJson:text("capture_json"),
  pairingHash:text("pairing_hash"),pairingExpiresAt:integer("pairing_expires_at"),
  createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull(),receivedAt:text("received_at")
