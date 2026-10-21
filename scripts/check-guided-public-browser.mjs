@@ -18,10 +18,14 @@ try{
  const adaptive=await page.locator('.owner-start-options').count()>0;
  if(adaptive)assert.doesNotMatch(await page.locator('.owner-intake').textContent(),/cr[eé]ditos|geraç[aã]o paga|sem gastar/i);
  checks.push({name:'published guided entry is usable without signup',ok:true,adaptive});
- for(const text of ['Minha pizzaria se chama Forno Azul Público QA. Quero amarelo cor de queijo e azul do mar.','Rua de Teste, 137, Bairro Fictício, Búzios - RJ','depois','Terça a domingo, 18h às 23h30','depois']){
-  await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();
- }
- await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).click();if(await page.locator('.owner-intake--composer').count()){await chooseMenuPreview(page);await page.getByRole('button',{name:'Escolher outro',exact:true}).click();}await page.locator('.ai-style-card').first().waitFor();
+ const quick=await page.getByRole('link',{name:'Baixar extensão e exportar meu cardápio',exact:true}).count()>0;
+ const brief='Nome: Forno Azul Público QA\nEndereço: Rua de Teste, 137, Bairro Fictício, Búzios - RJ\nHorários: Terça a domingo, 18h às 23h30\nQuero amarelo cor de queijo e azul do mar.';
+ const messages=quick?[brief]:['Minha pizzaria se chama Forno Azul Público QA. Quero amarelo cor de queijo e azul do mar.','Rua de Teste, 137, Bairro Fictício, Búzios - RJ','depois','Terça a domingo, 18h às 23h30','depois'];
+ for(const text of messages){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();}
+ if(!quick)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).click();
+ await chooseMenuPreview(page);assert.equal(await page.locator('input[type=email],input[type=password]').count(),0);
+ if(quick)assert.equal(await page.getByRole('button',{name:'Criar link da prévia sem cadastro',exact:true}).count(),1);
+ await page.getByRole('button',{name:'Escolher outro',exact:true}).click();await page.locator('.ai-style-card').first().waitFor();
  assert.equal(await page.locator('.ai-style-card').count(),4);assert.equal(await page.locator('.ai-style-card .mini-top strong').first().textContent(),'Forno Azul Público QA');
  assert.match(await page.locator('.mini-store-address').first().textContent(),/Rua de Teste/);assert.match(await page.locator('.mini-store-hours').first().textContent(),/23h30/);
  await page.screenshot({path:path.join(dir,'published-guided-personalized.png'),fullPage:true});

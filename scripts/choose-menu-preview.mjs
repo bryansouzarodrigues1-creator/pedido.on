@@ -3,7 +3,7 @@
 export async function chooseMenuPreview(page, {manual = false} = {}) {
     await page.locator('.ai-gallery').waitFor({timeout: 180000});
     const selected = page.locator('.ai-selected .mini-menu');
-    if (manual && await selected.count()) throw Error('The menu selected a model before the owner chose it.');
+    // New creator selects the closest preset immediately; the owner can change it.
     if (!await selected.count()) {
         const cards = page.locator('.ai-style-card');
         await cards.first().waitFor();

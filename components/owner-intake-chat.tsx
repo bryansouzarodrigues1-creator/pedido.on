@@ -1,7 +1,7 @@
 "use client";
 import {useState,useEffect,useRef,type FormEvent} from "react";
 import {ArrowRight,Bot,Check,MessageCircle,MapPin,Link2,Paperclip,ExternalLink} from "lucide-react";
-import {intakeFinished,nextOwnerIntake,ownerFieldIds,ownerQuestions,extractLocationHint,validateOwnerAnswer,ownerAnsweredCount,ownerFromStore,ownerWithMenuSource,ownerWithMenuContent,ownerNameSuggestion,withOwnerAnswers,ownerReadyForPreview,ownerVisualChoices,hasOwnerVisualBriefing,type OwnerField,type OwnerIntake} from "@/lib/owner-intake";
+import {intakeFinished,nextOwnerIntake,ownerPreviewFromDescription,ownerFieldIds,ownerQuestions,extractLocationHint,validateOwnerAnswer,ownerAnsweredCount,ownerFromStore,ownerWithMenuSource,ownerWithMenuContent,ownerNameSuggestion,withOwnerAnswers,ownerReadyForPreview,ownerVisualChoices,hasOwnerVisualBriefing,type OwnerField,type OwnerIntake} from "@/lib/owner-intake";
 import {inspectMenuSourceText} from "@/lib/menu-source-links";
 import {fetchMenuSource} from "@/lib/menu-source-client";
 import type {IfoodImportResult} from "@/lib/ifood-import";
@@ -9,14 +9,16 @@ import {Spinner} from "./ui";
 import IfoodConnect from "./ifood-connect";
 
 /** One composer accepts a visual idea, clipboard data and a public store URL. */
-export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttach,onText,sourceSuggestion,disabled}:{
- value:OwnerIntake;onChange:(next:OwnerIntake)=>void;onReady:(next:OwnerIntake)=>void;onSource?:(result:IfoodImportResult)=>void;onAttach?:()=>void;onText?:(text:string)=>boolean;sourceSuggestion?:IfoodImportResult|null;disabled?:boolean;
+export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttach,onText,sourceSuggestion,disabled,quickPreview=false}:{
+ value:OwnerIntake;onChange:(next:OwnerIntake)=>void;onReady:(next:OwnerIntake)=>void;onSource?:(result:IfoodImportResult)=>void;onAttach?:()=>void;onText?:(text:string)=>boolean;sourceSuggestion?:IfoodImportResult|null;disabled?:boolean;quickPreview?:boolean;
 }){
  const [connecting,setConnecting]=useState(false);
  const [reply,setReply]=useState(""),[error,setError]=useState(""),[notice,setNotice]=useState("");
  const [editing,setEditing]=useState<OwnerField|null>(null),[linkHint,setLinkHint]=useState(false),[reading,setReading]=useState(false);
  const [found,setFound]=useState<{result:IfoodImportResult;base:OwnerIntake}|null>(null);
+ const readyCallback=useRef(onReady);readyCallback.current=onReady;
  const input=useRef<HTMLTextAreaElement|null>(null),alive=useRef(true);
+ function quick(next:OwnerIntake){const ready=ownerReadyForPreview(withOwnerAnswers(next,{name:next.answers.name||"Sua pizzaria"}));onChange(ready);requestAnimationFrame(()=>{if(alive.current)readyCallback.current(ready);});}
  const blockedSource=value.source?.catalogStatus==="needs_content"?value.source.url:null;
  const seenSuggestion=useRef<IfoodImportResult|null>(null);
  useEffect(()=>{if(sourceSuggestion?.store&&sourceSuggestion!==seenSuggestion.current){seenSuggestion.current=sourceSuggestion;setFound({result:sourceSuggestion,base:value});}},[sourceSuggestion,value]);
@@ -26,11 +28,11 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
  const first=!value.initialMessage&&!value.answers.name&&!value.source&&!editing;
  const nameSuggestion=ownerNameSuggestion(value),choosingName=field==="name"&&!editing&&!found&&!reading&&!!nameSuggestion;
  function acceptAnswer(answer:string){
-  const result=nextOwnerIntake(value,answer);if(result.error){setError(result.error);return;}
+  const result=quickPreview&&!editing?{state:ownerPreviewFromDescription(value,answer)}:nextOwnerIntake(value,answer);if(result.error){setError(result.error);return;}
   const hasProducts=onText?.(answer);
   let next=hasProducts&&result.state.answers.menu===undefined?withOwnerAnswers(result.state,{menu:""}):result.state;
   if(hasProducts)next=ownerWithMenuContent(next);
-  setError("");setReply("");setLinkHint(false);onChange(next);
+  setError("");setReply("");setLinkHint(false);if(quickPreview&&!editing){quick(next);return;}onChange(next);
   setNotice(next.step===0&&next.initialMessage?"Sua ideia ficou guardada. Como se chama a pizzaria?":"");
  }
  function receiveSource(result:IfoodImportResult,base:OwnerIntake){
@@ -56,6 +58,10 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
   }
   const source=inspectMenuSourceText(current);
   if(source.status==="multiple"){setError("Consulte o link de uma loja por vez. Sua mensagem continua aqui.");return;}
+  if(source.links.length===1&&quickPreview){
+   const result=nextOwnerIntake(value,current);const base=ownerWithMenuSource(result.error?value:result.state,current);
+   onSource?.({url:source.links[0].url,status:"needs_content",text:"",count:0,message:"Link guardado como referência. Para trazer produtos, envie PDF, fotos ou texto."});setReply("");quick(base);return;
+  }
   if(source.links.length===1){
    let base=value;
    if(value.step===0){const parsed=nextOwnerIntake(value,current);if(!parsed.error)base=parsed.state;}
@@ -75,7 +81,7 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
  }
  function attach(){if(blocked)return;onAttach?.();}
  return <div className="owner-intake owner-intake--composer" aria-label="Conversa para criar sua pizzaria" data-ifood-connect="v1">
-  <div className="owner-intake-title"><MessageCircle size={20}/><div><strong>Como você quer seu cardápio?</strong><small>Escreva sua ideia ou traga o cardápio que já usa. Pergunto só o que falta.</small></div></div>
+  <div className="owner-intake-title"><MessageCircle size={20}/><div><strong>Como você quer seu cardápio?</strong><small>Escreva sua ideia ou traga o cardápio que já usa. Veja sua prévia primeiro. Complete os dados quando quiser.</small></div></div>
   {count>0&&!first&&<div className="owner-intake-progress" aria-label={`${count} de 5 informações organizadas`}><span style={{width:`${count/5*100}%`}}/></div>}
   <div className="owner-intake-history" aria-live="polite">
    {count>0&&!first&&<details className="owner-known"><summary>Dados já informados</summary>{ownerFieldIds.map(id=>value.answers[id]!==undefined?<div key={id} className="owner-intake-answer"><Check size={15}/><div><small>{({name:"Nome",address:"Endereço",whatsapp:"WhatsApp",hours:"Horários",menu:"Cardápio"})[id]}</small><span>{value.answers[id]||"Vou preencher depois."}</span></div><button type="button" className="owner-intake-edit" disabled={blocked} aria-label={"Alterar "+id} onClick={()=>{setEditing(id);setReply(value.answers[id]||"");setError("");}}>Editar</button></div>:null)}</details>}
@@ -89,11 +95,11 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
    {finished&&!editing&&!found&&<div className="owner-intake-done" role="status"><Check size={18}/><div><strong>Já podemos montar sua prévia.</strong><p>Você poderá ajustar o visual e completar os dados antes de publicar.</p></div></div>}
   </div>
   {(!finished||editing)?<form className="owner-intake-reply" hidden={choosingName||!!found} onSubmit={submit}>
-   <label htmlFor="owner-intake-message">{editing==="menu"?"Cole os produtos com preços":editing?"Corrigir informação":first?"Sua ideia, link ou cardápio":({name:"Nome da pizzaria",address:"Endereço da pizzaria",whatsapp:"WhatsApp de pedidos",hours:"Dias e horários",menu:"Seu cardápio atual"})[field]}</label>
+   <label htmlFor="owner-intake-message">{editing==="menu"?"Cole os produtos com preços":editing?"Corrigir informação":first?"Descreva sua pizzaria":({name:"Nome da pizzaria",address:"Endereço da pizzaria",whatsapp:"WhatsApp de pedidos",hours:"Dias e horários",menu:"Seu cardápio atual"})[field]}</label>
    <textarea ref={input} id="owner-intake-message" rows={first?6:3} maxLength={field==="name"?6000:field==="menu"?6000:600} value={reply}
     onChange={e=>{setReply(e.target.value);setError("");}} onKeyDown={e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();e.currentTarget.form?.requestSubmit();}}}
-    placeholder={linkHint?"Cole o link do iFood aqui. Sua ideia pode continuar na mesma mensagem.":first?"Ex.: Minha pizzaria se chama Forno Azul. Quero azul do mar, amarelo de queijo, fotos grandes e um visual artesanal.\n\nJá tem cardápio? Cole o link ou os produtos com preços aqui.":["Nome da pizzaria","Rua, número, bairro, cidade e estado","WhatsApp com DDD","Dias da semana e horários","Link do iFood ou produtos com preços"][editing?ownerFieldIds.indexOf(editing):value.step]} disabled={blocked} aria-invalid={!!error} aria-describedby={error?"owner-composer-error":linkHint?"owner-link-hint":undefined}/>
-   {!editing&&!reading&&!found&&<div className="owner-start-options">{!value.source&&<button type="button" disabled={blocked} onClick={()=>{setLinkHint(true);setError("");input.current?.focus();}}><Link2 size={16}/>Tenho um link do iFood</button>}<button type="button" disabled={blocked} onClick={attach}><Paperclip size={16}/>Enviar PDF, foto ou TXT</button>{value.step===0&&value.answers.menu===undefined&&<button type="button" disabled={blocked} onClick={()=>onChange(withOwnerAnswers(value,{menu:""}))}>Ainda não tenho cardápio</button>}</div>}
+    placeholder={linkHint?"Cole o link do iFood aqui. Sua ideia pode continuar na mesma mensagem.":first?"Ex.: Minha pizzaria se chama Forno da Vila. Quero madeira, nostalgia e fotos grandes. Um visual acolhedor, com cara de casa.":["Nome da pizzaria","Rua, número, bairro, cidade e estado","WhatsApp com DDD","Dias da semana e horários","Link do iFood ou produtos com preços"][editing?ownerFieldIds.indexOf(editing):value.step]} disabled={blocked} aria-invalid={!!error} aria-describedby={error?"owner-composer-error":linkHint?"owner-link-hint":undefined}/>
+   {!editing&&!reading&&!found&&<div className="owner-start-options">{!quickPreview&&!value.source&&<button type="button" disabled={blocked} onClick={()=>{setLinkHint(true);setError("");input.current?.focus();}}><Link2 size={16}/>Tenho um link do iFood</button>}<button type="button" disabled={blocked} onClick={attach}><Paperclip size={16}/>Enviar PDF, foto ou TXT</button>{value.step===0&&value.answers.menu===undefined&&<button type="button" disabled={blocked} onClick={()=>{if(quickPreview){quick(withOwnerAnswers(ownerPreviewFromDescription(value,reply),{menu:""}));setReply("");}else onChange(withOwnerAnswers(value,{menu:""}));}}>Ainda não tenho cardápio</button>}</div>}
    {linkHint&&!reading&&!found&&<small className="owner-link-hint" id="owner-link-hint">Pode colar o link neste mesmo campo. Não precisa começar de novo.</small>}
    {!editing&&!reading&&!found&&<div className="owner-quick-options" aria-label="Opções de resposta">
     {field==="whatsapp"&&value.source?.telephone&&<button type="button" disabled={blocked} onClick={()=>acceptAnswer(value.source!.telephone!)}>Usar {value.source.telephone} como WhatsApp</button>}

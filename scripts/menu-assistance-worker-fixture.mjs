@@ -12,7 +12,7 @@ export const capture=()=>({sourceUrl:store,storeName:'Loja sintética de teste',
  {id:'water',category:'Bebidas',name:'Água mineral',description:'500 ml',priceCents:550,rawPrice:'R$ 5,50',imageUrl:null,needsReview:false,available:true,selected:true,sizeChoice:null}
 ]});
 const bundles=new Map();
-export async function assistanceRuntime({support='',push={},outbound=()=>{throw Error('External request forbidden');},migrate=true,pauseUploads=false}={}){
+export async function assistanceRuntime({support='',push={},outbound=()=>{throw Error('External request forbidden');},migrate=true,pauseUploads=false,legacyPhone=''}={}){
  const key=pauseUploads?'paused-upload':'normal';
  if(!bundles.has(key))bundles.set(key,esbuild.build({stdin:{contents:`
  import {requestContext} from 'test-request-context';
@@ -20,9 +20,17 @@ export async function assistanceRuntime({support='',push={},outbound=()=>{throw 
  import * as admin from './app/api/admin/menu-import-assistance/route.ts';
  import * as deliveries from './app/api/menu-import-deliveries/route.ts';
  import * as images from './app/api/menu-import-images/route.ts';
+ import * as guests from './app/api/guest-previews/route.ts';
+ import * as guest from './app/api/guest-previews/[id]/route.ts';
+ import * as availability from './app/api/creator/availability/route.ts';
+ import * as restaurants from './app/api/restaurants/route.ts';
  import * as restaurant from './app/api/restaurants/[id]/route.ts';
  export default {fetch(request){return requestContext.run(request,async()=>{
   const u=new URL(request.url),match=/^\\/api\\/restaurants\\/([^/]+)(\\/import-assistance)?$/.exec(u.pathname);
+  if(u.pathname==='/api/restaurants')return restaurants[request.method](request);
+  if(u.pathname==='/api/creator/availability')return availability[request.method](request);
+  if(u.pathname==='/api/guest-previews')return guests[request.method](request);
+  if(u.pathname.startsWith('/api/guest-previews/'))return guest.GET(request,{params:Promise.resolve({id:u.pathname.split('/').at(-1)})});
   if(match)return (match[2]?owner:restaurant)[request.method](request,{params:Promise.resolve({id:match[1]})});
   const routes={'/api/admin/menu-import-assistance':admin,'/api/menu-import-deliveries':deliveries,'/api/menu-import-images':images};
   return routes[u.pathname]?.[request.method]?.(request)||new Response(null,{status:404});
@@ -36,11 +44,11 @@ export async function assistanceRuntime({support='',push={},outbound=()=>{throw 
  }]}));
  const mf=new Miniflare({modules:true,script:(await bundles.get(key)).outputFiles[0].text,compatibilityDate:'2026-05-15',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'assistance-local'},d1Persist:false,r2Buckets:['BUCKET'],r2Persist:false,bindings:{PLATFORM_ADMIN_ACCOUNT_ID:'owner-admin',AUTH_SESSION_KEY:'ab'.repeat(32),PEDIDO_SUPPORT_WHATSAPP:support,...push},outboundService:outbound});
  const db=await mf.getD1Database('DB'),bucket=await mf.getR2Bucket('BUCKET');
- const migration=async file=>{for(const sql of readFileSync(path.join('drizzle',file),'utf8').split(';').map(v=>v.trim()).filter(Boolean))await db.prepare(sql).run();};
+ const migration=async file=>{for(const sql of readFileSync(path.join('drizzle',file),'utf8').split(file.startsWith('0017_')?'--> statement-breakpoint':';').map(v=>v.trim()).filter(Boolean))await db.prepare(sql).run();};
  try{
   const files=readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort();
   for(const file of files.filter(f=>Number(f.slice(0,4))<16))await migration(file);
-  const stamp='2026-10-20T12:00:00.000Z',menu=JSON.stringify(demoRestaurant());
+  const stamp='2026-10-20T12:00:00.000Z',menu=JSON.stringify({...demoRestaurant(),whatsapp:legacyPhone});
   for(const [id,actor] of [[shopA,'owner-a'],[shopB,'owner-b']])await db.prepare('INSERT INTO restaurants(id,owner_id,slug,name,data,published_data,published,created_at,updated_at) VALUES(?,?,?,?,?,?,1,?,?)').bind(id,actor,id,'Local QA',menu,menu,stamp,stamp).run();
   if(migrate)for(const file of files.filter(f=>Number(f.slice(0,4))>=16))await migration(file);
   const call=(pathname,{method='GET',body,actor='owner-a',headers={}}={})=>mf.dispatchFetch(origin+pathname,{method,headers:{origin,'x-local-owner':actor,cookie:'__Host-pedido-csrf='+csrf,'x-pedido-csrf':csrf,...(body!==undefined?{'content-type':'application/json'}:{}),...headers},body:body===undefined?undefined:JSON.stringify(body)});

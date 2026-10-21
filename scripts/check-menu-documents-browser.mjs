@@ -28,7 +28,7 @@ async function start(){
  await page.goto(base+'/criar',{waitUntil:'networkidle',timeout:90000});await page.waitForFunction(()=>document.querySelector('#owner-intake-message')?.disabled===false);
 }
 async function attach(name,buffer,mimeType='application/pdf'){
- if(!await page.locator('.idea-source').count())await page.getByRole('button',{name:'Enviar PDF, foto ou TXT',exact:true}).click();
+ if(!await page.locator('.idea-source').isVisible()){const add=page.getByRole('button',{name:'Enviar ou adicionar produtos',exact:true});if(await add.isVisible())await add.click();else await page.getByRole('button',{name:'Enviar PDF, foto ou TXT',exact:true}).click();}
  await page.locator('.idea-file-actions input[accept*=".pdf"]').setInputFiles({name,mimeType,buffer});
 }
 async function storedItems(count){
@@ -41,7 +41,7 @@ async function storedItems(count){
  }while(Date.now()<deadline);
  throw Error('A leitura com '+count+' produtos não foi confirmada no armazenamento.');
 }
-async function preview(){await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await chooseMenuPreview(page,{manual:!publicReadOnly});}
+async function preview(){if(!await page.locator('.ai-selected').count()){try{await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click({timeout:1500});}catch(e){if(!await page.locator('.ai-selected').count())throw e;}}await chooseMenuPreview(page,{manual:!publicReadOnly});}
 async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();}
 try{
  await start();await attach('cardapio-texto.pdf',Buffer.from(fixtures.text,'base64'));await page.locator('.idea-photos img').first().waitFor();
@@ -81,7 +81,7 @@ try{
  checks.push({name:'two-page text PDF: four exact names/prices, supplied owner facts, readable bounded preview and persisted pages',ok:true});await context.close();
 
  await start();await say('Forno Azul de Teste');await attach('cardapio-escaneado.pdf',Buffer.from(fixtures.scan,'base64'));await page.locator('.idea-photos img').waitFor();
- await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await chooseMenuPreview(page);
+ await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await chooseMenuPreview(page);
  const scan=await storedItems(3);assert.equal(scan.pages.length,1);assert.ok(scan.pages[0].lines.length>0);for(const [name,price] of [['Água mineral',500],['Suco de laranja',1250],['Refrigerante lata',790]])assert.equal(scan.items.find(p=>p.name===name)?.price,price,name);
  await page.waitForTimeout(400);await page.screenshot({path:path.join(output,'pdf-escaneado-mobile.png'),fullPage:true});checks.push({name:'scanned PDF actually runs local OCR: three exact products and prices',ok:true});await context.close();
 

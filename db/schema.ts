@@ -94,3 +94,6 @@ export const menuImportAssistancePhotos=sqliteTable("menu_import_assistance_phot
  itemId:text("item_id").notNull(),sourceUrl:text("source_url").notNull(),mediaUrl:text("media_url").notNull(),
  sizeBytes:integer("size_bytes").notNull(),createdAt:text("created_at").notNull()
 },t=>[uniqueIndex("menu_import_assistance_photos_pair_idx").on(t.requestId,t.itemId),index("menu_import_assistance_photos_request_idx").on(t.requestId)]);
+
+// Anonymous, unlisted design previews contain no account credentials.
+export const guestMenuPreviews=sqliteTable("guest_menu_previews",{id:text("id").primaryKey(),objectKey:text("object_key").notNull(),createdAt:integer("created_at").notNull(),expiresAt:integer("expires_at").notNull()});

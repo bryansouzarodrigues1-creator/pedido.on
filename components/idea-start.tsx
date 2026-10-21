@@ -1,19 +1,18 @@
 "use client";
 import {lazy,Suspense,useEffect,useRef,useState,type ChangeEvent,type FormEvent} from "react";
-import {ArrowRight,Check,Link2,Paperclip,Sparkles,X,FileText,ImagePlus,RefreshCw} from "lucide-react";
-import {money,type RestaurantData} from "@/lib/domain";
-import {detailedDemoRestaurant} from "@/lib/demo-rich";
+import {ArrowRight,Check,Link2,Paperclip,Sparkles,X,FileText,ImagePlus,RefreshCw,Download} from "lucide-react";
+import {defaultRestaurant,money,type RestaurantData} from "@/lib/domain";
 import type {ReaderItem} from "@/lib/menu-reader-policy";
 import {galleryDesign,galleryStyle,galleryReference,suggestedGalleryStyles,supportsLocalRefinement,type GalleryStyleId} from "@/lib/gallery-styles";
 import {resolveBrandPalette} from "@/lib/brand-palette";
 
 import {guestReadingKey,type MenuLaunch} from "@/lib/menu-launch";
 import {loadLaunchCheckpoint,saveLaunchCheckpoint} from "@/lib/menu-launch-checkpoint";
-import {menuLaunchAccountPath} from "@/lib/menu-launch-client";
+import {adoptMenuLaunch} from "@/lib/menu-launch-storage";
+import CreatorFinish from "./creator-finish";
 import {inspectMenuSourceText,mergeReaderSource} from "@/lib/menu-source-links";
 import {readMenuAttachment} from "@/lib/menu-attachment";
 import type {IfoodImportResult} from "@/lib/ifood-import";
-import {fetchMenuSource} from "@/lib/menu-source-client";
 import {loadReading,saveReading,type Reading} from "@/lib/menu-reader-storage";
 import {prepareMenuPhoto,recognizeMenuPhotos} from "@/lib/menu-ocr";
 import {readMenuPages,readerItemReady,type ReaderPage} from "@/lib/menu-reader-policy";
@@ -25,13 +24,15 @@ import {MiniMenu,Spinner,Modal} from "./ui";
 import {imageFromFile,loadBrandAssets,saveBrandAssets,type BrandAssets} from "@/lib/guest-brand-assets";
 import {nameFromBriefing} from "@/lib/studio-policy";
 import OwnerIntakeChat from "./owner-intake-chat";
-import {emptyOwnerIntake,intakeFinished,ownerPreviewDetails,withOwnerAnswers,ownerWithMenuContent,ownerVisualBriefing,ownerFacts,type OwnerIntake} from "@/lib/owner-intake";
+import {emptyOwnerIntake,ownerPreviewFromDescription,intakeFinished,ownerPreviewDetails,withOwnerAnswers,ownerWithMenuContent,ownerVisualBriefing,ownerFacts,type OwnerIntake} from "@/lib/owner-intake";
 
 const FullMenu=lazy(()=>import("./menu"));
 function pendingMenuNotice(items:ReaderItem[]){const count=items.filter(item=>!readerItemReady(item)).length;return count?`${count} ${count===1?"produto precisa":"produtos precisam"} de conferência antes de entrar à venda. Os valores que o arquivo mostra ficam disponíveis para revisão.`:"";}
 const emptyMenuSourceNotice="O link não trouxe produtos. Envie PDF, TXT/CSV ou fotos do cardápio para completar a prévia.";
-function makePreview(items:ReaderItem[],hasSource:boolean,photos:Record<string,string>={}):RestaurantData{return hasSource?previewMenuWithReaderItems(items,photos):detailedDemoRestaurant("editorial");}
+function makePreview(items:ReaderItem[],hasSource:boolean,photos:Record<string,string>={}):RestaurantData{return hasSource?previewMenuWithReaderItems(items,photos):defaultRestaurant("Sua pizzaria");}
 export default function IdeaStart(){
+ const [finishOpen,setFinishOpen]=useState(false),[shareUrl,setShareUrl]=useState(""),[shareBusy,setShareBusy]=useState(false),[shareMessage,setShareMessage]=useState("");
+ const finishRef=useRef<HTMLDivElement|null>(null);
  const sourceLookup=useRef<IfoodImportResult|null>(null);
  const [sourceSuggestion,setSourceSuggestion]=useState<IfoodImportResult|null>(null);
  const sourcePane=useRef<HTMLDivElement|null>(null);
@@ -47,7 +48,7 @@ export default function IdeaStart(){
  const [idea,setIdea]=useState(""),[sourceOpen,setSourceOpen]=useState(false),[sourceText,setSourceText]=useState(""),[pages,setPages]=useState<ReaderPage[]>([]),[preview,setPreview]=useState<RestaurantData|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[readingLabel,setReadingLabel]=useState(""),[imported,setImported]=useState(0),[saving,setSaving]=useState(false);
  const abort=useRef<AbortController|null>(null),alive=useRef(true),reading=useRef<Reading|null>(null),launch=useRef<MenuLaunch|null>(null),galleryRef=useRef<HTMLElement|null>(null),styleGridRef=useRef<HTMLDivElement|null>(null),scrollToResult=useRef(false);
  useEffect(()=>{alive.current=true;void loadLaunchCheckpoint().then(async saved=>{if(!saved||!alive.current)return;launch.current=saved;setIntake(saved.ownerIntake||emptyOwnerIntake());setIdea(saved.idea);setSourceText(saved.sourceText);setBrandName(saved.brandName||"");if(saved.sourceText||saved.hasPhotos||saved.hasAssets)setSourceOpen(true);setStyleId(saved.styleId||null);setTemplatesOpen(!saved.styleId);setRefinement(saved.refinement||"");const [storedReading,images]=await Promise.all([loadReading(guestReadingKey(saved.id)).catch(()=>null),loadBrandAssets(guestReadingKey(saved.id)).catch(()=>null)]);if(!alive.current)return;const v=storedReading?refreshGuestMenuReading(storedReading):null;if(v&&JSON.stringify(v.items)!==JSON.stringify(storedReading?.items))await saveReading(v).catch(()=>{});if(v){setPages(v.pages);reading.current=v;setImported(v.items.length);const source=inspectMenuSourceText(saved.sourceText);setNotice([hasLegacyMenuPdf(v.pages)?legacyPdfNotice:"",pendingMenuNotice(v.items),!v.items.length&&!v.pages.length&&source.links.length&&!source.menuText?emptyMenuSourceNotice:""].filter(Boolean).join(" "));}if(images)setBrandAssets(images);if(saved.hasPhotos&&!v?.pages.length||saved.hasAssets&&!images?.logo&&!images?.cover)setNotice("Sua ideia foi recuperada, mas alguns anexos não estão disponíveis. Envie esses arquivos novamente antes de continuar.");if(saved.previewReady&&saved.ownerIntake&&intakeFinished(saved.ownerIntake)){const hasSource=!!(saved.sourceText||v?.pages.length);const photos=v?.pages.length?await previewMenuPhotos(v.pages,v.items).catch(()=>({})):{};if(alive.current)setPreview(makePreview(v?.items||[],hasSource,photos));}}).catch(()=>{if(alive.current)setStorageError("Não foi possível recuperar o projeto deste aparelho.");}).finally(()=>{if(alive.current)setInitialized(true);});return()=>{alive.current=false;abort.current?.abort();};},[]);
- useEffect(()=>{if(!initialized||!idea&&!brandName&&!sourceText&&!pages.length&&!brandAssets&&!preview&&!intake.step)return;const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,ownerIntake:intake,sourceText,hasPhotos:!!pages.length,hasAssets:!!(brandAssets?.logo||brandAssets?.cover),styleId:styleId||undefined,refinement,previewReady:!!preview};launch.current=value;void saveLaunchCheckpoint(value).then(()=>{if(alive.current)setStorageError("");}).catch(e=>{if(alive.current)setStorageError(e instanceof Error?e.message:"Não foi possível guardar sua ideia.");});},[idea,brandName,intake,sourceText,pages.length,brandAssets,styleId,refinement,preview,initialized]);
+ useEffect(()=>{if(!initialized||!idea&&!brandName&&!sourceText&&!pages.length&&!brandAssets&&!preview&&!intake.step)return;const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),targetRestaurantId:launch.current?.targetRestaurantId,savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,ownerIntake:intake,sourceText,hasPhotos:!!pages.length,hasAssets:!!(brandAssets?.logo||brandAssets?.cover),styleId:styleId||undefined,refinement,previewReady:!!preview};launch.current=value;void saveLaunchCheckpoint(value).then(()=>{if(alive.current)setStorageError("");}).catch(e=>{if(alive.current)setStorageError(e instanceof Error?e.message:"Não foi possível guardar sua ideia.");});},[idea,brandName,intake,sourceText,pages.length,brandAssets,styleId,refinement,preview,initialized]);
  useEffect(()=>{if(preview&&scrollToResult.current){scrollToResult.current=false;requestAnimationFrame(()=>galleryRef.current?.scrollIntoView({behavior:"smooth",block:"start"}));}},[preview]);
  useEffect(()=>{if(!fullPreview)return;const previous=document.activeElement as HTMLElement|null,scroll=document.body.style.overflow;document.body.style.overflow="hidden";
   requestAnimationFrame(()=>fullPreviewRef.current?.querySelector<HTMLButtonElement>("button")?.focus());
@@ -76,16 +77,7 @@ export default function IdeaStart(){
   if(busy)return;const nextIdea=ownerVisualBriefing(nextIntake);setIdea(nextIdea);setError("");setNotice("");setBusy(true);const controller=new AbortController();abort.current=controller;
   try{
    let text=sourceText,source=inspectMenuSourceText(text),ready=pages;
-   if(source.links.length===1&&!source.menuText&&!pages.length){
-    setReadingLabel("Consultando o link do cardápio…");
-    try{
-      const result=sourceLookup.current?.url===source.links[0].url?sourceLookup.current:await fetchMenuSource(source.links[0].url);
-      sourceLookup.current=result;setNotice(result.message||emptyMenuSourceNotice);
-      if(result.text){text=source.links[0].url+"\n"+result.text;setSourceText(text);source=inspectMenuSourceText(text);}
-    }catch{
-      setNotice("O link não trouxe produtos. Você pode enviar PDF, TXT ou fotos para completar o cardápio.");
-    }
-   }
+   if(source.links.length===1&&!source.menuText&&!pages.length){setNotice("O link está guardado como referência. Para incluir produtos, envie PDF, foto ou texto — ou adicione depois.");}
    const missing=pages.filter(p=>!p.lines.length);
    if(missing.length){const scanned=await recognizeMenuPhotos(missing,controller.signal,(_,label)=>{if(alive.current)setReadingLabel(label);});ready=pages.map(p=>scanned.find(s=>s.id===p.id)||p);if(!alive.current)return;setPages(ready);}
    const input=ready.map(p=>({id:p.id,lines:p.lines}));if(source.menuText.trim())input.push({id:"text",lines:source.menuText.split("\n").map(text=>({text}))});
@@ -96,7 +88,7 @@ export default function IdeaStart(){
    if(collected?.count||pending)setNotice([collected?.count?collected.message:"",pending].filter(Boolean).join(" "));
    const photos=ready.length?await previewMenuPhotos(ready,result.items).catch(()=>({})):{};
    if(!alive.current||controller.signal.aborted)return;
-   scrollToResult.current=true;setTemplatesOpen(!styleId);setPreview(makePreview(result.items,!!(text.trim()||ready.length),photos));setChatOpen(false);setImported(result.items.length);
+   scrollToResult.current=true;setStyleId(styleId||suggestedGalleryStyles(nextIdea,refinement)[0]);setTemplatesOpen(false);setPreview(makePreview(result.items,!!(text.trim()||ready.length),photos));setChatOpen(false);setSourceOpen(false);setImported(result.items.length);
    if(!launch.current)launch.current={id:crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,sourceText:text,hasPhotos:!!ready.length};
    reading.current={restaurantId:guestReadingKey(launch.current.id),savedAt:Date.now(),pages:ready,items:result.items,unmatched:result.unmatched,text};
    await saveReading(reading.current).catch(()=>{});
@@ -116,49 +108,53 @@ export default function IdeaStart(){
    if(!intakeFinished(intake)){setError("Responda às perguntas principais antes de criar o cardápio.");setSaving(false);return;}
    if(!styleId&&!requestAi){setError("Escolha um dos modelos antes de continuar.");setSaving(false);return;}
    const selected=styleId||styles[0];
-   const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,ownerIntake:intake,sourceText,hasPhotos:!!pages.length,hasAssets:!!(brandAssets?.logo||brandAssets?.cover),styleId:selected,refinement,previewReady:true,aiRequested:requestAi};await saveLaunchCheckpoint(value);launch.current=value;
+   const value:MenuLaunch={id:launch.current?.id||crypto.randomUUID(),targetRestaurantId:launch.current?.targetRestaurantId,savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,ownerIntake:intake,sourceText,hasPhotos:!!pages.length,hasAssets:!!(brandAssets?.logo||brandAssets?.cover),styleId:selected,refinement,previewReady:true,aiRequested:requestAi};await saveLaunchCheckpoint(value);launch.current=value;
    if(pages.length)await saveReading({...reading.current,restaurantId:guestReadingKey(value.id),savedAt:Date.now(),pages,items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText});
    else if(sourceText)await saveReading({restaurantId:guestReadingKey(value.id),savedAt:Date.now(),pages:[],items:reading.current?.items||[],unmatched:reading.current?.unmatched||[],text:sourceText}).catch(()=>{});
-   location.assign(await menuLaunchAccountPath());
+   setFinishOpen(true);setSaving(false);requestAnimationFrame(()=>finishRef.current?.scrollIntoView({behavior:"smooth",block:"start"}));
   }catch{setError("O navegador não conseguiu guardar sua ideia. Libere o armazenamento deste site para levar o conteúdo até o cadastro.");setSaving(false);}
  }
+ async function sharePreview(){if(!styleId||!preview||shareBusy)return;setShareBusy(true);setError("");try{const config=await (await fetch("/api/auth/config",{cache:"no-store"})).json() as {csrf:string};const response=await fetch("/api/guest-previews",{method:"POST",headers:{"Content-Type":"application/json","x-pedido-csrf":config.csrf},body:JSON.stringify(design(styleId))});const value=await response.json() as {path?:string;error?:string};if(!response.ok||!value.path)throw Error(value.error||"Não foi possível criar o link. Sua prévia continua aqui.");setShareUrl(new URL(value.path,location.origin).href);setShareMessage("Link pronto. A pessoa abre a prévia sem cadastro; ela ainda não recebe pedidos.");}catch(e){setError(e instanceof Error?e.message:"Não foi possível compartilhar.");}finally{setShareBusy(false);}}
+ useEffect(()=>{setShareUrl("");setShareMessage("");},[idea,brandName,sourceText,styleId,refinement,brandAssets,intake]);
  const styles=suggestedGalleryStyles(idea,refinement),visible=styles.slice(round*4,round*4+4),rounds=Math.ceil(styles.length/4);
  const pendingProducts=reading.current?.items.filter(item=>!readerItemReady(item))||[];
- const explicitName=intake.answers.name||nameFromBriefing(idea);
- const design=(id:GalleryStyleId)=>{const data=galleryDesign(preview!,id,idea,refinement);return {...data,...ownerPreviewDetails(intake),...(intake.answers.name?{name:intake.answers.name}:brandName.trim().length>=2?{name:brandName.trim()}:{}),...(brandAssets?.logo?{logo:brandAssets.logo.data}:{}),...(brandAssets?.cover?{cover:brandAssets.cover.data}:{})};};
+ const explicitName=intake.answers.name&&intake.answers.name!=="Sua pizzaria"?intake.answers.name:nameFromBriefing(idea);
+ const design=(id:GalleryStyleId)=>{const data=galleryDesign(preview!,id,idea,refinement);return {...data,...ownerPreviewDetails(intake),...(brandName.trim().length>=2?{name:brandName.trim()}:intake.answers.name?{name:intake.answers.name}:{}),...(brandAssets?.logo?{logo:brandAssets.logo.data}:{}),...(brandAssets?.cover?{cover:brandAssets.cover.data}:{})};};
  const interpretedPalette=resolveBrandPalette(idea,refinement);
  function refine(e:FormEvent){e.preventDefault();if(!feedback.trim()){setError("Descreva com suas palavras o que você quer mudar.");return;}
   const combined=(refinement?refinement+"\n":"")+feedback.trim();
   if(combined.length>600){setError("Resuma as mudanças em até 600 caracteres.");return;}
-  setRefinement(combined);setFeedback("");setError("");setChatOpen(false);
-  const changed=!!preview&&JSON.stringify(galleryDesign(preview,styleId||styles[0],idea,refinement))!==JSON.stringify(galleryDesign(preview,styleId||styles[0],idea,combined));
-  setLocalFeedbackNote(changed?"Prévia atualizada. Confira o resultado; seu pedido completo ficou guardado.":supportsLocalRefinement(feedback)?"Esse pedido não mudou o visual atual. Tente outra cor, organização ou tamanho das fotos.":"Essa personalização precisa do Estúdio de IA. Seu pedido ficou guardado para continuar com sua conta.");
+  const matchStyle=/madeira|nostalgi|vintage|retro|concreto|linho|jardim/.test(combined.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase());
+  const nextStyle=matchStyle?suggestedGalleryStyles(idea,combined)[0]:styleId;
+  setRefinement(combined);if(nextStyle)setStyleId(nextStyle);setFeedback("");setError("");setChatOpen(false);
+  const changed=nextStyle!==styleId||!!preview&&JSON.stringify(galleryDesign(preview,styleId||styles[0],idea,refinement))!==JSON.stringify(galleryDesign(preview,nextStyle||styles[0],idea,combined));
+  setLocalFeedbackNote(changed?"Prévia atualizada. Confira o resultado; seu pedido completo ficou guardado.":supportsLocalRefinement(feedback)?"Esse pedido não mudou o visual atual. Tente outra cor, organização ou tamanho das fotos.":"Seu pedido ficou guardado. Experimente descrever textura, cores, composição e tamanho das fotos.");
   if(!styleId)setRound(0);
  }
  return <section className={"idea-start ai-landing creator-flow "+(preview?"has-results":"waiting-prompt")} id="ideia"><div className="saas-container">
    {!preview&&<div className="creator-intro"><span>SEU CARDÁPIO. DO SEU JEITO.</span><h1>Sua pizzaria começa<br/>com uma ideia.</h1><p>Conte como você imagina. Traga seu cardápio e veja tudo ganhar forma.</p></div>}
    <div className={"idea-workspace"+(preview?" has-gallery":"")}><div className="idea-composer-wrap">
-     <details className="creator-briefing" open={!preview}><summary>Sua ideia e dados da pizzaria <span>Conferir ou editar</span></summary>
+     <details className="creator-briefing" open={!preview||sourceOpen}><summary>Sua ideia e dados da pizzaria <span>Conferir ou editar</span></summary>
      <div className="idea-conversation">
-       <OwnerIntakeChat value={intake} disabled={busy||saving||!initialized}
+       <OwnerIntakeChat quickPreview value={intake} disabled={busy||saving||!initialized}
         onChange={next=>{
           setIntake(next);setPreview(null);if(next.visualChoice!==intake.visualChoice)setStyleId(null);setRound(0);
           if(next.initialMessage!==intake.initialMessage||next.visualChoice!==intake.visualChoice)setIdea(ownerVisualBriefing(next));
-          if(next.answers.name!==intake.answers.name)setBrandName(next.answers.name||"");
+          if(next.answers.name!==intake.answers.name)setBrandName(next.answers.name==="Sua pizzaria"?"":next.answers.name||"");
           if(next.answers.menu!==intake.answers.menu)setSourceText(old=>old&&old!==intake.answers.menu?old:next.answers.menu||"");
         }}
         onSource={result=>{sourceLookup.current=result;setPreview(null);setSourceText(old=>mergeReaderSource(old,result.url+(result.text?"\n"+result.text:"")));}}
         onText={captureProductText}
         sourceSuggestion={sourceSuggestion}
         onAttach={openAttachments}
-        onReady={next=>{void generate(next);}}/>
+        onReady={next=>{if(!preview)void generate(next);}}/>
        <div className="idea-composer-bottom idea-conversation-attachments">
        <button type="button" className="idea-pdf-shortcut" disabled={busy||saving||!initialized} onClick={()=>pdfQuickPicker.current?.click()}><FileText size={17}/>Importar PDF direto</button>
        {intakeFinished(intake)&&<button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>sourceOpen?setSourceOpen(false):openAttachments()}><Paperclip size={17}/>Enviar cardápio ou imagens {pages.length>0?"("+pages.length+")":""}</button>}
-       <small>PDF com texto é lido no aparelho; preços e fotos ficam para conferência antes de publicar.</small>
+       <a className="idea-extension-link" href="/extensao"><Download size={17}/>Baixar extensão e exportar meu cardápio</a><small>PDF com texto é lido no aparelho; preços e fotos ficam para conferência antes de publicar.</small>
       </div>
      </div>
-     {sourceOpen&&<div ref={sourcePane} className="idea-source"><div><strong><Paperclip size={17}/>Envie seu cardápio</strong><button className="icon-btn" type="button" aria-label="Recolher importação" onClick={()=>setSourceOpen(false)}><X size={16}/></button></div><p>PDF, TXT, CSV, fotos ou uma página salva do iFood. Até 8 páginas por leitura.</p>
+     {sourceOpen&&<div ref={sourcePane} className="idea-source"><div><strong><Paperclip size={17}/>Envie seu cardápio</strong><button className="icon-btn" type="button" aria-label="Recolher importação" onClick={()=>setSourceOpen(false)}><X size={16}/></button></div><p>PDF, TXT, CSV, fotos ou uma página salva do iFood. Até 8 páginas por leitura.</p><p><a className="text-button" href="/extensao">Baixar extensão e exportar meu cardápio <ArrowRight size={15}/></a></p><button type="button" className="text-button" disabled={busy||saving} onClick={()=>{setSourceOpen(false);if(!preview){const next=ownerPreviewFromDescription(intake,"");setIntake(next);void generate(next);}}}>Adicionar produtos depois <ArrowRight size={15}/></button>
        <div className="idea-file-actions"><label><ImagePlus size={16}/>Fotos do cardápio<input type="file" hidden multiple accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={files}/></label><label><FileText size={16}/>PDF, TXT ou CSV<input type="file" hidden accept=".pdf,.txt,.csv,.html,.htm,application/pdf,text/plain,text/csv,text/html" disabled={busy||saving||!initialized} onChange={files}/></label><label><ImagePlus size={16}/>Logo<input type="file" hidden accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={e=>void uploadBrand(e,"logo")}/></label><label><ImagePlus size={16}/>Capa / referência<input type="file" hidden accept="image/jpeg,image/png,image/webp" disabled={busy||saving||!initialized} onChange={e=>void uploadBrand(e,"cover")}/></label><a href="/modelo-cardapio.csv" download>Modelo CSV</a></div>
        <details className="idea-source-review"><summary>Conferir ou corrigir o texto importado</summary><label htmlFor="idea-source-text">Produtos e preços</label><textarea id="idea-source-text" rows={4} maxLength={60000} value={sourceText} disabled={busy||saving||!initialized} onChange={e=>{setSourceText(e.target.value);setPreview(null);reading.current=null;}} placeholder={"Calabresa P R$ 29,90 · G R$ 49,90"}/></details>
        {(brandAssets?.logo||brandAssets?.cover)&&<div className="idea-brand-previews">{brandAssets.logo&&<figure><img src={brandAssets.logo.data} alt="Logo anexado"/><figcaption>Logo</figcaption><button type="button" aria-label="Remover logo" disabled={busy||saving} onClick={()=>void removeBrand("logo")}><X size={15}/></button></figure>}{brandAssets.cover&&<figure><img src={brandAssets.cover.data} alt="Capa ou referência anexada"/><figcaption>Capa / referência</figcaption><button type="button" aria-label="Remover capa" disabled={busy||saving} onClick={()=>void removeBrand("cover")}><X size={15}/></button></figure>}</div>}
@@ -179,12 +175,12 @@ export default function IdeaStart(){
      {preview.products.some(item=>item.id==="margherita"&&item.name==="Margherita")&&imported===0&&<p className="ai-gallery-sample" role="note">Sabores e preços ilustrativos para visualizar o design. Nenhum valor de exemplo será cadastrado na sua loja.</p>}
      {styleId&&<div className="ai-selected"><div className="ai-selected-bar"><div><strong>Prévia da sua pizzaria</strong><small>{galleryStyle(styleId).summary}</small></div><button type="button" onClick={()=>{setTemplatesOpen(true);setChatOpen(false);requestAnimationFrame(()=>galleryRef.current?.querySelector(".ai-template-options")?.scrollIntoView({behavior:"smooth",block:"start"}));}}>Escolher outro</button></div><div className="ai-selected-preview" role="region" aria-label="Prévia dos produtos e preços" tabIndex={0}><MiniMenu data={design(styleId)} large rich/></div><p className="ai-preview-scroll-hint">Role dentro da prévia para conferir os produtos e preços.</p><div className="ai-selected-actions">
        <button type="button" className="btn outline" onClick={()=>setFullPreview(true)} aria-label={"Testar o cardápio completo personalizado "+galleryStyle(styleId).title}>Testar meu cardápio completo <ArrowRight size={15}/></button>
-       <button type="button" className="btn primary" disabled={busy||saving} onClick={()=>void continueSetup()}>{saving?<Spinner/>:<><Check size={17}/>Usar este modelo</>}</button>
-      </div><details className="ai-selected-more"><summary>Mais opções de personalização</summary><div>
+       <button type="button" className="btn primary" disabled={busy||saving} onClick={()=>void continueSetup()}>{saving?<Spinner/>:<><Check size={17}/>Salvar minha pizzaria</>}</button>
+      </div><div className="creator-share-actions"><button type="button" className="btn outline" disabled={shareBusy||busy||saving} onClick={()=>void sharePreview()}>{shareBusy?<Spinner/>:<Link2 size={17}/>}Criar link da prévia sem cadastro</button><button type="button" className="text-button" onClick={openAttachments}>Enviar ou adicionar produtos</button></div>{shareUrl&&<div className="creator-share-result" role="status"><strong>Prévia pronta para compartilhar</strong><a href={shareUrl} target="_blank" rel="noopener noreferrer">{shareUrl}</a><button type="button" className="text-button" onClick={()=>{void navigator.clipboard.writeText(shareUrl).then(()=>setShareMessage("Link copiado. Você já pode enviá-lo."),()=>setShareMessage("Selecione o link acima para copiar."));}}>Copiar link</button><p>{shareMessage} O link vale por 7 dias.</p></div>}<details className="ai-selected-more"><summary>Mais opções de personalização</summary><div>
        <button type="button" className="btn outline" onClick={()=>setReferenceId(styleId)}>Ver imagem de referência</button>
        <button type="button" className="btn outline" aria-expanded={chatOpen} aria-controls="gallery-feedback" onClick={()=>setChatOpen(true)}>Ajustar cores, fotos e textos</button>
       </div></details></div>}
-       <details className="ai-template-options" open={templatesOpen} onToggle={e=>setTemplatesOpen(e.currentTarget.open)}><summary>{styleId?"Trocar o modelo selecionado":"Escolha um dos modelos abaixo"} <span>12 opções</span></summary>
+       <details className="ai-template-options" open={templatesOpen} onToggle={e=>setTemplatesOpen(e.currentTarget.open)}><summary>{styleId?"Trocar o modelo selecionado":"Escolha um dos modelos abaixo"} <span>{styles.length} opções</span></summary>
        <p className="ai-swipe-hint">Arraste para o lado · {`modelos ${round*4+1} a ${Math.min(round*4+4,styles.length)}`}</p><div ref={styleGridRef} className="ai-style-grid">{visible.map(id=>{const style=galleryStyle(id);return <article key={id} className="ai-style-card"><div className="ai-style-screen"><MiniMenu data={design(id)} large/></div><div className="ai-style-footer"><div><strong>{style.title}</strong><span>{style.summary}</span><button type="button" className="ai-reference-link" aria-label={"Ver referência de "+style.title} onClick={()=>setReferenceId(id)}>Ver referência</button></div><button type="button" disabled={busy||saving} onClick={()=>{setStyleId(id);setTemplatesOpen(false);setChatOpen(false);galleryRef.current?.scrollIntoView({behavior:"smooth",block:"start"});}} aria-label={"Escolher "+style.title}>Escolher<ArrowRight size={16}/></button></div></article>;})}</div><div className="ai-gallery-commands"><button type="button" onClick={()=>{setRound((round+1)%rounds);styleGridRef.current?.scrollTo({left:0,behavior:"auto"});setChatOpen(false);}}><RefreshCw size={16}/>{round<rounds-1?"Ver mais 4 modelos":"Ver os primeiros 4"}</button><button type="button" onClick={()=>setChatOpen(true)}><Sparkles size={16}/>Pedir um ajuste</button></div></details>
      {localFeedbackNote.includes("Estúdio")&&<div className="ai-personalize"><p>Seu pedido ficou guardado. A personalização avançada exige uma conta.</p><button className="btn dark" type="button" disabled={saving||busy} onClick={()=>void continueSetup(true)}><Sparkles size={16}/>Continuar com IA <ArrowRight size={15}/></button></div>}
      {chatOpen&&<form className="ai-refine" onSubmit={refine}><label htmlFor="gallery-feedback">O que você quer diferente?</label><textarea id="gallery-feedback" required rows={3} maxLength={600} value={feedback} onChange={e=>setFeedback(e.target.value)} placeholder="Escreva livremente como você quer o design, as cores, a geometria, o tamanho das fotos e os textos."/><div><small>Peça mudanças de cores, fotos, letras e composição. Confira o resultado antes de aplicar.</small><button type="submit" className="btn dark">Aplicar meu pedido <ArrowRight size={15}/></button></div></form>}
@@ -193,6 +189,7 @@ export default function IdeaStart(){
    </section>}
    </div>
    
+   {finishOpen&&preview&&styleId&&<div ref={finishRef}><CreatorFinish data={design(styleId)} styleId={styleId} vision={idea} refinement={refinement} existingId={launch.current?.targetRestaurantId} onCreated={async id=>{if(!launch.current)throw Error("Sua prévia precisa ser guardada antes de continuar.");launch.current={...launch.current,targetRestaurantId:id};await saveLaunchCheckpoint(launch.current);}} onComplete={async id=>{if(launch.current)await adoptMenuLaunch(launch.current,id);location.assign("/app?loja="+encodeURIComponent(id)+"&cardapio=revisar");}}/></div>}
    {fullPreview&&styleId&&preview&&<div ref={fullPreviewRef} className="ai-full-preview" role="dialog" aria-modal="true" aria-label="Teste do cardápio personalizado">
       <div className="ai-full-preview-top"><div><strong>Teste do seu cardápio completo</strong><small>Com suas cores, nome e produtos. Simulação: não envia pedidos nem cobra.</small></div><button type="button" className="btn outline" onClick={()=>setFullPreview(false)} aria-label="Fechar teste e voltar aos modelos"><X size={18}/>Voltar aos modelos</button></div>
       <Suspense fallback={<p className="ai-full-preview-loading" role="status">Preparando seu cardápio completo…</p>}><FullMenu data={design(styleId)} demo preview/></Suspense>

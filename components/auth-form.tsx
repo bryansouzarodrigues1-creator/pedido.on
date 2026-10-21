@@ -8,7 +8,7 @@ type Mode="login"|"register"|"recover"|"confirm-email"|"reset"|"logout";
 type AuthConfig={enabled:boolean;registrationEnabled:boolean;recoveryEnabled:boolean;prototype:boolean;inviteRequired:boolean;googleEnabled:boolean;csrf:string;captchaSiteKey:string};
 type AuthResult={error?:string;message?:string;next?:string;chatgpt?:boolean;url?:string};
 declare global{interface Window{turnstile?:{render:(element:HTMLElement,options:Record<string,unknown>)=>string;remove:(id:string)=>void}}}
-function Captcha({siteKey,onToken}:{siteKey:string;onToken:(v:string)=>void}){
+export function Captcha({siteKey,onToken}:{siteKey:string;onToken:(v:string)=>void}){
  const box=useRef<HTMLDivElement>(null),callback=useRef(onToken);callback.current=onToken;
  useEffect(()=>{let widget:string|undefined,canceled=false;const render=()=>{if(!canceled&&box.current&&window.turnstile){widget=window.turnstile.render(box.current,{sitekey:siteKey,theme:"light",callback:(v:string)=>callback.current(v),"expired-callback":()=>callback.current(""),"error-callback":()=>callback.current("")});}};
  let script=document.querySelector<HTMLScriptElement>('script[data-pedido-captcha]');if(window.turnstile)render();else{if(!script){script=document.createElement("script");script.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";script.async=true;script.dataset.pedidoCaptcha="1";document.head.appendChild(script);}script.addEventListener("load",render);}
@@ -17,7 +17,7 @@ function Captcha({siteKey,onToken}:{siteKey:string;onToken:(v:string)=>void}){
 }
 const copy={
  login:{tag:"BEM-VINDO DE VOLTA",title:"Sua pizzaria está on.",text:"Entre para cuidar do cardápio e acompanhar seus pedidos.",button:"Entrar no meu painel"},
- register:{tag:"A PRÓXIMA FATIA É SUA",title:"Comece pela sua conta.",text:"Depois, cadastre sua pizzaria e adicione seus sabores.",button:"Criar minha conta"},
+ register:{tag:"A PRÓXIMA FATIA É SUA",title:"Salve o cardápio da sua pizzaria.",text:"Você pode criar e compartilhar uma prévia antes de abrir sua conta.",button:"Criar minha conta"},
  recover:{tag:"VAMOS RESOLVER",title:"Esqueceu a senha?",text:"Informe seu e-mail. Enviaremos um link para você escolher uma nova senha.",button:"Enviar link de recuperação"},
  "confirm-email":{tag:"SÓ FALTA CONFIRMAR",title:"Vamos abrir sua conta.",text:"Confirme seu e-mail para começar a montar seu cardápio.",button:"Confirmar meu e-mail"},
  reset:{tag:"UM NOVO COMEÇO",title:"Escolha uma nova senha.",text:"Use pelo menos 12 caracteres. Uma frase curta é mais fácil de lembrar.",button:"Salvar nova senha"},

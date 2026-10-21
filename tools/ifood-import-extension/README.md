@@ -2,7 +2,7 @@
 
 **O fluxo principal do Pizzaria.on continua sendo PDF/fotos no celular.** Esta extensão é um recurso opcional para leitura local de uma loja iFood que o responsável tenha autorização para importar.
 
-> **Não distribua esta versão como integração ativa até o backend da PR #79 ser publicado com a migração D1 0016.** A versão pública anterior não reconhece os novos endpoints, e o envio dará erro. Testes automatizados não substituem homologação com uma loja real.
+> O backend de entrega assistida foi publicado na versão 80. A extensão continua beta: o proprietário confere o resultado, e uma loja real ainda precisa validar a captura completa.
 
 ## Instalar manualmente no computador (Chrome, Edge ou Brave)
 
@@ -13,7 +13,7 @@
 5. Confira categorias, nomes, descrições, preços, disponibilidade, complementos e tamanhos. A extensão não inventa informações ausentes.
 6. Continue podendo copiar o texto e salvar TXT/JSON; esses caminhos não exigem backend da versão 0.4.
 
-## Enviar diretamente para o Pizzaria.on (após liberar o servidor)
+## Enviar diretamente para o Pizzaria.on (operação assistida)
 
 1. O proprietário autenticado abre o importador da própria pizzaria e solicita ajuda, confirmando autorização para leitura do cardápio.
 2. O administrador abre `/admin/importacoes` e gera o **código temporário de uso único** (válido por 30 minutos) para a solicitação. Esse código não é enviado ao cliente.

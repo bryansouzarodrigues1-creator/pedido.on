@@ -1,4 +1,5 @@
-import {menuIdentityId} from "./menu-identity.ts";
+import {z} from "zod";
+import {catalogueStyles,catalogueStyle,catalogueScore} from "./menu-catalogue.ts";
 import {designFromMessage,type MenuPresentation} from "./menu-design.ts";
 import {resolveBrandPalette} from "./brand-palette.ts";
 import {defaultRestaurant,type RestaurantData,type ThemeId} from "./domain.ts";
@@ -19,7 +20,8 @@ export const galleryStyles=[
  {id:"fatia-pop",title:"Fatia Pop",summary:"Coral, berinjela e mosaico de sabores",theme:"playful",accent:"#a52a43",presentation:{layout:"cards",hero:"compact",font:"bold",corners:"soft"}},
  {id:"pizza-vinho",title:"Pizza & Vinho",summary:"Bordô e uma carta de bistrô",theme:"editorial",accent:"#701c32",presentation:{layout:"compact",hero:"split",font:"serif",corners:"square"}},
 ] as const satisfies readonly {id:string;title:string;summary:string;theme:ThemeId;accent:string;presentation:MenuPresentation}[];
-export type GalleryStyleId=(typeof galleryStyles)[number]["id"];
+export type GalleryStyleId=string;
+export const allGalleryStyles=[...catalogueStyles,...galleryStyles];
 /** Short example copy belongs to the visual direction, not to the owner's products. */
 export const galleryVoices:Record<GalleryStyleId,{tagline:string;description:string}>={
  "forno-classico":{tagline:"O sabor começa no forno.",description:"Tradição que você sente em cada fatia."},
@@ -35,8 +37,8 @@ export const galleryVoices:Record<GalleryStyleId,{tagline:string;description:str
  "fatia-pop":{tagline:"Sua próxima fatia favorita.",description:"Encontre seu sabor e faça seu pedido."},
  "pizza-vinho":{tagline:"Uma boa pizza. Uma boa companhia.",description:"Sabores para aproveitar com calma."},
 };
-export const galleryStyleId=menuIdentityId;
-export function galleryReference(id:GalleryStyleId){return `/assets/style-references/${id}.webp`;}
+export const galleryStyleId=z.string().max(100).refine(id=>allGalleryStyles.some(s=>s.id===id),"Escolha um modelo válido.");
+export function galleryReference(id:GalleryStyleId){return `/assets/style-references/${catalogueStyle(id)?.baseId||id}.webp`;}
 const normalized=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const signals:Record<GalleryStyleId,RegExp>={
  "forno-classico":/artesanal|tradicional|italia|classico|lenha|rustic/,
@@ -56,34 +58,23 @@ const signals:Record<GalleryStyleId,RegExp>={
  * Unrecognized requests should be retained for the authenticated AI studio, never treated as applied. */
 export function supportsLocalRefinement(message:string){
  const m=normalized(message);
- return /(?:#[a-f0-9]{6}\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|queijo|oceano|marinho|cor de queijo|azul de mar|lista|uma coluna|duas colunas|cartoes|cards|grade|fotos? grandes?|fotos? em destaque|vitrine|sem capa|capa grande|capa inteira|foto de fundo|sem serifa|serifa|elegante|italia|artesanal|letras? (?:fortes?|grandes?)|fonte (?:forte|grossa)|arredond|cantos? (?:retos?|suaves?)|quadrad|compact|minimal|sem fotos?|premium|luxuos|sofistic|delivery (?:direto|rapido)|(?:slogan|frase|chamada)\s*[:=])/.test(m);
+ return /(?:madeira|nostalgi|vintage|retro|linho|papel|concreto|#[a-f0-9]{6}\b|escuro|preto|noturno|claro|branco|vermelho|laranja|amarelo|verde|azul|dourado|queijo|oceano|marinho|cor de queijo|azul de mar|lista|uma coluna|duas colunas|cartoes|cards|grade|fotos? grandes?|fotos? em destaque|vitrine|sem capa|capa grande|capa inteira|foto de fundo|sem serifa|serifa|elegante|italia|artesanal|letras? (?:fortes?|grandes?)|fonte (?:forte|grossa)|arredond|cantos? (?:retos?|suaves?)|quadrad|compact|minimal|sem fotos?|premium|luxuos|sofistic|delivery (?:direto|rapido)|(?:slogan|frase|chamada)\s*[:=])/.test(m);
 }
 /** Three balanced rounds, four distinct compositions in each, zero provider calls. */
 export function suggestedGalleryStyles(briefing:string,feedback=""){
  const prompt=normalized((briefing+" "+feedback).slice(0,2200));
- const weighted=galleryStyles.map((s,index)=>({s,index,weight:signals[s.id].test(prompt)?2:0}));
- weighted.sort((a,b)=>b.weight-a.weight||a.index-b.index);
- const ordered:GalleryStyleId[]=[],remaining=[...weighted];
- while(remaining.length){
-  const layouts=new Set<string>();
-  for(let i=0;i<remaining.length&&layouts.size<4;){
-   const {s}=remaining[i];
-   if(layouts.has(s.presentation.layout)){i++;continue;}
-   layouts.add(s.presentation.layout);ordered.push(s.id);remaining.splice(i,1);
-  }
- }
- return ordered;
+ return allGalleryStyles.map((s,index)=>({id:s.id,index,score:catalogueStyle(s.id)?catalogueScore(catalogueStyle(s.id)!,prompt):(signals[s.id]?.test(prompt)?2:0)})).sort((a,b)=>b.score-a.score||a.index-b.index).map(s=>s.id);
 }
-export function galleryStyle(id:GalleryStyleId){return galleryStyles.find(s=>s.id===id)!;}
+export function galleryStyle(id:GalleryStyleId){const style=allGalleryStyles.find(s=>s.id===id);if(!style)throw Error("Modelo não encontrado.");return style;}
 /** Preserves all pricing, product, Pix, and checkout data. */
 export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:string,feedback=""):RestaurantData{
  const preset=galleryStyle(id);
  const requested=designFromMessage(briefing,data);
- const voice=galleryVoices[id];
+ const voice=catalogueStyle(id)?.voice||galleryVoices[id]||galleryVoices["forno-classico"];
  const palette=resolveBrandPalette(briefing,feedback);
  const requestWords=normalized(briefing);
  // Only honor explicit geometry preferences; keep the preset layouts diverse.
- const geometry={
+ const geometry:Partial<MenuPresentation>={
   ...(/fotos? grandes?|fotos? em destaque|capa grande|capa inteira|foto de fundo/.test(requestWords)?{hero:"cover" as const}:{}),
   ...(/\bserifa\b|elegant|artesanal|sofistic/.test(requestWords)?{font:"serif" as const}:{}),
   ...(/arredond|cantos? suaves?/.test(requestWords)?{corners:"soft" as const}:{}),
@@ -95,7 +86,7 @@ export function galleryDesign(data:RestaurantData,id:GalleryStyleId,briefing:str
  }:null;
  const base={...data,theme:preset.theme,accent:palette?.primary||requested.accent||preset.accent,
    tagline:seaCopy?.tagline||voice.tagline,description:seaCopy?.description||voice.description,
-   presentation:{...preset.presentation,...geometry,identity:id,...(palette?{palette:palette.palette,motif:palette.motif}:{})}};
+   presentation:{...preset.presentation,...geometry,identity:(preset.presentation as MenuPresentation).identity||id as MenuPresentation["identity"],...(palette?{palette:palette.palette,motif:palette.motif}:{})}};
  let next:RestaurantData=base;
  // Each turn is applied to the previous result: a later colour must replace an earlier one.
  for(const turn of feedback.split(/\r?\n+|[.;]\s+/).filter(Boolean)){

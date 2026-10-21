@@ -1,5 +1,6 @@
 import {z} from "zod";
 import type {RestaurantData,ThemeId} from "./domain.ts";
+import {isCatalogueId} from "./menu-catalogue.ts";
 import {menuIdentityId} from "./menu-identity.ts";
 import {brandPaletteFromBriefing} from "./brand-palette.ts";
 export {brandPaletteFromBriefing};
@@ -10,6 +11,7 @@ export const presentationSchema=z.object({
   font:z.enum(["modern","serif","bold"]),
   corners:z.enum(["soft","square"]),
   identity:menuIdentityId.optional(),
+  catalogueId:z.string().max(100).refine(isCatalogueId,"Escolha um modelo do catálogo.").optional(),
   palette:z.object({background:z.string().regex(/^#[0-9a-fA-F]{6}$/),surface:z.string().regex(/^#[0-9a-fA-F]{6}$/),secondary:z.string().regex(/^#[0-9a-fA-F]{6}$/),text:z.string().regex(/^#[0-9a-fA-F]{6}$/),muted:z.string().regex(/^#[0-9a-fA-F]{6}$/),line:z.string().regex(/^#[0-9a-fA-F]{6}$/)}).strict().optional(),
   motif:z.enum(["sea-cheese","two-tone"]).optional(),
 }).strict();

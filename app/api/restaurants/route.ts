@@ -6,6 +6,7 @@ import {defaultRestaurant,slugSchema,restaurantSchema} from "@/lib/domain";
 import {owner,sameOrigin,safeRecord,errorResponse,HttpError} from "@/lib/server";
 import {readJson} from "@/lib/http";
 import {localStudio,proposalPatch} from "@/lib/studio-policy";
+import {restaurantWhatsApp} from "@/lib/restaurant-whatsapp";
 import {startTrial} from "@/lib/trial";
 import {chosenGalleryDraft,galleryStyleId} from "@/lib/gallery-styles";
 export const dynamic="force-dynamic";
@@ -17,6 +18,6 @@ export async function POST(request:Request){try{
   if((total?.n||0)>=10)throw new HttpError(400,"O limite de pré-lançamento é de 10 pizzarias por conta.");
   if(await db.select({id:restaurants.id}).from(restaurants).where(eq(restaurants.slug,input.slug)).get())throw new HttpError(409,"Esse endereço já foi escolhido. Tente outro nome.");
   const base=defaultRestaurant(input.name,input.theme),design=input.styleId?chosenGalleryDraft(input.name,input.styleId,input.vision,input.refinement):(input.vision?proposalPatch(localStudio(input.vision,base),base):{});
-  const now=new Date().toISOString();const row={id:crypto.randomUUID(),ownerId:user.userId,slug:input.slug,name:input.name,data:JSON.stringify({...base,...design,name:input.name,whatsapp:input.whatsapp}),plan:input.plan,createdAt:now,updatedAt:now};
-  try{const created=await db.insert(restaurants).values(row).returning().get();await startTrial(user.userId);return Response.json({restaurant:safeRecord(created)},{status:201});}catch(e){if(e instanceof Error&&/unique/i.test(e.message))throw new HttpError(409,"Esse endereço já foi escolhido. Tente outro nome.");throw e;}
+  const now=new Date().toISOString();const row={id:crypto.randomUUID(),ownerId:user.userId,slug:input.slug,name:input.name,data:JSON.stringify({...base,...design,name:input.name,whatsapp:restaurantWhatsApp(input.whatsapp)}),plan:input.plan,createdAt:now,updatedAt:now};
+  try{const created=await db.insert(restaurants).values(row).returning().get();await startTrial(user.userId);return Response.json({restaurant:safeRecord(created)},{status:201});}catch(e){if(e instanceof Error&&/whatsapp_already_registered/i.test(e.message))throw new HttpError(409,"Já existe uma pizzaria com este WhatsApp. Entre na conta existente ou use outro número.");if(e instanceof Error&&/unique/i.test(e.message))throw new HttpError(409,"Esse endereço já foi escolhido. Tente outro nome.");throw e;}
 }catch(e){return errorResponse(e);}}

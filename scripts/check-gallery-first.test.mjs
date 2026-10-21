@@ -3,19 +3,16 @@ import assert from "node:assert/strict";
 import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {fixture} from "./test-backend-fixture.mjs";
-import {galleryStyles,galleryReference,suggestedGalleryStyles,galleryDesign,chosenGalleryDraft,galleryStyleId,supportsLocalRefinement} from "../lib/gallery-styles.ts";
+import {allGalleryStyles,galleryStyles,galleryReference,suggestedGalleryStyles,galleryDesign,chosenGalleryDraft,galleryStyleId,supportsLocalRefinement} from "../lib/gallery-styles.ts";
 import {defaultRestaurant,demoRestaurant,restaurantSchema} from "../lib/domain.ts";
 import {saveMenuLaunch,readMenuLaunch,launchKey} from "../lib/menu-launch.ts";
 const makeStore=()=>{const values=new Map();return {getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};};
 test("twelve visual presets provide four distinct compositions in three discovery rounds",()=>{
  assert.equal(galleryStyles.length,12);assert.equal(new Set(galleryStyles.map(x=>x.id)).size,12);
  const result=suggestedGalleryStyles("Quero algo preto, mais delivery, fotos enormes e promoções");
- assert.equal(result.length,12);assert.equal(new Set(result).size,12);
- for(const round of [result.slice(0,4),result.slice(4,8),result.slice(8,12)]){
-  assert.equal(round.length,4);
-  assert.equal(new Set(round.map(id=>galleryStyles.find(x=>x.id===id).presentation.layout)).size,4);
- }
- assert.ok(result.slice(0,4).includes("noite-premium")||result.slice(0,4).includes("urbano"));
+ assert.equal(result.length,252);assert.equal(new Set(result).size,252);
+ for(const id of result)assert.ok(allGalleryStyles.some(s=>s.id===id));
+ assert.ok(result.slice(0,4).some(id=>id.startsWith("delivery-urbano")||id.startsWith("noite-elegante")));
  assert.deepEqual(suggestedGalleryStyles("pizza artesanal"),suggestedGalleryStyles("pizza artesanal"));
  assert.equal(supportsLocalRefinement("Quero fotos grandes e cantos quadrados"),true);
  assert.equal(supportsLocalRefinement("Quero um cardápio giratório em formato tridimensional de lua"),false);

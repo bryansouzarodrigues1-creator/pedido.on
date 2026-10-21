@@ -49,9 +49,10 @@ async function runtime(){
  }});
  try{
   const db=await mf.getD1Database('DB'),bucket=await mf.getR2Bucket('BUCKET');
-  for(const file of readdirSync('drizzle').filter(v=>v.endsWith('.sql')).sort())for(const sql of readFileSync('drizzle/'+file,'utf8').split(';').map(s=>s.trim()).filter(Boolean))await db.prepare(sql).run();
+  for(const file of readdirSync('drizzle').filter(v=>v.endsWith('.sql')&&!v.startsWith('0017_')).sort())for(const sql of readFileSync('drizzle/'+file,'utf8').split(file.startsWith('0017_')?'--> statement-breakpoint':';').map(s=>s.trim()).filter(Boolean))await db.prepare(sql).run();
   const data={...demoRestaurant(),whatsapp:'(11) 99999-9999',pix:{enabled:true,type:'email',key:'pix@example.test',recipient:'Pizzaria fictícia'}};
   for(const key of ['a','b']){const stamp=new Date().toISOString();await db.prepare('INSERT INTO restaurants(id,owner_id,slug,name,data,published_data,published,created_at,updated_at) VALUES(?,?,?,?,?,?,1,?,?)').bind('shop-'+key,'supabase:'+identities[key].id,'pizzaria-'+key,'Pizzaria fictícia',JSON.stringify(data),JSON.stringify(data),stamp,stamp).run();}
+  for(const sql of readFileSync('drizzle/0017_guest_preview_unique_whatsapp.sql','utf8').split('--> statement-breakpoint').filter(v=>v.trim()))await db.prepare(sql.trim()).run();
   async function verifyStore(id='shop-a'){
    const row=await db.prepare('SELECT published_data FROM restaurants WHERE id=?').bind(id).first(),identity=JSON.stringify(verificationIdentity(JSON.parse(row.published_data))),hash=createHash('sha256').update(identity).digest('hex'),stamp=new Date().toISOString();
    await db.prepare("INSERT INTO store_verifications(restaurant_id,status,identity_hash,identity_json,request_note,requested_at,reason,version,updated_at) VALUES(?,'approved',?,?,'Synthetic approved fixture',?,'Synthetic approved fixture',1,?) ON CONFLICT(restaurant_id) DO UPDATE SET status='approved',identity_hash=excluded.identity_hash,identity_json=excluded.identity_json,version=store_verifications.version+1,updated_at=excluded.updated_at").bind(id,hash,identity,stamp,stamp).run();
