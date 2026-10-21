@@ -88,7 +88,7 @@ export default function IdeaStart(){
    if(collected?.count||pending)setNotice([collected?.count?collected.message:"",pending].filter(Boolean).join(" "));
    const photos=ready.length?await previewMenuPhotos(ready,result.items).catch(()=>({})):{};
    if(!alive.current||controller.signal.aborted)return;
-   scrollToResult.current=true;setStyleId(styleId||suggestedGalleryStyles(nextIdea,refinement)[0]);setTemplatesOpen(false);setPreview(makePreview(result.items,!!(text.trim()||ready.length),photos));setChatOpen(false);setImported(result.items.length);
+   scrollToResult.current=true;setStyleId(styleId||suggestedGalleryStyles(nextIdea,refinement)[0]);setTemplatesOpen(false);setPreview(makePreview(result.items,!!(text.trim()||ready.length),photos));setChatOpen(false);setSourceOpen(false);setImported(result.items.length);
    if(!launch.current)launch.current={id:crypto.randomUUID(),savedAt:Date.now(),idea,brandName:brandName.trim().length>=2?brandName.trim():undefined,sourceText:text,hasPhotos:!!ready.length};
    reading.current={restaurantId:guestReadingKey(launch.current.id),savedAt:Date.now(),pages:ready,items:result.items,unmatched:result.unmatched,text};
    await saveReading(reading.current).catch(()=>{});
@@ -124,15 +124,17 @@ export default function IdeaStart(){
  function refine(e:FormEvent){e.preventDefault();if(!feedback.trim()){setError("Descreva com suas palavras o que você quer mudar.");return;}
   const combined=(refinement?refinement+"\n":"")+feedback.trim();
   if(combined.length>600){setError("Resuma as mudanças em até 600 caracteres.");return;}
-  setRefinement(combined);if(/madeira|nostalgi|vintage|retro|concreto|linho|jardim/.test(combined.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()))setStyleId(suggestedGalleryStyles(idea,combined)[0]);setFeedback("");setError("");setChatOpen(false);
-  const changed=!!preview&&JSON.stringify(galleryDesign(preview,styleId||styles[0],idea,refinement))!==JSON.stringify(galleryDesign(preview,styleId||styles[0],idea,combined));
+  const matchStyle=/madeira|nostalgi|vintage|retro|concreto|linho|jardim/.test(combined.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase());
+  const nextStyle=matchStyle?suggestedGalleryStyles(idea,combined)[0]:styleId;
+  setRefinement(combined);if(nextStyle)setStyleId(nextStyle);setFeedback("");setError("");setChatOpen(false);
+  const changed=nextStyle!==styleId||!!preview&&JSON.stringify(galleryDesign(preview,styleId||styles[0],idea,refinement))!==JSON.stringify(galleryDesign(preview,nextStyle||styles[0],idea,combined));
   setLocalFeedbackNote(changed?"Prévia atualizada. Confira o resultado; seu pedido completo ficou guardado.":supportsLocalRefinement(feedback)?"Esse pedido não mudou o visual atual. Tente outra cor, organização ou tamanho das fotos.":"Seu pedido ficou guardado. Experimente descrever textura, cores, composição e tamanho das fotos.");
   if(!styleId)setRound(0);
  }
  return <section className={"idea-start ai-landing creator-flow "+(preview?"has-results":"waiting-prompt")} id="ideia"><div className="saas-container">
    {!preview&&<div className="creator-intro"><span>SEU CARDÁPIO. DO SEU JEITO.</span><h1>Sua pizzaria começa<br/>com uma ideia.</h1><p>Conte como você imagina. Traga seu cardápio e veja tudo ganhar forma.</p></div>}
    <div className={"idea-workspace"+(preview?" has-gallery":"")}><div className="idea-composer-wrap">
-     <details className="creator-briefing" open={!preview}><summary>Sua ideia e dados da pizzaria <span>Conferir ou editar</span></summary>
+     <details className="creator-briefing" open={!preview||sourceOpen}><summary>Sua ideia e dados da pizzaria <span>Conferir ou editar</span></summary>
      <div className="idea-conversation">
        <OwnerIntakeChat quickPreview value={intake} disabled={busy||saving||!initialized}
         onChange={next=>{
