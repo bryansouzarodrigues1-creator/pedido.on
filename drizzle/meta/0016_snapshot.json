@@ -1464,6 +1464,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "contact_consent_at": {
+          "name": "contact_consent_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "contact_whatsapp": {
           "name": "contact_whatsapp",
           "type": "text",
