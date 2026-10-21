@@ -23,6 +23,10 @@ function draw(){
     const price = item.priceCents!==null ? `R$ ${(item.priceCents/100).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}` : "Preço a revisar";
     meta.textContent=`${category.name} • ${item.available?price:"Indisponível"}${item.needsReview?" • precisa revisão":""}`;
     detail.append(name,meta);
+    if(item.imageUrl){const reference=document.createElement("small");reference.className="photo-reference";
+      const link=document.createElement("a");link.href=item.imageUrl;link.target="_blank";link.rel="noreferrer noopener";link.textContent="Ver foto identificada ↗";
+      reference.append(link);detail.append(reference);}
+
     if (/pizza|sabor/i.test(category.name) && !/combo|bebida|sobremesa|lanche/i.test(category.name)) {
       const size=document.createElement("select");size.className="pizza-size";
       size.setAttribute("aria-label",`Tamanho de ${item.name}`);
@@ -58,3 +62,28 @@ byId("deselectAll").addEventListener("click",()=>{selected.clear();draw();});
 byId("txt").addEventListener("click",()=>{if(!capture)return;save("cardapio-ifood-pizzaria-on.txt",makeMenuText(capture,selected,pizzaSizes),"text/plain;charset=utf-8");});
 byId("json").addEventListener("click",()=>{if(!capture)return;save("cardapio-ifood-origem.json",makeMenuJSON(capture,selected,pizzaSizes),"application/json;charset=utf-8");});
 byId("copy").addEventListener("click",async()=>{if(!capture)return;try{await navigator.clipboard.writeText(makeMenuText(capture,selected,pizzaSizes));notice(`Texto de ${selectedRows(capture,selected).length} itens copiado. Cole no campo de criação do Pizzaria.on.`);}catch{notice("Falha ao copiar: use o botão Baixar TXT.");}});
+
+
+byId("sendSite").addEventListener("click",async()=>{
+ if(!capture)return;
+ const field=byId("pairCode"),code=String(field.value||"").trim();
+ if(!/^[a-f\d-]{36}\.[a-f\d]{64}$/i.test(code)){notice("Cole o código temporário completo gerado pela administração.");return;}
+ const rows=capture.categories.flatMap(category=>category.items.map(item=>({
+   id:item.id,category:category.name,name:item.name,description:item.description||"",priceCents:item.priceCents,
+   rawPrice:item.rawPrice||"",imageUrl:item.imageUrl||null,needsReview:!!item.needsReview,available:!!item.available,
+   selected:selected.has(item.id),sizeChoice:pizzaSizes[item.id]||null
+ })));
+ const payload={sourceUrl:capture.sourceUrl,storeName:capture.storeName||"",capturedAt:capture.capturedAt||new Date().toISOString(),truncated:!!capture.truncated,items:rows};
+ const button=byId("sendSite");button.disabled=true;notice("Entregando catálogo ao servidor Pizzaria.on para revisão...");
+ try{
+  const response=await fetch("https://forno-cardapios.waves4845.chatgpt.site/api/menu-import-deliveries",{
+    method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+code},
+    body:JSON.stringify(payload),credentials:"omit",cache:"no-store",signal:AbortSignal.timeout(30000)
+  });
+  const body=await response.json();
+  if(!response.ok)throw Error(body.error||"Não foi possível entregar o catálogo.");
+  field.value="";
+  notice("Recebido pelo Pizzaria.on! "+body.stats.total+" registros e "+body.stats.photoReferences+" referências de fotos. O dono deve revisar antes de publicar.");
+ }catch(e){notice(e instanceof Error?e.message:"Falha de conexão. Confira o código e tente novamente.");}
+ finally{button.disabled=false;}
+});
