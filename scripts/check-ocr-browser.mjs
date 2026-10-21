@@ -30,6 +30,7 @@ try {
                 await page.locator('#owner-intake-message').fill(response);
                 await page.locator('.owner-intake-reply button[type=submit]').click();
             }
+            if(publicReadOnly)for(let i=0;i<4&&await page.locator('#owner-intake-message').isVisible();i++){await page.locator('#owner-intake-message').fill('depois');await page.locator('.owner-intake-reply button[type=submit]').click();}
             await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).waitFor();
         }else{
             await page.waitForFunction(() => document.querySelector('#pizzeria-idea')?.disabled === false);
@@ -60,7 +61,7 @@ try {
         if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).click();
         else await page.getByRole('button', {name: legacy ? 'Criar opções' : current ? 'Criar 12 modelos' : 'Criar 8 modelos', exact: true}).click();
         if(composer)await chooseMenuPreview(page);else await page.locator('.ai-style-card').first().waitFor({timeout:120000});
-        if(composer)await page.waitForFunction(()=>Array.from(document.querySelectorAll('.ai-selected-actions button')).some(button=>button.textContent.includes('Salvar minha pizzaria')&&!button.disabled));
+        if(composer)await page.waitForFunction(()=>Array.from(document.querySelectorAll('.ai-selected-actions button')).some(button=>/Salvar minha pizzaria|Usar este modelo/.test(button.textContent)&&!button.disabled));
         else if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).waitFor();
         else await page.waitForFunction(expected => Array.from(document.querySelectorAll('button')).some(button => button.textContent.includes(expected) && !button.disabled), legacy ? 'Atualizar prévias' : 'Atualizar modelos');
         const ms = Math.round(performance.now() - started);
