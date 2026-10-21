@@ -1457,6 +1457,20 @@
     "menu_import_assistance": {
       "name": "menu_import_assistance",
       "columns": {
+        "capture_json": {
+          "name": "capture_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "id": {
           "name": "id",
           "type": "text",
@@ -1464,22 +1478,16 @@
           "notNull": true,
           "autoincrement": false
         },
-        "restaurant_id": {
-          "name": "restaurant_id",
-          "type": "text",
+        "notify_when_ready": {
+          "name": "notify_when_ready",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": false,
+          "default": 0
         },
         "owner_id": {
           "name": "owner_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "store_url": {
-          "name": "store_url",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -1493,17 +1501,9 @@
           "autoincrement": false,
           "default": "''"
         },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'requested'"
-        },
-        "capture_json": {
-          "name": "capture_json",
-          "type": "text",
+        "pairing_expires_at": {
+          "name": "pairing_expires_at",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -1515,15 +1515,30 @@
           "notNull": false,
           "autoincrement": false
         },
-        "pairing_expires_at": {
-          "name": "pairing_expires_at",
-          "type": "integer",
+        "received_at": {
+          "name": "received_at",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "created_at": {
-          "name": "created_at",
+        "restaurant_id": {
+          "name": "restaurant_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'requested'"
+        },
+        "store_url": {
+          "name": "store_url",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -1534,13 +1549,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "received_at": {
-          "name": "received_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         }
       },
