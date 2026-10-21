@@ -34,3 +34,13 @@ test('photo upload rejects forged URLs and invalid assets before posting',async(
  await assert.rejects(uploadApprovedMenuPhoto('restaurant',sample,send),/Não foi possível guardar/);
  assert.equal(calls,2);
 });
+
+test("photos already copied into the same restaurant R2 require owner approval but no second upload",async()=>{
+ const chosen=items(),photo="/media/restaurant/ready.jpg",id=chosen[0].id;let uploads=0;
+ const result=await attachApprovedMenuPhotos(chosen,{[id]:photo},{[id]:true},"restaurant",()=>{},async()=>{uploads++;throw Error("no upload expected");});
+ assert.equal(uploads,0);assert.equal(result[0].image,photo);
+ assert.equal(chosen[0].image,undefined,"preview must not mutate source");
+ const rejected=await attachApprovedMenuPhotos(chosen,{[id]:photo},{[id]:false},"restaurant",()=>{},async()=>{throw Error("should not call");});
+ assert.equal(rejected[0].image,undefined);
+ await assert.rejects(attachApprovedMenuPhotos(chosen,{[id]:"/media/other/foreign.jpg"},{[id]:true},"restaurant",()=>{},async()=>{throw Error("Upload refuses non-JPEG suggestion");}),/Upload refuses/);
+});

@@ -64,3 +64,11 @@ test('malformed restored geometry, source lines, oversized text and impossible t
   await saveReading(invalid);assert.equal(await loadReading(reading.restaurantId),null);
  }
 });
+
+test('assisted photo candidates survive reload only for their own restaurant and existing review item',async()=>{
+ const reading={restaurantId:'assisted-photo-owner',savedAt:Date.now(),pages:[],items:[item],unmatched:[],text:'',assistanceRequestId:'123e4567-e89b-42d3-a456-426614174000',photoSuggestions:{[item.id]:'/media/assisted-photo-owner/photo.png',stale:'/media/assisted-photo-owner/stale.png'}};
+ await saveReading(reading);let restored=await loadReading(reading.restaurantId);
+ assert.equal(restored.assistanceRequestId,reading.assistanceRequestId);assert.deepEqual(restored.photoSuggestions,{[item.id]:'/media/assisted-photo-owner/photo.png'});
+ await saveReading({...reading,photoSuggestions:{[item.id]:'/media/other-owner/photo.png'}});restored=await loadReading(reading.restaurantId);assert.deepEqual(restored.photoSuggestions,{});
+ await removeReading(reading.restaurantId);
+});

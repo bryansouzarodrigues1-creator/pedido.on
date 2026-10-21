@@ -5,7 +5,7 @@ import {applyReaderItems,normalizeMenuText,readerItemReady,type ReaderItem} from
  * be persisted: applyReaderItems still produces the validated draft patch. */
 export function previewReviewedMenu(data:RestaurantData,items:ReaderItem[],photos:Record<string,string>,approved:Record<string,boolean>):RestaurantData{
  let index=0;const preview={...data,...applyReaderItems(data,items,()=>`import-preview-${++index}`)};
- const selected=new Map(items.filter(item=>item.selected&&item.kind!=="crust"&&approved[item.id]&&!item.image&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(photos[item.id]||"")).map(item=>[item.kind+":"+normalizeMenuText(item.name),item]));
+ const selected=new Map(items.filter(item=>item.selected&&item.kind!=="crust"&&approved[item.id]&&!item.image&&/^(?:data:image\/jpeg;base64,[A-Za-z0-9+/]+=*|\/media\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+)$/.test(photos[item.id]||"")).map(item=>[item.kind+":"+normalizeMenuText(item.name),item]));
  const existingIds=new Set(data.products.map(product=>product.id));
  const categoryNames=new Map(preview.categories.map(category=>[category.id,normalizeMenuText(category.name)]));
  return {...preview,products:preview.products.map(product=>{

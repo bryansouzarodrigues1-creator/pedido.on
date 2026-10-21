@@ -1,9 +1,11 @@
 import {env} from "cloudflare:workers";
 import {z} from "zod";
+import {normalizeBrazilWhatsApp,formatBrazilWhatsApp} from "./support-whatsapp";
 import {inviteConfigured,matchesInvite} from "./invite-policy";
 import type {AccountUser} from "./auth";
 import {isPlatformAdministrator} from "./admin-policy";
-type PlatformEnv={PLATFORM_ADMIN_ACCOUNT_ID?:string;PLATFORM_ADMIN_EMAIL?:string;PEDIDO_EMAIL_DELIVERY_READY?:string;PEDIDO_AUTH_MODE?:string;PEDIDO_AUTH_TEST_EMAILS?:string;PEDIDO_AUTH_INVITE_CODE?:string};
+type PlatformEnv={PEDIDO_SUPPORT_WHATSAPP?:string;PLATFORM_ADMIN_ACCOUNT_ID?:string;PLATFORM_ADMIN_EMAIL?:string;PEDIDO_EMAIL_DELIVERY_READY?:string;PEDIDO_AUTH_MODE?:string;PEDIDO_AUTH_TEST_EMAILS?:string;PEDIDO_AUTH_INVITE_CODE?:string};
+export function supportContactWhatsApp(){const raw=(env as typeof env&PlatformEnv).PEDIDO_SUPPORT_WHATSAPP||"";const number=normalizeBrazilWhatsApp(raw);return number?{number,display:formatBrazilWhatsApp(number)||number}:null;}
 export function platformAdmin(user:AccountUser){const e=env as typeof env&PlatformEnv;return isPlatformAdministrator(user,{accountId:e.PLATFORM_ADMIN_ACCOUNT_ID,email:e.PLATFORM_ADMIN_EMAIL});}
 export function emailDeliveryReady(){return (env as typeof env&PlatformEnv).PEDIDO_EMAIL_DELIVERY_READY==="true";}
 export function authTestMode(){return (env as typeof env&PlatformEnv).PEDIDO_AUTH_MODE==="prototype";}
