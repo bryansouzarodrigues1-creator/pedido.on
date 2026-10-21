@@ -80,6 +80,7 @@ jobs:
             .sites-runtime/browser-ci/handoff/
             .sites-runtime/browser-ci/owner/
             .sites-runtime/browser-ci/store-safety/
+            .sites-runtime/browser-ci/assistance/
             .sites-runtime/browser-ci/intake-options/
             .sites-runtime/browser-ci/documents/
             .sites-runtime/browser-ci/shared-ifood/

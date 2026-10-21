@@ -20,6 +20,7 @@ await writeFile(path.join(root, '.dev.vars'), [
     'AUTH_SESSION_KEY=' + randomBytes(32).toString('hex'),
     'PEDIDO_AUTH_MODE=open',
     'PLATFORM_ADMIN_ACCOUNT_ID=local_seedy',
+    'PEDIDO_SUPPORT_WHATSAPP=5522999998888', // Synthetic support contact, local QA only.
     'PEDIDO_BILLING_ENABLED=false',
     'PEDIDO_BILLING_ENFORCED=false',
     'PEDIDO_TRIAL_ENFORCED=false',
@@ -34,7 +35,7 @@ await writeFile(config, JSON.stringify({
     d1_databases: [{binding: 'DB', database_name: 'site-creator-d1', database_id: '00000000-0000-4000-8000-000000000000', migrations_dir: path.join(root, 'drizzle')}],
 }));
 
-const environment = {...process.env, CLOUDFLARE_CF_FETCH_ENABLED: 'false', WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false'};
+const environment = {...process.env, PEDIDO_BROWSER_ASSISTANCE_QA: 'true', CLOUDFLARE_CF_FETCH_ENABLED: 'false', WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false'};
 async function run(args, logName, extraEnv = {}) {
     const log = createWriteStream(path.join(output, logName));
     const child = spawn(process.execPath, args, {cwd: root, env: {...environment, ...extraEnv}, stdio: ['pipe', 'pipe', 'pipe']});
@@ -68,7 +69,7 @@ try {
         if (Date.now() >= deadline) throw Error('O servidor de QA não ficou pronto em dois minutos.');
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
-    for (const [name, script] of [['guest', 'scripts/check-owner-intake-browser.mjs'], ['calculator', 'scripts/check-calculator-browser.mjs'], ['handoff', 'scripts/check-handoff-browser.mjs'], ['owner', 'scripts/check-owner-workspace-browser.mjs'], ['ocr', 'scripts/check-ocr-browser.mjs'], ['styles', 'scripts/check-style-gallery-browser.mjs'], ['intake-options', 'scripts/check-owner-options-browser.mjs'], ['documents', 'scripts/check-menu-documents-browser.mjs'], ['shared-ifood', 'scripts/check-shared-ifood-browser.mjs'], ['ifood-connect', 'scripts/check-ifood-connect-browser.mjs'], ['apify-menu', 'scripts/check-apify-menu-browser.mjs'], ['store-safety', 'scripts/check-store-safety-browser.mjs']]) {
+    for (const [name, script] of [['guest', 'scripts/check-owner-intake-browser.mjs'], ['calculator', 'scripts/check-calculator-browser.mjs'], ['handoff', 'scripts/check-handoff-browser.mjs'], ['owner', 'scripts/check-owner-workspace-browser.mjs'], ['ocr', 'scripts/check-ocr-browser.mjs'], ['styles', 'scripts/check-style-gallery-browser.mjs'], ['intake-options', 'scripts/check-owner-options-browser.mjs'], ['documents', 'scripts/check-menu-documents-browser.mjs'], ['shared-ifood', 'scripts/check-shared-ifood-browser.mjs'], ['ifood-connect', 'scripts/check-ifood-connect-browser.mjs'], ['apify-menu', 'scripts/check-apify-menu-browser.mjs'], ['store-safety', 'scripts/check-store-safety-browser.mjs'], ['assistance', 'scripts/check-menu-assistance-browser.mjs']]) {
         const result = await run([script], name + '.log', {QA_BASE_URL: base, QA_BROWSER_OUTPUT: path.join(output, name), QA_HEADLESS: 'true', QA_RECORD_INTAKE: 'true'});
         results.push({name, ...result});
     }

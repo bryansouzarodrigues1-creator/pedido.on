@@ -33,8 +33,13 @@ async function attach(name,buffer,mimeType='application/pdf'){
 }
 async function storedItems(count){
  // Find the app's own key rather than duplicating its storage-prefix implementation.
- await page.waitForFunction(async n=>await new Promise(resolve=>{const req=indexedDB.open('pedido-menu-readings',1);req.onerror=()=>resolve(false);req.onsuccess=()=>{const db=req.result;if(!db.objectStoreNames.contains('readings'))return resolve(false);const read=db.transaction('readings','readonly').objectStore('readings').getAll();read.onsuccess=()=>resolve(read.result.some(v=>v.items.length===n));read.onerror=()=>resolve(false);};}),count,{timeout:120000});
- return await page.evaluate(()=>new Promise(resolve=>{const req=indexedDB.open('pedido-menu-readings',1);req.onsuccess=()=>{const r=req.result.transaction('readings','readonly').objectStore('readings').getAll();r.onsuccess=()=>resolve(r.result.at(-1));};}));
+ const deadline=Date.now()+120000;
+ do{
+  const reading=await page.evaluate(n=>new Promise((resolve,reject)=>{const req=indexedDB.open('pedido-menu-readings',1);req.onerror=()=>reject(req.error);req.onsuccess=()=>{const db=req.result;if(!db.objectStoreNames.contains('readings')){db.close();resolve(null);return;}const read=db.transaction('readings','readonly').objectStore('readings').getAll();read.onsuccess=()=>{const found=read.result.findLast(v=>v.items.length===n);db.close();resolve(found||null);};read.onerror=()=>{db.close();reject(read.error);};};}),count);
+  if(reading)return reading;
+  await new Promise(resolve=>setTimeout(resolve,100));
+ }while(Date.now()<deadline);
+ throw Error('A leitura com '+count+' produtos não foi confirmada no armazenamento.');
 }
 async function preview(){await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await chooseMenuPreview(page,{manual:!publicReadOnly});}
 async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();}

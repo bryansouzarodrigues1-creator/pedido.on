@@ -80,3 +80,17 @@ export const storeReports=sqliteTable("store_reports",{
  category:text("category").notNull(),detail:text("detail").notNull(),contact:text("contact").notNull().default(""),orderReference:text("order_reference").notNull().default(""),
  status:text("status").notNull().default("open"),createdAt:text("created_at").notNull(),reviewedAt:text("reviewed_at"),reviewedBy:text("reviewed_by"),resolution:text("resolution").notNull().default(""),version:integer("version").notNull().default(1),
 },t=>[uniqueIndex("store_reports_request_idx").on(t.restaurantId,t.reporterHash,t.requestId),index("store_reports_queue_idx").on(t.status,t.createdAt)]);
+
+export const menuImportAssistance=sqliteTable("menu_import_assistance",{
+ id:text("id").primaryKey(),restaurantId:text("restaurant_id").notNull().references(()=>restaurants.id,{onDelete:"cascade"}),
+ ownerId:text("owner_id").notNull(),storeUrl:text("store_url").notNull(),ownerNote:text("owner_note").notNull().default(""),notifyWhenReady:integer("notify_when_ready").notNull().default(0),contactWhatsApp:text("contact_whatsapp").notNull(),contactConsentAt:text("contact_consent_at").notNull(),
+ status:text("status").notNull().default("requested"),captureJson:text("capture_json"),
+ pairingHash:text("pairing_hash"),pairingExpiresAt:integer("pairing_expires_at"),
+ createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull(),receivedAt:text("received_at")
+},t=>[index("menu_import_assistance_status_idx").on(t.status,t.createdAt),index("menu_import_assistance_owner_idx").on(t.ownerId,t.createdAt)]);
+
+export const menuImportAssistancePhotos=sqliteTable("menu_import_assistance_photos",{
+ id:text("id").primaryKey(),requestId:text("request_id").notNull().references(()=>menuImportAssistance.id,{onDelete:"cascade"}),
+ itemId:text("item_id").notNull(),sourceUrl:text("source_url").notNull(),mediaUrl:text("media_url").notNull(),
+ sizeBytes:integer("size_bytes").notNull(),createdAt:text("created_at").notNull()
+},t=>[uniqueIndex("menu_import_assistance_photos_pair_idx").on(t.requestId,t.itemId),index("menu_import_assistance_photos_request_idx").on(t.requestId)]);
