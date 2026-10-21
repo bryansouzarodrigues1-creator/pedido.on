@@ -4,6 +4,7 @@ CREATE TABLE `menu_import_assistance` (
  `owner_id` text NOT NULL,
  `store_url` text NOT NULL,
  `owner_note` text DEFAULT '' NOT NULL,
+ `notify_when_ready` integer DEFAULT 0 NOT NULL,
  `status` text DEFAULT 'requested' NOT NULL,
  `capture_json` text,
  `pairing_hash` text,
