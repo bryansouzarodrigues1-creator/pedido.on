@@ -9,6 +9,7 @@ import {loadReading,saveReading,removeReading,type Reading} from "@/lib/menu-rea
 import {prepareMenuPhoto,recognizeMenuPhotos,rotateMenuPhoto} from "@/lib/menu-ocr";
 import ProductPhotoCrop from "./product-photo-crop";
 import MenuSourceLink from "./menu-source-link";
+import MenuAssistanceOwner from "./menu-assistance-owner";
 import IfoodConnect from "./ifood-connect";
 import type {IfoodAuthorizedImport} from "@/lib/ifood-connect-client";
 import type {MenuStoreInfo} from "@/lib/menu-store-info";
@@ -125,6 +126,7 @@ export default function AiImport({restaurantId,draft,onImport,onActivityChange,i
   }
   const photo=pages.find(p=>p.id===source?.sourceId);
   return <><section className="menu-reader-entry"><div><span className="menu-reader-symbol"><FileText size={25}/></span><h3>{draft.products.length?"Importar mais produtos":"Traga seu cardápio"}</h3><p>Do iFood, de fotos ou de um arquivo. Você confere antes de adicionar.</p></div><div className="menu-import-choices"><button type="button" className="btn primary" disabled={!initialized} onClick={()=>{setSourceMode("ifood");setOpen(true);setShowSources(true);setError("");setNotice("");if(!ifoodUrl)setIfoodUrl(sourceText.links[0]?.url||"");}}><Link2 size={18}/>Trazer do iFood</button><button type="button" className="btn outline" disabled={!initialized} onClick={()=>{setSourceMode("files");setOpen(true);setShowSources(true);setError("");}}>Fotos, texto ou arquivo</button>{restored&&<button type="button" className="text-button" disabled={!initialized} onClick={()=>{setSourceMode("files");setOpen(true);setShowSources(false);setError("");}}>Continuar leitura guardada<ArrowRight size={16}/></button>}</div></section>
+    <MenuAssistanceOwner restaurantId={restaurantId} onReceive={incoming=>{setText(old=>mergeReaderSource(old,incoming));setSourceMode("files");setShowSources(true);setOpen(true);setNotice("Catálogo recebido do operador. Clique em Ler produtos para conferir os preços antes de importar.");}}/>
     <Modal open={open} onClose={closeReading} title={items.length&&!showSources?"Confira os produtos":sourceMode==="ifood"?"Trazer cardápio do iFood":"Importar cardápio"} wide>
       {storageNote&&<p role="status" className="reader-note">{storageNote}</p>}{(pages.length>0||items.length>0||text.trim())&&<button type="button" className="text-button" disabled={busy} onClick={()=>void discard()}>Descartar leitura guardada</button>}
       <MenuSourceLink source={sourceText}/>{notice&&<p className="reader-note" role="status">{notice}</p>}
