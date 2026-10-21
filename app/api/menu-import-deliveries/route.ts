@@ -25,7 +25,13 @@ export async function POST(request:Request){const headers=cors(request.headers.g
  const hash=await sha256(token[2]),nowSeconds=Math.floor(Date.now()/1000);
  if(!row||row.status!=="paired"||row.pairingHash!==hash||!row.expiresAt||row.expiresAt<=nowSeconds)throw new HttpError(401,"Código expirado, já utilizado ou inválido. Gere outro no painel.");
  if(!hasSafeSource(parsed,row.storeUrl))throw new HttpError(409,"O cardápio aberto não corresponde ao link solicitado pela pizzaria.");
- const capture=sanitizeCapture(parsed);
+ const raw=sanitizeCapture(parsed);
+ const saved=await env.DB!.prepare("SELECT item_id AS itemId,source_url AS sourceUrl,media_url AS mediaUrl FROM menu_import_assistance_photos WHERE request_id=?").bind(token[1]).all<{itemId:string;sourceUrl:string;mediaUrl:string}>();
+ const photos=new Map((saved.results||[]).map(entry=>[entry.itemId,entry]));
+ const capture={...raw,items:raw.items.map(item=>{
+  const record=photos.get(item.id);
+  return {...item,imageMediaUrl:record&&record.sourceUrl===item.imageUrl?record.mediaUrl:null};
+ })};
  const updated=await env.DB!.prepare("UPDATE menu_import_assistance SET status='received',capture_json=?,pairing_hash=NULL,pairing_expires_at=NULL,received_at=?,updated_at=? WHERE id=? AND status='paired' AND pairing_hash=? AND pairing_expires_at>?")
  .bind(JSON.stringify(capture),new Date().toISOString(),new Date().toISOString(),token[1],hash,nowSeconds).run();
  if(!updated.meta.changes)throw new HttpError(409,"A importação já foi recebida ou o código expirou.");
