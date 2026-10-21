@@ -90,7 +90,7 @@ export const menuImportAssistance=sqliteTable("menu_import_assistance",{
 },t=>[index("menu_import_assistance_status_idx").on(t.status,t.createdAt),index("menu_import_assistance_owner_idx").on(t.ownerId,t.createdAt)]);
 
 export const menuImportAssistancePhotos=sqliteTable("menu_import_assistance_photos",{
- requestId:text("request_id").notNull().references(()=>menuImportAssistance.id,{onDelete:"cascade"}),
+ id:text("id").primaryKey(),requestId:text("request_id").notNull().references(()=>menuImportAssistance.id,{onDelete:"cascade"}),
  itemId:text("item_id").notNull(),sourceUrl:text("source_url").notNull(),mediaUrl:text("media_url").notNull(),
  sizeBytes:integer("size_bytes").notNull(),createdAt:text("created_at").notNull()
-},t=>[index("menu_import_assistance_photos_request_idx").on(t.requestId)]);
+},t=>[uniqueIndex("menu_import_assistance_photos_pair_idx").on(t.requestId,t.itemId),index("menu_import_assistance_photos_request_idx").on(t.requestId)]);
