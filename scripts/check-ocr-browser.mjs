@@ -31,7 +31,7 @@ try {
                 await page.locator('.owner-intake-reply button[type=submit]').click();
             }
             if(publicReadOnly)for(let i=0;i<4&&await page.locator('#owner-intake-message').isVisible();i++){await page.locator('#owner-intake-message').fill('depois');await page.locator('.owner-intake-reply button[type=submit]').click();}
-            await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).waitFor();
+            if(!await page.locator('.ai-selected').count())await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).waitFor();
         }else{
             await page.waitForFunction(() => document.querySelector('#pizzeria-idea')?.disabled === false);
             await page.locator('#pizzeria-idea').fill('Minha pizzaria se chama OCR no navegador. Preserve os preços do arquivo.');
