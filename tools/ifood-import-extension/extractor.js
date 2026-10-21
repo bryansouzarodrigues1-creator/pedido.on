@@ -12,7 +12,7 @@ export function extractIfoodDOM() {
   const normalize = value => (value || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
   const text = element => normalize(element?.innerText || element?.textContent || "");
   const query = (element, selectors) => { for (const s of selectors) { const found = element.querySelector(s); if (found) return found; } return null; };
-  const pricePattern = /(?:R\s*\$|a partir de)\s*(\d{1,6}(?:\.\d{3})*(?:,\d{2})?|\d{1,6}\.\d{2})/gi;
+  const pricePattern = /(?:R\s*\$|a partir de)\s*(\d{1,3}(?:\.\d{3})+(?:,\d{2})?|\d{1,6},\d{2}|\d{1,6}\.\d{2}|\d{1,6})(?![.,\d])/gi;
   const toCents = value => {
     if (/^\d{1,3}\.\d{3}$/.test(value)) return null; // ambiguous thousands separator without decimal cents
     const number = value.includes(",") ? Number(value.replace(/\./g, "").replace(",", ".")) : Number(value);
@@ -39,7 +39,7 @@ export function extractIfoodDOM() {
       const rawPrice = text(pnode) || text(card);
       const matches = Array.from(rawPrice.matchAll(pricePattern));
       const unique = [...new Set(matches.map(m => toCents(m[1])).filter(v => v !== null))];
-      const uncertain = matches.length !== 1 || unique.length !== 1 || /a partir de/i.test(rawPrice);
+      const uncertain = matches.length !== 1 || unique.length !== 1 || /a partir de|sob consulta|consulte|escolha|a combinar/i.test(rawPrice);
       const priceCents = uncertain ? null : unique[0];
       const detail = text(query(card, [".dish-card__details", "span.dish-card__details", "[data-testid='menu-item-description']"])).slice(0, 600);
       const disabled = card.getAttribute?.("aria-disabled") === "true" ||
