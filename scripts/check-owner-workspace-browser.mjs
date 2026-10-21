@@ -35,6 +35,7 @@ try{
  page=await context.newPage();page.setDefaultTimeout(20000);page.on('pageerror',e=>errors.push(e.message));
  await page.goto(base+'/signin-with-chatgpt?return_to=%2Fapp',{waitUntil:'networkidle',timeout:90000});
  const before=await rows();assert.equal(before.length,1);const old=before[0];assert.equal(old.published,false);
+ await page.getByRole('navigation',{name:'Navegação rápida'}).getByRole('button',{name:'Cardápio',exact:true}).click();
  await page.getByRole('button',{name:'Tentar link do iFood',exact:true}).waitFor();
  assert.equal(await page.getByRole('navigation',{name:'Navegação rápida'}).getByRole('button').count(),3);
  assert.equal(await page.getByRole('button',{name:'Ver prévia',exact:true}).isVisible(),true);
