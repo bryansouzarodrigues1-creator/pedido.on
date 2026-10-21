@@ -7,7 +7,7 @@ import {normalizeBrazilWhatsApp} from "@/lib/support-whatsapp";
 import {supportContactWhatsApp} from "@/lib/platform";
 import {validAssistedSource,assistanceToReaderText,assistStats,assistedCapture} from "@/lib/menu-assistance-policy";
 export const dynamic="force-dynamic";
-const requestInput=z.object({storeUrl:z.string().max(2048),ownerNote:z.string().trim().max(350).default(""),authorized:z.literal(true),notifyWhenReady:z.boolean().default(false),contactWhatsApp:z.string().min(10).max(27)});
+const requestInput=z.object({storeUrl:z.string().max(2048),ownerNote:z.string().trim().max(350).default(""),authorized:z.literal(true),notifyWhenReady:z.boolean().default(false),contactWhatsApp:z.string().min(10).max(27),contactPermission:z.literal(true)});
 type Row={id:string;restaurant_id:string;store_url:string;owner_note:string;status:string;notify_when_ready:number;contact_whatsapp:string;capture_json:string|null;created_at:string;updated_at:string;received_at:string|null};
 const sql="SELECT id,restaurant_id,store_url,owner_note,status,notify_when_ready,contact_whatsapp,capture_json,created_at,updated_at,received_at FROM menu_import_assistance WHERE restaurant_id=? AND owner_id=? ORDER BY created_at DESC LIMIT 1";
 function view(row:Row|null){
@@ -32,8 +32,8 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
  const contactWhatsApp=normalizeBrazilWhatsApp(input.contactWhatsApp);
  if(!contactWhatsApp)throw new HttpError(400,"Informe um WhatsApp brasileiro com DDD para receber nosso contato.");
  const now=new Date().toISOString(),idNew=crypto.randomUUID();
- await env.DB!.prepare("INSERT INTO menu_import_assistance (id,restaurant_id,owner_id,store_url,owner_note,notify_when_ready,contact_whatsapp,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,'requested',?,?)")
- .bind(idNew,id,row.ownerId,source.url,input.ownerNote,Number(input.notifyWhenReady),contactWhatsApp,now,now).run();
+ await env.DB!.prepare("INSERT INTO menu_import_assistance (id,restaurant_id,owner_id,store_url,owner_note,notify_when_ready,contact_whatsapp,contact_consent_at,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,'requested',?,?)")
+ .bind(idNew,id,row.ownerId,source.url,input.ownerNote,Number(input.notifyWhenReady),contactWhatsApp,now,now,now).run();
  const item=await env.DB!.prepare(sql).bind(id,row.ownerId).first<Row>();
  return Response.json({request:view(item)},{status:201,headers:privateHeaders});
 }catch(e){return errorResponse(e);}}
