@@ -1,5 +1,5 @@
 import {z} from "zod";
-import {parseIfoodStoreLink} from "./menu-source-links";
+import {parseIfoodStoreLink} from "./menu-source-links.ts";
 
 const title=z.string().trim().min(2).max(100);
 const photo=z.string().url().max(1200).nullable().optional();
