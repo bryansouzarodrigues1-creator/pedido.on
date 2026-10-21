@@ -6,6 +6,7 @@ CREATE TABLE `menu_import_assistance` (
  `owner_note` text DEFAULT '' NOT NULL,
  `notify_when_ready` integer DEFAULT 0 NOT NULL,
  `contact_whatsapp` text NOT NULL,
+ `contact_consent_at` text NOT NULL,
  `status` text DEFAULT 'requested' NOT NULL,
  `capture_json` text,
  `pairing_hash` text,
