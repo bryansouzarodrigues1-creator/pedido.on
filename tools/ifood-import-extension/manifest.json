@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Pizzaria.on — importar cardápio aberto",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Lê itens visíveis sob comando do operador e permite entrega autorizada por código temporário ao Pizzaria.on.",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "permissions"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -13,5 +14,8 @@
   },
   "host_permissions": [
     "https://forno-cardapios.waves4845.chatgpt.site/*"
+  ],
+  "optional_host_permissions": [
+    "https://*.ifood.com.br/*"
   ]
 }
