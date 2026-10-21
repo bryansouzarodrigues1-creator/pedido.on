@@ -19,7 +19,7 @@ function setup(groups=[],url="https://www.ifood.com.br/delivery/teste-rj/pizzari
 test("extension has no broad host/background permissions",()=>{
  assert.equal(manifest.manifest_version,3);
  assert.deepEqual([...manifest.permissions].sort(),["activeTab","scripting"].sort());
- assert.equal(manifest.host_permissions,undefined);
+ assert.deepEqual(manifest.host_permissions,["https://forno-cardapios.waves4845.chatgpt.site/*"]);
  assert.equal(manifest.background,undefined);
 });
 test("reads two categories, exact cents and text for the existing menu reader",()=>{
@@ -74,4 +74,14 @@ test("size selection keeps the original price and the exported text is read by t
  assert.equal(drink?.price,550);
  assert.equal(readerItemReady(drink),true);
  assert.equal(JSON.parse(makeMenuJSON(capture,selected,choices)).products[0].sizeChoice,"g");
+});
+
+test("extension exposes consent-driven server delivery and image references",()=>{
+ const html=readFileSync(new URL("../tools/ifood-import-extension/popup.html",import.meta.url),"utf8");
+ const source=readFileSync(new URL("../tools/ifood-import-extension/popup.js",import.meta.url),"utf8");
+ assert.match(html,/id="pairCode"/);assert.match(html,/id="sendSite"/);
+ assert.match(source,/Authorization.*Bearer/);
+ assert.match(source,/credentials:"omit"/);
+ assert.match(source,/selected:selected\.has\(item\.id\)/);
+ assert.match(source,/imageUrl:item\.imageUrl/);
 });
