@@ -4,7 +4,7 @@ import {Upload,Camera,ArrowRight,Check,Trash2,RotateCw,FileText,AlertCircle,Eye,
 import {Modal,Spinner} from "./ui";
 import Menu from "./menu";
 import {money,type RestaurantData,type Size} from "@/lib/domain";
-import {readMenuPages,prepareReaderItems,readerItemReady,menuAmount,importReaderItems,reconcileReaderReview,type ReaderItem,type ReaderPage} from "@/lib/menu-reader-policy";
+import {readMenuPages,prepareReaderItems,readerItemReady,menuAmount,importReaderItems,reconcileReaderReview,normalizeMenuText,type ReaderItem,type ReaderPage} from "@/lib/menu-reader-policy";
 import {loadReading,saveReading,removeReading,type Reading} from "@/lib/menu-reader-storage";
 import {prepareMenuPhoto,recognizeMenuPhotos,rotateMenuPhoto} from "@/lib/menu-ocr";
 import ProductPhotoCrop from "./product-photo-crop";
@@ -27,6 +27,7 @@ export default function AiImport({restaurantId,draft,onImport,onActivityChange,i
   const [sourceMode,setSourceMode]=useState<"ifood"|"files">("files"),[ifoodUrl,setIfoodUrl]=useState("");
   const [open,setOpen]=useState(false),[pages,setPages]=useState<ReaderPage[]>([]),[items,setItems]=useState<ReaderItem[]>([]),[unmatched,setUnmatched]=useState<{sourceId:string;text:string}[]>([]);
   const [photoSuggestions,setPhotoSuggestions]=useState<Record<string,string>>({});
+  const assistedPhotos=useRef<{name:string;category:string;url:string}[]>([]);
   const [approvedPhotos,setApprovedPhotos]=useState<Record<string,boolean>>({});
   const [showSources,setShowSources]=useState(false),[text,setText]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState(""),[progress,setProgress]=useState(0),[label,setLabel]=useState(""),[restored,setRestored]=useState(false),[confirmed,setConfirmed]=useState(false),[preview,setPreview]=useState(false),[source,setSource]=useState<ReaderItem|null>(null),[storageNote,setStorageNote]=useState(""),[initialized,setInitialized]=useState(false);
   const controller=useRef<AbortController|null>(null),mounted=useRef(true),current=useRef(draft);current.current=draft;
@@ -61,7 +62,12 @@ export default function AiImport({restaurantId,draft,onImport,onActivityChange,i
       const result=readMenuPages(input);if(result.items.length>500)throw Error("A leitura tem muitos trechos. Envie uma parte do cardápio por vez.");
       if(!result.items.length)throw Error("Não encontramos os produtos. Tente uma foto mais próxima e reta, ou cole o texto.");
       const suggestions=await previewMenuPhotos(ready,result.items).catch(()=>({}));
-      if(!mounted.current||abort.signal.aborted)return;setPages(ready);setItems(reconcileReaderReview(items,result.items,current.current));setPhotoSuggestions(suggestions);setApprovedPhotos({});setShowSources(false);setUnmatched(result.unmatched);setRestored(false);
+      const mapped={...suggestions};
+      for(const item of result.items){
+       const matching=assistedPhotos.current.filter(photo=>normalizeMenuText(photo.name)===normalizeMenuText(item.name)&&normalizeMenuText(photo.category)===normalizeMenuText(item.category)&&photo.url.startsWith("/media/"+restaurantId+"/"));
+       if(matching.length===1)mapped[item.id]=matching[0].url;
+      }
+      if(!mounted.current||abort.signal.aborted)return;setPages(ready);setItems(reconcileReaderReview(items,result.items,current.current));setPhotoSuggestions(mapped);setApprovedPhotos({});setShowSources(false);setUnmatched(result.unmatched);setRestored(false);
     }catch(e){if(!abort.signal.aborted&&mounted.current)setError(e instanceof Error?e.message:"Não foi possível ler essa foto. Tente uma foto mais nítida ou cole o texto.");}
     finally{if(mounted.current){setBusy(false);setLabel("");}controller.current=null;}
   }
@@ -126,7 +132,7 @@ export default function AiImport({restaurantId,draft,onImport,onActivityChange,i
   }
   const photo=pages.find(p=>p.id===source?.sourceId);
   return <><section className="menu-reader-entry"><div><span className="menu-reader-symbol"><FileText size={25}/></span><h3>{draft.products.length?"Importar mais produtos":"Traga seu cardápio"}</h3><p>Do iFood, de fotos ou de um arquivo. Você confere antes de adicionar.</p></div><div className="menu-import-choices"><button type="button" className="btn primary" disabled={!initialized} onClick={()=>{setSourceMode("ifood");setOpen(true);setShowSources(true);setError("");setNotice("");if(!ifoodUrl)setIfoodUrl(sourceText.links[0]?.url||"");}}><Link2 size={18}/>Trazer do iFood</button><button type="button" className="btn outline" disabled={!initialized} onClick={()=>{setSourceMode("files");setOpen(true);setShowSources(true);setError("");}}>Fotos, texto ou arquivo</button>{restored&&<button type="button" className="text-button" disabled={!initialized} onClick={()=>{setSourceMode("files");setOpen(true);setShowSources(false);setError("");}}>Continuar leitura guardada<ArrowRight size={16}/></button>}</div></section>
-    <MenuAssistanceOwner restaurantId={restaurantId} onReceive={incoming=>{setText(old=>mergeReaderSource(old,incoming));setSourceMode("files");setShowSources(true);setOpen(true);setNotice("Catálogo recebido do operador. Clique em Ler produtos para conferir os preços antes de importar.");}}/>
+    <MenuAssistanceOwner restaurantId={restaurantId} onReceive={(incoming,photos)=>{assistedPhotos.current=photos;setText(old=>mergeReaderSource(old,incoming));setSourceMode("files");setShowSources(true);setOpen(true);setNotice("Catálogo recebido do operador. Clique em Ler produtos para conferir os preços antes de importar.");}}/>
     <Modal open={open} onClose={closeReading} title={items.length&&!showSources?"Confira os produtos":sourceMode==="ifood"?"Trazer cardápio do iFood":"Importar cardápio"} wide>
       {storageNote&&<p role="status" className="reader-note">{storageNote}</p>}{(pages.length>0||items.length>0||text.trim())&&<button type="button" className="text-button" disabled={busy} onClick={()=>void discard()}>Descartar leitura guardada</button>}
       <MenuSourceLink source={sourceText}/>{notice&&<p className="reader-note" role="status">{notice}</p>}
