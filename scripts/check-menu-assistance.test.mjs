@@ -12,7 +12,7 @@ const base=()=>({
  ]});
 test("keep every observed item and every photo reference, but send only approved prices to reader",()=>{
  const capture=assistedCapture.parse(base()),stats=assistStats(capture);
- assert.deepEqual(stats,{total:4,approved:2,pending:2,photoReferences:2,truncated:false});
+ assert.deepEqual(stats,{total:4,approved:2,pending:2,photoReferences:2,uploadedPhotos:0,truncated:false});
  const txt=assistanceToReaderText(capture);
  const result=readMenuPages([{id:"assisted",lines:txt.split("\n").map(text=>({text}))}]);
  assert.deepEqual(result.items.map(i=>[i.name,i.category]),[["Margherita","Pizzas"],["Água mineral","Bebidas"]]);
