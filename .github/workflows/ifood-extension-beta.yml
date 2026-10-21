@@ -39,7 +39,9 @@ jobs:
           cd tools/ifood-import-extension
           zip -X -q "$GITHUB_WORKSPACE/pizzaria-on-ifood-extension-v0.4.0-beta.zip" manifest.json popup.html popup.css popup.js extractor.js format.js README.md
           unzip -t "$GITHUB_WORKSPACE/pizzaria-on-ifood-extension-v0.4.0-beta.zip"
-          sha256sum "$GITHUB_WORKSPACE/pizzaria-on-ifood-extension-v0.4.0-beta.zip" > "$GITHUB_WORKSPACE/pizzaria-on-ifood-extension-v0.4.0-beta.sha256"
+          cd "$GITHUB_WORKSPACE"
+          sha256sum pizzaria-on-ifood-extension-v0.4.0-beta.zip > pizzaria-on-ifood-extension-v0.4.0-beta.sha256
+          sha256sum --check pizzaria-on-ifood-extension-v0.4.0-beta.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: pizzaria-on-ifood-extension-v0.4.0-beta
