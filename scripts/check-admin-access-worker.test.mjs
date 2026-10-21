@@ -32,7 +32,7 @@ async function runtime({billing=false,migrate=true}={}){
  const billingBindings=billing?{PEDIDO_BILLING_ENABLED:'true',STRIPE_SECRET_KEY:'test-unused',STRIPE_WEBHOOK_SECRET:'test-unused',STRIPE_PRICE_ESSENCIAL:'test-unused',STRIPE_PRICE_PROFISSIONAL:'test-unused',STRIPE_PRICE_REDE:'test-unused'}:{};
  const mf=new Miniflare({modules:true,script,compatibilityDate:'2026-05-15',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'admin-access-local'},d1Persist:false,bindings:{PLATFORM_ADMIN_ACCOUNT_ID:'owner-admin',AUTH_SESSION_KEY:'ab'.repeat(32),...billingBindings},outboundService:()=>{throw Error('External calls are forbidden in this test');}});
  const db=await mf.getD1Database('DB');
- async function migration(file){for(const sql of readFileSync(path.join('drizzle',file),'utf8').split(';').map(v=>v.trim()).filter(Boolean))await db.prepare(sql).run();}
+ async function migration(file){for(const sql of readFileSync(path.join('drizzle',file),'utf8').split(file.startsWith('0017_')?'--> statement-breakpoint':';').map(v=>v.trim()).filter(Boolean))await db.prepare(sql).run();}
  try{
   for(const file of readdirSync('drizzle').filter(name=>name.endsWith('.sql')&&Number(name.slice(0,4))<12).sort())await migration(file);
   const stamp='2026-10-13T12:00:00.000Z',menu=JSON.stringify(demoRestaurant());

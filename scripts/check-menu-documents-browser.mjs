@@ -81,7 +81,7 @@ try{
  checks.push({name:'two-page text PDF: four exact names/prices, supplied owner facts, readable bounded preview and persisted pages',ok:true});await context.close();
 
  await start();await say('Forno Azul de Teste');await attach('cardapio-escaneado.pdf',Buffer.from(fixtures.scan,'base64'));await page.locator('.idea-photos img').waitFor();
- await page.getByRole('button',{name:'Ver prévia agora e completar depois',exact:true}).click();await chooseMenuPreview(page);
+ await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await chooseMenuPreview(page);
  const scan=await storedItems(3);assert.equal(scan.pages.length,1);assert.ok(scan.pages[0].lines.length>0);for(const [name,price] of [['Água mineral',500],['Suco de laranja',1250],['Refrigerante lata',790]])assert.equal(scan.items.find(p=>p.name===name)?.price,price,name);
  await page.waitForTimeout(400);await page.screenshot({path:path.join(output,'pdf-escaneado-mobile.png'),fullPage:true});checks.push({name:'scanned PDF actually runs local OCR: three exact products and prices',ok:true});await context.close();
 

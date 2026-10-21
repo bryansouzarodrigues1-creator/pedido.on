@@ -167,6 +167,15 @@ export function ownerReadyForPreview(state:OwnerIntake){
  const patch:Partial<OwnerIntake["answers"]>={};for(const field of ownerFieldIds)if(state.answers[field]===undefined)patch[field]="";
  return withOwnerAnswers(state,patch);
 }
+/** The first preview accepts an idea; business details can be completed later. */
+export function ownerPreviewFromDescription(state:OwnerIntake,message:string){
+ const parsed=nextOwnerIntake(state,message),facts=ownerFacts(message);
+ let next=parsed.error?withOwnerAnswers({...state,initialMessage:message.slice(0,1600)},facts):parsed.state;
+ if(!facts.name&&!state.answers.name&&/madeira|nostalgi|vintage|retr[oô]|visual|estilo|fotos?|cores?|minimal|moderno|artesanal|quero|gostaria/i.test(message)){
+  const {name,...answers}=next.answers;next={...next,answers,initialMessage:message.slice(0,1600)};
+ }
+ return ownerReadyForPreview(withOwnerAnswers(next,{name:next.answers.name||"Sua pizzaria"}));
+}
 export function ownerPreviewDetails(v:OwnerIntake){
  const a=v.answers;
  const address=a.address||"";

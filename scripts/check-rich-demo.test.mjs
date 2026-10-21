@@ -40,8 +40,8 @@ test("chosen design hides secondary actions while preserving the test and custom
  assert.match(code,/<details className="ai-selected-more">/);
  assert.match(code,/Testar meu cardápio completo/);
  assert.match(code,/FullMenu data={design\(styleId\)} demo preview/);
- assert.match(code,/detailedDemoRestaurant\("editorial"\)/);
- assert.match(code,/Usar este modelo/);
+ assert.match(code,/defaultRestaurant\("Sua pizzaria"\)/);
+ assert.match(code,/Salvar minha pizzaria/);
  assert.match(code,/Ver imagem de referência/);
  assert.match(code,/Ajustar cores, fotos e textos/);
  assert.doesNotMatch(code,/Continuar com este cardápio/);

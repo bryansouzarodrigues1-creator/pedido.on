@@ -354,7 +354,7 @@ export function reconcileReaderReview(previous:ReaderItem[],recognized:ReaderIte
  });
  return prepareReaderItems(restored,data,{preserveSelection:true}).map(item=>({...item,selected:item.selected&&readerItemReady(item)}));
 }
-export function applyReaderItems(data:RestaurantData,items:ReaderItem[],makeId=()=>crypto.randomUUID()):Partial<RestaurantData>{
+export function applyReaderItems(data:RestaurantData,items:ReaderItem[],makeId:()=>string=()=>crypto.randomUUID()):Partial<RestaurantData>{
   const selected=items.filter(v=>v.selected);if(!selected.length)throw Error("Escolha pelo menos um item.");
   if(selected.some(v=>!readerItemReady(v)))throw Error("Confira os nomes, preços e tamanhos dos itens selecionados.");
   const categories=data.categories.map(v=>({...v})),products=data.products.map(v=>({...v,sizes:{...v.sizes}})),crusts=data.crusts.map(v=>({...v}));

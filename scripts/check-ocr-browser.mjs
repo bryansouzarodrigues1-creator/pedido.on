@@ -26,7 +26,7 @@ try {
         const composer=await page.locator('.owner-intake--composer').count()>0;
         if(guided){
             await page.waitForFunction(()=>document.querySelector('#owner-intake-message')?.disabled===false);
-            for(const response of ['Pizzaria OCR no navegador','depois','depois','depois','depois']){
+            for(const response of ['Pizzaria OCR no navegador']){
                 await page.locator('#owner-intake-message').fill(response);
                 await page.locator('.owner-intake-reply button[type=submit]').click();
             }
@@ -60,7 +60,7 @@ try {
         if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).click();
         else await page.getByRole('button', {name: legacy ? 'Criar opções' : current ? 'Criar 12 modelos' : 'Criar 8 modelos', exact: true}).click();
         if(composer)await chooseMenuPreview(page);else await page.locator('.ai-style-card').first().waitFor({timeout:120000});
-        if(composer)await page.waitForFunction(()=>Array.from(document.querySelectorAll('.ai-selected-actions button')).some(button=>button.textContent.includes('Usar este modelo')&&!button.disabled));
+        if(composer)await page.waitForFunction(()=>Array.from(document.querySelectorAll('.ai-selected-actions button')).some(button=>button.textContent.includes('Salvar minha pizzaria')&&!button.disabled));
         else if(guided)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).waitFor();
         else await page.waitForFunction(expected => Array.from(document.querySelectorAll('button')).some(button => button.textContent.includes(expected) && !button.disabled), legacy ? 'Atualizar prévias' : 'Atualizar modelos');
         const ms = Math.round(performance.now() - started);

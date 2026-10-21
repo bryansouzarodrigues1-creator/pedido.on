@@ -2,6 +2,7 @@
 import {useEffect,useRef,useId,type ReactNode,type CSSProperties} from "react";
 import {X,Loader2,Pizza,ArrowUpRight,MapPin,Clock3} from "lucide-react";
 import {menuPresentation,presentationForTheme} from "@/lib/menu-design";
+import {catalogueClass} from "@/lib/menu-catalogue";
 import {menuIdentityClass} from "@/lib/menu-identity";
 import {themes,money,type RestaurantData} from "@/lib/domain";
 export function Brand({small=false}:{small?:boolean}){return <a href="/" className={`brand pedido-brand ${small?"small":""}`} aria-label="pizzaria.on, início"><span className="pedido-mark"><img src="/assets/pedido-symbol.png" width="50" height="50" alt=""/></span><span>pizzaria<span className="brand-on">.on</span></span></a>;}
@@ -25,8 +26,8 @@ export function themeStyle(data:RestaurantData):CSSProperties{
 }
 export function MiniMenu({data,large=false,rich=false}:{data:RestaurantData;large?:boolean;rich?:boolean}){
   const presentation=menuPresentation(data);
-  const products=data.products.filter(p=>p.enabled).slice(0,rich?6:large?3:2);
-  return <div className={`mini-menu theme-${data.theme} layout-${presentation.layout} hero-${presentation.hero} font-${presentation.font} corners-${presentation.corners}${menuIdentityClass(presentation.identity)} ${presentation.palette?"has-brand-palette":""} ${presentation.motif==="sea-cheese"?"motif-sea-cheese":""} ${large?"large":""}`} style={themeStyle(data)}>
+  const products=data.products.filter(p=>p.enabled).slice(0,rich?200:large?3:2);
+  return <div className={`mini-menu theme-${data.theme} layout-${presentation.layout} hero-${presentation.hero} font-${presentation.font} corners-${presentation.corners}${menuIdentityClass(presentation.identity)}${catalogueClass(presentation.catalogueId)} ${presentation.palette?"has-brand-palette":""} ${presentation.motif==="sea-cheese"?"motif-sea-cheese":""} ${large?"large":""}`} style={themeStyle(data)}>
     <div className="mini-top"><span>{data.logo?<img src={data.logo} alt=""/>:<Pizza size={large?23:16}/>}</span><strong>{data.name||"Sua pizzaria"}</strong><span className="mini-open">Prévia</span></div>
     <div className={"mini-cover"+(!data.cover?" no-cover":"")} style={!data.cover?{background:"var(--menu-card,#fffdf8)"}:undefined}>{data.cover?<img src={data.cover} alt=""/>:<div className="cover-empty"><Pizza size={50}/></div>}<div style={!data.cover?{color:"var(--menu-text,#2d3026)"}:undefined}><span>FEITA DO SEU JEITO</span><h3 style={{color:"inherit"}}>{data.tagline||"Uma boa pizza muda a noite."}</h3></div></div>
     {data.address&&<div className="mini-store-address"><MapPin size={12} aria-hidden="true"/> {data.address}{data.city?` · ${data.city}`:""}</div>}

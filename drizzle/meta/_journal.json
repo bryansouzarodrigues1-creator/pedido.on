@@ -120,6 +120,13 @@
       "when": 1792620000000,
       "tag": "0016_owner_ifood_assistance",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1792623254431,
+      "tag": "0017_guest_preview_unique_whatsapp",
+      "breakpoints": true
     }
   ]
 }
