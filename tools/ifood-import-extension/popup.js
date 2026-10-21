@@ -74,7 +74,31 @@ byId("sendSite").addEventListener("click",async()=>{
    selected:selected.has(item.id),sizeChoice:pizzaSizes[item.id]||null
  })));
  const payload={sourceUrl:capture.sourceUrl,storeName:capture.storeName||"",capturedAt:capture.capturedAt||new Date().toISOString(),truncated:!!capture.truncated,items:rows};
- const button=byId("sendSite");button.disabled=true;notice("Entregando catálogo ao servidor Pizzaria.on para revisão...");
+ const button=byId("sendSite");button.disabled=true;
+ let uploaded=0,skipped=0;
+ if(byId("sendPhotos").checked){
+  const photos=rows.filter(row=>row.selected&&row.imageUrl).slice(0,100);
+  const candidates=photos.filter(row=>{try{const u=new URL(row.imageUrl);
+    return u.protocol==="https:"&&(u.hostname==="ifood.com.br"||u.hostname.endsWith(".ifood.com.br"));}catch{return false;}});
+  skipped=photos.length-candidates.length;
+  const origins=[...new Set(candidates.map(row=>new URL(row.imageUrl).origin+"/*"))];
+  let granted=false;
+  try{granted=!!(chrome.permissions&&origins.length&&await chrome.permissions.request({origins}));}catch{granted=false;}
+  if(granted)for(const row of candidates){
+    try{
+     notice("Buscando foto "+(uploaded+skipped+1)+" de "+photos.length+". Mantenha a extensão aberta.");
+     const res=await fetch(row.imageUrl,{credentials:"omit",redirect:"error",signal:AbortSignal.timeout(8000)});
+     if(!res.ok||!/^image\/(jpeg|png|webp)/i.test(res.headers.get("content-type")||""))throw Error("Imagem não disponível.");
+     const data=await res.blob();if(!data.size||data.size>1450000)throw Error("Foto muito grande.");
+     const save=await fetch("https://forno-cardapios.waves4845.chatgpt.site/api/menu-import-images",{
+      method:"POST",headers:{"Authorization":"Bearer "+code,"Content-Type":data.type||"application/octet-stream",
+       "X-Menu-Item-Id":row.id,"X-Source-Image-Url":row.imageUrl},
+      body:data,credentials:"omit",cache:"no-store",signal:AbortSignal.timeout(12000)});
+     if(!save.ok)throw Error("Foto não guardada pelo Pizzaria.on.");uploaded++;
+    }catch{skipped++;}
+  }else skipped+=candidates.length;
+ }
+ notice("Enviando catálogo e vínculos das fotografias ao Pizzaria.on...");
  try{
   const response=await fetch("https://forno-cardapios.waves4845.chatgpt.site/api/menu-import-deliveries",{
     method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+code},
@@ -83,7 +107,7 @@ byId("sendSite").addEventListener("click",async()=>{
   const body=await response.json();
   if(!response.ok)throw Error(body.error||"Não foi possível entregar o catálogo.");
   field.value="";
-  notice("Recebido pelo Pizzaria.on! "+body.stats.total+" registros e "+body.stats.photoReferences+" referências de fotos. O dono deve revisar antes de publicar.");
+  notice("Recebido! "+body.stats.total+" registros, "+(body.stats.uploadedPhotos||0)+" fotos guardadas e "+body.stats.photoReferences+" links de fotos. "+(skipped?"Fotos não transferidas: "+skipped+". ":"")+"O dono deve revisar antes de publicar.");
  }catch(e){notice(e instanceof Error?e.message:"Falha de conexão. Confira o código e tente novamente.");}
  finally{button.disabled=false;}
 });
