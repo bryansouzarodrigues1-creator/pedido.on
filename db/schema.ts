@@ -80,3 +80,11 @@ export const storeReports=sqliteTable("store_reports",{
  category:text("category").notNull(),detail:text("detail").notNull(),contact:text("contact").notNull().default(""),orderReference:text("order_reference").notNull().default(""),
  status:text("status").notNull().default("open"),createdAt:text("created_at").notNull(),reviewedAt:text("reviewed_at"),reviewedBy:text("reviewed_by"),resolution:text("resolution").notNull().default(""),version:integer("version").notNull().default(1),
 },t=>[uniqueIndex("store_reports_request_idx").on(t.restaurantId,t.reporterHash,t.requestId),index("store_reports_queue_idx").on(t.status,t.createdAt)]);
+
+export const menuImportAssistance=sqliteTable("menu_import_assistance",{
+ id:text("id").primaryKey(),restaurantId:text("restaurant_id").notNull().references(()=>restaurants.id,{onDelete:"cascade"}),
+ ownerId:text("owner_id").notNull(),storeUrl:text("store_url").notNull(),ownerNote:text("owner_note").notNull().default(""),
+ status:text("status").notNull().default("requested"),captureJson:text("capture_json"),
+ pairingHash:text("pairing_hash"),pairingExpiresAt:integer("pairing_expires_at"),
+ createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull(),receivedAt:text("received_at")
+},t=>[index("menu_import_assistance_status_idx").on(t.status,t.createdAt),index("menu_import_assistance_owner_idx").on(t.ownerId,t.createdAt)]);
