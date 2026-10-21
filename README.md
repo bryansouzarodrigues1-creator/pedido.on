@@ -1,5 +1,7 @@
 # pizzaria.on
 
+**Retomada publicada — v79, 21/10/2026, 11:50 de Brasília:** PDF direto antes das perguntas/cadastro e fotos corretas por categoria/produto. 531 testes, TypeScript/build, Chrome, Windows, autenticação/pedidos e espelho aprovados; sete cadastros completos preservados. Os cinco checks antes pendentes da PR #79 passaram, mas extensão/importação assistida continuam em rascunho; falta o número oficial de suporte e validação de ponta a ponta. [Estado completo e próximos passos](docs/RETOMADA-20261021.md).
+
 **Correções publicadas e conferidas — 20/10/2026:** fotos confirmadas na prévia do painel, leitura antiga atualizada ao avançar para a conta e catálogo vazio quando o link não traz produtos. 529 testes, tipos/build, Chrome local e público, Windows e mirror aprovados; sete cadastros completos preservados. [Continuidade e provas](docs/CONTINUIDADE-IMPORTACAO-20261020.md).
 
 **Publicação anterior — v76, 20/10/2026, 17:27 de Brasília:** PDF original com 48/48 nomes e preços, sugestões de fotos da fonte, escolha explícita do modelo e prévia rolável sem ocultar valores. Reenvio do mesmo PDF substitui suas páginas sem perder a leitura anterior se falhar. 526 testes, TypeScript/build, Chrome local/público na v76, Windows, autenticação/pedidos e mirror aprovados. Sete cadastros completos preservados; Apify do servidor preparada e desligada, sem catálogo real importado. [Provas e limites](docs/PDF-ORIGINAL-PREVIA-20261020.md).
