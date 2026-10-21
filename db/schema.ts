@@ -88,3 +88,9 @@ export const menuImportAssistance=sqliteTable("menu_import_assistance",{
  pairingHash:text("pairing_hash"),pairingExpiresAt:integer("pairing_expires_at"),
  createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull(),receivedAt:text("received_at")
 },t=>[index("menu_import_assistance_status_idx").on(t.status,t.createdAt),index("menu_import_assistance_owner_idx").on(t.ownerId,t.createdAt)]);
+
+export const menuImportAssistancePhotos=sqliteTable("menu_import_assistance_photos",{
+ requestId:text("request_id").notNull().references(()=>menuImportAssistance.id,{onDelete:"cascade"}),
+ itemId:text("item_id").notNull(),sourceUrl:text("source_url").notNull(),mediaUrl:text("media_url").notNull(),
+ sizeBytes:integer("size_bytes").notNull(),createdAt:text("created_at").notNull()
+},t=>[index("menu_import_assistance_photos_request_idx").on(t.requestId)]);
