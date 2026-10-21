@@ -29,6 +29,15 @@ try{
  page=await context.newPage();page.setDefaultTimeout(20000);page.on("pageerror",e=>errors.push(e.message));
  await page.goto(base+"/criar",{waitUntil:"domcontentloaded",timeout:90_000});
  await page.waitForFunction(()=>document.querySelector("#owner-intake-message")?.disabled===false);
+ await record("atalho PDF visível e habilitado antes das perguntas",async()=>{
+  const direct=page.locator("input[data-testid='pdf-quick-picker'][accept*='.pdf']");
+  assert.equal(await direct.count(),1);
+  assert.equal(await direct.isEnabled(),true);
+  const trigger=page.getByRole("button",{name:"Importar PDF direto",exact:true});
+  assert.equal(await trigger.isVisible(),true);
+  assert.equal(await trigger.isEnabled(),true);
+  assert.equal(await page.locator("input[type=email],input[type=password]").count(),0);
+ });
  await record("conversa sem cadastro nem imagens pagas",async()=>{
   assert.equal(await page.locator(".ai-style-card").count(),0);
   assert.equal(await page.locator('input[type="email"],input[type="password"]').count(),0);

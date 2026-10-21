@@ -101,3 +101,28 @@ test('distant editorial note and decorative headings are never added as products
  assert.equal(parsed.items[0].description,'');
  assert.ok(parsed.unmatched.some(item=>item.text.startsWith('Sugestão do forno')));
 });
+
+test('confirmed photo targets the selected existing product, not a duplicate name in another category',()=>{
+ const data=defaultRestaurant('Forno de teste'),{items}=scan(['Bebidas','Água mineral R$ 5,00']);
+ const patch=applyReaderItems(data,items);
+ const one=patch.products[0],category=patch.categories.find(c=>c.id===one.categoryId);
+ assert.ok(category);
+ data.categories=[...patch.categories,{id:'other-category',name:'Ofertas'}];
+ data.products=[{...one,id:'other-item',categoryId:'other-category'},{...one,id:'selected-item'}];
+ const update={...items[0],existingId:'selected-item',action:'update',selected:true};
+ const photo='data:image/jpeg;base64,AAAA';
+ const preview=previewReviewedMenu(data,[update],{[update.id]:photo},{[update.id]:true});
+ assert.deepEqual(preview.products.map(product=>[product.id,product.image]),[['other-item',''],['selected-item',photo]]);
+ assert.equal(data.products.every(product=>product.image===''),true);
+});
+
+test('guest preview ignores unapproved duplicate photo suggestions before the valid source item',()=>{
+ const {items}=scan(['Bebidas','Água mineral R$ 5,00']),valid=items[0];
+ const unapproved={...valid,id:'stale-unapproved',selected:false,reviewRequired:true};
+ const preview=previewMenuWithReaderItems([unapproved,valid],{
+  [unapproved.id]:'data:image/jpeg;base64,AAAA',
+  [valid.id]:'data:image/jpeg;base64,BBBB'
+ });
+ assert.equal(preview.products.length,1);
+ assert.equal(preview.products[0].image,'data:image/jpeg;base64,BBBB');
+});

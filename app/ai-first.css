@@ -284,3 +284,12 @@
 .mini-store-address>svg,.mini-store-hours>svg{display:inline-block;vertical-align:-2px;flex-shrink:0}
 @media(max-width:520px){.creator-flow .ai-selected-preview{max-height:490px}.owner-source-fallback>div>a,.owner-source-fallback>div>button{flex:1 1 135px}.creator-flow .ai-selected-preview .mini-top strong{font-size:15px}}
 @media(max-width:640px){.creator-flow.waiting-prompt{padding-top:15px;padding-bottom:42px}.creator-intro{margin:6px auto 25px}.creator-intro>span{font-size:9px;letter-spacing:1.7px}.ai-landing .creator-intro h1{font-size:36px;letter-spacing:-1.7px;margin:13px 0}.creator-intro>p{font-size:13px;max-width:300px}.creator-flow .idea-conversation{padding:18px;border-radius:20px}.owner-intake--composer .owner-intake-title strong{font-size:14px}.owner-intake--composer .owner-intake-title small{font-size:11px}.owner-intake--composer .owner-intake-reply textarea{font-size:16px;padding:14px;min-height:135px}.creator-flow.waiting-prompt .owner-intake-reply textarea:placeholder-shown{min-height:175px}.owner-intake--composer .owner-intake-controls{display:grid;gap:12px}.owner-intake--composer .owner-intake-controls .btn{width:100%;margin:0;font-size:14px;justify-content:center}.owner-intake--composer .owner-intake-controls small{font-size:10px}.owner-intake--composer .owner-start-options button{font-size:11px;min-height:38px;padding:8px 10px}.ai-template-options{padding-inline:12px}.ai-template-options>summary{font-size:12px}}
+
+/* One-tap PDF entry remains secondary to the main prompt, but is immediately
+   available when the owner's intake is ready. Uses the same existing reader. */
+.idea-conversation-attachments{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.idea-conversation-attachments .idea-pdf-shortcut{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;border:1px solid #d8ad94;background:#fff2e9;color:#843c24;border-radius:10px;padding:10px 13px;font-size:12px;font-weight:750}
+.idea-conversation-attachments .idea-pdf-shortcut:focus-within{outline:2px solid #d76d43;outline-offset:2px}
+.idea-conversation-attachments .idea-source-toggle{display:inline-flex;align-items:center;gap:7px}
+.idea-conversation-attachments small{flex-basis:100%;font-size:11px;line-height:1.35}
+@media(max-width:640px){.idea-conversation-attachments .idea-pdf-shortcut{width:100%;min-height:44px}.idea-conversation-attachments .idea-source-toggle{min-height:36px}}
