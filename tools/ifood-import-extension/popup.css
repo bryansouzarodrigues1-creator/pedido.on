@@ -3,3 +3,5 @@
 .pizza-size{display:block;max-width:248px;width:100%;margin-top:6px;background:#fff;border:1px solid #c9bfb1;border-radius:7px;padding:6px;font:12px system-ui;color:#21352c}.pizza-size:disabled{opacity:.5}.pizza-size:focus-visible{outline:3px solid #de8b55;outline-offset:2px}
 
 .site-send{margin-top:14px;padding:12px;border:1px solid #927b60;border-radius:10px;background:#f6eee1}.site-send h3{margin:0 0 5px;font-size:15px}.site-send p,.site-send small{font-size:11px;line-height:1.5}.site-send label{display:block;font-weight:700;font-size:12px;margin:10px 0 4px}.site-send input{width:100%;border:1px solid #bba993;border-radius:8px;background:#fff;padding:9px;font-size:12px}.site-send button{width:100%;margin:9px 0}.photo-reference{font-size:10px;display:block;margin-top:5px}.photo-reference a{color:#975433}
+
+.site-send .photo-consent{display:flex;align-items:flex-start;gap:8px;font-size:11px;line-height:1.4;margin-top:10px}.site-send .photo-consent input{width:17px;flex:none;margin-top:2px}
