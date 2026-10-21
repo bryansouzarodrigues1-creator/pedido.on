@@ -1,35 +1,45 @@
-# Pizzaria.on — extensão experimental de importação assistida
+# Pizzaria.on — extensão experimental 0.4.0
 
-**PDF, fotos e texto no celular continuam como caminho principal.** Esta extensão é uma alternativa opcional para o dono que abre o iFood no computador.
+**O fluxo principal do Pizzaria.on continua sendo PDF/fotos no celular.** Esta extensão é um recurso opcional para leitura local de uma loja iFood que o responsável tenha autorização para importar.
 
-## Instalar (Chrome, Edge ou Brave no PC)
+> **Não distribua esta versão como integração ativa até o backend da PR #79 ser publicado com a migração D1 0016.** A versão pública anterior não reconhece os novos endpoints, e o envio dará erro. Testes automatizados não substituem homologação com uma loja real.
 
-1. Baixe a pasta tools/ifood-import-extension do repositório (ou extraia o ZIP beta).
-2. Abra chrome://extensions, edge://extensions ou brave://extensions.
-3. Ative **Modo do desenvolvedor** e clique em **Carregar sem compactação**.
-4. Selecione a pasta que contém manifest.json.
-5. Abra o cardápio da sua loja no iFood e role a página para carregar os produtos.
-6. Clique na extensão e em **Ler cardápio desta aba**.
-7. Confira nomes e valores. Copie para o Pizzaria.on, ou baixe o TXT para importar no site.
-8. Revise preços, descrição, categoria, tamanhos das pizzas e fotos antes da publicação.
+## Instalar manualmente no computador (Chrome, Edge ou Brave)
 
-## Escopo e limites
+1. Obtenha o ZIP **0.4.0** gerado pelo workflow de pacote experimental, ou a pasta `tools/ifood-import-extension` desta branch. Não utilize o ZIP da versão 0.2.
+2. Extraia todos os arquivos juntos; `manifest.json`, `popup.html`, `popup.css`, `popup.js`, `extractor.js` e `format.js` devem permanecer na mesma pasta.
+3. Abra `chrome://extensions`, `edge://extensions` ou `brave://extensions`, ative o Modo do desenvolvedor e selecione **Carregar sem compactação**.
+4. Na sua própria loja do iFood, role até carregar os itens. Clique no ícone da extensão e depois em **Ler cardápio desta aba**.
+5. Confira categorias, nomes, descrições, preços, disponibilidade, complementos e tamanhos. A extensão não inventa informações ausentes.
+6. Continue podendo copiar o texto e salvar TXT/JSON; esses caminhos não exigem backend da versão 0.4.
 
-- Apenas HTML de produtos já carregados na aba ativa. Não faz login, interceptação de API, bypass de CAPTCHA/403, requisição de rede ou acesso oculto.
-- Sem segredo, token, cookies ou chamada paga; Manifest V3 apenas com activeTab e scripting.
-- Preços múltiplos, a partir de, indisponíveis e ausentes são marcados como pendentes e não exportados como definitivos.
-- Até 200 produtos; se houver mais, a extensão avisa que a extração ficou truncada.
-- A exportação TXT mantém categoria, nome, preço e descrição para o leitor existente. Pizzas sem tamanho conhecido continuam pendentes de confirmação.
-- A exportação JSON contém **somente os links** de fotos que o navegador exibiu. O site não importa automaticamente essas imagens pelo JSON; não prometer fotos transferidas.
-- Não é integração oficial iFood. Use apenas cardápios que o proprietário pode importar.
-- **Não validado em loja iFood real.** A interface do iFood pode mudar e deixar de expor os cartões. Se falhar, use PDF, foto, texto ou HTML salvo.
+## Enviar diretamente para o Pizzaria.on (após liberar o servidor)
 
-## Verificação
+1. O proprietário autenticado abre o importador da própria pizzaria e solicita ajuda, confirmando autorização para leitura do cardápio.
+2. O administrador abre `/admin/importacoes` e gera o **código temporário de uso único** (válido por 30 minutos) para a solicitação. Esse código não é enviado ao cliente.
+3. O operador abre a **mesma loja** na aba do iFood, lê os produtos e cola o código na extensão. O backend confere o identificador da loja requisitada.
+4. Opcionalmente, o operador permite buscar arquivos das fotografias em domínios `*.ifood.com.br`. Fotos acessíveis são enviadas ao armazenamento R2 dentro dos limites de segurança. Se a permissão for negada ou alguma imagem falhar, o catálogo ainda pode ser entregue com os links correspondentes.
+5. O operador clica para enviar. O dono atualiza sua solicitação no Pizzaria.on e leva os produtos ao leitor, onde **confirma os preços e cada fotografia** antes de salvar o rascunho.
+6. A publicação para compradores é sempre uma ação separada.
 
-    node --test scripts/check-ifood-extension.test.mjs
+## Limites da versão beta
 
-Os testes são de DOM/HTML controlado. Não equivalem a importação de um estabelecimento real ou teste num computador do usuário.
+- A leitura usa somente cartões de produto já disponíveis no DOM da aba; não contorna CAPTCHA, login, verificação ou HTTP 403.
+- Não lê opções de produto ou complementos que não estejam acessíveis no conteúdo capturado. Não promete extração integral de catálogos.
+- Há limite de 200 registros e 100 fotografias por solicitação. Imagens binárias aceitas: JPG/PNG/WebP até aproximadamente 1,5 MB cada.
+- Apenas endereços HTTP(S) e permissões do domínio configurado são usados; nunca envie senhas, cookies ou tokens do iFood.
+- A extensão só recebe código temporário gerado pela administração e o apaga do campo após entrega com sucesso.
+- Não existe sincronização contínua: alterações futuras no iFood não atualizam automaticamente o cardápio do Pizzaria.on.
+- Nenhum produto ou foto é publicado automaticamente. Links sem imagem acessível permanecem referências, e qualquer erro de associação exige conferência.
+- O código atual tem testes automatizados aprovados, mas **uma entrega real de ponta a ponta, com fotos, ainda requer homologação**.
 
-## Atualização experimental 0.2.0
+## Testes e empacotamento
 
-O leitor preserva centavos explícitos em vírgula e ponto e rejeita valores incompletos. Para pizzas, o dono pode escolher um tamanho (P/M/G) ou declarar preço único sem tamanhos quando souber que esta é a oferta real. A omissão mantém a revisão no Pizzaria.on; nenhum tamanho é inventado. Fotos continuam como referências JSON, não uploads automáticos.
+```sh
+node --test scripts/check-ifood-extension.test.mjs
+node --test scripts/check-menu-assistance.test.mjs
+```
+
+A pasta da extensão não contém dependências externas. O workflow `Package iFood extension beta (no deploy)` verifica a estrutura e gera ZIP de distribuição como artefato do GitHub Actions; **não publica o site**.
+
+Projeto independente, não oficial do iFood. Use apenas dados e imagens cuja importação e reutilização estejam autorizadas.
