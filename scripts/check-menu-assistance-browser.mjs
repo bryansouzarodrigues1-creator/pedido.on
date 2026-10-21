@@ -62,7 +62,7 @@ try{
  const water=review.locator('.reader-item').filter({has:page.getByText('Água assistida QA',{exact:true})});await water.locator('details.reader-edit summary').click();await water.getByLabel('Preço · R$',{exact:true}).fill('6,00');await water.getByLabel('Preço · R$',{exact:true}).press('Tab');
  await page.waitForFunction(async id=>await new Promise(resolve=>{const request=indexedDB.open('pedido-menu-readings',1);request.onsuccess=()=>{const db=request.result,r=db.transaction('readings','readonly').objectStore('readings').get(id);r.onsuccess=()=>{const v=r.result;db.close();resolve(v?.items.some(i=>i.name==='Água assistida QA'&&i.price===600)&&Object.values(v?.photoSuggestions||{}).length===1);};};}),shop.id);
  await page.reload({waitUntil:'networkidle'});await page.getByRole('button',{name:'Levar produtos ao leitor para revisar',exact:true}).click();await review.waitFor();
- assert.equal(await review.locator('.reader-item').filter({has:page.getByText('Água assistida QA',{exact:true})}).getByText('R$ 6,00',{exact:true}).isVisible(),true);
+ await water.locator('.reader-price-summary').getByText(/^R\$\s*6,00$/).waitFor();
  assert.equal(await review.locator('img[alt="Possível foto de Pizza assistida QA"]').getAttribute('src'),photoURL);
  assert.equal((await api('/api/restaurants')).body.restaurants.find(r=>r.id===shop.id).data,shop.data);
  await page.screenshot({path:path.join(output,'review-restored-mobile.png'),fullPage:true});
