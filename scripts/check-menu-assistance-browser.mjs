@@ -60,9 +60,12 @@ try{
  await page.getByRole('button',{name:'Levar produtos ao leitor para revisar',exact:true}).click();
  const review=page.getByRole('dialog',{name:'Confira os produtos',exact:true});await review.waitFor();assert.equal(await review.locator('.reader-item').count(),2);assert.equal(await review.getByRole('button',{name:/Adicionar 2 ao rascunho/}).isEnabled(),false);
  const water=review.locator('.reader-item').filter({has:page.getByText('Água assistida QA',{exact:true})});await water.locator('details.reader-edit summary').click();await water.getByLabel('Preço · R$',{exact:true}).fill('6,00');await water.getByLabel('Preço · R$',{exact:true}).press('Tab');
- await page.waitForFunction(async id=>await new Promise(resolve=>{const request=indexedDB.open('pedido-menu-readings',1);request.onsuccess=()=>{const db=request.result,r=db.transaction('readings','readonly').objectStore('readings').get(id);r.onsuccess=()=>{const v=r.result;db.close();resolve(v?.items.some(i=>i.name==='Água assistida QA'&&i.price===600)&&Object.values(v?.photoSuggestions||{}).length===1);};};}),shop.id);
+ // waitForFunction treats a Promise as truthy before its async result is known.
+ // Poll the resolved IndexedDB value, then assert persistence before reloading.
+ const savedDeadline=Date.now()+10000;let savedReview;
+ do{savedReview=await page.evaluate(id=>new Promise((resolve,reject)=>{const request=indexedDB.open('pedido-menu-readings',1);request.onerror=()=>reject(request.error);request.onsuccess=()=>{const db=request.result,r=db.transaction('readings','readonly').objectStore('readings').get(id);r.onsuccess=()=>{const v=r.result;db.close();resolve(v);};r.onerror=()=>{db.close();reject(r.error);};};}),shop.id);if(savedReview?.items.some(i=>i.name==='Água assistida QA'&&i.price===600)&&Object.values(savedReview?.photoSuggestions||{}).length===1)break;await new Promise(resolve=>setTimeout(resolve,100));}while(Date.now()<savedDeadline);
+ assert.equal(savedReview?.items.find(i=>i.name==='Água assistida QA')?.price,600,'Edited price must actually reach IndexedDB before reload');assert.equal(Object.values(savedReview?.photoSuggestions||{}).length,1);
  await page.reload({waitUntil:'networkidle'});await page.getByRole('button',{name:'Levar produtos ao leitor para revisar',exact:true}).click();await review.waitFor();
- console.log('ASSISTANCE_RESTORED',JSON.stringify(await review.locator('.reader-item').evaluateAll(rows=>rows.map(row=>({name:row.querySelector('.reader-item-summary > div > b')?.textContent,price:row.querySelector('.reader-price-summary')?.textContent,text:row.innerText})))));
  await water.locator('.reader-price-summary').getByText(/^R\$\s*6,00$/).waitFor();
  assert.equal(await review.locator('img[alt="Possível foto de Pizza assistida QA"]').getAttribute('src'),photoURL);
  assert.equal((await api('/api/restaurants')).body.restaurants.find(r=>r.id===shop.id).data,shop.data);
