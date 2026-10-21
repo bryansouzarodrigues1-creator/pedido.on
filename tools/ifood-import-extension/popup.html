@@ -20,6 +20,13 @@
       <p id="summary"></p>
       <div class="toolbar"><button id="selectAll">Selecionar válidos</button><button id="deselectAll">Limpar seleção</button></div>
       <div id="products" class="products"></div>
+      <section class="site-send"><h3>Enviar direto ao Pizzaria.on</h3>
+        <p>O responsável solicita no site. O administrador gera um código de uso único na fila de importações. Cole-o aqui depois de conferir esta leitura.</p>
+        <label for="pairCode">Código de autorização da importação</label>
+        <input id="pairCode" type="text" autocomplete="off" spellcheck="false" placeholder="Código temporário da administração" />
+        <button id="sendSite" type="button" class="primary">Enviar esta leitura para a solicitação</button>
+        <small>Serão enviados os itens identificados, inclusive os pendentes, e os links das fotos. Não publicamos produtos nem enviamos senhas.</small>
+      </section>
       <div class="actions"><button id="copy" class="primary">Copiar para o Pizzaria.on</button><button id="txt">Baixar TXT</button><button id="json">Baixar JSON + links das fotos</button></div>
       <p class="hint">Escolha o tamanho quando ele estiver explícito na loja; caso contrário, deixe para conferir no Pizzaria.on. Fotos no JSON são referências, não imagens importadas.</p>
       <a id="openSite" href="https://forno-cardapios.waves4845.chatgpt.site/criar" target="_blank" rel="noopener noreferrer">Abrir Pizzaria.on ↗</a>
