@@ -18,7 +18,8 @@ function setup(groups=[],url="https://www.ifood.com.br/delivery/teste-rj/pizzari
 }
 test("extension has no broad host/background permissions",()=>{
  assert.equal(manifest.manifest_version,3);
- assert.deepEqual([...manifest.permissions].sort(),["activeTab","scripting"].sort());
+ assert.deepEqual([...manifest.permissions].sort(),["activeTab","permissions","scripting"].sort());
+ assert.deepEqual(manifest.optional_host_permissions,["https://*.ifood.com.br/*"]);
  assert.deepEqual(manifest.host_permissions,["https://forno-cardapios.waves4845.chatgpt.site/*"]);
  assert.equal(manifest.background,undefined);
 });
