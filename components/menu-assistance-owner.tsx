@@ -1,8 +1,8 @@
 "use client";
 import {useEffect,useState} from "react";
-type RequestInfo={id:string;storeUrl:string;status:string;requestedAt:string;stats?:{total:number;approved:number;pending:number;photoReferences:number;truncated:boolean};menuText?:string;capture?:{items:{name:string;needsReview:boolean;selected:boolean;priceCents:number|null;imageUrl?:string|null}[]}};
+type RequestInfo={id:string;storeUrl:string;status:string;requestedAt:string;stats?:{total:number;approved:number;pending:number;photoReferences:number;uploadedPhotos:number;truncated:boolean};menuText?:string;capture?:{items:{name:string;category:string;needsReview:boolean;selected:boolean;priceCents:number|null;imageUrl?:string|null;imageMediaUrl?:string|null}[]}};
 async function csrf(){const r=await fetch("/api/auth/config",{cache:"no-store"});const d=await r.json() as {csrf?:string};if(!r.ok||!d.csrf)throw Error("Atualize a sessão e tente novamente.");return d.csrf;}
-export default function MenuAssistanceOwner({restaurantId,onReceive}:{restaurantId:string;onReceive:(text:string)=>void}){
+export default function MenuAssistanceOwner({restaurantId,onReceive}:{restaurantId:string;onReceive:(text:string,photos:{name:string;category:string;url:string}[])=>void}){
  const [info,setInfo]=useState<RequestInfo|null>(null),[url,setUrl]=useState(""),[note,setNote]=useState(""),[confirmed,setConfirmed]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
  async function refresh(){const r=await fetch("/api/restaurants/"+encodeURIComponent(restaurantId)+"/import-assistance",{cache:"no-store"});const data=await r.json() as {request?:RequestInfo;error?:string};
@@ -22,10 +22,10 @@ export default function MenuAssistanceOwner({restaurantId,onReceive}:{restaurant
   {waiting?<><p role="status">Solicitação registrada · {info.status==="paired"?"operador preparando a leitura":"aguardando atendimento"}.</p>
     <p><small>Loja: {info.storeUrl}</small></p>
     <button type="button" className="btn outline" disabled={busy} onClick={()=>void action("DELETE")}>Cancelar solicitação</button>
-  </>:info?.status==="received"?<><p role="status">Dados recebidos para conferência: {info.stats?.total||0} identificados, {info.stats?.approved||0} marcados como válidos, {info.stats?.pending||0} pendentes, {info.stats?.photoReferences||0} referências de fotos.</p>
+  </>:info?.status==="received"?<><p role="status">Dados recebidos para conferência: {info.stats?.total||0} identificados, {info.stats?.approved||0} marcados como válidos, {info.stats?.pending||0} pendentes, {info.stats?.uploadedPhotos||0} fotos guardadas, {info.stats?.photoReferences||0} links de origem.</p>
     {info.stats?.truncated&&<p>O catálogo ultrapassou o limite de 200 itens. Será necessária uma segunda conferência.</p>}
-    <p>As imagens são referências, não arquivos enviados. Confira nomes, preços e tamanhos no leitor.</p>
-    <button type="button" className="btn primary" disabled={!info.menuText} onClick={()=>{if(info.menuText){onReceive(info.menuText);setNotice("Dados entregues ao leitor local. Confira antes de salvar.");}}}>Levar produtos ao leitor para revisar</button>
+    <p>As fotos guardadas no servidor podem ser vinculadas após sua confirmação individual no leitor; links inacessíveis ficam apenas como referência.</p>
+    <button type="button" className="btn primary" disabled={!info.menuText} onClick={()=>{if(info.menuText){onReceive(info.menuText,(info.capture?.items||[]).filter(item=>item.imageMediaUrl&&item.selected).map(item=>({name:item.name,category:item.category,url:item.imageMediaUrl!})));setNotice("Dados e fotos disponíveis no leitor. Confira nomes, preços, tamanhos e cada foto.");}}}>Levar produtos ao leitor para revisar</button>
   </>:<><label htmlFor="assistant-ifood-url">Link da sua loja no iFood</label>
     <input id="assistant-ifood-url" type="url" inputMode="url" value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://www.ifood.com.br/delivery/…" maxLength={2048} disabled={busy}/>
     <label htmlFor="assistant-ifood-note">Observação (opcional)</label><textarea id="assistant-ifood-note" rows={2} maxLength={350} value={note} onChange={e=>setNote(e.target.value)} disabled={busy} placeholder="Ex.: conferir também os adicionais e os tamanhos das pizzas."/>
