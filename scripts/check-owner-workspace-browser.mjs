@@ -35,12 +35,12 @@ try{
  page=await context.newPage();page.setDefaultTimeout(20000);page.on('pageerror',e=>errors.push(e.message));
  await page.goto(base+'/signin-with-chatgpt?return_to=%2Fapp',{waitUntil:'networkidle',timeout:90000});
  const before=await rows();assert.equal(before.length,1);const old=before[0];assert.equal(old.published,false);
- await page.getByRole('button',{name:'Trazer do iFood',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Tentar link do iFood',exact:true}).waitFor();
  assert.equal(await page.getByRole('navigation',{name:'Navegação rápida'}).getByRole('button').count(),3);
  assert.equal(await page.getByRole('button',{name:'Ver prévia',exact:true}).isVisible(),true);
  assert.equal(await page.getByText('Três passos para começar.',{exact:true}).count(),0);
  checks.push({name:'existing account starts at its own products with three mobile destinations and visible preview',ok:true});
- await page.getByRole('button',{name:'Trazer do iFood',exact:true}).click();
+ await page.getByRole('button',{name:'Tentar link do iFood',exact:true}).click();
  await page.getByLabel('Link da loja no iFood',{exact:true}).fill(link);
  await page.getByRole('button',{name:'Buscar produtos do iFood',exact:true}).click();
  await page.getByText('O iFood não liberou o catálogo por esse link.',{exact:true}).waitFor();
@@ -50,7 +50,7 @@ try{
  assert.match(await page.locator('#reader-menu-text').inputValue(),/Suco natural/);
  checks.push({name:'blocked iFood lookup exposes a usable fallback and keeps the previous source and restaurant unchanged',ok:true});
  await page.getByRole('button',{name:'Fechar janela',exact:true}).click();
- await page.getByRole('button',{name:'Trazer do iFood',exact:true}).click();
+ await page.getByRole('button',{name:'Tentar link do iFood',exact:true}).click();
  await page.getByRole('button',{name:'Buscar produtos do iFood',exact:true}).click();
  await page.getByRole('heading',{name:'Confira os produtos',exact:true}).waitFor();
  await page.getByText('Água QA',{exact:true}).first().waitFor();
@@ -61,7 +61,7 @@ try{
  const imported=(await rows())[0],data=JSON.parse(imported.data);
  assert.equal(imported.published,false);assert.equal(data.products.find(p=>p.name==='Água QA').price,700);assert.equal(data.products.find(p=>p.name==='Suco QA').price,900);
  checks.push({name:'available mock public catalog becomes reviewed products saved only in the owner draft',ok:true});
- await page.getByRole('button',{name:'Trazer do iFood',exact:true}).click();
+ await page.getByRole('button',{name:'Tentar link do iFood',exact:true}).click();
  const connection=page.getByRole('region',{name:'Conectar loja no iFood'});await connection.waitFor();await connection.getByRole('button',{name:'Conectar minha loja no iFood',exact:true}).click();
  await connection.getByLabel('Depois de autorizar, cole o código de retorno').fill('returned-owner-test');await connection.getByRole('button',{name:'Receber dados e cardápio',exact:true}).click();
  await page.getByRole('region',{name:'Confira os dados da loja autorizada'}).waitFor();await page.getByText('Água da conexão oficial QA',{exact:true}).first().waitFor();assert.equal((await rows())[0].data,imported.data);
@@ -74,7 +74,7 @@ try{
  await page.getByRole('navigation',{name:'Editar cardápio'}).getByRole('button',{name:'Aparência',exact:true}).click();
  await page.getByText('Seu cardápio atual',{exact:true}).waitFor();
  assert.equal(await page.locator('details.creation-styles').evaluate(el=>el.open),false);
- assert.equal(await page.getByRole('button',{name:'Trazer do iFood',exact:true}).count(),0);
+ assert.equal(await page.getByRole('button',{name:'Tentar link do iFood',exact:true}).count(),0);
  await page.getByText('Escolher um modelo pronto',{exact:false}).click();
  assert.equal(await page.locator('.creation-styles button').count(),12);
  await page.locator('.creation-styles button').first().click();
