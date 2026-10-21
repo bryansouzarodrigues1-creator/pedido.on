@@ -1,0 +1,50 @@
+name: Package iFood extension beta (no deploy)
+
+on:
+  pull_request:
+    paths:
+      - "tools/ifood-import-extension/**"
+      - ".github/workflows/ifood-extension-beta.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  extension-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate package contents and version
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          base=pathlib.Path("tools/ifood-import-extension")
+          required=["manifest.json","popup.html","popup.css","popup.js","extractor.js","format.js","README.md"]
+          assert all((base/name).is_file() for name in required), "Missing extension file"
+          data=json.loads((base/"manifest.json").read_text(encoding="utf-8"))
+          assert data["manifest_version"]==3
+          assert data["version"]=="0.4.0", "Package version must match current beta"
+          assert data["action"]["default_popup"]=="popup.html"
+          assert set(data["permissions"])=={"activeTab","scripting"}
+          assert data["host_permissions"]==["https://forno-cardapios.waves4845.chatgpt.site/*"]
+          assert data["optional_host_permissions"]==["https://*.ifood.com.br/*"]
+          assert all(not (base/x).is_symlink() for x in required), "Unexpected symlink"
+          print("Validated extension 0.4.0 files and permissions.")
+          PY
+      - name: Create installable ZIP
+        shell: bash
+        run: |
+          cd tools/ifood-import-extension
+          zip -X -q "$GITHUB_WORKSPACE/pizzaria-on-ifood-extension-v0.4.0-beta.zip" manifest.json popup.html popup.css popup.js extractor.js format.js README.md
+          unzip -t "$GITHUB_WORKSPACE/pizzaria-on-ifood-extension-v0.4.0-beta.zip"
+          sha256sum "$GITHUB_WORKSPACE/pizzaria-on-ifood-extension-v0.4.0-beta.zip" > "$GITHUB_WORKSPACE/pizzaria-on-ifood-extension-v0.4.0-beta.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pizzaria-on-ifood-extension-v0.4.0-beta
+          path: |
+            pizzaria-on-ifood-extension-v0.4.0-beta.zip
+            pizzaria-on-ifood-extension-v0.4.0-beta.sha256
+          retention-days: 30
+          if-no-files-found: error
