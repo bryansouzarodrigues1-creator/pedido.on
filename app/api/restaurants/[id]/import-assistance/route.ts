@@ -39,7 +39,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
 }catch(e){return errorResponse(e);}}
 export async function DELETE(request:Request,{params}:{params:Promise<{id:string}>}){try{
  sameOrigin(request);assertCsrf(request);const {id}=await params,row=await ownedRestaurant(id);
- const result=await env.DB!.prepare("UPDATE menu_import_assistance SET status='cancelled',pairing_hash=NULL,pairing_expires_at=NULL,updated_at=? WHERE restaurant_id=? AND owner_id=? AND status IN ('requested','paired')")
+ const result=await env.DB!.prepare("UPDATE menu_import_assistance SET status='cancelled',contact_whatsapp='',contact_consent_at='',pairing_hash=NULL,pairing_expires_at=NULL,updated_at=? WHERE restaurant_id=? AND owner_id=? AND status IN ('requested','paired')")
  .bind(new Date().toISOString(),id,row.ownerId).run();
  if(!result.meta.changes)throw new HttpError(409,"Não há solicitação em andamento para cancelar.");
  return Response.json({cancelled:true},{headers:privateHeaders});
