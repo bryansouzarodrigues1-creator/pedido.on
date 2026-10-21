@@ -41,7 +41,7 @@ async function storedItems(count){
  }while(Date.now()<deadline);
  throw Error('A leitura com '+count+' produtos não foi confirmada no armazenamento.');
 }
-async function preview(){await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click();await chooseMenuPreview(page,{manual:!publicReadOnly});}
+async function preview(){if(!await page.locator('.ai-selected').count()){try{await page.getByRole('button',{name:'Criar minha prévia',exact:true}).click({timeout:1500});}catch(e){if(!await page.locator('.ai-selected').count())throw e;}}await chooseMenuPreview(page,{manual:!publicReadOnly});}
 async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();}
 try{
  await start();await attach('cardapio-texto.pdf',Buffer.from(fixtures.text,'base64'));await page.locator('.idea-photos img').first().waitFor();
