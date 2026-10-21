@@ -16,7 +16,7 @@ test('240 catalogue compositions plus 12 originals are distinct, validated and p
   const data=restaurantSchema.parse(galleryDesign(original,galleryStyleId.parse(style.id),''));
   assert.deepEqual(data.products,before.products);assert.deepEqual(data.pix,before.pix);
   assert.equal(data.presentation.catalogueId,style.id);
-  signatures.add(JSON.stringify([style.texture,style.theme,style.accent,style.presentation]));
+  const {catalogueId,...composition}=style.presentation;signatures.add(JSON.stringify([style.texture,style.theme,style.accent,composition]));
  }
  assert.equal(signatures.size,240);assert.deepEqual(original,before);
 });
