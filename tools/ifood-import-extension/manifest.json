@@ -5,8 +5,7 @@
   "description": "Lê itens visíveis sob comando do operador e permite entrega autorizada por código temporário ao Pizzaria.on.",
   "permissions": [
     "activeTab",
-    "scripting",
-    "permissions"
+    "scripting"
   ],
   "action": {
     "default_popup": "popup.html",
