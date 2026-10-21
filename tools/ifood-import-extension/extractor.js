@@ -45,11 +45,12 @@ export function extractIfoodDOM() {
       const disabled = card.getAttribute?.("aria-disabled") === "true" ||
         card.getAttribute?.("data-disabled") === "true" ||
         /dish-card--unavailable|dish-card--disabled|unavailable|out-of-stock/.test(String(card.className || "").toLowerCase());
-      const imageNode = query(card, ["img.dish-card__image", ".dish-card__container-image img", "[data-testid='menu-item-image'] img"]);
+      const imageNode = query(card, ["img.dish-card__image", ".dish-card__container-image img", "[data-testid='menu-item-image'] img", "img"]);
       let imageUrl = null;
       if (imageNode) {
-        const candidate = imageNode.currentSrc || imageNode.src || imageNode.getAttribute("src");
-        try { const url = new URL(candidate, page); if (url.protocol === "https:") imageUrl = url.href; } catch { /* missing image */ }
+        const srcset = imageNode.getAttribute?.("srcset") || imageNode.getAttribute?.("data-srcset") || "";
+        const candidate = imageNode.currentSrc || imageNode.getAttribute?.("data-src") || imageNode.src || imageNode.getAttribute?.("src") || srcset.split(",")[0]?.trim().split(/\s+/)[0];
+        try { const url = new URL(candidate, page); if (url.protocol === "https:" && !url.username && !url.password) imageUrl = url.href; } catch { /* no visible image */ }
       }
       const key = `${title.toLocaleLowerCase("pt-BR")}\u0000${product.toLocaleLowerCase("pt-BR")}\u0000${priceCents ?? rawPrice}`;
       if (seen.has(key)) continue;
