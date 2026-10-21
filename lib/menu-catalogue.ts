@@ -13,7 +13,7 @@ const families=[
  {id:"jardim-natural",name:"Jardim de sabores",base:"atelier",theme:"editorial",texture:"linen",keywords:["verde","natural","jardim","organico","vegetariano","botanico"],tagline:"Feita com ingredientes e intenção.",description:"Frescor, cuidado e muito sabor."},
  {id:"familia-mesa",name:"Mesa de família",base:"familia",theme:"playful",texture:"linen",keywords:["familia","criancas","acolhedor","caseiro","juntos","aconchegante"],tagline:"Sempre cabe mais um à mesa.",description:"Pizzas para dividir e momentos para guardar."},
  {id:"festival-pop",name:"Festival de cores",base:"fatia-pop",theme:"playful",texture:"none",keywords:["pop","colorido","divertido","vibrante","jovem","criativo"],tagline:"Seu próximo sabor favorito está aqui.",description:"Cores, combinações e vontade de experimentar."},
- {id:"bistro-vinho",name:"Bistrô da noite",base:"pizza-vinho",theme:"editorial",texture:"paper",keywords:["vinho","bordo","bistro","romantico","encontro","refinado"],tagline:"Boa pizza. Boa companhia.",description:"Uma carta de sabores para aproveitar sem pressa."},
+ {id:"bistro-vinho",name:"Bistrô da noite",base:"pizza-vinho",theme:"editorial",texture:"linen",keywords:["vinho","bordo","bistro","romantico","encontro","refinado"],tagline:"Boa pizza. Boa companhia.",description:"Uma carta de sabores para aproveitar sem pressa."},
  {id:"minimal-claro",name:"Essência",base:"essencial",theme:"classic",texture:"none",keywords:["minimalista","simples","branco","limpo","claro","direto"],tagline:"O essencial é uma boa pizza.",description:"Escolha seu sabor. Aproveite seu momento."},
 ] as const;
 const palettes=[
