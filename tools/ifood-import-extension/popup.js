@@ -3,9 +3,14 @@ import {makeMenuText,makeMenuJSON,selectedRows} from "./format.js";
 const byId = id => document.getElementById(id);
 let capture = null;
 const selected = new Set();
+const pizzaSizes = {}; // Choice made by the owner, never inferred from a bare price.
 const notice = value => { byId("notice").textContent = value; };
 const valid = item => item.available && !item.needsReview && Number.isSafeInteger(item.priceCents) && item.priceCents > 0;
-const countText = () => `${capture.itemCount} produto(s) identificados, ${selected.size} selecionado(s) com preço definido. Confira todos os valores no destino.${capture.truncated ? " Leitura limitada aos primeiros 200 produtos." : ""}`;
+const countText = () => {
+ const pizzas = selectedRows(capture,selected).filter(row=>/pizza|sabor/i.test(row.category)&&!/combo|bebida|sobremesa|lanche/i.test(row.category));
+ const pending = pizzas.filter(row=>!pizzaSizes[row.id]).length;
+ return `${capture.itemCount} produto(s) identificados, ${selected.size} selecionado(s).${pending?` ${pending} pizza(s) ainda sem tamanho: escolha abaixo ou revise no Pizzaria.on.`:""} Confira preços e fotos no destino.${capture.truncated ? " Leitura limitada aos primeiros 200 produtos." : ""}`;
+};
 function draw(){
   const list = byId("products");list.replaceChildren();
   for (const category of capture.categories) for(const item of category.items){
@@ -17,14 +22,24 @@ function draw(){
     meta.className="meta"+(valid(item)?"":" pending");
     const price = item.priceCents!==null ? `R$ ${(item.priceCents/100).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}` : "Preço a revisar";
     meta.textContent=`${category.name} • ${item.available?price:"Indisponível"}${item.needsReview?" • precisa revisão":""}`;
-    detail.append(name,meta);row.append(input,detail);list.append(row);
+    detail.append(name,meta);
+    if (/pizza|sabor/i.test(category.name) && !/combo|bebida|sobremesa|lanche/i.test(category.name)) {
+      const size=document.createElement("select");size.className="pizza-size";
+      size.setAttribute("aria-label",`Tamanho de ${item.name}`);
+      const choices=[["","Tamanho não informado"],["p","Pequena"],["m","Média"],["g","Grande"],["unico","Preço único (sem tamanho)"]];
+      for(const [value,label] of choices){const option=document.createElement("option");option.value=value;option.textContent=label;size.append(option);}
+      size.value=pizzaSizes[item.id] || "";size.disabled=!valid(item);
+      size.addEventListener("change",()=>{pizzaSizes[item.id]=size.value;update();});
+      detail.append(size);
+    }
+    row.append(input,detail);list.append(row);
   }
   update();
 }
 function update(){byId("summary").textContent=countText();for(const id of ["txt","json","copy"])byId(id).disabled=selected.size===0;}
 function save(filename,text,type){const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement("a");a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
 byId("read").addEventListener("click",async()=>{
-  capture=null;selected.clear();byId("results").hidden=true;byId("read").disabled=true;notice("Lendo os produtos da aba ativa...");
+  capture=null;selected.clear();for(const id of Object.keys(pizzaSizes))delete pizzaSizes[id];byId("results").hidden=true;byId("read").disabled=true;notice("Lendo os produtos da aba ativa...");
   try{
     const [tab]=await chrome.tabs.query({active:true,currentWindow:true});
     if(!tab?.id||!/^https:\/\/(?:www\.)?ifood\.com\.br\/delivery\//i.test(tab.url||""))throw Error("Abra primeiro a página do cardápio da sua loja no iFood.");
@@ -40,6 +55,6 @@ byId("read").addEventListener("click",async()=>{
 });
 byId("selectAll").addEventListener("click",()=>{if(!capture)return;for(const c of capture.categories)for(const i of c.items)if(valid(i))selected.add(i.id);draw();});
 byId("deselectAll").addEventListener("click",()=>{selected.clear();draw();});
-byId("txt").addEventListener("click",()=>{if(!capture)return;save("cardapio-ifood-pizzaria-on.txt",makeMenuText(capture,selected),"text/plain;charset=utf-8");});
-byId("json").addEventListener("click",()=>{if(!capture)return;save("cardapio-ifood-origem.json",makeMenuJSON(capture,selected),"application/json;charset=utf-8");});
-byId("copy").addEventListener("click",async()=>{if(!capture)return;try{await navigator.clipboard.writeText(makeMenuText(capture,selected));notice(`Texto de ${selectedRows(capture,selected).length} itens copiado. Cole no campo de criação do Pizzaria.on.`);}catch{notice("Falha ao copiar: use o botão Baixar TXT.");}});
+byId("txt").addEventListener("click",()=>{if(!capture)return;save("cardapio-ifood-pizzaria-on.txt",makeMenuText(capture,selected,pizzaSizes),"text/plain;charset=utf-8");});
+byId("json").addEventListener("click",()=>{if(!capture)return;save("cardapio-ifood-origem.json",makeMenuJSON(capture,selected,pizzaSizes),"application/json;charset=utf-8");});
+byId("copy").addEventListener("click",async()=>{if(!capture)return;try{await navigator.clipboard.writeText(makeMenuText(capture,selected,pizzaSizes));notice(`Texto de ${selectedRows(capture,selected).length} itens copiado. Cole no campo de criação do Pizzaria.on.`);}catch{notice("Falha ao copiar: use o botão Baixar TXT.");}});
