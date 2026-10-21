@@ -1,6 +1,7 @@
 import {env} from "cloudflare:workers";
 import {assistedCapture,hasSafeSource,sanitizeCapture,assistStats} from "@/lib/menu-assistance-policy";
 import {sha256} from "@/lib/auth-policy";
+import {queueOwnerNotice} from "@/lib/push";
 import {readJson,privateHeaders,errorResponse,HttpError,throttle} from "@/lib/http";
 export const dynamic="force-dynamic";
 function cors(origin:string|null){
@@ -20,8 +21,8 @@ export async function POST(request:Request){const headers=cors(request.headers.g
  if(!token)throw new HttpError(401,"Informe o código temporário criado pela administração.");
  await throttle("menu-assisted-delivery:"+token[1],15,3600);
  const parsed=assistedCapture.parse(await readJson(request,400000));
- const row=await env.DB!.prepare("SELECT store_url AS storeUrl,status,pairing_hash AS pairingHash,pairing_expires_at AS expiresAt FROM menu_import_assistance WHERE id=?")
- .bind(token[1]).first<{storeUrl:string;status:string;pairingHash:string|null;expiresAt:number|null}>();
+ const row=await env.DB!.prepare("SELECT store_url AS storeUrl,restaurant_id AS restaurantId,owner_id AS ownerId,notify_when_ready AS notifyWhenReady,status,pairing_hash AS pairingHash,pairing_expires_at AS expiresAt FROM menu_import_assistance WHERE id=?")
+ .bind(token[1]).first<{storeUrl:string;restaurantId:string;ownerId:string;notifyWhenReady:number;status:string;pairingHash:string|null;expiresAt:number|null}>();
  const hash=await sha256(token[2]),nowSeconds=Math.floor(Date.now()/1000);
  if(!row||row.status!=="paired"||row.pairingHash!==hash||!row.expiresAt||row.expiresAt<=nowSeconds)throw new HttpError(401,"Código expirado, já utilizado ou inválido. Gere outro no painel.");
  if(!hasSafeSource(parsed,row.storeUrl))throw new HttpError(409,"O cardápio aberto não corresponde ao link solicitado pela pizzaria.");
@@ -35,6 +36,8 @@ export async function POST(request:Request){const headers=cors(request.headers.g
  const updated=await env.DB!.prepare("UPDATE menu_import_assistance SET status='received',capture_json=?,pairing_hash=NULL,pairing_expires_at=NULL,received_at=?,updated_at=? WHERE id=? AND status='paired' AND pairing_hash=? AND pairing_expires_at>?")
  .bind(JSON.stringify(capture),new Date().toISOString(),new Date().toISOString(),token[1],hash,nowSeconds).run();
  if(!updated.meta.changes)throw new HttpError(409,"A importação já foi recebida ou o código expirou.");
+ // O aviso é opcional e não altera nem reverte o cardápio já recebido.
+ if(row.notifyWhenReady===1)queueOwnerNotice(row.ownerId,"menu-ready:"+token[1],"menu",row.restaurantId);
  return Response.json({received:true,stats:assistStats(capture),message:"Dados enviados para revisão do dono. Nenhum produto foi publicado."},{headers});
 }catch(e){
  const response=errorResponse(e),h=new Headers(response.headers);
