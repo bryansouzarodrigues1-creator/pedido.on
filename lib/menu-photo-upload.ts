@@ -22,7 +22,8 @@ export async function attachApprovedMenuPhotos(
  const updated=items.map(item=>({...item}));
  for(const item of updated){
   if(!item.selected||!readerItemReady(item)||!approved[item.id]||!photos[item.id]||item.image)continue;
-  item.image=await upload(restaurantId,photos[item.id]);
+  const photo=photos[item.id];
+  item.image=new RegExp("^/media/"+restaurantId.replace(/[.*+?^${}()|[\]\\]/g,"\\  item.image=await upload(restaurantId,photos[item.id]);")+"/[a-zA-Z0-9_.-]+$").test(photo)?photo:await upload(restaurantId,photo);
   onAttach(item.id,item.image);
  }
  return updated;
