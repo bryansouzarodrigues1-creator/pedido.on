@@ -54,7 +54,7 @@ try{
  await page.getByRole('button',{name:'Buscar produtos do iFood',exact:true}).click();
  await page.getByRole('heading',{name:'Confira os produtos',exact:true}).waitFor();
  await page.getByText('Água QA',{exact:true}).first().waitFor();
- await page.getByLabel('Conferi os nomes, os tamanhos e os preços selecionados.',{exact:true}).check();
+ await page.getByLabel('Conferi os produtos, tamanhos e preços que quero cobrar diretamente (os valores do iFood podem ser diferentes).',{exact:true}).check();
  await page.getByRole('button',{name:/Adicionar \d+ ao rascunho/}).click();
  await page.locator('.menu-reader-review').waitFor({state:'hidden'});
  await page.getByText('Produtos importados e rascunho salvo. Publique quando estiver pronto.',{exact:true}).waitFor();
@@ -66,7 +66,7 @@ try{
  await connection.getByLabel('Depois de autorizar, cole o código de retorno').fill('returned-owner-test');await connection.getByRole('button',{name:'Receber dados e cardápio',exact:true}).click();
  await page.getByRole('region',{name:'Confira os dados da loja autorizada'}).waitFor();await page.getByText('Água da conexão oficial QA',{exact:true}).first().waitFor();assert.equal((await rows())[0].data,imported.data);
  checks.push({name:'authorized owner import exposes store facts and product review without silently changing the existing restaurant',ok:true});
- await page.getByLabel('Conferi os nomes, os tamanhos e os preços selecionados.',{exact:true}).check();await page.getByRole('button',{name:/Adicionar \d+ ao rascunho/}).click();
+ await page.getByLabel('Conferi os produtos, tamanhos e preços que quero cobrar diretamente (os valores do iFood podem ser diferentes).',{exact:true}).check();await page.getByRole('button',{name:/Adicionar \d+ ao rascunho/}).click();
  await page.locator('.menu-reader-review').waitFor({state:'hidden'});
  await page.getByText('Produtos importados e rascunho salvo. Publique quando estiver pronto.',{exact:true}).waitFor();
  const authorized=(await rows())[0],authorizedData=JSON.parse(authorized.data);assert.equal(authorized.published,false);assert.equal(authorizedData.products.find(p=>p.name==='Água da conexão oficial QA').price,890);for(const key of ['name','address','hours','whatsapp'])assert.equal(authorizedData[key],data[key]);assert.equal(officialReads,1);
