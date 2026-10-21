@@ -13,7 +13,7 @@ async function admin(){
 }
 export async function GET(){try{
  await admin();
- const rows=await env.DB!.prepare("SELECT q.id,q.restaurant_id AS restaurantId,r.name AS restaurantName,q.store_url AS storeUrl,q.owner_note AS ownerNote,q.status,q.created_at AS requestedAt,q.updated_at AS updatedAt,q.received_at AS receivedAt,q.pairing_expires_at AS pairingExpiresAt FROM menu_import_assistance q JOIN restaurants r ON r.id=q.restaurant_id ORDER BY q.created_at DESC LIMIT 60").all();
+ const rows=await env.DB!.prepare("SELECT q.id,q.restaurant_id AS restaurantId,r.name AS restaurantName,q.store_url AS storeUrl,q.owner_note AS ownerNote,q.contact_whatsapp AS contactWhatsApp,q.status,q.created_at AS requestedAt,q.updated_at AS updatedAt,q.received_at AS receivedAt,q.pairing_expires_at AS pairingExpiresAt FROM menu_import_assistance q JOIN restaurants r ON r.id=q.restaurant_id ORDER BY q.created_at DESC LIMIT 60").all();
  return Response.json({requests:rows.results||[]},{headers:privateHeaders});
 }catch(e){return errorResponse(e);}}
 export async function POST(request:Request){try{
