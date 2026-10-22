@@ -30,7 +30,7 @@ Substitua o endereço pelo link completo real. A pasta de saída precisa ser nov
 
 ## Comportamento e limites
 
-- Só aceita uma URL HTTPS de loja iFood, normalizada pelo mesmo parser do aplicativo. Remove parâmetros de rastreamento e não aceita URLs arbitrárias ou redirecionamentos para outra loja/rede privada.
+- Só aceita uma URL HTTPS de loja iFood, normalizada pelo mesmo parser do aplicativo. Remove parâmetros de rastreamento e não aceita URLs arbitrárias. Redirecionamentos HTTP são interrompidos antes de seguir `Location`, inclusive dentro dos recursos da página.
 - Cada tarefa recebe um contexto anônimo novo, fechado no final. Não usa perfil pessoal, sessão, cookies fornecidos, senhas ou tokens do iFood.
 - Carrega recursos normais dos domínios iFood e verificações comuns do site. Bloqueia escritas de negócio. Não interage com login/CAPTCHA, não troca identidade, proxy ou endereço IP para contornar bloqueios.
 - HTTP 401/403/429, tela de verificação ou login encerram a tentativa sem exportar produtos. Não tenta repetidamente desbloquear a página.
