@@ -31,6 +31,7 @@ async function run(html, {status = 200, timeoutMs = 20000, settleMs = 300, maxSc
   let externalRequests = 0;
   const scriptErrors = [];
   const pageStates = [];
+  const consoleMessages = [];
   fixtureResponse = {status: redirect ? 302 : status, body: html,
     headers: redirect ? {location: redirect} : {'content-type': 'text/html; charset=utf-8'}};
   // The real routing policy still sees the requested iFood URL. Only its
@@ -39,6 +40,7 @@ async function run(html, {status = 200, timeoutMs = 20000, settleMs = 300, maxSc
     const context = await browser.newContext(options);
     context.on('page', page => {
       page.on('pageerror', error => scriptErrors.push(error.message));
+      page.on('console', message => consoleMessages.push(message.text()));
       const evaluate = page.evaluate.bind(page);
       page.evaluate = async (...args) => {
         const result = await evaluate(...args);
@@ -46,7 +48,9 @@ async function run(html, {status = 200, timeoutMs = 20000, settleMs = 300, maxSc
           viewport: [innerWidth, innerHeight], scrollY, documentHeight: document.documentElement.scrollHeight,
           bodyHeight: document.body.scrollHeight, compatMode: document.compatMode,
           groups: document.querySelectorAll('.restaurant-menu-group').length,
-          cards: document.querySelectorAll('.dish-card').length
+          cards: document.querySelectorAll('.dish-card').length,
+          inlineScriptRan: globalThis.fixtureReady === true,
+          scriptCount: document.scripts.length
         }))});
         return result;
       };
@@ -65,6 +69,7 @@ async function run(html, {status = 200, timeoutMs = 20000, settleMs = 300, maxSc
   }};
   const result = await captureStore({browser: isolated, storeUrl: url, timeoutMs, settleMs, maxScrolls});
   result.fixtureStates = pageStates;
+  result.fixtureConsole = consoleMessages;
   assert.equal(externalRequests >= 1, true);
   assert.deepEqual(scriptErrors, [], 'Synthetic page scripts must execute without errors.');
   return result;
@@ -72,12 +77,12 @@ async function run(html, {status = 200, timeoutMs = 20000, settleMs = 300, maxSc
 try {
   const lazy = await run(`<!doctype html><title>Teste de captura</title><h1>Loja sintética</h1>
     ${group(card('Água mineral', 'R$ 5,50'))}<div style="height:1400px"></div>
-    <script>addEventListener('scroll', () => {
+    <script>globalThis.fixtureReady = true; addEventListener('scroll', () => {
       if (!document.querySelector('[data-lazy]')) document.body.insertAdjacentHTML('beforeend',
         '<div data-lazy>${group(card('Guaraná', 'R$ 8,25'))}</div>');
     });</script>`);
   assert.equal(lazy.report.outcome, 'captured_for_review');
-  assert.equal(lazy.report.itemCount, 2, JSON.stringify({report: lazy.report, states: lazy.fixtureStates, browser: process.env.QA_CHROME_PATH}));
+  assert.equal(lazy.report.itemCount, 2, JSON.stringify({report: lazy.report, states: lazy.fixtureStates, console: lazy.fixtureConsole, browser: process.env.QA_CHROME_PATH}));
   assert.equal(lazy.report.completeness, 'unverified');
   assert.match(lazy.exports.text, /Água mineral R\$ 5,50/);
   assert.match(lazy.exports.text, /Guaraná R\$ 8,25/);
