@@ -21,13 +21,23 @@ export async function captureStore({browser, storeUrl, timeoutMs = 45000, maxScr
     page = await context.newPage();
     timer = setTimeout(() => { timedOut = true; void context.close().catch(() => {}); }, timeoutMs);
     const main = request => request.isNavigationRequest() && request.frame() === page.mainFrame();
-    await context.route('**/*', route => {
+    await context.route('**/*', async route => {
       const request = route.request();
       if (!captureRequestAllowed({url: request.url(), method: request.method(), mainNavigation: main(request)}, store)) {
         report.blockedRequests++;
         return route.abort('blockedbyclient');
       }
-      return route.continue();
+      try {
+        // Browser redirects can bypass subsequent route callbacks. Fetch only
+        // this exact allowed URL and never let the browser follow Location.
+        const response = await route.fetch({maxRedirects: 0, timeout: Math.max(1, deadline - Date.now())});
+        if (response.status() >= 300 && response.status() < 400) {
+          report.blockedRequests++;
+          if (main(request)) { report.outcome = 'blocked'; report.stopReason = 'redirect_blocked'; }
+          return await route.fulfill({status: 409, contentType: 'text/plain', body: 'Redirecionamento não seguido pelo capturador.'});
+        }
+        return await route.fulfill({response});
+      } catch { await route.abort().catch(() => {}); }
     });
     page.on('response', response => {
       if (main(response.request())) report.documentStatus = response.status();
@@ -39,6 +49,7 @@ export async function captureStore({browser, storeUrl, timeoutMs = 45000, maxScr
     let stable = 0, previousFingerprint = '';
     while (Date.now() < deadline) {
       const http = report.documentStatus;
+      if (report.stopReason === 'redirect_blocked') break;
       if ([401, 403, 429].includes(http)) {
         report.outcome = 'blocked'; report.stopReason = `http_${http}`; break;
       }
