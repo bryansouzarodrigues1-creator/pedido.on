@@ -6,6 +6,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {browserQaTarget} from './browser-qa-target.mjs';
 import {pushNotice} from '../lib/push-policy.ts';
+import {runnerResultFromCapture} from './menu-runner-result-fixture.mjs';
 const {base,publicReadOnly}=browserQaTarget();if(publicReadOnly)throw Error('Assistance QA requires isolated local resources.');
 const require=createRequire(import.meta.url),{chromium,devices}=require(process.env.QA_PLAYWRIGHT_MODULE||'playwright-core');
 const output=path.resolve(process.env.QA_BROWSER_OUTPUT||'.sites-runtime/browser-ci/assistance'),profile=path.resolve('.sites-runtime/browser-ci/guest/guest-profile');
@@ -87,5 +88,33 @@ try{
  await page.evaluate(url=>navigator.serviceWorker.dispatchEvent(new MessageEvent('message',{data:{type:'OPEN_NOTIFICATION',url}})),notification);
  await page.getByRole('button',{name:'Levar produtos ao leitor para revisar',exact:true}).waitFor();await page.screenshot({path:path.join(output,'notification-review-mobile.png'),fullPage:true});
  checks.push({name:'menu-ready URL and simulated service-worker event both open the correct shop review',ok:true});
+
+ const runnerShop=await api('/api/restaurants','POST',{name:'Robô QA isolado',slug:'robo-qa-'+Date.now(),theme:'editorial',plan:'essencial'});
+ assert.equal(runnerShop.status,201,JSON.stringify(runnerShop.body));const remoteShop=runnerShop.body.restaurant;
+ const newRequest=await api('/api/restaurants/'+remoteShop.id+'/import-assistance','POST',{storeUrl:ownerRequest.body.request.storeUrl,authorized:true,contactWhatsApp:'(22) 99999-0210',contactPermission:true,notifyWhenReady:false});
+ assert.equal(newRequest.status,201,JSON.stringify(newRequest.body));
+ await admin.reload({waitUntil:'networkidle'});
+ const remoteRow=admin.locator('.account-card > div > section').filter({has:admin.getByText(remoteShop.name,{exact:true})});
+ const importPanel=remoteRow.locator('details[aria-label="Resultado do robô"]');
+ await importPanel.locator('summary').first().click();
+ const captured=runnerResultFromCapture({...capture,capturedAt:new Date().toISOString()});
+ const wrong=structuredClone(captured);wrong.report.sourceUrl=wrong.report.sourceUrl.replace(/000$/,'001');wrong.capture.sourceUrl=wrong.report.sourceUrl;wrong.report.storeId=wrong.report.sourceUrl.split('/').at(-1);
+ const choose=async value=>importPanel.getByLabel('Arquivo da captura').setInputFiles({name:'resultado-importacao.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(value))});
+ await choose(wrong);await importPanel.getByRole('alert').filter({hasText:'outra loja'}).waitFor();
+ assert.equal(await importPanel.getByRole('button',{name:'Entregar para revisão do dono',exact:true}).count(),0);
+ await choose(captured);await importPanel.getByRole('status').filter({hasText:'3 produtos'}).waitFor();
+ const send=importPanel.getByRole('button',{name:'Entregar para revisão do dono',exact:true});assert.equal(await send.isEnabled(),false);
+ await importPanel.getByLabel('Conferi a loja e autorizo entregar este resultado para revisão do dono.',{exact:true}).check();assert.equal(await send.isEnabled(),true);
+ await admin.setViewportSize({width:412,height:915});assert.equal(await admin.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+ await admin.screenshot({path:path.join(output,'runner-admin-review-mobile.png'),fullPage:true});
+ await send.click();await remoteRow.getByText('Catálogo entregue para revisão do proprietário. Nenhum preço ou foto foi publicado.',{exact:true}).waitFor();
+ const remoteAfter=(await api('/api/restaurants')).body.restaurants.find(r=>r.id===remoteShop.id);assert.equal(remoteAfter.data,remoteShop.data);assert.equal(remoteAfter.published,false);
+ await page.goto(base+'/app?loja='+remoteShop.id,{waitUntil:'networkidle'});
+ await page.getByRole('button',{name:'Levar produtos ao leitor para revisar',exact:true}).click();
+ await review.waitFor();assert.equal(await review.locator('.reader-item').count(),2);
+ assert.equal(await review.getByRole('button',{name:/Adicionar 2 ao rascunho/}).isEnabled(),false);
+ await page.screenshot({path:path.join(output,'runner-owner-review-mobile.png'),fullPage:true});
+ assert.deepEqual(errors,[]);
+ checks.push({name:'runner JSON rejects another shop, requires explicit admin review and reaches owner review without changing a draft or publishing',ok:true});
 }catch(e){errors.push(e.message);await page?.screenshot({path:path.join(output,'failure.png'),fullPage:true}).catch(()=>{});throw e;}
-finally{await writeFile(path.join(output,'summary.json'),JSON.stringify({base,checks,errors,passed:checks.length===5&&!errors.length,browser:'Chrome / Pixel 7 emulated, no physical Android',scope:'Real local app/D1/R2; controlled capture client, notification event and intercepted WhatsApp; no real iFood collection or message'},null,2));await context.close();}
+finally{await writeFile(path.join(output,'summary.json'),JSON.stringify({base,checks,errors,passed:checks.length===6&&!errors.length,browser:'Chrome / Pixel 7 emulated, no physical Android',scope:'Real local app/D1/R2; controlled capture client, notification event and intercepted WhatsApp; no real iFood collection or message'},null,2));await context.close();}

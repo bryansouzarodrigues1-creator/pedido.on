@@ -117,7 +117,7 @@ test('successful review writes all outputs with exact TXT accepted by the actual
     const capture = mergeCapture(null, observed([item('Margherita')]), url);
     const result = {report: reportFor('captured_for_review'), capture, exports: captureExports(capture)};
     await writeCaptureResult(out, result);
-    assert.equal((await readdir(out)).length, 5);
+    assert.equal((await readdir(out)).length, 6);
     const text = await readFile(path.join(out, 'cardapio.txt'), 'utf8');
     const parsed = readMenuPages([{id: 'saved-file', lines: text.split('\n').map(text => ({text}))}]);
     assert.equal(parsed.items[0].name, 'Margherita');

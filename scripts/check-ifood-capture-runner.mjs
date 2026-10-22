@@ -1,13 +1,14 @@
 // Real Chromium, synthetic public-store responses. No actual iFood calls here.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
-import {mkdir, writeFile} from 'node:fs/promises';
+import {mkdir, writeFile, readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {createServer} from 'node:http';
 import {captureStore} from '../tools/ifood-capture-runner/capture.mjs';
 import {readMenuPages, readerItemReady} from '../lib/menu-reader-policy.ts';
 import {writeCaptureResult} from '../tools/ifood-capture-runner/review.mjs';
 import {pathToFileURL} from 'node:url';
+import {runnerCaptureForAssistance} from '../lib/menu-runner-result.ts';
 
 const require = createRequire(import.meta.url);
 const {chromium} = require(process.env.QA_PLAYWRIGHT_MODULE || 'playwright-core');
@@ -157,6 +158,9 @@ try {
   const reviewOut = path.join(out, `offline-review-${Date.now()}`);
   await mkdir(reviewOut);
   await writeCaptureResult(reviewOut, lazy);
+  const deliveryFile=JSON.parse(await readFile(path.join(reviewOut,'resultado-importacao.json'),'utf8'));
+  const delivery=runnerCaptureForAssistance(deliveryFile,url);
+  assert.deepEqual(delivery.items.map(item=>[item.name,item.priceCents]),[['Água mineral',550],['Guaraná',825]]);
   const review = await browser.newPage({viewport: {width: 390, height: 844}});
   await review.goto(pathToFileURL(path.join(reviewOut, 'resultado.html')).href);
   assert.equal(await review.locator('tbody tr').count(), 2);

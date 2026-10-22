@@ -78,6 +78,10 @@ jobs:
                   sections.append(fenced((live / 'cardapio.txt').read_text(), 'text'))
               else:
                   sections.append('Nenhum TXT com produtos exportáveis foi gerado nesta tentativa.\n')
+              if (live / 'resultado-importacao.json').is_file():
+                  sections.append('### Resultado para a administração do Pizzaria.on\n')
+                  sections.append('Salve o JSON abaixo como resultado-importacao.json e anexe na solicitação correta. O dono ainda revisa os dados.\n')
+                  sections.append(fenced((live / 'resultado-importacao.json').read_text(), 'json'))
           else:
               fixture = Path('.sites-runtime/ifood-capture-fixture/summary.json')
               if fixture.is_file():
