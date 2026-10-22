@@ -1,8 +1,9 @@
 # pizzaria.on
 
-**Atendimento publicado — v80, 21/10/2026, 13:43:53 de Brasília:** solicitação consentida, fila administrativa, entrega única e revisão de preços/fotos antes do rascunho. Corrigidas truncagem de 200 itens e retomada de fotos/edições. 559 testes, tipos/build, Chrome, Windows e espelho aprovados; migração aditiva, 32 tabelas e sete cadastros completos iguais. WhatsApp oficial ainda não informado; captura real iFood segue pendente. [Provas e limites](docs/ATENDIMENTO-HOMOLOGADO-20261021.md).
+**Continuação — criador v81 e captura própria:** o criador real, 252 estilos, prévia sem conta, WhatsApp único e extensão 0.4.0 estão publicados no Lovable. O runner próprio por tarefa reutiliza o extrator; 12 cenários Chrome e 570 testes locais passaram. A consulta real à Master Pizzas em 21/10 às 21:10 de Brasília retornou HTTP 403, zero produtos. Não afirmar importação automática homologada. [Entrega e limites](docs/ROBO-CARDAPIO-20261022.md).
 
-**Publicação anterior — v79, 21/10/2026, 11:50 de Brasília:** PDF direto antes das perguntas/cadastro e fotos corretas por categoria/produto. 531 testes, TypeScript/build, Chrome, Windows, autenticação/pedidos e espelho aprovados; sete cadastros completos preservados. Os cinco checks antes pendentes da PR #79 passaram, mas extensão/importação assistida continuam em rascunho; falta o número oficial de suporte e validação de ponta a ponta. [Estado completo e próximos passos](docs/RETOMADA-20261021.md).
+
+**Retomada publicada — v79, 21/10/2026, 11:50 de Brasília:** PDF direto antes das perguntas/cadastro e fotos corretas por categoria/produto. 531 testes, TypeScript/build, Chrome, Windows, autenticação/pedidos e espelho aprovados; sete cadastros completos preservados. Os cinco checks antes pendentes da PR #79 passaram, mas extensão/importação assistida continuam em rascunho; falta o número oficial de suporte e validação de ponta a ponta. [Estado completo e próximos passos](docs/RETOMADA-20261021.md).
 
 **Correções publicadas e conferidas — 20/10/2026:** fotos confirmadas na prévia do painel, leitura antiga atualizada ao avançar para a conta e catálogo vazio quando o link não traz produtos. 529 testes, tipos/build, Chrome local e público, Windows e mirror aprovados; sete cadastros completos preservados. [Continuidade e provas](docs/CONTINUIDADE-IMPORTACAO-20261020.md).
 
