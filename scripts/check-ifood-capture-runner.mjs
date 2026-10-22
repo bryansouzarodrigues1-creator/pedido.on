@@ -6,6 +6,8 @@ import path from 'node:path';
 import {createServer} from 'node:http';
 import {captureStore} from '../tools/ifood-capture-runner/capture.mjs';
 import {readMenuPages, readerItemReady} from '../lib/menu-reader-policy.ts';
+import {writeCaptureResult} from '../tools/ifood-capture-runner/review.mjs';
+import {pathToFileURL} from 'node:url';
 
 const require = createRequire(import.meta.url);
 const {chromium} = require(process.env.QA_PLAYWRIGHT_MODULE || 'playwright-core');
@@ -127,6 +129,28 @@ try {
   assert.equal(timeout.report.stopReason, 'time_limit');
   assert.ok(timeout.report.elapsedMs < 4000);
   checks.push({name: 'Time budget closes the disposable context', report: timeout.report});
+
+  const reviewOut = path.join(out, `offline-review-${Date.now()}`);
+  await mkdir(reviewOut);
+  await writeCaptureResult(reviewOut, lazy);
+  const review = await browser.newPage({viewport: {width: 390, height: 844}});
+  await review.goto(pathToFileURL(path.join(reviewOut, 'resultado.html')).href);
+  assert.equal(await review.locator('tbody tr').count(), 2);
+  assert.match(await review.locator('body').innerText(), /R\$ 8,25/);
+  assert.equal(await review.locator('a[href="cardapio.txt"]').count(), 1);
+  assert.equal(await review.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await review.screenshot({path: path.join(out, 'offline-review.png'), fullPage: true});
+  checks.push({name: 'Offline HTML opens on mobile width with products and TXT download', simulated: true});
+
+  const blockedOut = path.join(out, `offline-blocked-${Date.now()}`);
+  await mkdir(blockedOut);
+  await writeCaptureResult(blockedOut, {report: {...lazy.report, outcome: 'blocked', stopReason: 'http_403'}, capture: lazy.capture, exports: lazy.exports});
+  await review.goto(pathToFileURL(path.join(blockedOut, 'resultado.html')).href);
+  assert.equal(await review.locator('tbody tr, a[href="cardapio.txt"]').count(), 0);
+  assert.match(await review.locator('h1').innerText(), /não liberou/);
+  assert.match(await review.locator('body').innerText(), /HTTP 403/);
+  await review.close();
+  checks.push({name: 'Blocked HTML never exposes stale products or an import download', simulated: true});
   console.log(JSON.stringify({simulated: true, checks: checks.length, passed: true}));
 } finally {
   await writeFile(path.join(out, 'summary.json'), JSON.stringify({simulated: true, checks}, null, 2));

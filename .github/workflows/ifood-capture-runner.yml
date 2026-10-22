@@ -49,10 +49,9 @@ jobs:
       - name: Verify real Chrome with synthetic responses
         run: node scripts/check-ifood-capture-runner.mjs
       - name: Capture authorized public store once
-        if: ${{ github.event_name == 'pull_request' || inputs.authorized }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.authorized }}
         env:
-          # The PR probe reuses the public store supplied by the owner earlier.
-          CAPTURE_STORE_URL: ${{ inputs.store_url || 'https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b' }}
+          CAPTURE_STORE_URL: ${{ inputs.store_url }}
         run: node tools/ifood-capture-runner/run.mjs --url "$CAPTURE_STORE_URL" --out .sites-runtime/ifood-capture-live
       - name: Refuse manual run without store authorization
         if: ${{ github.event_name == 'workflow_dispatch' && !inputs.authorized }}

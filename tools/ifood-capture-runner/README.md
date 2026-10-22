@@ -4,6 +4,16 @@ Este robô abre uma loja pública em um navegador descartável e reutiliza exata
 
 ## Executar sem instalar a extensão
 
+### Windows: abrir o leitor local
+
+Com **Node.js 24 ou mais recente** e Chrome, Edge ou Brave instalados, abra `tools/ifood-capture-runner/iniciar-windows.cmd` dentro de uma cópia completa deste repositório. Na primeira abertura, ele instala somente o driver Playwright 1.64.1 na pasta local ignorada `.sites-runtime/ifood-capture-tools/`, sem scripts de instalação e sem alterar as dependências do aplicativo. Reutiliza o navegador instalado; não baixa outro navegador.
+
+Cole o link completo e confirme a autorização de leitura da loja. Uma janela separada executa a mesma captura limitada a 45 segundos, sem usar o perfil pessoal. Ao terminar, o terminal informa onde abrir **`resultado.html`**: produtos/preços para conferência, pendências e download do TXT. Bloqueios e páginas vazias também produzem esse relatório, sem catálogo para importar. O HTML funciona localmente, sem carregar fotos, scripts ou recursos externos.
+
+O navegador visível serve para acompanhar a execução. O leitor continua encerrando a tentativa quando encontra bloqueio, login ou verificação humana; abrir no Windows não garante acesso. O teste em um computador físico permanece pendente enquanto os dispositivos do Desktop Commander estiverem offline. As verificações Windows do CI usam respostas sintéticas, não a conexão doméstica do operador.
+
+### GitHub Actions e execução por comando
+
 No repositório `pedido.on`, abra **Actions → iFood capture runner (review only) → Run workflow**. Informe o link completo e confirme que tem autorização para importar aquela loja. O trabalho executa os testes isolados e tenta abrir a loja uma vez, por até 45 segundos. Ao terminar, o resumo da execução mostra o relatório real e o TXT disponível para copiar. O ZIP `ifood-capture-...` é uma cópia opcional, válida por sete dias, quando a conta dispõe de armazenamento de artefatos. As PRs não guardam ZIP sintético. O runner usa a cota de Actions da conta; não chama Apify ou IA.
 
 Dentro de `ifood-capture-live/`:
@@ -11,6 +21,7 @@ Dentro de `ifood-capture-live/`:
 | Arquivo | Uso |
 | --- | --- |
 | `report.json` | Resultado real, HTTP observado, quantidade de itens, pendências e motivo da parada |
+| `resultado.html` | Relatório local legível com produtos, preços, pendências e arquivos da tentativa |
 | `capture-review.json` | Todos os itens observados, inclusive preços ambíguos e indisponíveis; só existe com produtos |
 | `cardapio.txt` | Itens com preço inequívoco; enviar como TXT ou colar no criador e conferir antes de salvar |
 | `cardapio-origem.json` | Cópia dos itens exportáveis e referências de fotos; não é importação automática de imagens |
@@ -27,6 +38,8 @@ node tools/ifood-capture-runner/run.mjs --url 'https://www.ifood.com.br/delivery
 ```
 
 Substitua o endereço pelo link completo real. A pasta de saída precisa ser nova, para impedir que arquivos de uma captura anterior pareçam o resultado de uma tentativa bloqueada. Se já houver Chrome instalado, `QA_CHROME_PATH` pode indicar seu executável.
+
+O parâmetro `--headed` abre o navegador visível; o padrão para servidores permanece sem janela. Nenhuma opção reaproveita cookies ou um perfil existente.
 
 ## Comportamento e limites
 

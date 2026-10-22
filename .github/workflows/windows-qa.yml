@@ -9,6 +9,7 @@ on:
       - "app/**"
       - "pnpm-lock.yaml"
       - "package.json"
+      - "tools/ifood-capture-runner/**"
   workflow_dispatch:
 permissions:
   contents: read
@@ -40,6 +41,17 @@ jobs:
         run: pnpm typecheck
       - name: Full domain and integration regression
         run: pnpm test
+      - name: Verify installed Windows browser and offline capture review
+        shell: pwsh
+        run: |
+          $captureTools = Join-Path $env:RUNNER_TEMP 'ifood-capture-tools'
+          npm install --prefix $captureTools --no-audit --no-fund --ignore-scripts --save-exact playwright-core@1.64.1
+          if ($LASTEXITCODE -ne 0) { throw 'Could not install isolated browser driver.' }
+          $env:QA_PLAYWRIGHT_MODULE = Join-Path $captureTools 'node_modules/playwright-core'
+          $env:QA_CHROME_PATH = node --input-type=module -e "import {findWindowsBrowser} from './tools/ifood-capture-runner/desktop.mjs'; process.stdout.write(await findWindowsBrowser() || '');"
+          if (!$env:QA_CHROME_PATH) { throw 'No installed Chrome, Edge or Brave found.' }
+          node scripts/check-ifood-capture-runner.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic Windows capture verification failed.' }
       - name: Prepare project build (no deployment)
         run: pnpm build
       - name: Report limitations
