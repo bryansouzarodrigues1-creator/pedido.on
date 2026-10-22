@@ -10,7 +10,7 @@ Não é um serviço automático já conectado ao botão de importação. Nenhuma
 
 - Políticas locais: URL canônica, restrição de rede/escritas, itens virtualizados, preços conflitantes, limite de 200 e TXT interpretado pelo leitor real.
 - Chrome em CI: DOM real com carregamento durante rolagem, lista virtualizada, centavos, 403/429, CAPTCHA, login, página vazia, orçamento de tempo/rolagem e redirecionamento inseguro. Respostas desses cenários são sintéticas.
-- Consulta pública separada: link da Master Pizzas fornecido anteriormente pelo proprietário, uma tentativa sem login e sem alteração de dados. O resultado e o identificador da execução serão registrados após a conclusão.
+- Consulta pública separada: link da Master Pizzas fornecido anteriormente pelo proprietário, uma tentativa sem login e sem alteração de dados. Resultado em 21/10/2026 às 21:10:44 de Brasília: HTTP **403**, `blocked`, zero itens e zero produtos exportados. Execução [39698042443](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/39698042443), commit `12257424661cfa1cf88e6fbf4650fe9c1e1afede`. Os 12 cenários sintéticos em Chrome passaram, além de 570 testes locais de backend e TypeScript. Artefato `12390588843`, SHA-256 `747b1da53f1773de13e6ef146175155b25f8234af8e6c5a68b73d131a6fdf9d4`.
 
 O backend publicado permanece na v81; contas Supabase, sessões, D1/R2, pedidos e dados das pizzarias não são alterados pelo runner. O espelho de código continua no repositório conectado ao Lovable.
 
