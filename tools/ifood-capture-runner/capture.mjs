@@ -46,6 +46,7 @@ export async function captureStore({browser, storeUrl, timeoutMs = 45000, maxScr
     page.on('dialog', dialog => { void dialog.dismiss().catch(() => {}); });
     const response = await page.goto(store.url, {waitUntil: 'domcontentloaded', timeout: Math.min(25000, timeoutMs)});
     report.documentStatus = response?.status() ?? report.documentStatus;
+    await page.bringToFront();
     let stable = 0, previousFingerprint = '';
     while (Date.now() < deadline) {
       const http = report.documentStatus;
@@ -72,7 +73,12 @@ export async function captureStore({browser, storeUrl, timeoutMs = 45000, maxScr
       // Several stable passes also give an initially empty page time to render.
       if (stable >= (capture.itemCount ? 3 : 6)) { report.stopReason = 'visible_items_stable'; break; }
       if (report.scrolls >= maxScrolls) { report.stopReason = 'scroll_limit'; break; }
-      await page.evaluate(() => window.scrollBy(0, Math.max(600, Math.floor(innerHeight * .85))));
+      // Native input drives the compositor and the page's lazy-load events.
+      // Installed Windows Chrome moved scrollY with scrollBy without dispatching
+      // the fixture's scroll listener, prematurely stabilizing a partial list.
+      const step = await page.evaluate(() => Math.max(600, Math.floor(innerHeight * .85)));
+      await page.mouse.move(640, 720);
+      await page.mouse.wheel(0, step);
       report.scrolls++;
       await new Promise(resolve => setTimeout(resolve, Math.min(settleMs, Math.max(0, deadline - Date.now()))));
     }
