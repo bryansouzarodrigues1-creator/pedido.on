@@ -1,0 +1,102 @@
+name: iFood capture runner (review only)
+
+on:
+  pull_request:
+    paths:
+      - 'tools/ifood-capture-runner/**'
+      - 'tools/ifood-import-extension/extractor.js'
+      - 'tools/ifood-import-extension/format.js'
+      - 'lib/menu-source-links.ts'
+      - 'scripts/check-ifood-capture-runner*'
+      - '.github/workflows/ifood-capture-runner.yml'
+  workflow_dispatch:
+    inputs:
+      store_url:
+        description: 'Link completo da loja autorizada no iFood'
+        required: true
+        type: string
+      authorized:
+        description: 'Tenho autorização para importar o cardápio desta loja'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ifood-capture-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install isolated browser driver and reader test dependency
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/ifood-capture-tools" --no-audit --no-fund --save-exact playwright-core@1.64.1 zod@3.25.76
+          ln -s "$RUNNER_TEMP/ifood-capture-tools/node_modules" node_modules
+          echo "QA_CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          echo "QA_PLAYWRIGHT_MODULE=$RUNNER_TEMP/ifood-capture-tools/node_modules/playwright-core" >> "$GITHUB_ENV"
+      - name: Verify policies without network
+        run: node --test scripts/check-ifood-capture-runner.test.mjs
+      - name: Verify real Chrome with synthetic responses
+        run: node scripts/check-ifood-capture-runner.mjs
+      - name: Capture authorized public store once
+        if: ${{ github.event_name == 'pull_request' || inputs.authorized }}
+        env:
+          # The PR probe reuses the public store supplied by the owner earlier.
+          CAPTURE_STORE_URL: ${{ inputs.store_url || 'https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b' }}
+        run: node tools/ifood-capture-runner/run.mjs --url "$CAPTURE_STORE_URL" --out .sites-runtime/ifood-capture-live
+      - name: Refuse manual run without store authorization
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.authorized }}
+        run: |
+          echo 'Confirme a autorização para capturar esta loja.'
+          exit 1
+      - name: Show report and TXT directly in the run summary
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          python3 - <<'PY_SUMMARY'
+          import json, os, re
+          from pathlib import Path
+          def fenced(text, kind):
+              marker = '`' * max(3, max((len(s) for s in re.findall(r'`+', text)), default=0) + 1)
+              return marker + kind + '\n' + text.rstrip() + '\n' + marker + '\n'
+          live = Path('.sites-runtime/ifood-capture-live')
+          sections = ['## Captura de cardápio — resultado para revisão\n']
+          if (live / 'report.json').is_file():
+              sections.append('O relatório registra o resultado real. Um trabalho concluído não garante produtos importados.\n')
+              sections.append(fenced((live / 'report.json').read_text(), 'json'))
+              if (live / 'cardapio.txt').is_file():
+                  sections.append('### TXT para copiar e conferir no criador\n')
+                  sections.append(fenced((live / 'cardapio.txt').read_text(), 'text'))
+              else:
+                  sections.append('Nenhum TXT com produtos exportáveis foi gerado nesta tentativa.\n')
+          else:
+              fixture = Path('.sites-runtime/ifood-capture-fixture/summary.json')
+              if fixture.is_file():
+                  count = len(json.loads(fixture.read_text()).get('checks', []))
+                  sections.append(str(count) + ' cenários sintéticos registrados. Nenhum catálogo real foi consultado por esta etapa.\n')
+              else:
+                  sections.append('A execução não produziu relatório de captura. Consulte os passos anteriores.\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as output:
+              output.write('\n'.join(sections))
+          PY_SUMMARY
+      - name: Preserve review files and observed outcome
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ifood-capture-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .sites-runtime/ifood-capture-fixture/
+            .sites-runtime/ifood-capture-live/
+          if-no-files-found: error
+          retention-days: 7

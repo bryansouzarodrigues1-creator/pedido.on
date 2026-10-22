@@ -1,0 +1,296 @@
+{
+  "workflowRun": 39698042443,
+  "testedCommit": "12257424661cfa1cf88e6fbf4650fe9c1e1afede",
+  "artifactId": 12390588843,
+  "artifactSha256": "747b1da53f1773de13e6ef146175155b25f8234af8e6c5a68b73d131a6fdf9d4",
+  "reports": {
+    "ifood-capture-fixture/summary.json": {
+      "simulated": true,
+      "checks": [
+        {
+          "name": "Real DOM + lazy scroll + exact cents + actual text importer",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:39.626Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "captured_for_review",
+            "documentStatus": 200,
+            "stopReason": "visible_items_stable",
+            "itemCount": 2,
+            "exportableCount": 2,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 4,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 740
+          }
+        },
+        {
+          "name": "Virtualized first card retained after removal from DOM",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:40.374Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "captured_for_review",
+            "documentStatus": 200,
+            "stopReason": "visible_items_stable",
+            "itemCount": 2,
+            "exportableCount": 2,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 4,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 480
+          }
+        },
+        {
+          "name": "Price changes during rendering remain pending",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:40.854Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "review_required",
+            "documentStatus": 200,
+            "stopReason": "visible_items_stable",
+            "itemCount": 1,
+            "exportableCount": 0,
+            "pendingCount": 1,
+            "pizzaSizesPending": 0,
+            "scrolls": 4,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 440
+          }
+        },
+        {
+          "name": "A later verification gate invalidates the earlier partial capture",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:41.294Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "blocked",
+            "documentStatus": 200,
+            "stopReason": "verification_required",
+            "itemCount": 0,
+            "exportableCount": 0,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 1,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 274
+          }
+        },
+        {
+          "name": "HTTP 403 stops without a false export",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:41.568Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "blocked",
+            "documentStatus": 403,
+            "stopReason": "http_403",
+            "itemCount": 0,
+            "exportableCount": 0,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 0,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 206
+          }
+        },
+        {
+          "name": "HTTP 429 stops without a false export",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:41.774Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "blocked",
+            "documentStatus": 429,
+            "stopReason": "http_429",
+            "itemCount": 0,
+            "exportableCount": 0,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 0,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 184
+          }
+        },
+        {
+          "name": "Challenge with misleading cards stops without a false export",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:41.959Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "blocked",
+            "documentStatus": 200,
+            "stopReason": "verification_required",
+            "itemCount": 0,
+            "exportableCount": 0,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 0,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 216
+          }
+        },
+        {
+          "name": "Login stops without a false export",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:42.175Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "blocked",
+            "documentStatus": 200,
+            "stopReason": "login_required",
+            "itemCount": 0,
+            "exportableCount": 0,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 0,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 232
+          }
+        },
+        {
+          "name": "Empty page remains empty",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:42.407Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "empty",
+            "documentStatus": 200,
+            "stopReason": "visible_items_stable",
+            "itemCount": 0,
+            "exportableCount": 0,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 6,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 557
+          }
+        },
+        {
+          "name": "Scroll limit preserves explicitly partial review",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:42.964Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "captured_for_review",
+            "documentStatus": 200,
+            "stopReason": "scroll_limit",
+            "itemCount": 1,
+            "exportableCount": 1,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 2,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 332
+          }
+        },
+        {
+          "name": "Redirect to private network blocked before request",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:43.296Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "blocked",
+            "documentStatus": 409,
+            "stopReason": "redirect_blocked",
+            "itemCount": 0,
+            "exportableCount": 0,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 0,
+            "blockedRequests": 1,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 234
+          }
+        },
+        {
+          "name": "Time budget closes the disposable context",
+          "report": {
+            "format": "pizzaria-on-capture-report-v1",
+            "checkedAt": "2026-10-22T00:10:43.530Z",
+            "sourceUrl": "https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000",
+            "storeId": "123e4567-e89b-42d3-a456-426614174000",
+            "outcome": "unavailable",
+            "documentStatus": 200,
+            "stopReason": "time_limit",
+            "itemCount": 0,
+            "exportableCount": 0,
+            "pendingCount": 0,
+            "pizzaSizesPending": 0,
+            "scrolls": 1,
+            "blockedRequests": 0,
+            "truncated": false,
+            "completeness": "unverified",
+            "partial": true,
+            "elapsedMs": 507
+          }
+        }
+      ]
+    },
+    "ifood-capture-live/report.json": {
+      "format": "pizzaria-on-capture-report-v1",
+      "checkedAt": "2026-10-22T00:10:44.862Z",
+      "sourceUrl": "https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b",
+      "storeId": "cd5f08e7-d71c-4918-9fb4-963192b8a85b",
+      "outcome": "blocked",
+      "documentStatus": 403,
+      "stopReason": "http_403",
+      "itemCount": 0,
+      "exportableCount": 0,
+      "pendingCount": 0,
+      "pizzaSizesPending": 0,
+      "scrolls": 0,
+      "blockedRequests": 0,
+      "truncated": false,
+      "completeness": "unverified",
+      "partial": true,
+      "elapsedMs": 621
+    }
+  }
+}
