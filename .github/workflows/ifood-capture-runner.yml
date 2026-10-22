@@ -59,8 +59,39 @@ jobs:
         run: |
           echo 'Confirme a autorização para capturar esta loja.'
           exit 1
-      - name: Preserve review files and observed outcome
+      - name: Show report and TXT directly in the run summary
         if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          python3 - <<'PY_SUMMARY'
+          import json, os, re
+          from pathlib import Path
+          def fenced(text, kind):
+              marker = '`' * max(3, max((len(s) for s in re.findall(r'`+', text)), default=0) + 1)
+              return marker + kind + '\n' + text.rstrip() + '\n' + marker + '\n'
+          live = Path('.sites-runtime/ifood-capture-live')
+          sections = ['## Captura de cardápio — resultado para revisão\n']
+          if (live / 'report.json').is_file():
+              sections.append('O relatório registra o resultado real. Um trabalho concluído não garante produtos importados.\n')
+              sections.append(fenced((live / 'report.json').read_text(), 'json'))
+              if (live / 'cardapio.txt').is_file():
+                  sections.append('### TXT para copiar e conferir no criador\n')
+                  sections.append(fenced((live / 'cardapio.txt').read_text(), 'text'))
+              else:
+                  sections.append('Nenhum TXT com produtos exportáveis foi gerado nesta tentativa.\n')
+          else:
+              fixture = Path('.sites-runtime/ifood-capture-fixture/summary.json')
+              if fixture.is_file():
+                  count = len(json.loads(fixture.read_text()).get('checks', []))
+                  sections.append(str(count) + ' cenários sintéticos registrados. Nenhum catálogo real foi consultado por esta etapa.\n')
+              else:
+                  sections.append('A execução não produziu relatório de captura. Consulte os passos anteriores.\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as output:
+              output.write('\n'.join(sections))
+          PY_SUMMARY
+      - name: Preserve review files and observed outcome
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' }}
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: ifood-capture-${{ github.run_id }}-${{ github.run_attempt }}
