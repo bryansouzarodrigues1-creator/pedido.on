@@ -25,6 +25,7 @@ Dentro de `ifood-capture-live/`:
 | `capture-review.json` | Todos os itens observados, inclusive preços ambíguos e indisponíveis; só existe com produtos |
 | `cardapio.txt` | Itens com preço inequívoco; enviar como TXT ou colar no criador e conferir antes de salvar |
 | `cardapio-origem.json` | Cópia dos itens exportáveis e referências de fotos; não é importação automática de imagens |
+| `resultado-importacao.json` | Resultado validável para o administrador entregar à solicitação correta; só existe quando há produtos exportáveis |
 
 `captured_for_review` significa que há itens para conferir. `review_required` significa que os itens vistos ainda não têm preço exportável. `blocked`, `empty` e `unavailable` não equivalem a uma importação. Um workflow verde significa que o diagnóstico terminou; leia o resultado em `report.json`. Os arquivos em `ifood-capture-fixture/` são **sintéticos**, não pertencem à loja consultada.
 
@@ -49,11 +50,17 @@ O parâmetro `--headed` abre o navegador visível; o padrão para servidores per
 - HTTP 401/403/429, tela de verificação ou login encerram a tentativa sem exportar produtos. Não tenta repetidamente desbloquear a página.
 - Rola somente a página, até 24 passos, 45 segundos e 200 produtos. Mantém itens que saíram de uma lista virtualizada; um preço que muda durante a captura fica pendente.
 - Não abre fichas, complementos ou categorias recolhidas, nem escolhe tamanhos de pizza. Toda captura tem completude **não verificada**, mesmo quando a lista visível estabiliza. Um resultado parcial pode omitir produtos.
-- Fotos ficam como referências. O proprietário confere preços, tamanhos e direitos de uso no importador existente. Não há envio ao backend, gravação de rascunho, publicação, mensagem ou pedido automático.
+- Fotos ficam como referências. O proprietário confere preços, tamanhos e direitos de uso no importador existente. A captura não envia automaticamente o resultado ao backend; o administrador pode entregar o arquivo na solicitação. Não há gravação de rascunho, publicação, mensagem ou pedido automático.
 
-## Próxima integração possível
+## Entregar à revisão do dono
 
-Depois de validar uma loja real acessível, o mesmo `captureStore` pode ser consumido por uma fila em um servidor próprio. A fila precisa associar cada trabalho à autorização da loja, limitar concorrência e entregar o resultado à revisão do proprietário. O endpoint atual de entrega assistida é destinado à extensão; este runner não falsifica sua origem nem enfraquece essa validação. Nenhuma API pública de captura foi aberta nesta etapa.
+Na v82, o administrador entra em [Importações](https://forno-cardapios.waves4845.chatgpt.site/admin/importacoes), abre a solicitação ativa correspondente e escolhe **Enviar resultado do robô**. Seleciona `resultado-importacao.json`, confere loja, produtos e pendências, confirma a revisão e envia. Quando há captura exportável, o resumo do workflow também mostra o JSON para salvar nesse arquivo.
+
+O servidor exige administrador autenticado, mesma origem/CSRF, confirmação e correspondência da loja iFood. Rejeita arquivo bloqueado, loja diferente, catálogo inconsistente ou solicitação cancelada/concluída. O recebimento invalida o código de pareamento e concorre de forma atômica com entrega da extensão e cancelamento. O limite é 650.000 bytes e 200 produtos.
+
+O dono recebe o resultado na revisão já existente. Pendências e itens indisponíveis continuam visíveis; tamanhos de pizza e preços ambíguos exigem conferência. Receber não salva no rascunho nem publica. Referências externas de fotos não viram imagens importadas automaticamente; só podem ser associadas mídias já concluídas da própria solicitação que correspondam ao item e à origem. O arquivo não autoriza acesso a mídias privadas.
+
+Uma fila automática que dispara captura a partir da solicitação ainda não foi implementada. O operador executa o workflow e entrega o arquivo. A captura real acessível continua pendente: HTTP 403 não produz `resultado-importacao.json`, mesmo se uma pasta antiga contiver produtos. [Publicação e evidências](../../docs/ENTREGA-ROBO-WORK-20261022.md).
 
 Manter a extensão manual oferece um caminho útil quando a loja abre no computador do responsável e o servidor recebe bloqueio. Um servidor próprio não garante acesso a uma página que o iFood não disponibiliza para ele.
 

@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-22",
+  "scope": "Admin-reviewed runner file delivery to the existing owner review; synthetic capture and identity transports in QA; no automatic capture queue",
+  "publication": {
+    "version": 82,
+    "status": "succeeded",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "versionId": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_88d4f6398d248191a74afcae065ecc39",
+    "deploymentId": "appgdep_6ada3f8ffec08191a7fa738d1cef6b6d",
+    "updatedAt": "2026-10-22T16:54:03.245482+00:00",
+    "environmentRevision": 13,
+    "sourceCommit": "fcac6110b3d152768347e82aa46a2709051180b3",
+    "testedTree": "695df1114ee2b788e663d11e049ddb868984329b"
+  },
+  "github": {
+    "mainPr": 89,
+    "mainTestedHead": "b970c4766caa4a6eedfb856bb73da18afd7c646e",
+    "mainMerge": "a28b7c34bdb20c31c4e4b03dbb4a50211f73822f",
+    "mirrorPr": 44,
+    "mirrorTestedHead": "bad209a1bb9a48fe5138711c7c205706c4fc4f62",
+    "mirrorMerge": "f5464983e5451e5fd172d10653b231205832510c"
+  },
+  "validation": {
+    "nodeTestsPassed": 584,
+    "typecheck": "passed",
+    "sourceBuild": "passed",
+    "windowsRun": "39815698686",
+    "chromeRun": "39815698715",
+    "captureRun": "39815698681",
+    "mirrorCiRun": "39815929799",
+    "mirrorCaptureRun": "39815930106",
+    "allListedRunsConclusion": "success",
+    "assistanceBrowserChecks": 6,
+    "assistanceBrowserErrors": 0,
+    "mobileScreenshotsInspected": ["runner admin file review", "owner received review"],
+    "physicalAndroidTested": false,
+    "artifact": {
+      "id": "12441688090",
+      "name": "chrome-qa-39815698715-1",
+      "bytes": 85393426,
+      "sha256": "fd07a61377abd5bb08cdafc4c6dc935dc3f018f29e39f5c43be8b44bac59b52f",
+      "downloadHashAndZipCrcVerified": true
+    },
+    "largeFileSynthetic": {
+      "bytes": 415276,
+      "items": 200,
+      "postStatus": 200,
+      "ownerReviewItems": 200,
+      "passed": true,
+      "runtime": "disposable workerd/D1/R2"
+    }
+  },
+  "productionPreservation": {
+    "restaurantsBefore": 7,
+    "restaurantsAfter": 7,
+    "allRowsAndFieldsCompared": true,
+    "allRowsUnchanged": true,
+    "rawPersonalDataIncluded": false,
+    "migrationsApplied": false
+  },
+  "realCapture": {
+    "run": "39698042443",
+    "attempt": 2,
+    "job": "119946333864",
+    "sourceCommit": "12257424661cfa1cf88e6fbf4650fe9c1e1afede",
+    "checkedAt": "2026-10-22T16:24:00.061Z",
+    "outcome": "blocked",
+    "httpStatus": 403,
+    "items": 0,
+    "exportableItems": 0,
+    "newDeliveryIntegrationTestedWithRealCapture": false,
+    "completeRealImportValidated": false
+  },
+  "limits": {
+    "automaticCaptureDispatchImplemented": false,
+    "photosAutomaticallyImportedFromResult": false,
+    "draftOrPublicMenuChangedByReceiving": false,
+    "officialSupportNumberStillPending": true,
+    "newPaidAiGeneration": false,
+    "newInfrastructurePurchase": false,
+    "realPaymentCreated": false
+  }
+}
