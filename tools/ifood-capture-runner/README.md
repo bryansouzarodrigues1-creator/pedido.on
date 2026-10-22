@@ -4,7 +4,7 @@ Este robô abre uma loja pública em um navegador descartável e reutiliza exata
 
 ## Executar sem instalar a extensão
 
-No repositório `pedido.on`, abra **Actions → iFood capture runner (review only) → Run workflow**. Informe o link completo e confirme que tem autorização para importar aquela loja. O trabalho executa os testes isolados e tenta abrir a loja uma vez, por até 45 segundos. Baixe o artefato `ifood-capture-...` ao terminar. O artefato expira em sete dias. O runner usa a cota de Actions da conta; não chama Apify ou IA.
+No repositório `pedido.on`, abra **Actions → iFood capture runner (review only) → Run workflow**. Informe o link completo e confirme que tem autorização para importar aquela loja. O trabalho executa os testes isolados e tenta abrir a loja uma vez, por até 45 segundos. Ao terminar, o resumo da execução mostra o relatório real e o TXT disponível para copiar. O ZIP `ifood-capture-...` é uma cópia opcional, válida por sete dias, quando a conta dispõe de armazenamento de artefatos. As PRs não guardam ZIP sintético. O runner usa a cota de Actions da conta; não chama Apify ou IA.
 
 Dentro de `ifood-capture-live/`:
 

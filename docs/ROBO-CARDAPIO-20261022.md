@@ -19,3 +19,5 @@ O backend publicado permanece na v81; contas Supabase, sessões, D1/R2, pedidos 
 [Guia completo e limites](../tools/ifood-capture-runner/README.md). O TXT produzido entra no criador por arquivo ou colagem; pizzas sem tamanho continuam aguardando escolha, e preços ambíguos não são promovidos a valores confirmados. `capture-review.json` preserva pendências para inspeção.
 
 O primeiro uso comercial deve priorizar a extensão no computador do responsável quando ela consegue abrir a loja. A execução remota oferece uma tentativa por link e relatório verificável; não elimina bloqueios do provedor.
+
+Durante a integração, o GitHub informou cota de artefatos esgotada. Nenhum artefato existente foi apagado nem houve compra de armazenamento. O workflow passou a exibir relatório/TXT no resumo e a tratar ZIP como cópia opcional somente nas execuções manuais. A falha de armazenamento não bloqueia a inspeção do resultado.
