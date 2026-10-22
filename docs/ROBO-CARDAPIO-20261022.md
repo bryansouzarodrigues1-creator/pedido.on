@@ -20,4 +20,14 @@ O backend publicado permanece na v81; contas Supabase, sessões, D1/R2, pedidos 
 
 O primeiro uso comercial deve priorizar a extensão no computador do responsável quando ela consegue abrir a loja. A execução remota oferece uma tentativa por link e relatório verificável; não elimina bloqueios do provedor.
 
+## Continuação: execução local e revisão legível
+
+A execução Windows agora tem entrada por `tools/ifood-capture-runner/iniciar-windows.cmd`: verifica Node 24, prepara o driver isolado, identifica Chrome/Edge/Brave instalado e pede link/autorização. O navegador abre numa janela separada, com as mesmas regras, limites e contexto descartável. Não lê perfis pessoais nem modifica o navegador instalado.
+
+Toda execução gera `resultado.html` local, além do relatório JSON. O documento apresenta produtos, preços, pendências, horário de Brasília e TXT para levar ao criador. Não executa conteúdo da origem nem carrega imagens externas. Em bloqueios, não mostra itens ou links de importação, mesmo que um resultado antigo seja fornecido por engano. Os arquivos existentes nunca são sobrescritos.
+
+Não havia um computador conectado ao Desktop Commander nesta retomada. Não houve teste em computador físico nem nova captura real da Master Pizzas nesta continuação. Permanece o resultado real documentado acima: HTTP 403, zero produtos. A integração com a fila do cliente continua condicionada à validação real.
+
+As PRs agora executam somente as respostas sintéticas; uma consulta real no Actions depende exclusivamente de execução manual com link e autorização. Assim, novas revisões de código não repetem o acesso a uma loja já bloqueada. As verificações adicionais cobrem relatório, preservação de pendências, TXT aceito pelo leitor real, recusa de arquivos antigos e localização de navegadores Windows. O workflow Windows também executa os cenários em navegador instalado, com dados sintéticos.
+
 Durante a integração, o GitHub informou cota de artefatos esgotada. Nenhum artefato existente foi apagado nem houve compra de armazenamento. O workflow passou a exibir relatório/TXT no resumo e a tratar ZIP como cópia opcional somente nas execuções manuais. A falha de armazenamento não bloqueia a inspeção do resultado.

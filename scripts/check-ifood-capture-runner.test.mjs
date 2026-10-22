@@ -2,6 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {captureLink, captureRequestAllowed, mergeCapture, captureExports} from '../tools/ifood-capture-runner/policy.mjs';
 import {readMenuPages, readerItemReady} from '../lib/menu-reader-policy.ts';
+import {mkdtemp, readFile, readdir, rm} from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import {renderCaptureReview, writeCaptureResult} from '../tools/ifood-capture-runner/review.mjs';
+import {findWindowsBrowser} from '../tools/ifood-capture-runner/desktop.mjs';
 
 const url = 'https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-42d3-a456-426614174000';
 const store = captureLink(url);
@@ -72,4 +77,60 @@ test('runner bounds a virtualized catalog to 200 and keeps the truncation warnin
   assert.equal(capture.itemCount, 200);
   assert.equal(capture.truncated, true);
   assert.equal(new Set(capture.categories[0].items.map(p => p.id)).size, 200);
+});
+
+const reportFor = (outcome, extra = {}) => ({sourceUrl: url, checkedAt: '2026-10-22T12:00:00.000Z',
+  outcome, stopReason: outcome === 'blocked' ? 'http_403' : 'visible_items_stable', ...extra});
+
+test('offline review escapes source content and leaves uncertain prices for review', () => {
+  const capture = mergeCapture(null, observed([item('<img src=x onerror=alert(1)>'),
+    item('Preço variável', null, {needsReview: true, rawPrice: '<script>alert(2)</script>'})]), url);
+  const html = renderCaptureReview({report: reportFor('captured_for_review', {pizzaSizesPending: 1}), capture, exports: captureExports(capture)});
+  assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.match(html, /&lt;script&gt;alert\(2\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<img|<script/);
+  assert.match(html, /R\$ 55,90/);
+  assert.match(html, /Conferir na origem/);
+  assert.match(html, /tamanho pendente/);
+  assert.match(html, /09:00:00/);
+  assert.match(html, /default-src 'none'/);
+});
+
+test('blocked offline report cannot expose stale products or an import download', async () => {
+  const out = await mkdtemp(path.join(os.tmpdir(), 'pizzaria-blocked-'));
+  try {
+    const capture = mergeCapture(null, observed([item('Não reutilizar')]), url);
+    const result = {report: reportFor('blocked'), capture, exports: captureExports(capture)};
+    await writeCaptureResult(out, result);
+    assert.deepEqual((await readdir(out)).sort(), ['report.json', 'resultado.html']);
+    const html = await readFile(path.join(out, 'resultado.html'), 'utf8');
+    assert.match(html, /HTTP 403/);
+    assert.match(html, /Nenhum catálogo foi gerado/);
+    assert.doesNotMatch(html, /Não reutilizar|href="cardapio.txt"|href="capture-review.json"/);
+    await assert.rejects(writeCaptureResult(out, result), {code: 'EEXIST'});
+  } finally { await rm(out, {recursive: true, force: true}); }
+});
+
+test('successful review writes all outputs with exact TXT accepted by the actual importer', async () => {
+  const out = await mkdtemp(path.join(os.tmpdir(), 'pizzaria-review-'));
+  try {
+    const capture = mergeCapture(null, observed([item('Margherita')]), url);
+    const result = {report: reportFor('captured_for_review'), capture, exports: captureExports(capture)};
+    await writeCaptureResult(out, result);
+    assert.equal((await readdir(out)).length, 5);
+    const text = await readFile(path.join(out, 'cardapio.txt'), 'utf8');
+    const parsed = readMenuPages([{id: 'saved-file', lines: text.split('\n').map(text => ({text}))}]);
+    assert.equal(parsed.items[0].name, 'Margherita');
+    assert.equal(readerItemReady(parsed.items[0]), false);
+  } finally { await rm(out, {recursive: true, force: true}); }
+});
+
+test('Windows discovery supports spaces in installed-browser paths without reading profiles', async () => {
+  const checked = [];
+  const edge = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+  const found = await findWindowsBrowser({PROGRAMFILES: 'C:\\Program Files', 'PROGRAMFILES(X86)': 'C:\\Program Files (x86)'},
+    async file => { checked.push(file); return file === edge; });
+  assert.equal(found, edge);
+  assert.equal(checked.every(file => /Application\\(?:chrome|msedge|brave)\.exe$/.test(file)), true);
+  assert.equal(await findWindowsBrowser({}, async () => { throw Error('must not probe elsewhere'); }), null);
 });

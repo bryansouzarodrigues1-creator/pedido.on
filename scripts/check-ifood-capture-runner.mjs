@@ -6,6 +6,8 @@ import path from 'node:path';
 import {createServer} from 'node:http';
 import {captureStore} from '../tools/ifood-capture-runner/capture.mjs';
 import {readMenuPages, readerItemReady} from '../lib/menu-reader-policy.ts';
+import {writeCaptureResult} from '../tools/ifood-capture-runner/review.mjs';
+import {pathToFileURL} from 'node:url';
 
 const require = createRequire(import.meta.url);
 const {chromium} = require(process.env.QA_PLAYWRIGHT_MODULE || 'playwright-core');
@@ -24,14 +26,35 @@ await new Promise(resolve => fixtureServer.listen(0, '127.0.0.1', resolve));
 const fixtureBase = `http://127.0.0.1:${fixtureServer.address().port}`;
 const card = (name, price) => `<a class="dish-card"><h3 class="dish-card__description">${name}</h3><span data-test-id="dish-card-price">${price}</span></a>`;
 const group = content => `<section class="restaurant-menu-group"><h2>Bebidas</h2>${content}</section>`;
-async function run(html, {status = 200, timeoutMs = 8000, settleMs = 50, maxScrolls = 24, redirect = null} = {}) {
+// Allow the fixture to dispatch scroll/paint events; production uses 700 ms.
+async function run(html, {status = 200, timeoutMs = 20000, settleMs = 300, maxScrolls = 24, redirect = null} = {}) {
   let externalRequests = 0;
+  const scriptErrors = [];
+  const pageStates = [];
+  const consoleMessages = [];
   fixtureResponse = {status: redirect ? 302 : status, body: html,
     headers: redirect ? {location: redirect} : {'content-type': 'text/html; charset=utf-8'}};
   // The real routing policy still sees the requested iFood URL. Only its
   // network transport is mapped to our local HTTP fixture, including redirects.
   const isolated = {async newContext(options) {
     const context = await browser.newContext(options);
+    context.on('page', page => {
+      page.on('pageerror', error => scriptErrors.push(error.message));
+      page.on('console', message => consoleMessages.push(message.text()));
+      const evaluate = page.evaluate.bind(page);
+      page.evaluate = async (...args) => {
+        const result = await evaluate(...args);
+        if (args[0]?.name === 'inspectCapturePage') pageStates.push({...result, ...await evaluate(() => ({
+          viewport: [innerWidth, innerHeight], scrollY, documentHeight: document.documentElement.scrollHeight,
+          bodyHeight: document.body.scrollHeight, compatMode: document.compatMode,
+          groups: document.querySelectorAll('.restaurant-menu-group').length,
+          cards: document.querySelectorAll('.dish-card').length,
+          inlineScriptRan: globalThis.fixtureReady === true,
+          scriptCount: document.scripts.length
+        }))});
+        return result;
+      };
+    });
     const original = context.route.bind(context);
     context.route = (pattern, handler) => original(pattern, route => handler(new Proxy(route, {get(target, property) {
       if (property === 'fetch') return options => {
@@ -45,18 +68,21 @@ async function run(html, {status = 200, timeoutMs = 8000, settleMs = 50, maxScro
     return context;
   }};
   const result = await captureStore({browser: isolated, storeUrl: url, timeoutMs, settleMs, maxScrolls});
+  result.fixtureStates = pageStates;
+  result.fixtureConsole = consoleMessages;
   assert.equal(externalRequests >= 1, true);
+  assert.deepEqual(scriptErrors, [], 'Synthetic page scripts must execute without errors.');
   return result;
 }
 try {
   const lazy = await run(`<!doctype html><title>Teste de captura</title><h1>Loja sintética</h1>
     ${group(card('Água mineral', 'R$ 5,50'))}<div style="height:1400px"></div>
-    <script>addEventListener('scroll', () => {
+    <script>globalThis.fixtureReady = true; addEventListener('scroll', () => {
       if (!document.querySelector('[data-lazy]')) document.body.insertAdjacentHTML('beforeend',
         '<div data-lazy>${group(card('Guaraná', 'R$ 8,25'))}</div>');
     });</script>`);
   assert.equal(lazy.report.outcome, 'captured_for_review');
-  assert.equal(lazy.report.itemCount, 2);
+  assert.equal(lazy.report.itemCount, 2, JSON.stringify({report: lazy.report, states: lazy.fixtureStates, console: lazy.fixtureConsole, browser: process.env.QA_CHROME_PATH}));
   assert.equal(lazy.report.completeness, 'unverified');
   assert.match(lazy.exports.text, /Água mineral R\$ 5,50/);
   assert.match(lazy.exports.text, /Guaraná R\$ 8,25/);
@@ -127,6 +153,28 @@ try {
   assert.equal(timeout.report.stopReason, 'time_limit');
   assert.ok(timeout.report.elapsedMs < 4000);
   checks.push({name: 'Time budget closes the disposable context', report: timeout.report});
+
+  const reviewOut = path.join(out, `offline-review-${Date.now()}`);
+  await mkdir(reviewOut);
+  await writeCaptureResult(reviewOut, lazy);
+  const review = await browser.newPage({viewport: {width: 390, height: 844}});
+  await review.goto(pathToFileURL(path.join(reviewOut, 'resultado.html')).href);
+  assert.equal(await review.locator('tbody tr').count(), 2);
+  assert.match(await review.locator('body').innerText(), /R\$ 8,25/);
+  assert.equal(await review.locator('a[href="cardapio.txt"]').count(), 1);
+  assert.equal(await review.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await review.screenshot({path: path.join(out, 'offline-review.png'), fullPage: true});
+  checks.push({name: 'Offline HTML opens on mobile width with products and TXT download', simulated: true});
+
+  const blockedOut = path.join(out, `offline-blocked-${Date.now()}`);
+  await mkdir(blockedOut);
+  await writeCaptureResult(blockedOut, {report: {...lazy.report, outcome: 'blocked', stopReason: 'http_403'}, capture: lazy.capture, exports: lazy.exports});
+  await review.goto(pathToFileURL(path.join(blockedOut, 'resultado.html')).href);
+  assert.equal(await review.locator('tbody tr, a[href="cardapio.txt"]').count(), 0);
+  assert.match(await review.locator('h1').innerText(), /não liberou/);
+  assert.match(await review.locator('body').innerText(), /HTTP 403/);
+  await review.close();
+  checks.push({name: 'Blocked HTML never exposes stale products or an import download', simulated: true});
   console.log(JSON.stringify({simulated: true, checks: checks.length, passed: true}));
 } finally {
   await writeFile(path.join(out, 'summary.json'), JSON.stringify({simulated: true, checks}, null, 2));
