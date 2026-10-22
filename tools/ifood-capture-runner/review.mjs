@@ -39,7 +39,7 @@ export function renderCaptureReview({report, capture, exports}) {
 </style></head><body><main><header><p>PIZZARIA.ON · LEITURA PARA REVISÃO</p><h1>${escape(labels[report.outcome] || labels.unavailable)}</h1><p>${escape(hasCapture ? capture.storeName : '')}</p></header>
 <section><p>${escape(reasons[report.stopReason] || 'Consulte o relatório técnico para ver o resultado.')}</p><a href="${escape(source)}" target="_blank" rel="noopener noreferrer">Ver a loja de origem</a><p><small>Consulta: ${escape(new Date(report.checkedAt).toLocaleString('pt-BR', {timeZone: 'America/Sao_Paulo'}))} · horário de Brasília</small></p><div class="stats"><div><strong>${items.length}</strong>produtos vistos</div><div><strong>${count}</strong>com preço para revisão</div><div><strong>${items.length - count}</strong>com pendências</div></div></section>
 ${hasCapture ? `<section class="notice"><strong>A captura pode estar incompleta.</strong><p>Confira os preços de venda direta, tamanhos e opções antes de usar. Fotos não foram transferidas. ${report.pizzaSizesPending ? 'Há pizzas com tamanho pendente.' : ''} ${report.truncated ? 'O limite de produtos foi atingido.' : ''}</p></section><section><h2>Produtos lidos</h2><div class="scroll"><table><thead><tr><th>Categoria</th><th>Produto</th><th>Preço</th><th>Conferência</th></tr></thead><tbody>${rows}</tbody></table></div></section>` : '<section class="notice"><p>Nenhum catálogo foi gerado. Você pode usar um PDF ou fotos do cardápio no criador.</p></section>'}
-<section><h2>Arquivos desta tentativa</h2><nav>${hasCapture && count && exports?.text ? '<a href="cardapio.txt" download>Baixar TXT para conferir no criador</a>' : ''}${hasCapture ? '<a href="capture-review.json" download>Todos os itens e pendências</a>' : ''}<a href="report.json" download>Relatório técnico</a></nav></section><footer>Os arquivos ficam neste computador. Esta leitura não salva nem publica o cardápio da pizzaria.</footer></main></body></html>`;
+<section><h2>Arquivos desta tentativa</h2><nav>${hasCapture && count && exports?.text ? '<a href="cardapio.txt" download>Baixar TXT para conferir no criador</a><a href="resultado-importacao.json" download>Resultado para entregar pela administração</a>' : ''}${hasCapture ? '<a href="capture-review.json" download>Todos os itens e pendências</a>' : ''}<a href="report.json" download>Relatório técnico</a></nav></section><footer>Os arquivos ficam neste computador. Esta leitura não salva nem publica o cardápio da pizzaria.</footer></main></body></html>`;
 }
 
 /** Caller creates a new directory first; an old catalog must never survive a blocked run. */
@@ -50,5 +50,8 @@ export async function writeCaptureResult(out, result) {
     await writeFile(path.join(out, 'capture-review.json'), JSON.stringify(result.capture, null, 2) + '\n', {flag: 'wx'});
     await writeFile(path.join(out, 'cardapio-origem.json'), result.exports.backup + '\n', {flag: 'wx'});
     if (result.exports.text) await writeFile(path.join(out, 'cardapio.txt'), result.exports.text + '\n', {flag: 'wx'});
+    if (result.report.outcome === 'captured_for_review' && result.exports.exportableCount > 0) {
+      await writeFile(path.join(out, 'resultado-importacao.json'), JSON.stringify({format: 'pizzaria-on-capture-review-v1', report: result.report, capture: result.capture}, null, 2) + '\n', {flag: 'wx'});
+    }
   }
 }
