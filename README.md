@@ -1,6 +1,8 @@
 # pizzaria.on
 
-**Continuação — criador v81 e captura própria:** o criador real, 252 estilos, prévia sem conta, WhatsApp único e extensão 0.4.0 estão publicados no Lovable. O runner próprio por tarefa reutiliza o extrator; 12 cenários Chrome e 570 testes locais passaram. A consulta real à Master Pizzas em 21/10 às 21:10 de Brasília retornou HTTP 403, zero produtos. Não afirmar importação automática homologada. [Entrega e limites](docs/ROBO-CARDAPIO-20261022.md).
+**Retomada — 22/10/2026, captura local:** entrada Windows com Node 24 e navegador instalado, rolagem nativa e relatório HTML para conferir produtos/preços/pendências. Passaram 574 testes locais, TypeScript e 14 cenários sintéticos em Chrome no Linux e Windows. O teste físico depende de um computador conectado ao Desktop Commander; a última captura real da Master Pizzas continua HTTP 403/zero produtos. PR principal #88 e espelho #43. [Estado e limites](docs/ROBO-CARDAPIO-20261022.md).
+
+**Base publicada — criador v81 e captura própria:** o criador real, 252 estilos, prévia sem conta, WhatsApp único e extensão 0.4.0 estão publicados no Lovable. O runner próprio por tarefa reutiliza o extrator; 12 cenários Chrome e 570 testes locais passaram na entrega anterior. A consulta real à Master Pizzas em 21/10 às 21:10 de Brasília retornou HTTP 403, zero produtos. Não afirmar importação automática homologada. [Entrega e limites](docs/ROBO-CARDAPIO-20261022.md).
 
 
 **Retomada publicada — v79, 21/10/2026, 11:50 de Brasília:** PDF direto antes das perguntas/cadastro e fotos corretas por categoria/produto. 531 testes, TypeScript/build, Chrome, Windows, autenticação/pedidos e espelho aprovados; sete cadastros completos preservados. Os cinco checks antes pendentes da PR #79 passaram, mas extensão/importação assistida continuam em rascunho; falta o número oficial de suporte e validação de ponta a ponta. [Estado completo e próximos passos](docs/RETOMADA-20261021.md).

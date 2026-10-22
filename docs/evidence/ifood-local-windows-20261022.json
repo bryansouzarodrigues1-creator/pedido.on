@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-22",
+  "source": {
+    "repository": "bryansouzarodrigues1-creator/pedido.on",
+    "testedCommit": "8b4155641b93dd2b857d7cc01ad937a1c1487c50",
+    "pullRequest": 88,
+    "mergeCommit": "e319ea19870c38c80e5d7a8bcd44aabd3d85a5b4"
+  },
+  "mirror": {
+    "repository": "bryansouzarodrigues1-creator/pizzaria.on-chat",
+    "testedCommit": "01243f0dbc6752871261d31c24eb6fa294abf0bd",
+    "pullRequest": 43,
+    "mergeCommit": "1850908b89b94dba407058a1c6e28dc82599a85d",
+    "rootBuildAndCI": {"workflowRun": 39775658586, "conclusion": "success"},
+    "syntheticChrome": {"workflowRun": 39775659208, "conclusion": "success", "scenarios": 14}
+  },
+  "validation": {
+    "local": {"tests": 574, "passed": 574, "failed": 0, "typecheck": "passed"},
+    "linuxChrome": {"workflowRun": 39775576189, "conclusion": "success", "scenarios": 14, "synthetic": true},
+    "windows": {
+      "workflowRun": 39775576199,
+      "job": 119813523916,
+      "conclusion": "success",
+      "tests": 574,
+      "typecheck": "passed",
+      "build": "passed",
+      "browser": "installed Chrome",
+      "browserScenarios": 14,
+      "browserResponsesSynthetic": true
+    }
+  },
+  "externalValidation": {
+    "newLiveCapturePerformed": false,
+    "lastKnownRealStore": "Master Pizzas",
+    "lastKnownRealCaptureWorkflowRun": 39698042443,
+    "lastKnownRealOutcome": "blocked",
+    "lastKnownRealHTTP": 403,
+    "lastKnownRealProducts": 0,
+    "physicalDesktopTest": "pending_no_online_device",
+    "automaticCustomerImportValidated": false
+  },
+  "paidGenerations": 0,
+  "applicationDeploymentPerformed": false,
+  "databaseChangesPerformed": false
+}
