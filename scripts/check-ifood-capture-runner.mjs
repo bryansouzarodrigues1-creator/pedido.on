@@ -26,18 +26,31 @@ await new Promise(resolve => fixtureServer.listen(0, '127.0.0.1', resolve));
 const fixtureBase = `http://127.0.0.1:${fixtureServer.address().port}`;
 const card = (name, price) => `<a class="dish-card"><h3 class="dish-card__description">${name}</h3><span data-test-id="dish-card-price">${price}</span></a>`;
 const group = content => `<section class="restaurant-menu-group"><h2>Bebidas</h2>${content}</section>`;
-// Give installed Windows browsers time to dispatch scroll/paint events. The
-// production delay is 700 ms; a 50 ms fixture raced those events on Windows.
+// Allow the fixture to dispatch scroll/paint events; production uses 700 ms.
 async function run(html, {status = 200, timeoutMs = 20000, settleMs = 300, maxScrolls = 24, redirect = null} = {}) {
   let externalRequests = 0;
   const scriptErrors = [];
+  const pageStates = [];
   fixtureResponse = {status: redirect ? 302 : status, body: html,
     headers: redirect ? {location: redirect} : {'content-type': 'text/html; charset=utf-8'}};
   // The real routing policy still sees the requested iFood URL. Only its
   // network transport is mapped to our local HTTP fixture, including redirects.
   const isolated = {async newContext(options) {
     const context = await browser.newContext(options);
-    context.on('page', page => page.on('pageerror', error => scriptErrors.push(error.message)));
+    context.on('page', page => {
+      page.on('pageerror', error => scriptErrors.push(error.message));
+      const evaluate = page.evaluate.bind(page);
+      page.evaluate = async (...args) => {
+        const result = await evaluate(...args);
+        if (args[0]?.name === 'inspectCapturePage') pageStates.push({...result, ...await evaluate(() => ({
+          viewport: [innerWidth, innerHeight], scrollY, documentHeight: document.documentElement.scrollHeight,
+          bodyHeight: document.body.scrollHeight, compatMode: document.compatMode,
+          groups: document.querySelectorAll('.restaurant-menu-group').length,
+          cards: document.querySelectorAll('.dish-card').length
+        }))});
+        return result;
+      };
+    });
     const original = context.route.bind(context);
     context.route = (pattern, handler) => original(pattern, route => handler(new Proxy(route, {get(target, property) {
       if (property === 'fetch') return options => {
@@ -51,6 +64,7 @@ async function run(html, {status = 200, timeoutMs = 20000, settleMs = 300, maxSc
     return context;
   }};
   const result = await captureStore({browser: isolated, storeUrl: url, timeoutMs, settleMs, maxScrolls});
+  result.fixtureStates = pageStates;
   assert.equal(externalRequests >= 1, true);
   assert.deepEqual(scriptErrors, [], 'Synthetic page scripts must execute without errors.');
   return result;
@@ -63,7 +77,7 @@ try {
         '<div data-lazy>${group(card('Guaraná', 'R$ 8,25'))}</div>');
     });</script>`);
   assert.equal(lazy.report.outcome, 'captured_for_review');
-  assert.equal(lazy.report.itemCount, 2, JSON.stringify(lazy.report));
+  assert.equal(lazy.report.itemCount, 2, JSON.stringify({report: lazy.report, states: lazy.fixtureStates, browser: process.env.QA_CHROME_PATH}));
   assert.equal(lazy.report.completeness, 'unverified');
   assert.match(lazy.exports.text, /Água mineral R\$ 5,50/);
   assert.match(lazy.exports.text, /Guaraná R\$ 8,25/);

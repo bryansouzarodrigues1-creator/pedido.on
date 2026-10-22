@@ -26,7 +26,7 @@ A execução Windows agora tem entrada por `tools/ifood-capture-runner/iniciar-w
 
 Toda execução gera `resultado.html` local, além do relatório JSON. O documento apresenta produtos, preços, pendências, horário de Brasília e TXT para levar ao criador. Não executa conteúdo da origem nem carrega imagens externas. Em bloqueios, não mostra itens ou links de importação, mesmo que um resultado antigo seja fornecido por engano. Os arquivos existentes nunca são sobrescritos.
 
-A consulta aos dispositivos Desktop Commander nesta retomada encontrou Denilson e Rodrigues offline. Não houve teste em computador físico nem nova captura real da Master Pizzas nesta continuação. Permanece o resultado real documentado acima: HTTP 403, zero produtos. A integração com a fila do cliente continua condicionada à validação real.
+Não havia um computador conectado ao Desktop Commander nesta retomada. Não houve teste em computador físico nem nova captura real da Master Pizzas nesta continuação. Permanece o resultado real documentado acima: HTTP 403, zero produtos. A integração com a fila do cliente continua condicionada à validação real.
 
 As PRs agora executam somente as respostas sintéticas; uma consulta real no Actions depende exclusivamente de execução manual com link e autorização. Assim, novas revisões de código não repetem o acesso a uma loja já bloqueada. As verificações adicionais cobrem relatório, preservação de pendências, TXT aceito pelo leitor real, recusa de arquivos antigos e localização de navegadores Windows. O workflow Windows também executa os cenários em navegador instalado, com dados sintéticos.
 

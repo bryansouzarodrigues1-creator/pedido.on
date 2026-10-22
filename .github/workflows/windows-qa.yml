@@ -39,8 +39,6 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: TypeScript check
         run: pnpm typecheck
-      - name: Full domain and integration regression
-        run: pnpm test
       - name: Verify installed Windows browser and offline capture review
         shell: pwsh
         run: |
@@ -52,6 +50,8 @@ jobs:
           if (!$env:QA_CHROME_PATH) { throw 'No installed Chrome, Edge or Brave found.' }
           node scripts/check-ifood-capture-runner.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Synthetic Windows capture verification failed.' }
+      - name: Full domain and integration regression
+        run: pnpm test
       - name: Prepare project build (no deployment)
         run: pnpm build
       - name: Report limitations
