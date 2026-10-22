@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {mkdir, writeFile} from 'node:fs/promises';
 import path from 'node:path';
+import {createServer} from 'node:http';
 import {captureStore} from '../tools/ifood-capture-runner/capture.mjs';
 import {readMenuPages, readerItemReady} from '../lib/menu-reader-policy.ts';
 
@@ -13,24 +14,31 @@ const url = 'https://www.ifood.com.br/delivery/teste-rj/pizzaria/123e4567-e89b-4
 const out = path.resolve('.sites-runtime/ifood-capture-fixture');
 await mkdir(out, {recursive: true});
 const checks = [];
+let fixtureResponse;
+const fixtureServer = createServer((request, response) => {
+  if (request.url !== '/document') { response.writeHead(404); response.end(); return; }
+  response.writeHead(fixtureResponse.status, fixtureResponse.headers);
+  response.end(fixtureResponse.body);
+});
+await new Promise(resolve => fixtureServer.listen(0, '127.0.0.1', resolve));
+const fixtureBase = `http://127.0.0.1:${fixtureServer.address().port}`;
 const card = (name, price) => `<a class="dish-card"><h3 class="dish-card__description">${name}</h3><span data-test-id="dish-card-price">${price}</span></a>`;
 const group = content => `<section class="restaurant-menu-group"><h2>Bebidas</h2>${content}</section>`;
 async function run(html, {status = 200, timeoutMs = 8000, settleMs = 50, maxScrolls = 24, redirect = null} = {}) {
   let externalRequests = 0;
-  // A browser facade supplies a fixture context. The runner installs its normal
-  // policy above this final catch-all, so every permitted request stays mocked.
+  fixtureResponse = {status: redirect ? 302 : status, body: html,
+    headers: redirect ? {location: redirect} : {'content-type': 'text/html; charset=utf-8'}};
+  // The real routing policy still sees the requested iFood URL. Only its
+  // network transport is mapped to our local HTTP fixture, including redirects.
   const isolated = {async newContext(options) {
     const context = await browser.newContext(options);
-    await context.route('**/*', route => {
-      externalRequests++;
-      if (route.request().url() !== url) return route.fulfill({status: 404, body: ''});
-      if (redirect) return route.fulfill({status: 302, headers: {location: redirect}, body: ''});
-      return route.fulfill({status, contentType: 'text/html; charset=utf-8', body: html});
-    });
-    // route.continue would contact the real host; resume the next fixture handler.
     const original = context.route.bind(context);
     context.route = (pattern, handler) => original(pattern, route => handler(new Proxy(route, {get(target, property) {
-      if (property === 'continue') return target.fallback.bind(target);
+      if (property === 'fetch') return options => {
+        externalRequests++;
+        return target.fetch({...options, url: fixtureBase + (target.request().url() === url ? '/document' : '/empty')});
+      };
+      if (property === 'continue') throw new Error('Fixture cannot continue to an external host.');
       const value = Reflect.get(target, property);
       return typeof value === 'function' ? value.bind(target) : value;
     }})));
@@ -111,6 +119,7 @@ try {
 
   const redirect = await run('', {redirect: 'https://127.0.0.1/private'});
   assert.equal(redirect.report.blockedRequests, 1);
+  assert.equal(redirect.report.stopReason, 'redirect_blocked');
   assert.equal(redirect.capture, null);
   checks.push({name: 'Redirect to private network blocked before request', report: redirect.report});
 
@@ -122,4 +131,5 @@ try {
 } finally {
   await writeFile(path.join(out, 'summary.json'), JSON.stringify({simulated: true, checks}, null, 2));
   await browser.close();
+  await new Promise(resolve => fixtureServer.close(resolve));
 }
