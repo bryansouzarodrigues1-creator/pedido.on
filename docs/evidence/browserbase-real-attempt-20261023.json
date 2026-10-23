@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-23",
+  "scope": "Single authorized free-plan Browserbase session using the existing capture runner; no successful store capture",
+  "previousPreparationEvidence": "browserbase-preparation-20261023.json",
+  "providerAccount": {
+    "authenticatedByUser": true,
+    "existingApiKeyRetrieved": true,
+    "planObservedBeforeAttempt": "Free",
+    "browserMinutesUsedBeforeAttempt": 0,
+    "browserMinutesIncludedObserved": 60,
+    "paidUpgrade": false
+  },
+  "actualAttempt": {
+    "sessionsCreated": 1,
+    "startedAtUtc": "2026-10-23T11:30:41Z",
+    "startedAtAmericaSaoPaulo": "2026-10-23T08:30:41-03:00",
+    "apiCredentialAccepted": true,
+    "sessionOptionsAccepted": true,
+    "cdpConnected": false,
+    "safeDiagnostic": "Não foi possível conectar ao navegador Browserbase.",
+    "connectionFailureRootCause": "not diagnosed; raw credential-bearing driver error was not exposed",
+    "releaseRequestAcceptedByAdapter": true,
+    "dashboardStatusAfterAttempt": "Completed",
+    "dashboardDisplayedDuration": "00:00:00",
+    "billingIndependentlyMeasured": false,
+    "automaticRetry": false,
+    "secondSessionCreated": false
+  },
+  "storeResult": {
+    "navigationAttempted": false,
+    "httpStatus": null,
+    "capturedProducts": 0,
+    "reviewArtifactsCreated": false,
+    "outputDirectoryWasNewAndEmpty": true,
+    "realIfoodCaptureValidated": false,
+    "siteBlockObservedInThisAttempt": false
+  },
+  "configuration": {
+    "timeoutSeconds": 90,
+    "keepAlive": false,
+    "proxies": false,
+    "solveCaptchas": false,
+    "advancedStealth": false,
+    "recordSession": false,
+    "logSession": false,
+    "aiModelCalls": 0
+  },
+  "credentialHandling": {
+    "printed": false,
+    "committed": false,
+    "githubSecretSaved": false,
+    "temporaryTransferFileRemoved": true,
+    "browserClipboardCleared": true,
+    "persistentCredentialConfigured": false
+  },
+  "github": {
+    "interactiveBrowserAccountWasDifferent": true,
+    "ownerAccountLoginResult": "declined",
+    "loginRetriedAfterDecline": false,
+    "manualWorkflowDispatched": false,
+    "existingPluginUsedForDocumentationOnly": true
+  },
+  "production": {
+    "publishedVersion": 82,
+    "newAppDeployment": false,
+    "databaseMutation": false,
+    "productionSecretChange": false,
+    "paidGeneration": false,
+    "infrastructurePurchase": false,
+    "realPayment": false
+  },
+  "next": [
+    "Owner-account authentication for Actions secret setup",
+    "Validate controller-to-provider CDP connectivity",
+    "Recheck authorization and free allowance before any new real session"
+  ]
+}
