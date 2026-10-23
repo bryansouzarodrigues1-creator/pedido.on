@@ -18,7 +18,7 @@ test('a blocked capture produces only a bounded failure marker for the exact sto
 });
 test('real 403 report cannot be turned into a menu, success, another store or contradictory status',()=>{
  for(const patch of [
-  {outcome:'captured_for_review'},{itemCount:2},{exportableCount:1},
+  {outcome:'captured_for_review'},{outcome:'empty'},{itemCount:2},{exportableCount:1},
   {documentStatus:200},{stopReason:'http_429'}, {storeId:'223e4567-e89b-42d3-a456-426614174000'},
   {sourceUrl:'https://example.com/evil'},{foo:'extra'}
  ])assert.throws(()=>failureForAssistance({...report(),...patch},url));
