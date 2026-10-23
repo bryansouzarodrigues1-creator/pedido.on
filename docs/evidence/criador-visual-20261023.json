@@ -1,0 +1,126 @@
+{
+  "date": "2026-10-23",
+  "site": {
+    "version": 83,
+    "source": "80c9f0e0e28f83ef14a43bf6c34c378c3d8d4c67",
+    "tree": "d54e2298d3e4316eaa5f4c3327474f6ed8f64d65",
+    "deployment": "appgdep_6adb8f010ee4819189552a52d74ad664",
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "status": "succeeded",
+    "environmentRevision": 13
+  },
+  "github": {
+    "mainPR": 93,
+    "mainHead": "96038f7c3af6518d327268c452e9551c7950085d",
+    "mainMerge": "20199ab73dc7bbf9771611d9a3e08f7d2791b86a",
+    "mirrorPR": 47,
+    "mirrorMerge": "ac0741b7bf83e995cfa227a8ec95c20d36ed6e86"
+  },
+  "checks": {
+    "localTests": 603,
+    "failures": 0,
+    "types": true,
+    "build": true,
+    "chromeRun": 39988570240,
+    "windowsRun": 39988570243,
+    "authOrdersRun": 39988570248,
+    "mirrorRun": 39988579805,
+    "chromeArtifact": 12517505826,
+    "chromeArtifactSha256": "0c28ab50e21c268e47dc156406ff644c5c8ad93af25598c95b47f4d44a332713",
+    "productionRestaurants": {
+      "before": 7,
+      "after": 7,
+      "identical": true
+    }
+  },
+  "visuals": {
+    "models": 80,
+    "legacyIdsStillValid": 252,
+    "generatedImages": 4,
+    "assetBytes": 700064,
+    "perVisitorTextModelCalls": 0
+  },
+  "http": {
+    "site": [
+      {
+        "path": "/healthz",
+        "status": 200,
+        "bytes": 53
+      },
+      {
+        "path": "/criar",
+        "status": 200,
+        "bytes": 17440
+      },
+      {
+        "path": "/assets/pizza-demo-artesanal.webp",
+        "status": 200,
+        "bytes": 124966,
+        "sameAsReviewedSource": true
+      },
+      {
+        "path": "/assets/pizza-demo-noturna.webp",
+        "status": 200,
+        "bytes": 140104,
+        "sameAsReviewedSource": true
+      },
+      {
+        "path": "/assets/pizza-demo-praia.webp",
+        "status": 200,
+        "bytes": 196338,
+        "sameAsReviewedSource": true
+      },
+      {
+        "path": "/assets/pizza-demo-familia.webp",
+        "status": 200,
+        "bytes": 238656,
+        "sameAsReviewedSource": true
+      }
+    ],
+    "lovable": [
+      {
+        "path": "/criar",
+        "status": 200,
+        "bytes": 20719
+      },
+      {
+        "path": "/assets/pizza-demo-artesanal.webp",
+        "status": 200,
+        "bytes": 124966,
+        "sameAsReviewedSource": true
+      },
+      {
+        "path": "/assets/pizza-demo-noturna.webp",
+        "status": 200,
+        "bytes": 140104,
+        "sameAsReviewedSource": true
+      },
+      {
+        "path": "/assets/pizza-demo-praia.webp",
+        "status": 200,
+        "bytes": 196338,
+        "sameAsReviewedSource": true
+      },
+      {
+        "path": "/assets/pizza-demo-familia.webp",
+        "status": 200,
+        "bytes": 238656,
+        "sameAsReviewedSource": true
+      }
+    ]
+  },
+  "lovable": {
+    "url": "https://pizzaria-on-estilos.lovable.app",
+    "sourceMerge": "ac0741b7bf83e995cfa227a8ec95c20d36ed6e86",
+    "deploymentId": "5c3c9eaa-2da3-4133-9852-8428ef34d3fe",
+    "nativeInitialStatus": "pending",
+    "publicAssetsVerified": true
+  },
+  "limits": {
+    "ifoodLastActualOutcome": "HTTP 403; zero products",
+    "newRealIfoodRequests": 0,
+    "paidLovableGenerations": 0,
+    "productionMigrations": 0,
+    "productionTestAccounts": 0
+  }
+}
