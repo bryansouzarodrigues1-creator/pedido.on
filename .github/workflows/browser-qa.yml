@@ -73,6 +73,8 @@ jobs:
             .sites-runtime/browser-ci/*.json
             .sites-runtime/browser-ci/*.log
             .sites-runtime/browser-ci/creator/
+            .sites-runtime/browser-ci/creator-recovery/
+            .sites-runtime/browser-ci/customer-journey/
             .sites-runtime/browser-ci/guest/evidence/
             .sites-runtime/browser-ci/calculator/
             .sites-runtime/browser-ci/handoff/
