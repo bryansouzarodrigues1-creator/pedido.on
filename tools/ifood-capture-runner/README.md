@@ -14,6 +14,8 @@ O navegador visível serve para acompanhar a execução. O leitor continua encer
 
 ### GitHub Actions e execução por comando
 
+O workflow também oferece **browserbase** como navegador. Antes de escolher essa opção, configure `BROWSERBASE_API_KEY` nos segredos do ambiente GitHub e confira a franquia gratuita no painel Browserbase. `BROWSERBASE_PROJECT_ID` é opcional; a API infere o projeto da chave. A execução exige marcar a autorização da loja e a confirmação da franquia. A chave não vai no campo do link, no JSON de produtos, nos logs ou no código. [Configuração e limites](../../docs/BROWSERBASE-20261023.md).
+
 No repositório `pedido.on`, abra **Actions → iFood capture runner (review only) → Run workflow**. Informe o link completo e confirme que tem autorização para importar aquela loja. O trabalho executa os testes isolados e tenta abrir a loja uma vez, por até 45 segundos. Ao terminar, o resumo da execução mostra o relatório real e o TXT disponível para copiar. O ZIP `ifood-capture-...` é uma cópia opcional, válida por sete dias, quando a conta dispõe de armazenamento de artefatos. As PRs não guardam ZIP sintético. O runner usa a cota de Actions da conta; não chama Apify ou IA.
 
 Dentro de `ifood-capture-live/`:
