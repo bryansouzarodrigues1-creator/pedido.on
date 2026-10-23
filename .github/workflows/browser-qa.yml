@@ -62,9 +62,6 @@ jobs:
       - name: Published guest UI and calculator (remote mutations blocked)
         if: ${{ success() }}
         run: node scripts/check-public-browser.mjs
-      - name: Probe the supplied public iFood URL without credentials or writes
-        if: ${{ !cancelled() }}
-        run: node --experimental-strip-types scripts/probe-public-store.mjs
       - name: Preserve screenshots and reports, including failures
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

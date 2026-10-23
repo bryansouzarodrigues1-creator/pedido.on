@@ -189,3 +189,17 @@
  .ai-reference-view>div{bottom:-16px}
 }
 @media(max-width:360px){.customer-menu.identity-pizza-vinho .menu-product-compact:before{display:none}.customer-menu.identity-pizza-vinho .menu-product-compact{gap:8px}}
+
+/* The discovery grid shows every curated model without paging four at a time. */
+.creator-flow .ai-style-grid--all{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row;grid-auto-columns:auto;gap:22px;overflow:visible;scroll-snap-type:none}
+.creator-flow .ai-style-grid--all .ai-style-card{width:100%;min-width:0;content-visibility:auto;contain-intrinsic-size:auto 680px}
+.creator-flow .ai-style-grid--all .ai-style-screen{height:430px;overflow:hidden}
+.creator-flow .ai-style-grid--all .ai-style-footer strong{font-size:17px;line-height:1.3}
+.creator-flow .ai-gallery-search{display:grid;gap:8px;margin:0 0 20px;color:#f6eee8;font-weight:650}
+.creator-flow .ai-gallery-search input{width:100%;padding:14px 16px;border:1px solid #55515a;border-radius:12px;background:#25252e;color:#fff}
+.creator-flow .ai-selected-preview{max-height:600px}
+.creator-flow .ai-selected-preview .mini-cover h3{word-break:normal;overflow-wrap:normal;hyphens:none;font-size:clamp(22px,4.8vw,35px)}
+.creator-flow .ai-brand-name input{color:#fff}
+.creator-flow .ai-gallery-sample{font-size:15px;line-height:1.6;background:#30291f;border:1px solid #766142;border-radius:14px;padding:18px 20px;color:#f5e0bd}
+.creator-flow .ai-gallery-sample strong{display:block;margin-bottom:3px}
+@media(max-width:650px){.creator-flow .ai-style-grid--all{grid-template-columns:minmax(0,1fr)}.creator-flow .ai-style-grid--all .ai-style-screen{height:510px}.creator-flow .ai-selected-preview .mini-menu.hero-split .mini-cover{display:flex;height:auto;min-height:0;flex-direction:column}.creator-flow .ai-selected-preview .mini-menu.hero-split .mini-cover>img{position:static;width:100%;height:120px;object-fit:cover;filter:none}.creator-flow .ai-selected-preview .mini-menu.hero-split .mini-cover>div:last-child{position:static;width:100%;max-width:none;padding:22px;color:var(--menu-text);background:var(--menu-card)}}

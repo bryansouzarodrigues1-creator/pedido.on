@@ -12,9 +12,10 @@ import IfoodConnect from "./ifood-connect";
 export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttach,onText,sourceSuggestion,disabled,quickPreview=false}:{
  value:OwnerIntake;onChange:(next:OwnerIntake)=>void;onReady:(next:OwnerIntake)=>void;onSource?:(result:IfoodImportResult)=>void;onAttach?:()=>void;onText?:(text:string)=>boolean;sourceSuggestion?:IfoodImportResult|null;disabled?:boolean;quickPreview?:boolean;
 }){
- const [connecting,setConnecting]=useState(false);
+ const [connecting,setConnecting]=useState(false),[elapsed,setElapsed]=useState(0);
  const [reply,setReply]=useState(""),[error,setError]=useState(""),[notice,setNotice]=useState("");
  const [editing,setEditing]=useState<OwnerField|null>(null),[linkHint,setLinkHint]=useState(false),[reading,setReading]=useState(false);
+ useEffect(()=>{if(!reading)return;const start=Date.now();setElapsed(0);const timer=setInterval(()=>setElapsed(Math.floor((Date.now()-start)/1000)),1000);return()=>clearInterval(timer);},[reading]);
  const [found,setFound]=useState<{result:IfoodImportResult;base:OwnerIntake}|null>(null);
  const readyCallback=useRef(onReady);readyCallback.current=onReady;
  const input=useRef<HTMLTextAreaElement|null>(null),alive=useRef(true);
@@ -26,7 +27,7 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
  const finished=intakeFinished(value),hint=value.step===1?extractLocationHint(value.initialMessage):undefined;
  const blocked=disabled||reading||connecting||!!found,field=editing||ownerFieldIds[value.step],count=ownerAnsweredCount(value);
  const first=!value.initialMessage&&!value.answers.name&&!value.source&&!editing;
- const nameSuggestion=ownerNameSuggestion(value),choosingName=field==="name"&&!editing&&!found&&!reading&&!!nameSuggestion;
+ const nameSuggestion=ownerNameSuggestion(value),choosingName=!editing&&!found&&!reading&&!!nameSuggestion;
  function acceptAnswer(answer:string){
   const result=quickPreview&&!editing?{state:ownerPreviewFromDescription(value,answer)}:nextOwnerIntake(value,answer);if(result.error){setError(result.error);return;}
   const hasProducts=onText?.(answer);
@@ -38,14 +39,14 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
  function receiveSource(result:IfoodImportResult,base:OwnerIntake){
   onSource?.(result);setReply("");setLinkHint(false);
   if(result.store&&Object.keys(result.store).length)setFound({result,base});
-  else{onChange(ownerFromStore(base,result.url,{},result.status));if(result.count)setNotice(result.message||`${result.count} produtos encontrados. Continue com os dados que faltam.`);}
+  else{const next=ownerFromStore(base,result.url,{},result.status);setNotice(result.message||"Consulta concluída, sem produtos.");if(quickPreview&&!ownerNameSuggestion(next))quick(next);else onChange(next);}
  }
  async function lookup(url:string,base:OwnerIntake){
   if(blocked)return;setReading(true);setError("");setNotice("");
   try{
    const result=await fetchMenuSource(url);if(!alive.current)return;
    receiveSource(result,base);
-  }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Não consegui consultar o link agora. Tente novamente ou continue pela sua ideia.");}
+  }catch{if(alive.current)receiveSource({url,status:"needs_content",text:"",count:0,message:"A consulta terminou sem acesso ao catálogo. Seu link foi guardado; envie PDF ou fotos para trazer os produtos."},base);}
   finally{if(alive.current)setReading(false);}
  }
  function submit(e:FormEvent){
@@ -58,10 +59,6 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
   }
   const source=inspectMenuSourceText(current);
   if(source.status==="multiple"){setError("Consulte o link de uma loja por vez. Sua mensagem continua aqui.");return;}
-  if(source.links.length===1&&quickPreview){
-   const result=nextOwnerIntake(value,current);const base=ownerWithMenuSource(result.error?value:result.state,current);
-   onSource?.({url:source.links[0].url,status:"needs_content",text:"",count:0,message:"Link guardado como referência. Para trazer produtos, envie PDF, fotos ou texto."});setReply("");quick(base);return;
-  }
   if(source.links.length===1){
    let base=value;
    if(value.step===0){const parsed=nextOwnerIntake(value,current);if(!parsed.error)base=parsed.state;}
@@ -72,7 +69,7 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
   acceptAnswer(current);
  }
  function keepSource(useFacts:boolean){
-  if(!found)return;onChange(ownerFromStore(found.base,found.result.url,useFacts?found.result.store:{},found.result.status));
+  if(!found)return;const next=ownerFromStore(found.base,found.result.url,useFacts?found.result.store:{},found.result.status);if(quickPreview&&!ownerNameSuggestion(next))quick(next);else onChange(next);
   setNotice(useFacts?"Dados do link confirmados. Vou perguntar apenas o que falta.":"Link guardado. Use os dados que quiser na sua pizzaria.");setFound(null);
  }
  function previewNow(){
@@ -90,8 +87,8 @@ export default function OwnerIntakeChat({value,onChange,onReady,onSource,onAttac
    {hint&&<p className="owner-intake-hint"><MapPin size={15}/>Você mencionou: {hint}. Confirme ou complete o endereço.</p>}
    {found&&<section className="owner-source-confirm" aria-label="Confira os dados encontrados no link"><h3>Encontrei estes dados no link</h3><p>Confira se são da sua loja. Os dados que você já informou serão mantidos.</p><dl>{([['name','Nome'],['address','Endereço'],['hours','Horários'],['telephone','Telefone informado']] as const).map(([key,label])=>found.result.store?.[key]?<div key={key}><dt>{label}</dt><dd>{found.result.store[key]}</dd></div>:null)}</dl><small>O telefone só será usado como WhatsApp se você confirmar.</small><div><button type="button" className="btn primary" onClick={()=>keepSource(true)}>Usar dados encontrados<Check size={16}/></button><button type="button" className="text-button" onClick={()=>keepSource(false)}>Prefiro preencher</button></div></section>}
    {notice&&<p className="owner-intake-hint" role="status">{notice}</p>}
-   {blockedSource&&!found&&<aside className="owner-source-fallback" aria-label="Trazer o cardápio do iFood"><strong>Link guardado. Falta trazer os produtos.</strong><p>O iFood não liberou a leitura automática do catálogo.</p><IfoodConnect url={blockedSource} disabled={disabled||reading} onBusyChange={setConnecting} onResult={result=>{receiveSource(result,value);setNotice(result.warnings.join(" "));}}/><details><summary>Trazer cardápio por PDF, foto ou texto</summary><div className="owner-source-actions"><a href={blockedSource} target="_blank" rel="noopener noreferrer">Abrir loja no iFood<ExternalLink size={15}/></a><button type="button" disabled={blocked} onClick={attach}><Paperclip size={15}/>Enviar PDF ou foto</button><button type="button" disabled={blocked} onClick={()=>{setLinkHint(false);setEditing("menu");input.current?.focus();}}>Colar produtos</button></div><p>No celular, envie prints ou um PDF do cardápio. No computador, expanda as categorias da loja e use Imprimir → Salvar como PDF. Também pode salvar a página em HTML ou copiar os nomes e preços.</p></details></aside>}
-   {reading&&<p className="owner-intake-hint" role="status"><Spinner/>Consultando os dados públicos da loja…</p>}
+   {blockedSource&&!found&&<aside className="owner-source-fallback" aria-label="Trazer o cardápio do iFood"><strong>Consulta concluída sem produtos.</strong><p>O link continua guardado. Não vamos deixar você esperando por uma leitura que não terminou com produtos.</p><IfoodConnect url={blockedSource} disabled={disabled||reading} onBusyChange={setConnecting} onResult={result=>{receiveSource(result,value);setNotice(result.warnings.join(" "));}}/><details><summary>Trazer cardápio por PDF, foto ou texto</summary><div className="owner-source-actions"><a href={blockedSource} target="_blank" rel="noopener noreferrer">Abrir loja no iFood<ExternalLink size={15}/></a><button type="button" disabled={blocked} onClick={attach}><Paperclip size={15}/>Enviar PDF ou foto</button><button type="button" disabled={blocked} onClick={()=>{setLinkHint(false);setEditing("menu");input.current?.focus();}}>Colar produtos</button></div><p>No celular, envie prints ou um PDF do cardápio. No computador, expanda as categorias da loja e use Imprimir → Salvar como PDF. Também pode salvar a página em HTML ou copiar os nomes e preços.</p></details></aside>}
+   {reading&&<p className="owner-intake-hint" role="status"><Spinner/>Consultando os dados públicos da loja… {elapsed}s decorridos. A consulta tem limite de até 1 min 40 s e pode terminar antes. Se o iFood bloquear, avisaremos aqui para você continuar com PDF ou fotos.</p>}
    {finished&&!editing&&!found&&<div className="owner-intake-done" role="status"><Check size={18}/><div><strong>Já podemos montar sua prévia.</strong><p>Você poderá ajustar o visual e completar os dados antes de publicar.</p></div></div>}
   </div>
   {(!finished||editing)?<form className="owner-intake-reply" hidden={choosingName||!!found} onSubmit={submit}>
