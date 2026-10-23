@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-23",
+  "scope": "Bounded Browserbase capture adapter and GitHub workflow, ready for an account-backed free-allowance test",
+  "github": {
+    "mainPr": 90,
+    "mainTestedHead": "c63fa9c06b4fe62024731181eb1bda06cebf4ef1",
+    "mainTestedTree": "e1df49749550c0264e31a04e4d3963181b9812d3",
+    "mainMerge": "3294e2ddfa21b5d39fc9406adba44478b7787f4c",
+    "mirrorPr": 45,
+    "mirrorTestedHead": "a1cf8fa868e207001f696f20b9544a91a766c465",
+    "mirrorMerge": "4dc87dba5d7488eeded4077e1efa9b0a94f5d240"
+  },
+  "validation": {
+    "nodeTestsPassed": 596,
+    "nodeTestsFailed": 0,
+    "nodeTestsSkipped": 0,
+    "typecheck": "passed",
+    "windowsBuild": "passed",
+    "providerAndExistingPolicyTests": 21,
+    "providerApiTestsAreSimulated": true,
+    "extractorChromeScenarios": 14,
+    "extractorResponsesAreSynthetic": true,
+    "browserNetworkScenarios": 4,
+    "browserNetworkTransport": "Real Chromium HTTP to disposable loopback server only",
+    "browserNetworkChecks": [
+      "HTML and allowed reads are handled by Chromium",
+      "Writes, workers, frames, objects, popups and sockets do not reach the server",
+      "Resource redirect is stopped before Location is followed",
+      "Main-document redirect stops before navigation and preserves the blocked reason"
+    ],
+    "runs": {
+      "mainCapture": "39941343941",
+      "mainWindows": "39941343914",
+      "mainChromeApp": "39941343894",
+      "mirrorCapture": "39941349659",
+      "mirrorCi": "39941349680"
+    },
+    "allListedRunsConclusion": "success"
+  },
+  "cloudSessionConfiguration": {
+    "providerTimeoutSeconds": 90,
+    "captureTimeoutSeconds": 45,
+    "authorizationRequired": true,
+    "freeAllowanceConfirmationRequired": true,
+    "createRetries": 0,
+    "keepAlive": false,
+    "proxies": false,
+    "solveCaptchas": false,
+    "advancedStealth": false,
+    "verified": false,
+    "recordSession": false,
+    "logSession": false,
+    "explicitReleaseInFinally": true,
+    "documentLimitBytes": 4194304,
+    "outputMatchesExistingV82AdminDelivery": true
+  },
+  "realProviderTest": {
+    "browserbaseApiKeyAvailable": false,
+    "browserbaseSessionsCreated": 0,
+    "browserbaseAllowanceConsumed": false,
+    "realIfoodCaptureViaBrowserbaseValidated": false,
+    "pending": "User account signup/sign-in, free allowance verification and BROWSERBASE_API_KEY configured as a GitHub secret"
+  },
+  "observedAccountSetup": {
+    "url": "https://www.browserbase.com/sign-up",
+    "emailPhoneNewPasswordOrGoogle": true,
+    "continuingAcceptsTerms": true,
+    "userDataEntered": false,
+    "formSubmitted": false,
+    "screenshot": "browserbase-signup-1792752600753.jpg",
+    "screenshotSha256": "f894e45f2f2038c78c3b0eb27183eb6a1e6e87142cde8d831acead929cbc24ab"
+  },
+  "production": {
+    "publishedVersion": 82,
+    "newAppDeployment": false,
+    "databaseMigration": false,
+    "productionSecretChange": false,
+    "paidGeneration": false,
+    "infrastructurePurchase": false,
+    "realPayment": false,
+    "automaticCaptureQueueImplemented": false
+  }
+}

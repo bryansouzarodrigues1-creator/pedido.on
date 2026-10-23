@@ -1,6 +1,6 @@
 # Teste do robô com navegador Browserbase
 
-O usuário autorizou testar a alternativa gratuita em 23/10/2026. O objetivo é executar a leitura sem depender do computador pessoal. A v82 segue publicada; esta etapa prepara o conector e o workflow. **Ainda não houve sessão Browserbase real nem captura real bem-sucedida neste provedor.**
+O usuário autorizou testar a alternativa gratuita em 23/10/2026. O objetivo é executar a leitura sem depender do computador pessoal. O conector e o workflow estão integrados no GitHub e passaram nos testes descritos abaixo. A v82 segue publicada, sem nova implantação. **Ainda não houve sessão Browserbase real nem captura real bem-sucedida neste provedor.**
 
 ## O que está preparado
 
@@ -49,6 +49,19 @@ node scripts/check-ifood-capture-browser-network.mjs
 ```
 
 Os testes de API são simulados e não gastam franquia. O teste de rede usa Chrome real e servidor descartável em loopback: verifica leitura, execução de script, recusa de escritas/novos alvos e interrupção de redirecionamentos antes de atingir o destino. Os cenários do extrator continuam sintéticos. O CI Windows também executa essa proteção; aprovação do CI não prova uma sessão Browserbase real.
+
+| Verificação | Resultado |
+| --- | --- |
+| Testes locais | 596 aprovados, zero falhas/skips; TypeScript aprovado |
+| [Captura Chrome Linux](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/39941343941) | Aprovada: 21 testes de política/provedor, 14 cenários sintéticos do extrator e quatro cenários de rede real em loopback |
+| [Windows](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/39941343914) | Aprovado: 596 testes, tipos/build, 14 cenários do extrator e quatro de rede |
+| [Chrome do aplicativo](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/39941343894) | Aprovado; dados locais descartáveis e consultas públicas existentes do diagnóstico, sem mutações remotas |
+| [Espelho CI/build](https://github.com/bryansouzarodrigues1-creator/pizzaria.on-chat/actions/runs/39941349680) e [captura](https://github.com/bryansouzarodrigues1-creator/pizzaria.on-chat/actions/runs/39941349659) | Aprovados |
+| PRs integradas | Principal [#90](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/90), espelho [#45](https://github.com/bryansouzarodrigues1-creator/pizzaria.on-chat/pull/45) |
+
+Head principal testado `c63fa9c06b4fe62024731181eb1bda06cebf4ef1`, árvore `e1df49749550c0264e31a04e4d3963181b9812d3`, merge `3294e2ddfa21b5d39fc9406adba44478b7787f4c`. Espelho testado `a1cf8fa868e207001f696f20b9544a91a766c465`, merge `4dc87dba5d7488eeded4077e1efa9b0a94f5d240`. Este registro posterior altera somente documentos e evidências. [Evidência sanitizada](evidence/browserbase-preparation-20261023.json).
+
+O bloqueio manual foi observado no formulário vazio, sem credenciais ou dados pessoais: [tela de cadastro](evidence/browserbase-signup-1792752600753.jpg). Ele oferece Google ou e-mail/telefone/senha e informa que continuar aceita os termos. Nenhuma opção foi selecionada nem formulário enviado.
 
 Não houve alteração de banco, conta, segredo de produção, cobrança, geração Lovable/IA ou nova publicação do aplicativo. A fila que dispara automaticamente o robô continua fora desta etapa; validar primeiro uma captura real antes de contratar ou ampliar infraestrutura.
 
