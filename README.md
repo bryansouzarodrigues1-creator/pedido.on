@@ -1,5 +1,7 @@
 # pizzaria.on
 
+**Continuação — 23/10/2026, Browserbase:** conector de navegador remoto preparado para um teste curto dentro da franquia gratuita, sem depender do PC do proprietário. A v82 continua publicada. Cadastro/acesso Browserbase e uma captura real bem-sucedida ainda precisam de validação; não anunciar importação automática funcionando. [Preparação, testes e acesso necessário](docs/BROWSERBASE-20261023.md).
+
 **Publicado via Work — v82, 22/10/2026, 13:54 de Brasília:** o administrador pode enviar `resultado-importacao.json` do robô à solicitação correta; o dono recebe produtos e pendências para conferir, sem alterar o rascunho ou publicar. Não depende de um computador pessoal conectado para usar o runner no GitHub Actions. Passaram 584 testes, TypeScript/build, Chrome e Windows; sete lojas completas preservadas. PR principal #89 e espelho #44 integradas. A consulta real às 13:24 continuou HTTP 403/zero produtos: captura automática real ainda não homologada. [Continuar daqui](docs/ENTREGA-ROBO-WORK-20261022.md).
 
 **Etapa anterior — 22/10/2026, captura local:** entrada Windows com Node 24 e navegador instalado, rolagem nativa e relatório HTML para conferir produtos/preços/pendências. Passaram 574 testes locais, TypeScript e 14 cenários sintéticos em Chrome no Linux e Windows. O teste físico depende de um computador conectado ao Desktop Commander; a última captura real da Master Pizzas continua HTTP 403/zero produtos. PR principal #88 e espelho #43. [Estado e limites](docs/ROBO-CARDAPIO-20261022.md).

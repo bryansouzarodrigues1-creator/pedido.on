@@ -7,7 +7,7 @@ on:
       - 'tools/ifood-import-extension/extractor.js'
       - 'tools/ifood-import-extension/format.js'
       - 'lib/menu-source-links.ts'
-      - 'scripts/check-ifood-capture-runner*'
+      - 'scripts/check-ifood-capture-*'
       - '.github/workflows/ifood-capture-runner.yml'
   workflow_dispatch:
     inputs:
@@ -17,6 +17,18 @@ on:
         type: string
       authorized:
         description: 'Tenho autorização para importar o cardápio desta loja'
+        required: true
+        default: false
+        type: boolean
+      browser:
+        description: 'Navegador para esta tentativa'
+        type: choice
+        options:
+          - github-chrome
+          - browserbase
+        default: github-chrome
+      free_allowance_confirmed:
+        description: 'Conferi no painel Browserbase que esta sessão cabe na franquia gratuita'
         required: true
         default: false
         type: boolean
@@ -45,14 +57,30 @@ jobs:
           echo "QA_CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
           echo "QA_PLAYWRIGHT_MODULE=$RUNNER_TEMP/ifood-capture-tools/node_modules/playwright-core" >> "$GITHUB_ENV"
       - name: Verify policies without network
-        run: node --test scripts/check-ifood-capture-runner.test.mjs
+        run: node --test scripts/check-ifood-capture-runner.test.mjs scripts/check-ifood-capture-browserbase.test.mjs
       - name: Verify real Chrome with synthetic responses
         run: node scripts/check-ifood-capture-runner.mjs
+      - name: Verify Chromium network and redirect protection with loopback fixtures
+        run: node scripts/check-ifood-capture-browser-network.mjs
       - name: Capture authorized public store once
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.authorized }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.authorized && inputs.browser != 'browserbase' }}
         env:
           CAPTURE_STORE_URL: ${{ inputs.store_url }}
         run: node tools/ifood-capture-runner/run.mjs --url "$CAPTURE_STORE_URL" --out .sites-runtime/ifood-capture-live
+      - name: Capture once with Browserbase after free-allowance confirmation
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.authorized && inputs.browser == 'browserbase' }}
+        env:
+          CAPTURE_STORE_URL: ${{ inputs.store_url }}
+          CAPTURE_FREE_CONFIRMED: ${{ inputs.free_allowance_confirmed }}
+          BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
+          BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID }}
+        shell: bash
+        run: |
+          if [[ "$CAPTURE_FREE_CONFIRMED" != 'true' ]]; then
+            echo 'Confira a franquia gratuita Browserbase antes de criar uma sessão.'
+            exit 1
+          fi
+          node tools/ifood-capture-runner/run-browserbase.mjs --url "$CAPTURE_STORE_URL" --out .sites-runtime/ifood-capture-live --authorized --free-budget-confirmed
       - name: Refuse manual run without store authorization
         if: ${{ github.event_name == 'workflow_dispatch' && !inputs.authorized }}
         run: |
@@ -101,5 +129,6 @@ jobs:
           path: |
             .sites-runtime/ifood-capture-fixture/
             .sites-runtime/ifood-capture-live/
+            .sites-runtime/ifood-capture-browser-network/
           if-no-files-found: error
           retention-days: 7

@@ -1,19 +1,21 @@
 import {extractIfoodDOM} from '../ifood-import-extension/extractor.js';
 import {captureLink, captureRequestAllowed, inspectCapturePage, mergeCapture, captureExports} from './policy.mjs';
+import {installBrowserNetwork} from './browser-network.mjs';
 
 /** One bounded task, one disposable context. Does not deliver or publish anything. */
-export async function captureStore({browser, storeUrl, timeoutMs = 45000, maxScrolls = 24, settleMs = 700}) {
+export async function captureStore({browser, storeUrl, timeoutMs = 45000, maxScrolls = 24, settleMs = 700, networkTransport = 'routed'}) {
   const store = captureLink(storeUrl);
   if (!Number.isInteger(timeoutMs) || timeoutMs < 500 || timeoutMs > 60000 ||
       !Number.isInteger(maxScrolls) || maxScrolls < 0 || maxScrolls > 40 ||
-      !Number.isInteger(settleMs) || settleMs < 0 || settleMs > 2000) throw new Error('Limites de captura inválidos.');
+      !Number.isInteger(settleMs) || settleMs < 0 || settleMs > 2000 ||
+      !['routed', 'browser'].includes(networkTransport)) throw new Error('Limites de captura inválidos.');
   const started = Date.now(), deadline = started + timeoutMs;
   const report = {format: 'pizzaria-on-capture-report-v1', checkedAt: new Date().toISOString(),
     sourceUrl: store.url, storeId: store.storeId, outcome: 'unavailable', documentStatus: null,
     stopReason: 'navigation_failed', itemCount: 0, exportableCount: 0, pendingCount: 0,
     pizzaSizesPending: 0, scrolls: 0, blockedRequests: 0, truncated: false,
     completeness: 'unverified', partial: true};
-  let capture = null, page, context, timedOut = false, timer;
+  let capture = null, page, context, timedOut = false, timer, disposeNetwork;
   try {
     context = await browser.newContext({locale: 'pt-BR', viewport: {width: 1280, height: 900},
       serviceWorkers: 'block', acceptDownloads: false});
@@ -21,7 +23,10 @@ export async function captureStore({browser, storeUrl, timeoutMs = 45000, maxScr
     page = await context.newPage();
     timer = setTimeout(() => { timedOut = true; void context.close().catch(() => {}); }, timeoutMs);
     const main = request => request.isNavigationRequest() && request.frame() === page.mainFrame();
-    await context.route('**/*', async route => {
+    if (networkTransport === 'browser') {
+      try { disposeNetwork = await installBrowserNetwork({context, page, store, report}); }
+      catch { report.stopReason = 'network_protection_unavailable'; throw new Error('Proteção de rede indisponível.'); }
+    } else await context.route('**/*', async route => {
       const request = route.request();
       if (!captureRequestAllowed({url: request.url(), method: request.method(), mainNavigation: main(request)}, store)) {
         report.blockedRequests++;
@@ -84,9 +89,11 @@ export async function captureStore({browser, storeUrl, timeoutMs = 45000, maxScr
     }
     if (Date.now() >= deadline) { timedOut = true; report.stopReason = 'time_limit'; }
   } catch {
-    report.stopReason = timedOut ? 'time_limit' : 'navigation_failed';
+    if (report.outcome !== 'blocked' && report.stopReason !== 'network_protection_unavailable')
+      report.stopReason = timedOut ? 'time_limit' : 'navigation_failed';
   } finally {
     clearTimeout(timer);
+    await disposeNetwork?.();
     await context?.close().catch(() => {});
   }
   // A later verification gate invalidates the run; no stale partial TXT is emitted.
