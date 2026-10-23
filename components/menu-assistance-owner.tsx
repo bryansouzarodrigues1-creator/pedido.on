@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from "react";
 import {normalizeBrazilWhatsApp,supportWhatsAppLink} from "@/lib/support-whatsapp";
 import type {AssistedCapture} from "@/lib/menu-assistance-policy";
-type RequestInfo={id:string;storeUrl:string;status:string;requestedAt:string;contactWhatsApp?:string;notifyWhenReady?:boolean;stats?:{total:number;approved:number;pending:number;photoReferences:number;uploadedPhotos:number;truncated:boolean};menuText?:string;capture?:AssistedCapture};
+type RequestInfo={id:string;storeUrl:string;status:string;requestedAt:string;contactWhatsApp?:string;notifyWhenReady?:boolean;stats?:{total:number;approved:number;pending:number;photoReferences:number;uploadedPhotos:number;truncated:boolean};menuText?:string;capture?:AssistedCapture;failureMessage?:string};
 async function csrf(){const r=await fetch("/api/auth/config",{cache:"no-store"});const d=await r.json() as {csrf?:string};if(!r.ok||!d.csrf)throw Error("Atualize a sessão e tente novamente.");return d.csrf;}
 export default function MenuAssistanceOwner({restaurantId,onReceive,disabled=false}:{restaurantId:string;onReceive:(requestId:string,capture:AssistedCapture)=>boolean;disabled?:boolean}){
  const [info,setInfo]=useState<RequestInfo|null>(null),[url,setUrl]=useState(""),[note,setNote]=useState(""),[confirmed,setConfirmed]=useState(false),[contactWhatsApp,setContactWhatsApp]=useState(""),[contactPermission,setContactPermission]=useState(false),[notifyWhenReady,setNotifyWhenReady]=useState(false);
@@ -32,11 +32,14 @@ export default function MenuAssistanceOwner({restaurantId,onReceive,disabled=fal
   :<p>Deixe seu WhatsApp na solicitação abaixo para receber atendimento sobre o seu cardápio.</p>}
  </section>
  <details ref={detailsRef} className="account-card" aria-label="Importação assistida do iFood" style={{marginTop:12,padding:14}}>
-  <summary style={{cursor:"pointer",fontWeight:700}}>{info?.status==="received"?"Seu cardápio está pronto para revisar":waiting?"Solicitação de cardápio em andamento":"Não tem PDF? Solicitar que tragam meu cardápio"}</summary>
+  <summary style={{cursor:"pointer",fontWeight:700}}>{info?.status==="received"?"Seu cardápio está pronto para revisar":info?.status==="blocked"?"Leitura do iFood não concluída":waiting?"Solicitação de cardápio em andamento":"Não tem PDF? Solicitar que tragam meu cardápio"}</summary>
   <p>Se tiver um PDF ou fotos do seu cardápio, prefira a importação por arquivo acima. Caso contrário, solicite ajuda com a sua loja do iFood. Nenhum produto será publicado antes de sua revisão.</p>
   {waiting?<><p role="status">Solicitação registrada · {info.status==="paired"?"operador preparando a leitura":"aguardando atendimento"}.</p>
     <p><small>Loja: {info.storeUrl}</small></p><p><small>WhatsApp informado: {info.contactWhatsApp?`+${info.contactWhatsApp}`:"—"}</small></p>
     <button type="button" className="btn outline" disabled={busy} onClick={()=>void action("DELETE")}>Cancelar solicitação</button>
+  </>:info?.status==="blocked"?<><p role="alert" className="field-error">{info.failureMessage||"Não foi possível acessar o cardápio do iFood. Nenhum produto foi recebido."}</p>
+    <p>Você pode enviar o PDF do seu cardápio ou fotos pelo leitor de arquivos acima, ou falar com nosso suporte no WhatsApp. Não alteramos seus produtos, preços, rascunho ou cardápio publicado.</p>
+    <button type="button" className="btn outline" disabled={busy||disabled} onClick={()=>{setInfo(null);setError("");setNotice("");}}>Solicitar nova ajuda</button>
   </>:info?.status==="received"?<><p role="status">Dados recebidos para conferência: {info.stats?.total||0} identificados, {info.stats?.approved||0} marcados como válidos, {info.stats?.pending||0} pendentes, {info.stats?.uploadedPhotos||0} fotos guardadas, {info.stats?.photoReferences||0} links de origem.</p>
     {info.stats?.truncated&&<p>O catálogo ultrapassou o limite de 200 itens. Será necessária uma segunda conferência.</p>}
     <p>As fotos guardadas no servidor podem ser vinculadas após sua confirmação individual. Os preços do iFood podem incluir acréscimos e taxas: ajuste todos os valores para os que deseja cobrar diretamente. Links inacessíveis ficam apenas como referência.</p>
