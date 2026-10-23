@@ -6,6 +6,7 @@ import {assertCsrf} from "@/lib/auth";
 import {normalizeBrazilWhatsApp} from "@/lib/support-whatsapp";
 import {supportContactWhatsApp} from "@/lib/platform";
 import {validAssistedSource,assistanceToReaderText,assistStats,assistedCapture} from "@/lib/menu-assistance-policy";
+import {savedFailure,ownerFailureMessage} from "@/lib/menu-capture-failure";
 export const dynamic="force-dynamic";
 const requestInput=z.object({storeUrl:z.string().max(2048),ownerNote:z.string().trim().max(350).default(""),authorized:z.literal(true),notifyWhenReady:z.boolean().default(false),contactWhatsApp:z.string().min(10).max(27),contactPermission:z.literal(true)});
 type Row={id:string;restaurant_id:string;store_url:string;owner_note:string;status:string;notify_when_ready:number;contact_whatsapp:string;capture_json:string|null;created_at:string;updated_at:string;received_at:string|null};
@@ -13,10 +14,12 @@ const select="SELECT id,restaurant_id,store_url,owner_note,status,notify_when_re
 const sql=select+" WHERE restaurant_id=? AND owner_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1";
 function view(row:Row|null){
  if(!row)return null;
- const capture=row.capture_json?assistedCapture.parse(JSON.parse(row.capture_json)):null;
+ const capture=row.status==="received"&&row.capture_json?assistedCapture.parse(JSON.parse(row.capture_json)):null;
+ const failed=row.status==="blocked"&&row.capture_json?savedFailure.safeParse(JSON.parse(row.capture_json)):null;
  return {id:row.id,storeUrl:row.store_url,ownerNote:row.owner_note,status:row.status,
   requestedAt:row.created_at,updatedAt:row.updated_at,receivedAt:row.received_at,notifyWhenReady:row.notify_when_ready===1,contactWhatsApp:row.contact_whatsapp,
-  ...(capture?{stats:assistStats(capture),capture,menuText:assistanceToReaderText(capture)}:{})};
+  ...(capture?{stats:assistStats(capture),capture,menuText:assistanceToReaderText(capture)}:{}),
+  ...(failed?.success?{failureMessage:ownerFailureMessage(failed.data.reason)}:{})};
 }
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){try{
  const {id}=await params,row=await ownedRestaurant(id);
