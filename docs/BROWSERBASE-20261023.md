@@ -1,6 +1,6 @@
 # Teste do robô com navegador Browserbase
 
-O usuário autorizou testar a alternativa gratuita em 23/10/2026. O objetivo é executar a leitura sem depender do computador pessoal. O conector e o workflow estão integrados no GitHub e passaram nos testes descritos abaixo. A v82 segue publicada, sem nova implantação. **O acesso e a chave existente foram validados. Uma sessão real foi criada em 23/10 às 08:30:41 de Brasília, mas a conexão CDP falhou antes de navegar no iFood. O painel confirmou a sessão encerrada (`Completed`); não houve captura de produtos.**
+O usuário autorizou testar a alternativa gratuita em 23/10/2026. O objetivo é executar a leitura sem depender do computador pessoal. O conector e o workflow estão integrados no GitHub e passaram nos testes descritos abaixo. A v82 segue publicada, sem nova implantação. **A chave existente está configurada como segredo criptografado no GitHub Actions. A execução real de 23/10 às 08:41 de Brasília conectou ao Browserbase, consultou a loja autorizada e encerrou ao receber HTTP 403, com zero produtos. A integração de execução remota foi validada; a importação de um catálogo real continua sem homologação.**
 
 ## O que está preparado
 
@@ -15,26 +15,43 @@ O transporte local existente usa `route.fetch()` e devolve a resposta ao Chrome.
 
 Cada pedido é limitado pela política de loja/domínios/métodos existente. Respostas 3xx são interrompidas antes de seguir `Location`. O documento recebido pelo próprio Chrome (até 4 MiB) recebe uma política adicional antes da execução: bloqueia workers, frames, objetos, popups e formulários, mantendo a leitura e os scripts da página principal. WebSockets ficam bloqueados. Se a proteção CDP necessária não estiver disponível, a captura termina sem exportar produtos.
 
-O `allowedDomains` do Browserbase restringe a navegação principal, mas não é suficiente para proteger subrecursos: a própria documentação explicita essa limitação. A aplicação mantém sua proteção de rede. Ainda falta conferir no provedor real a compatibilidade e se a loja renderiza com essas restrições.
+O `allowedDomains` do Browserbase restringe a navegação principal, mas não é suficiente para proteger subrecursos: a própria documentação explicita essa limitação. A aplicação mantém sua proteção de rede. A conexão e a instalação inicial da proteção funcionaram no provedor pelo GitHub Actions. A leitura/renderização de um catálogo real com essas restrições continua sem validação, pois a loja respondeu HTTP 403.
 
 ## Tentativa real de 23/10/2026
 
-O usuário concluiu o acesso ao Browserbase pelo formulário seguro e autorizou recuperar a chave existente e executar o teste gratuito. Antes da tentativa, o painel mostrou plano **Free** e **0 de 60 minutos** usados. A chave foi copiada sem exibição e usada temporariamente no ambiente do runner; o arquivo intermediário foi removido antes da execução.
+O usuário concluiu o acesso ao Browserbase pelo formulário seguro e autorizou recuperar a chave existente e executar o teste gratuito. O painel mostrou plano **Free**, **0 de 60 minutos** usados e gasto com modelos de **US$0,00** antes da consulta. Não houve contratação ou mudança de plano.
 
-A API aceitou a credencial e criou **uma sessão** às **08:30:41 de Brasília (11:30:41 UTC)**. O runner então retornou `Não foi possível conectar ao navegador Browserbase.` antes de chamar a captura da loja. O encerramento explícito foi aceito pelo adaptador, e o painel posteriormente mostrou a única sessão como **Completed**, duração exibida **00:00:00**. Essa duração não é uma medição independente de cobrança. A causa da falha de conexão não foi diagnosticada; não atribuir o resultado a bloqueio do iFood.
+Uma verificação inicial no ambiente Work criou uma sessão às **08:30:41 de Brasília**, mas falhou na conexão CDP antes de navegar na loja. O adaptador pediu encerramento e o painel confirmou **Completed**. A credencial temporária foi removida. Essa falha inicial não foi uma resposta do iFood.
 
-Não houve navegação no iFood, resposta HTTP da loja, produto capturado, TXT ou `resultado-importacao.json`. A pasta nova de saída ficou vazia. Nenhuma segunda sessão ou tentativa de contornar bloqueios foi executada. [Evidência sanitizada da tentativa](evidence/browserbase-real-attempt-20261023.json).
+A conta dona do repositório foi verificada no navegador e a chave existente foi guardada em **Settings → Secrets and variables → Actions**, como `BROWSERBASE_API_KEY`. O valor não apareceu em chat, código, documentos ou logs. O project ID opcional não precisou ser configurado: a API inferiu o projeto da chave.
 
-O navegador do GitHub estava conectado a outra conta, sem acesso administrativo ao repositório. O formulário seguro para adicionar a conta correta foi cancelado pelo usuário. Não houve nova tentativa de login nem gravação de `BROWSERBASE_API_KEY` nos segredos do GitHub. A conexão já existente do plugin continua apta a atualizar os documentos do projeto, mas não oferece gestão de segredos ou disparo manual de workflow.
+A [execução manual #15](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/39947752780), iniciada às **08:40:39 de Brasília**, usou o navegador `browserbase`, link da Master Pizzas já autorizado e confirmação da franquia. Fonte `40323ee28cc96388b682388dc6bb59b685631038`, job `120394475187`. Antes da consulta, passaram novamente **21 testes de política/provedor**, **14 cenários sintéticos do extrator** e **quatro cenários de rede Chromium em loopback**.
+
+Às **08:41:13.988 de Brasília (11:41:13.988 UTC)**, o navegador remoto consultou a loja e recebeu:
+
+| Dado real | Resultado |
+| --- | --- |
+| Conexão CDP e etapa Browserbase | Concluídas no GitHub Actions |
+| Documento da loja | HTTP **403** |
+| Resultado do leitor | `blocked`, motivo `http_403` |
+| Produtos observados/exportáveis | **0 / 0** |
+| Rolagens | **0**; parou após a resposta |
+| TXT / resultado para importação | Não gerados |
+| Encerramento | `releaseRequested: true`; painel confirmou **Completed** |
+| Workflow | `success`: diagnóstico concluído, sem importação bem-sucedida |
+
+A pasta real contém somente `report.json`, `resultado.html` e `browserbase-session.json`. O ZIP também contém testes sintéticos em uma pasta diferente; os produtos dessas fixtures não pertencem à loja. Não enviar arquivos de fixture à administração como captura real.
+
+Artefato `12498533546`, `ifood-capture-39947752780-1`, **102.897 bytes**, SHA-256 conferido `937d84456d3ebbea630ed2d1de754de9903898d71392349a6488d5a91b5b77c2`, retenção até 30/10/2026. O [relatório real preservado](evidence/browserbase-capture-report-20261023.json) e a [evidência sanitizada](evidence/browserbase-real-attempt-20261023.json) ficam no GitHub além dessa retenção, sem chave ou identificadores privados da conta/sessão.
+
+Foram **duas sessões no total**: uma falha de conexão no Work, sem consulta à loja, e uma consulta real pelo GitHub. As duas apareceram como **Completed**, com duração exibida **00:00:00**; isso não mede de forma independente o uso faturável. Não houve repetição automática nem nova consulta após o 403, proxy, alteração de identidade ou resolução de CAPTCHA.
 
 ## O que falta
 
-1. Autenticação na conta dona de `pedido.on` para guardar a chave como segredo de Actions. O project ID é opcional. Não colar a chave no chat nem no código; o valor temporário usado nesta execução já foi descartado.
-2. Validar a conexão do controlador ao navegador remoto em ambiente autorizado. O código atual fornece uma mensagem segura, mas o erro bruto não foi registrado para evitar expor a URL WSS com credencial.
-3. Uma nova tentativa real exige conferir novamente a franquia e a autorização. O teste desta etapa não executou o workflow no GitHub e não homologou a captura no Browserbase.
-4. Se uma tentativa autorizada futura produzir itens, conferir `resultado.html` e entregar `resultado-importacao.json` à solicitação correta no admin da v82. O dono ainda confirma os itens; receber não altera o rascunho nem publica.
-
-HTTP 401/403/429, login ou verificação encerram uma tentativa de captura. Não contornar bloqueios, trocar identidade/proxy ou repetir tentativas para desbloquear. O teste anterior da loja permanece HTTP 403/zero produtos; esse resultado anterior não foi obtido nesta sessão Browserbase.
+1. A importação automática real dessa loja continua sem homologação. O segredo e a conexão remota já funcionam; contratar plano ou trocar o caminho da rede para contornar o 403 não faz parte desta etapa.
+2. Usar PDF, fotos ou dados de uma fonte autorizada disponível para continuar a montagem do cardápio, sempre com revisão do dono. Não anunciar catálogo importado a partir desse resultado.
+3. Antes de qualquer consulta futura, conferir novamente a autorização e a franquia. HTTP 401/403/429, login ou verificação encerram uma tentativa, sem repetir para desbloquear.
+4. Somente uma captura autorizada com itens exportáveis deve gerar `resultado-importacao.json` e ser entregue à solicitação correta no admin da v82. O dono ainda confirma os itens; receber não altera o rascunho nem publica.
 
 ## Executar com segredo já configurado
 

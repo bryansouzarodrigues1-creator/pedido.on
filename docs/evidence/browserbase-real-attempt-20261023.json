@@ -1,6 +1,6 @@
 {
   "date": "2026-10-23",
-  "scope": "Single authorized free-plan Browserbase session using the existing capture runner; no successful store capture",
+  "scope": "Existing Browserbase key saved in GitHub Actions and actual remote-store consultation; HTTP 403 and zero products",
   "previousPreparationEvidence": "browserbase-preparation-20261023.json",
   "providerAccount": {
     "authenticatedByUser": true,
@@ -10,7 +10,7 @@
     "browserMinutesIncludedObserved": 60,
     "paidUpgrade": false
   },
-  "actualAttempt": {
+  "localConnectionAttempt": {
     "sessionsCreated": 1,
     "startedAtUtc": "2026-10-23T11:30:41Z",
     "startedAtAmericaSaoPaulo": "2026-10-23T08:30:41-03:00",
@@ -24,17 +24,62 @@
     "dashboardDisplayedDuration": "00:00:00",
     "billingIndependentlyMeasured": false,
     "automaticRetry": false,
-    "secondSessionCreated": false
+    "secondSessionCreated": false,
+    "storeNavigationAttempted": false
   },
-  "storeResult": {
-    "navigationAttempted": false,
-    "httpStatus": null,
-    "capturedProducts": 0,
-    "reviewArtifactsCreated": false,
-    "outputDirectoryWasNewAndEmpty": true,
-    "realIfoodCaptureValidated": false,
-    "siteBlockObservedInThisAttempt": false
+  "githubWorkflowAttempt": {
+    "repository": "bryansouzarodrigues1-creator/pedido.on",
+    "workflowRun": 39947752780,
+    "workflowNumber": 15,
+    "jobId": 120394475187,
+    "attempt": 1,
+    "event": "workflow_dispatch",
+    "headSha": "40323ee28cc96388b682388dc6bb59b685631038",
+    "runConclusion": "success",
+    "browser": "browserbase",
+    "authorizationConfirmed": true,
+    "freeAllowanceConfirmed": true,
+    "projectInferredFromExistingKey": true,
+    "sessionsCreated": 1,
+    "cdpConnected": true,
+    "initialNetworkGuardInstalled": true,
+    "checkedAtUtc": "2026-10-23T11:41:13.988Z",
+    "checkedAtAmericaSaoPaulo": "2026-10-23T08:41:13.988-03:00",
+    "actualReport": "browserbase-capture-report-20261023.json",
+    "outcome": "blocked",
+    "documentStatus": 403,
+    "itemCount": 0,
+    "exportableCount": 0,
+    "scrolls": 0,
+    "liveFiles": [
+      "report.json",
+      "resultado.html",
+      "browserbase-session.json"
+    ],
+    "txtGenerated": false,
+    "adminImportResultGenerated": false,
+    "releaseRequested": true,
+    "dashboardStatusAfterAttempt": "Completed",
+    "dashboardDisplayedDuration": "00:00:00",
+    "retryAfter403": false,
+    "tests": {
+      "policyAndProviderPassed": 21,
+      "extractorSyntheticScenariosPassed": 14,
+      "chromiumLoopbackNetworkScenariosPassed": 4
+    },
+    "artifact": {
+      "id": 12498533546,
+      "name": "ifood-capture-39947752780-1",
+      "bytes": 102897,
+      "sha256": "937d84456d3ebbea630ed2d1de754de9903898d71392349a6488d5a91b5b77c2",
+      "downloadedAndSha256Verified": true,
+      "expiresAt": "2026-10-30T11:41:14Z",
+      "syntheticFixtureProductsAreNotRealStoreProducts": true
+    }
   },
+  "sessionsCreatedTotal": 2,
+  "bothDashboardSessionsCompleted": true,
+  "billingIndependentlyMeasured": false,
   "configuration": {
     "timeoutSeconds": 90,
     "keepAlive": false,
@@ -48,17 +93,17 @@
   "credentialHandling": {
     "printed": false,
     "committed": false,
-    "githubSecretSaved": false,
+    "githubSecretSaved": true,
+    "githubSecretName": "BROWSERBASE_API_KEY",
+    "githubSecretRepository": "bryansouzarodrigues1-creator/pedido.on",
     "temporaryTransferFileRemoved": true,
     "browserClipboardCleared": true,
-    "persistentCredentialConfigured": false
+    "persistentCredentialConfigured": "encrypted GitHub Actions repository secret only"
   },
-  "github": {
-    "interactiveBrowserAccountWasDifferent": true,
-    "ownerAccountLoginResult": "declined",
-    "loginRetriedAfterDecline": false,
-    "manualWorkflowDispatched": false,
-    "existingPluginUsedForDocumentationOnly": true
+  "githubAuthentication": {
+    "secureFormReturned": "declined",
+    "subsequentFreshPageVerifiedOwnerAccount": true,
+    "signInRequestRepeatedAfterDecline": false
   },
   "production": {
     "publishedVersion": 82,
@@ -69,9 +114,14 @@
     "infrastructurePurchase": false,
     "realPayment": false
   },
+  "result": {
+    "remoteExecutionValidated": true,
+    "realCatalogImportValidated": false,
+    "adminResultSubmitted": false,
+    "appPublicationPerformed": false
+  },
   "next": [
-    "Owner-account authentication for Actions secret setup",
-    "Validate controller-to-provider CDP connectivity",
-    "Recheck authorization and free allowance before any new real session"
+    "Do not retry to bypass the 403 or add paid routing",
+    "Continue with an available PDF, photos or another authorized source and owner review"
   ]
 }
