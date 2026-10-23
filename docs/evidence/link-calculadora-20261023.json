@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-23",
+  "project": "pizzaria.on",
+  "source": {
+    "mainPr": 96,
+    "mainMerge": "8b80e68f3b5abbf66f876984b20a852daccf5e91",
+    "mirrorPr": 50,
+    "mirrorMerge": "18ffbd64a0318eb6b0064b46c94973e58f5f45b3",
+    "tree": "2bcbc16664ee1767c97e3c20813c6d6327027c2c",
+    "mirrorLegacyTreeEqual": true
+  },
+  "publication": {
+    "version": 85,
+    "siteCommit": "f27557cc91d13bcf8bdf5b8d7e338d37fa1738d8",
+    "deploymentId": "appgdep_6adbf0289c248191bff24b0874e55366",
+    "status": "succeeded",
+    "updatedAt": "2026-10-23T23:39:44.010629+00:00",
+    "environmentRevision": 13,
+    "archiveSha256": "a2ae61b000b1ddba96f0be13ce9c2f4d3bd0584746a71473c2ab351b303052d3",
+    "lovableDeploymentId": "856a514e-7ca3-4580-8d45-c4597ecb80b7",
+    "lovableInitialStatus": "pending",
+    "lovablePublicTableConfirmed": true
+  },
+  "tests": {
+    "unit": 609,
+    "unitPassed": 609,
+    "mirrorReact": 27,
+    "mirrorReactPassed": 27,
+    "typecheck": true,
+    "build": true,
+    "chromeRun": 40040263228,
+    "windowsRun": 40040263321,
+    "authOrdersRun": 40040263103,
+    "mirrorRun": 40040306820,
+    "allRunsSucceeded": true,
+    "chromeArtifact": 12538763249,
+    "chromeArtifactSha256": "a1e61fc6d70896f941106c81897a8d0989937f5aa71ba6bc46ffc897faebfff1",
+    "creatorScenarios": 9,
+    "creatorRecoveryScenarios": 6,
+    "customerJourneyScenarios": 8,
+    "localBrowserSuites": 10
+  },
+  "customerSafety": {
+    "productionRestaurantCount": 7,
+    "fullRestaurantRowsCompared": true,
+    "productionRowsUnchanged": true,
+    "productionBusinessMutations": false,
+    "realPayments": false,
+    "externalMessages": false,
+    "realEmails": false,
+    "paidGeneration": false
+  },
+  "link": {
+    "pasteTriggersSingleRequest": true,
+    "localNameAndRegionAreUnverifiedHints": true,
+    "canonicalShareTest": "Master Pizzas - Búzios",
+    "mockedUpstream": true,
+    "newLiveIfoodProbe": false,
+    "lastKnownLiveStatus": 403,
+    "lastKnownLiveProducts": 0,
+    "publicFlowUsesBrowserRunner": false,
+    "desktopDevicesOnline": 0,
+    "desktopDevicesListed": 2
+  },
+  "calculator": {
+    "exampleRows": 5,
+    "percentagesAreAdditionsToCost": true,
+    "priceRounding": "Final price once to nearest cent",
+    "localPersistence": true,
+    "csv": true,
+    "spreadsheetFormulaEscaping": true,
+    "monthlyProjectionPreserved": true,
+    "viewportWidths": [
+      320,
+      412,
+      1280
+    ]
+  },
+  "publicChecks": {
+    "timing": "After v85 deployment; HTTP only. CI public browser tested preceding published version.",
+    "siteCalculator": 200,
+    "siteCreator": 200,
+    "siteHealth": 200,
+    "lovableCalculator": 200,
+    "lovableCreator": 200,
+    "flavorTablePresentOnBothOrigins": true,
+    "lovableHealthRoute": 404
+  },
+  "limits": [
+    "No physical Android",
+    "No bank transfer",
+    "Supabase and upstream failure cases mocked",
+    "Live iFood import remains blocked/unvalidated",
+    "Interactive managed preview unavailable; CI screenshots reviewed"
+  ]
+}
