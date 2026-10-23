@@ -24,6 +24,8 @@ export const captureFailureReport=z.object({
   ctx.addIssue({code:z.ZodIssueCode.custom,message:"O status HTTP não corresponde ao motivo informado."});
  if(r.outcome==="blocked"&&!["http_401","http_403","http_429","verification_required","login_required","redirect_blocked","different_store"].includes(r.stopReason))
   ctx.addIssue({code:z.ZodIssueCode.custom,message:"O relatório não descreve um bloqueio válido."});
+ if(r.outcome!=="blocked"&&["http_401","http_403","http_429","verification_required","login_required","redirect_blocked","different_store"].includes(r.stopReason))
+  ctx.addIssue({code:z.ZodIssueCode.custom,message:"O motivo de bloqueio exige o estado bloqueado."});
 });
 export const savedFailure=z.object({kind:z.literal("ifood-capture-failure-v1"),reason:failureReason}).strict();
 export type SavedFailure=z.infer<typeof savedFailure>;
