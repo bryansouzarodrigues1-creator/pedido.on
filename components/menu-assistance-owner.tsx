@@ -16,7 +16,7 @@ export default function MenuAssistanceOwner({restaurantId,onReceive,disabled=fal
   const interval=setInterval(()=>{void refresh().catch(()=>{});},45000);
   return ()=>clearInterval(interval);
  }},[restaurantId,info?.status]);
- useEffect(()=>{if(info?.status==="received")detailsRef.current?.setAttribute("open","");},[info?.status]);
+ useEffect(()=>{if(info?.status==="received"||info?.status==="blocked")detailsRef.current?.setAttribute("open","");},[info?.status]);
  async function action(method:"POST"|"DELETE"){if(busy||disabled)return;setBusy(true);setError("");setNotice("");
  try{const token=await csrf(),r=await fetch("/api/restaurants/"+encodeURIComponent(restaurantId)+"/import-assistance",{
   method,headers:{"Content-Type":"application/json","x-pedido-csrf":token},
