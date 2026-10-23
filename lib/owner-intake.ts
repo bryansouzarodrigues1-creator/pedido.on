@@ -53,10 +53,12 @@ export function extractOwnerName(text:string):string|undefined {
  const t=clean(text.slice(0,1600));
  const labelled=labelledOwnerFields(text).name;
  const match=(labelled?["",labelled]:null)||t.match(/\b(?:o\s+)?nome\s+(?:dela|dele|da\s+(?:minha\s+)?pizzaria|do\s+(?:meu\s+)?negócio|da\s+loja)\s*(?:é|e|:|=)\s*(.+)$/im)
+  ||t.match(/\b(?:o\s+)?nome\s*(?:é|e|:|=)\s*(.+)$/im)
+  ||t.match(/\b(?:ela\s+)?(?:se\s+chama|chama-se)\s+(.+)$/im)
   ||t.match(/^(?:nome|pizzaria)\s*[:=]\s*(.+)$/im)
   ||t.match(/\b(?:a\s+)?(?:minha\s+)?pizzaria\s+(?:se\s+chama|chama-se|chama|é|e)\s+(.+)$/im);
  if(!match)return;
- let value=clean(match[1].split(/[\n!?;]/)[0]);
+ let value=clean(match[1].split(/[\n!?;]/)[0]).replace(/\s*,?\s+(?:e\s+)?(?:eu\s+)?(?:quero|gostaria|preciso|prefiro|desejo|imagino)\b.*$/i,"");
  // A location or colour sentence is not part of the name.
  value=clean(value.split(locationBoundary)[0].split(descriptorBoundary)[0]);
  if(/\s+(?:localizada?|situada?|endere[cç]o)\b/i.test(value))value=clean(value.split(/\s+(?:localizada?|situada?|endere[cç]o)\b/i)[0]);
@@ -140,7 +142,7 @@ export function ownerWithMenuSource(state:OwnerIntake,message:string){
 }
 /** Explicit confirmation is required for both a share caption and a URL label. */
 export function ownerNameSuggestion(state:OwnerIntake){
- if(state.answers.name||!state.source)return;
+ if(state.answers.name&&state.answers.name!=="Sua pizzaria"||!state.source)return;
  const name=state.source.sharedName||parseIfoodStoreLink(state.source.url)?.storeLabel;if(!name)return;
  const checked=validateOwnerAnswer("name",name);if(checked.error||checked.value!==name)return;
  return {name,fromShare:!!state.source.sharedName};
