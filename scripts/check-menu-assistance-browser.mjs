@@ -116,5 +116,51 @@ try{
  await page.screenshot({path:path.join(output,'runner-owner-review-mobile.png'),fullPage:true});
  assert.deepEqual(errors,[]);
  checks.push({name:'runner JSON rejects another shop, requires explicit admin review and reaches owner review without changing a draft or publishing',ok:true});
+
+ // A real Browserbase access refusal yields report.json but no catalog.
+ // Exercise the new admin/owner UI with a synthetic refusal in isolated D1.
+ const blockedCreated=await api('/api/restaurants','POST',{name:'Bloqueio QA isolado',slug:'bloqueio-qa-'+Date.now(),theme:'editorial',plan:'essencial'});
+ assert.equal(blockedCreated.status,201,JSON.stringify(blockedCreated.body));const blockedShop=blockedCreated.body.restaurant;
+ const blockedRequest=await api('/api/restaurants/'+blockedShop.id+'/import-assistance','POST',{storeUrl:ownerRequest.body.request.storeUrl,authorized:true,contactWhatsApp:'(22) 99999-0210',contactPermission:true,notifyWhenReady:false});
+ assert.equal(blockedRequest.status,201,JSON.stringify(blockedRequest.body));
+ await admin.reload({waitUntil:'networkidle'});
+ const blockedRow=admin.locator('.account-card > div > section').filter({has:admin.getByText(blockedShop.name,{exact:true})});
+ const blockedPanel=blockedRow.locator('details[aria-label="Relatar tentativa bloqueada"]');
+ await blockedPanel.locator('summary').first().click();
+ const blockedSource=ownerRequest.body.request.storeUrl;
+ const blockedReport={format:'pizzaria-on-capture-report-v1',checkedAt:new Date().toISOString(),
+  sourceUrl:blockedSource,storeId:blockedSource.split('/').at(-1),
+  outcome:'blocked',documentStatus:403,stopReason:'http_403',itemCount:0,
+  exportableCount:0,pendingCount:0,pizzaSizesPending:0,scrolls:0,blockedRequests:0,
+  truncated:false,completeness:'unverified',partial:true,elapsedMs:500};
+ const putReport=async value=>blockedPanel.getByLabel('Relatório da tentativa').setInputFiles({name:'report.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(value))});
+ await putReport({...blockedReport,storeId:'223e4567-e89b-42d3-a456-426614174000'});
+ await blockedPanel.getByRole('alert').filter({hasText:'outra loja'}).waitFor();
+ assert.equal(await blockedPanel.getByRole('button',{name:'Informar bloqueio ao proprietário'}).count(),0);
+ await putReport(blockedReport);
+ await blockedPanel.getByRole('status').filter({hasText:'0 produtos'}).waitFor();
+ const markBlocked=blockedPanel.getByRole('button',{name:'Informar bloqueio ao proprietário'});
+ assert.equal(await markBlocked.isEnabled(),false);
+ await blockedPanel.getByLabel('Conferi o relatório real da loja e confirmo que não há itens para importar nesta tentativa.').check();
+ await admin.screenshot({path:path.join(output,'blocked-admin-mobile.png'),fullPage:true});
+ await markBlocked.click();
+ await blockedRow.getByText('A leitura não foi concluída.',{exact:false}).waitFor();
+ const blockedPersist=(await api('/api/restaurants/'+blockedShop.id+'/import-assistance')).body.request;
+ assert.equal(blockedPersist.status,'blocked');assert.match(blockedPersist.failureMessage,/HTTP 403/);
+ assert.equal(blockedPersist.capture,undefined);assert.equal(blockedPersist.menuText,undefined);
+ const blockedData=(await api('/api/restaurants')).body.restaurants.find(r=>r.id===blockedShop.id);
+ assert.equal(blockedData.data,blockedShop.data);assert.equal(blockedData.published,false);
+ await page.goto(base+'/app?loja='+blockedShop.id,{waitUntil:'networkidle'});
+ const ownerBlocked=page.locator('details[aria-label="Importação assistida do iFood"]');
+ await ownerBlocked.getByRole('alert').filter({hasText:'HTTP 403'}).waitFor();
+ assert.equal(await ownerBlocked.getByRole('button',{name:'Levar produtos ao leitor para revisar'}).count(),0);
+ await page.getByRole('button',{name:'Importar PDF ou fotos',exact:true}).waitFor();
+ await page.setViewportSize({width:320,height:900});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'Blocked owner notice must fit 320px');
+ await page.screenshot({path:path.join(output,'blocked-owner-mobile.png'),fullPage:true});
+ await ownerBlocked.getByRole('button',{name:'Solicitar nova ajuda'}).click();
+ await ownerBlocked.getByLabel('Seu WhatsApp com DDD (para respondermos à solicitação)',{exact:true}).waitFor();
+ assert.deepEqual(errors,[]);
+ checks.push({name:'blocked report cannot import products; administrator checks store; owner sees 403, PDF/photos fallback and new request on 320px mobile',ok:true});
 }catch(e){errors.push(e.message);await page?.screenshot({path:path.join(output,'failure.png'),fullPage:true}).catch(()=>{});throw e;}
-finally{await writeFile(path.join(output,'summary.json'),JSON.stringify({base,checks,errors,passed:checks.length===6&&!errors.length,browser:'Chrome / Pixel 7 emulated, no physical Android',scope:'Real local app/D1/R2; controlled capture client, notification event and intercepted WhatsApp; no real iFood collection or message'},null,2));await context.close();}
+finally{await writeFile(path.join(output,'summary.json'),JSON.stringify({base,checks,errors,passed:checks.length===7&&!errors.length,browser:'Chrome / Pixel 7 emulated, no physical Android',scope:'Real local app/D1/R2; controlled capture client, notification event and intercepted WhatsApp; no real iFood collection or message'},null,2));await context.close();}
