@@ -50,7 +50,8 @@ try {
     return target.origin === base && method === 'GET' && (!mainNavigation || target.pathname === '/menu');
   };
   const dispose = await installBrowserNetwork({context, page, report, allowRequest});
-  await page.goto(base + '/menu', {waitUntil: 'domcontentloaded'});
+  const response = await page.goto(base + '/menu', {waitUntil: 'domcontentloaded'});
+  assert.match(await response.headerValue('content-security-policy'), /worker-src 'none'/);
   await page.waitForFunction(() => globalThis.fixtureReady === true);
   await page.waitForTimeout(500);
   assert.equal(await page.locator('h1').innerText(), 'Bebidas');

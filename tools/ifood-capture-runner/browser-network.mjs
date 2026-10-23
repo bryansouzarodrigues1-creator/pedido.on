@@ -29,12 +29,20 @@ export async function installBrowserNetwork({context, page, store, report, allow
           await fail(); return;
         }
         if (main && event.responseStatusCode >= 200 && event.responseStatusCode < 300) {
-          const headers = [...(event.responseHeaders || []), {name: 'Content-Security-Policy', value: captureCsp}];
-          await cdp.send('Fetch.continueResponse', {requestId: event.requestId,
+          // Fulfill the browser's own response with the restrictive document
+          // policy before its parser starts. continueResponse header changes
+          // did not prevent new worker targets in real Chrome regression QA.
+          const received = await cdp.send('Fetch.getResponseBody', {requestId: event.requestId});
+          const body = Buffer.from(received.body, received.base64Encoded ? 'base64' : 'utf8');
+          if (body.byteLength > 4 * 1024 * 1024) throw new Error('Documento excedeu o limite de leitura.');
+          const headers = (event.responseHeaders || []).filter(header =>
+            !['content-encoding', 'content-length', 'transfer-encoding'].includes(header.name.toLowerCase()));
+          headers.push({name: 'Content-Security-Policy', value: captureCsp});
+          await cdp.send('Fetch.fulfillRequest', {requestId: event.requestId, body: body.toString('base64'),
             responseCode: event.responseStatusCode, responseHeaders: headers,
             ...(event.responseStatusText ? {responsePhrase: event.responseStatusText} : {})});
         } else await cdp.send('Fetch.continueRequest', {requestId: event.requestId});
-      } else await cdp.send('Fetch.continueRequest', {requestId: event.requestId});
+      } else await cdp.send('Fetch.continueRequest', {requestId: event.requestId, interceptResponse: true});
     } catch {
       if (!disposed) {
         report.outcome = 'blocked'; report.stopReason = 'request_policy_failed';

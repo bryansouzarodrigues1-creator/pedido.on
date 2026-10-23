@@ -21,7 +21,7 @@ export async function captureStore({browser, storeUrl, timeoutMs = 45000, maxScr
       serviceWorkers: 'block', acceptDownloads: false});
     await context.routeWebSocket('**/*', socket => { report.blockedRequests++; return socket.close(); });
     page = await context.newPage();
-    timer = setTimeout(() => { timedOut = true; void context.close().catch(() => {}); }, timeoutMs);
+    timer = setTimeout(() => { timedOut = true; void (disposeNetwork ? disposeNetwork() : context.close()).catch(() => {}); }, timeoutMs);
     const main = request => request.isNavigationRequest() && request.frame() === page.mainFrame();
     if (networkTransport === 'browser') {
       try { disposeNetwork = await installBrowserNetwork({context, page, store, report}); }

@@ -13,7 +13,7 @@ O usuário autorizou testar a alternativa gratuita em 23/10/2026. O objetivo é 
 
 O transporte local existente usa `route.fetch()` e devolve a resposta ao Chrome. Para um navegador remoto, essa chamada partiria do processo controlador. A opção Browserbase usa o tráfego do próprio Chromium e interceptação CDP de pedidos/respostas.
 
-Cada pedido é limitado pela política de loja/domínios/métodos existente. Respostas 3xx são interrompidas antes de seguir `Location`. Uma política adicional do documento bloqueia workers, frames, objetos, popups e formulários, mantendo a leitura e os scripts da página principal. WebSockets ficam bloqueados. Se a proteção CDP necessária não estiver disponível, a captura termina sem exportar produtos.
+Cada pedido é limitado pela política de loja/domínios/métodos existente. Respostas 3xx são interrompidas antes de seguir `Location`. O documento recebido pelo próprio Chrome (até 4 MiB) recebe uma política adicional antes da execução: bloqueia workers, frames, objetos, popups e formulários, mantendo a leitura e os scripts da página principal. WebSockets ficam bloqueados. Se a proteção CDP necessária não estiver disponível, a captura termina sem exportar produtos.
 
 O `allowedDomains` do Browserbase restringe a navegação principal, mas não é suficiente para proteger subrecursos: a própria documentação explicita essa limitação. A aplicação mantém sua proteção de rede. Ainda falta conferir no provedor real a compatibilidade e se a loja renderiza com essas restrições.
 
