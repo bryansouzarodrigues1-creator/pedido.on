@@ -19,6 +19,7 @@ export async function assistanceRuntime({support='',push={},outbound=()=>{throw 
  import * as owner from './app/api/restaurants/[id]/import-assistance/route.ts';
  import * as admin from './app/api/admin/menu-import-assistance/route.ts';
  import * as runner from './app/api/admin/menu-import-results/route.ts';
+ import * as failures from './app/api/admin/menu-import-failures/route.ts';
  import * as deliveries from './app/api/menu-import-deliveries/route.ts';
  import * as images from './app/api/menu-import-images/route.ts';
  import * as guests from './app/api/guest-previews/route.ts';
@@ -33,7 +34,7 @@ export async function assistanceRuntime({support='',push={},outbound=()=>{throw 
   if(u.pathname==='/api/guest-previews')return guests[request.method](request);
   if(u.pathname.startsWith('/api/guest-previews/'))return guest.GET(request,{params:Promise.resolve({id:u.pathname.split('/').at(-1)})});
   if(match)return (match[2]?owner:restaurant)[request.method](request,{params:Promise.resolve({id:match[1]})});
-  const routes={'/api/admin/menu-import-assistance':admin,'/api/admin/menu-import-results':runner,'/api/menu-import-deliveries':deliveries,'/api/menu-import-images':images};
+  const routes={'/api/admin/menu-import-assistance':admin,'/api/admin/menu-import-results':runner,'/api/admin/menu-import-failures':failures,'/api/menu-import-deliveries':deliveries,'/api/menu-import-images':images};
   return routes[u.pathname]?.[request.method]?.(request)||new Response(null,{status:404});
  });}};`,resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,platform:'neutral',format:'esm',external:['cloudflare:workers','node:async_hooks'],plugins:[{
   name:'local-identity',setup(build){
