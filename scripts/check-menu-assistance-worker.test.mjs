@@ -151,3 +151,41 @@ test('menu-ready push reaches only the consenting owner; external push transport
   assert.equal((await f.extension('/api/menu-import-deliveries',otherCode,capture())).status,200);assert.equal((await f.db.prepare('SELECT COUNT(*) n FROM push_deliveries WHERE owner_id=?').bind('owner-b').first()).n,0);assert.equal(deliveries,1);
  }finally{await f.close();}
 });
+
+test('a blocked real runner report reaches only the matching owner without altering drafts, photos or publications',async()=>{
+ const f=await assistanceRuntime();try{
+  const original=await f.db.prepare('SELECT id,data,published_data,revision FROM restaurants ORDER BY id').all();
+  const response=await f.owner('POST',requestBody());assert.equal(response.status,201);
+  const requestId=(await response.json()).request.id,oldCode=await f.pair(requestId);
+  const report={
+   format:'pizzaria-on-capture-report-v1',checkedAt:'2026-10-23T11:41:13.988Z',
+   sourceUrl:store,storeId:'123e4567-e89b-42d3-a456-426614174000',
+   outcome:'blocked',documentStatus:403,stopReason:'http_403',itemCount:0,exportableCount:0,
+   pendingCount:0,pizzaSizesPending:0,scrolls:0,blockedRequests:0,truncated:false,
+   completeness:'unverified',partial:true,elapsedMs:551
+  };
+  const body={requestId,reviewed:true,report};
+  const endpoint='/api/admin/menu-import-failures';
+  assert.equal((await f.call(endpoint,{method:'POST',actor:'owner-a',body})).status,403);
+  assert.equal((await f.call(endpoint,{method:'POST',actor:'owner-admin',body:{...body,reviewed:false}})).status,400);
+  assert.equal((await f.call(endpoint,{method:'POST',actor:'owner-admin',body:{...body,report:{...report,itemCount:1}}})).status,409);
+  assert.equal((await f.call(endpoint,{method:'POST',actor:'owner-admin',body:{...body,report:{...report,storeId:'223e4567-e89b-42d3-a456-426614174000'}}})).status,409);
+  assert.equal((await f.call(endpoint,{method:'POST',actor:'owner-admin',body,headers:{'x-pedido-csrf':''}})).status,403);
+  const marked=await f.call(endpoint,{method:'POST',actor:'owner-admin',body});
+  assert.equal(marked.status,200,await marked.clone().text());
+  const stored=await f.db.prepare('SELECT status,capture_json,pairing_hash,pairing_expires_at FROM menu_import_assistance WHERE id=?').bind(requestId).first();
+  assert.equal(stored.status,'blocked');assert.equal(stored.pairing_hash,null);
+  assert.equal(stored.pairing_expires_at,null);
+  assert.deepEqual(JSON.parse(stored.capture_json),{kind:'ifood-capture-failure-v1',reason:'http_403'});
+  const ownerResult=await (await f.owner()).json();
+  assert.equal(ownerResult.request.status,'blocked');
+  assert.match(ownerResult.request.failureMessage,/HTTP 403/);
+  assert.equal(ownerResult.request.capture,undefined);
+  assert.equal(ownerResult.request.menuText,undefined);
+  assert.equal((await f.extension('/api/menu-import-deliveries',oldCode,capture())).status,401);
+  assert.equal((await f.call(endpoint,{method:'POST',actor:'owner-admin',body})).status,409);
+  const after=await f.db.prepare('SELECT id,data,published_data,revision FROM restaurants ORDER BY id').all();
+  assert.deepEqual(after.results,original.results);
+  assert.equal((await f.owner('POST',requestBody())).status,201,'owner can ask for help again after a failed capture');
+ }finally{await f.close();}
+});

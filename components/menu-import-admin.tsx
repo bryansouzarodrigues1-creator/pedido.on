@@ -2,6 +2,7 @@
 import {useEffect,useState} from "react";
 import {formatBrazilWhatsApp,supportWhatsAppLink} from "@/lib/support-whatsapp";
 import MenuRunnerResultImport from "./menu-runner-result-import";
+import MenuCaptureFailureImport from "./menu-capture-failure-import";
 type Item={id:string;restaurantId:string;restaurantName:string;storeUrl:string;ownerNote:string;contactWhatsApp:string;status:string;requestedAt:string;receivedAt:string|null;pairingExpiresAt:number|null};
 async function csrf(){const r=await fetch("/api/auth/config",{cache:"no-store"});const d=await r.json() as {csrf?:string};if(!r.ok||!d.csrf)throw Error("Sessão expirada.");return d.csrf;}
 export default function MenuImportAdmin(){
@@ -24,6 +25,8 @@ export default function MenuImportAdmin(){
   {item.contactWhatsApp&&<p>WhatsApp autorizado do cliente: <strong>{formatBrazilWhatsApp(item.contactWhatsApp)||item.contactWhatsApp}</strong>. <a href={supportWhatsAppLink(item.contactWhatsApp,`Olá! Aqui é o suporte do Pizzaria.on. Recebemos sua solicitação sobre o cardápio da ${item.restaurantName}. Como podemos ajudar?`)||"#"} target="_blank" rel="noreferrer noopener">Responder pelo WhatsApp</a></p>}
   {(item.status==="requested"||item.status==="paired")&&<button type="button" className="btn primary" disabled={busy} onClick={()=>void pair(item.id)}>Gerar novo código para a extensão</button>}
   {(item.status==="requested"||item.status==="paired")&&<MenuRunnerResultImport requestId={item.id} storeUrl={item.storeUrl} disabled={busy} onDelivered={()=>{setCode("");setPairedId("");setNotice("Resultado entregue para conferência do proprietário.");void load().catch(e=>setError(e.message));}}/>}
+  {(item.status==="requested"||item.status==="paired")&&<MenuCaptureFailureImport requestId={item.id} storeUrl={item.storeUrl} disabled={busy} onReported={()=>{setCode("");setPairedId("");setNotice("Bloqueio comunicado. Nenhum produto foi alterado.");void load().catch(e=>setError(e.message));}}/>}
+  {item.status==="blocked"&&<p role="status">A leitura não foi concluída. O dono vê a orientação para enviar PDF/fotos ou contatar o suporte. Nenhum catálogo foi recebido.</p>}
   {pairedId===item.id&&code&&<div><label htmlFor="pairing-code">Código de pareamento — uso único e válido por 30 minutos</label><textarea id="pairing-code" readOnly value={code} rows={3} onFocus={e=>e.currentTarget.select()}/><button type="button" className="btn outline" onClick={()=>void navigator.clipboard.writeText(code).then(()=>setNotice("Código copiado.")).catch(()=>setError("Selecione e copie manualmente."))}>Copiar código</button></div>}
   {item.status==="received"&&<p>Catálogo entregue para revisão do proprietário. Nenhum preço ou foto foi publicado.</p>}
  </section>)}</div>}
