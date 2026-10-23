@@ -45,6 +45,7 @@ try{
  checks.push('inline finish saves the same designed menu and real prices as an unpublished draft');
  await context.close();
  await open();await page.getByRole('button',{name:'Ainda não tenho cardápio',exact:true}).click();await page.locator('.ai-selected .mini-product').first().waitFor();assert.equal(await page.locator('.ai-selected .mini-product').count(),3);assert.match(await page.locator('.ai-gallery-sample').textContent(),/não são da sua pizzaria/);assert.ok((await page.locator('.ai-selected .mini-product b').first().textContent()).includes('35,00'));
+ for(const image of await page.locator('.ai-selected .mini-product img').all()){await image.scrollIntoViewIfNeeded();await image.evaluate(img=>img.decode());}
  const demoImages=await page.locator('.ai-selected .mini-product img').evaluateAll(els=>els.map(el=>({src:el.getAttribute('src'),loaded:el.complete&&el.naturalWidth>0})));assert.ok(demoImages.every(i=>i.src.includes('pizza-demo-')&&i.loaded));
  await page.locator('.ai-selected').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(output,'previa-pizzas-precos-mobile.png'),fullPage:false});assert.equal(await page.locator('input[type=email]').count(),0);await page.getByRole('button',{name:'Enviar ou adicionar produtos',exact:true}).click();await page.locator('.idea-source').waitFor();
  checks.push('no-menu preview shows clearly labeled generated photos and example prices; actual draft stays empty');
