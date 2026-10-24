@@ -14,6 +14,7 @@ import type {ApprovedDelivery} from "./delivery-gate";
 import {useDeliveryQuote,DeliveryQuoteStatus} from "./delivery-checkout";
 import StoreReport from "./store-report";
 import {storeLocation} from "@/lib/store-location";
+import GoogleReviewLink from "./google-review-link";
 function productPrice(product:Product,data:RestaurantData){return lowestProductPrice(data,product);}
 type ContactDetails = { neighborhood:string;customer: string; phone: string; address: string; method: "delivery" | "pickup"; payment: RestaurantData["payments"][number]; note: string };
 
@@ -90,7 +91,7 @@ export default function Menu({ data, slug = "", demo = false, preview = false, a
       {data.categories.filter(c => filtered.some(p => p.categoryId === c.id)).map(c => <section className="product-section" key={c.id}><div className="menu-section-title"><h2>{c.name}</h2><span>{filtered.filter(p => p.categoryId === c.id).length} opções</span></div><div className="products-grid">{filtered.filter(p => p.categoryId === c.id).map(product => <MenuProduct key={product.id} product={product} data={data} onChoose={()=>setSelected(product)}/>)}</div></section>)}
       {!filtered.length && <div className="catalog-empty"><Search size={35} /><h3>{search ? "Não encontramos esse produto." : "Estamos preparando o cardápio."}</h3><p>{search ? "Busque por outro nome ou ingrediente." : "Os produtos vão aparecer aqui."}</p>{search && <button className="btn outline" onClick={() => { setSearch(""); setCategory("all"); }}>Ver todo o cardápio</button>}</div>}
     </div><aside className="desktop-cart"><div className="cart-heading"><ShoppingBag size={20} /><h2>Seu pedido</h2><span>{count}</span></div>{cartContents}</aside></div>
-    <footer className="menu-footer menu-container"><span>{data.name}{data.city && ` · ${data.city}`}</span>{!demo&&!preview&&slug&&<StoreReport slug={slug}/>}<a href="/criar">Criar cardápio da minha pizzaria <ArrowUpRight size={12} /></a></footer>
+    <footer className="menu-footer menu-container"><span>{data.name}{data.city && ` · ${data.city}`}</span>{!demo&&!preview&&<GoogleReviewLink url={data.googleReviewUrl} className="menu-google-review"/>}{!demo&&!preview&&slug&&<StoreReport slug={slug}/>}<a href="/criar">Criar cardápio da minha pizzaria <ArrowUpRight size={12} /></a></footer>
     {count > 0 && <button className="mobile-cart-bar menu-btn" onClick={() => setCartOpen(true)}><span><ShoppingBag size={20} /><b>{count}</b>Ver pedido</span><strong>{money(subtotal)}<small>+ {data.deliveryEnabled ? `entrega ${money(data.deliveryFee)}` : "retirada sem taxa"}</small></strong></button>}
     {toast && <div className="toast" role="status"><Check size={17} />{toast}</div>}
     <Modal open={!!selected} onClose={() => setSelected(null)} title={selected?.name || "Monte sua pizza"}>{selected && <PizzaBuilder key={selected.id} product={selected} data={data} onAdd={add} />}</Modal>

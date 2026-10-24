@@ -1,0 +1,11 @@
+.google-review-link{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;max-width:100%;line-height:1.4;text-align:left}
+.google-review-link img{width:20px;height:20px;flex:0 0 20px;object-fit:contain}
+.google-review-link>svg{flex-shrink:0}
+.google-review-settings>.field-hint{max-width:65ch;line-height:1.7}
+.google-review-settings>.google-review-link{margin:4px 0 8px}
+.menu-footer .menu-google-review{font-size:13px;font-weight:600;color:inherit}
+.tracking-google-review{background:#fffdf8;border:1px solid #dfd2bf;border-radius:16px;padding:24px;margin:23px 0}
+.tracking-google-review h2{font-size:18px;margin:0 0 8px}
+.tracking-google-review p{font-size:14px;color:#6d614f;line-height:1.7;margin:0 0 16px;overflow-wrap:anywhere}
+.tracking-google-review .google-review-link{width:100%;font-size:14px}
+@media(max-width:480px){.tracking-google-review{padding:20px}.menu-footer .menu-google-review{font-size:13px;justify-content:flex-start}}
