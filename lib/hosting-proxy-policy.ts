@@ -7,6 +7,7 @@ export const proxyHeaders = {
   timestamp: prefix + "timestamp",
   ip: prefix + "ip",
   signature: prefix + "signature",
+  cookie: prefix + "cookie",
   verified: prefix + "verified",
 } as const;
 const signedHeaders = [
@@ -70,14 +71,43 @@ export function cleanProxyHeaders(source: Headers) {
       headers.delete(name);
     }
   }
+  // Forward only this application's cookies, never the hosting provider's login.
+  const cookie = (headers.get("cookie") || "").split(";").map(part => part.trim())
+    .filter(part => /^__Host-pedido-[A-Za-z0-9_-]+=/.test(part)).join("; ");
+  if (cookie) headers.set("cookie", cookie); else headers.delete("cookie");
   return headers;
 }
-async function signatureMessage(request: Request, body: Uint8Array, origin: string, timestamp: string, ip: string) {
+async function cookieKey(secret: string) {
+  const material = await crypto.subtle.importKey("raw", Uint8Array.from(secret.match(/../g)!, pair => parseInt(pair, 16)), "HKDF", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name: "HKDF", hash: "SHA-256", salt: new TextEncoder().encode("pedido-proxy-cookie-v1"),
+    info: new TextEncoder().encode("authenticated-cookie-envelope")}, material, {name: "AES-GCM", length: 256}, false, ["encrypt", "decrypt"]);
+}
+async function encodeCookie(cookie: string, secret: string) {
+  if (cookie.length > 16_384) throw new HostingProxyError(431, "Atualize a página e tente novamente.");
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = new Uint8Array(await crypto.subtle.encrypt({name: "AES-GCM", iv}, await cookieKey(secret), new TextEncoder().encode(cookie)));
+  const bytes = new Uint8Array(iv.length + ciphertext.length);
+  bytes.set(iv); bytes.set(ciphertext, iv.length);
+  return "v1." + btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function decodeCookie(value: string, secret: string) {
+  if (value.length > 22_000 || !/^v1\.[A-Za-z0-9_-]+$/.test(value)) {
+    throw new HostingProxyError(403, "Não foi possível validar esta solicitação.");
+  }
+  try {
+    const bytes = Uint8Array.from(atob(value.slice(3).replace(/-/g, "+").replace(/_/g, "/")), char => char.charCodeAt(0));
+    if (bytes.length < 28) throw new Error("invalid cookie envelope");
+    const cookie = new TextDecoder("utf-8", {fatal: true}).decode(await crypto.subtle.decrypt({name: "AES-GCM", iv: bytes.slice(0, 12)}, await cookieKey(secret), bytes.slice(12)));
+    if (cookie.length > 16_384) throw new Error("invalid cookie envelope");
+    return cookie;
+  } catch { throw new HostingProxyError(403, "Não foi possível validar esta solicitação."); }
+}
+async function signatureMessage(request: Request, body: Uint8Array, origin: string, timestamp: string, ip: string, headers = request.headers) {
   const payload = body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) as ArrayBuffer;
   const digest = bytesToHex(await crypto.subtle.digest("SHA-256", payload));
   return new TextEncoder().encode(JSON.stringify([
     "pedido-proxy-v1", request.method, request.url, origin, timestamp, ip,
-    signedHeaders.map(name => [name, request.headers.get(name) || ""]), digest,
+    signedHeaders.map(name => [name, headers.get(name) || ""]), digest,
   ]));
 }
 export async function signProxyRequest(request: Request, body: Uint8Array, config: HostingProxyConfig, clientIp: string, now = Date.now()) {
@@ -85,26 +115,16 @@ export async function signProxyRequest(request: Request, body: Uint8Array, confi
   if (!origin || !validProxySecret(secret)) throw new HostingProxyError(503, "Este endereço ainda está sendo preparado.");
   const ip = /^[a-f0-9:.]{3,64}$/i.test(clientIp) ? clientIp : "anonymous";
   const timestamp = String(Math.floor(now / 1000));
-  const key = await signingKey(secret);
-  const message = await signatureMessage(request, body, origin, timestamp, ip);
-  const signature = bytesToHex(await crypto.subtle.sign("HMAC", key, message));
-  // Temporary, health-route-only transport diagnostics. These are keyed proofs
-  // and a digest, never raw keys, cookies, tokens or request contents.
-  const diagnostics: Record<string, string> = {};
-  if (new URL(request.url).pathname === "/api/hosting") {
-    const parts = JSON.parse(new TextDecoder().decode(message));
-    const values = [parts[1], parts[2], parts[3], parts[4], parts[5], ...parts[6].map((pair: string[]) => pair[1]), parts[7]];
-    diagnostics[prefix + "diagnostic-context"] = bytesToHex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode("pedido-proxy-key-check-v1")));
-    diagnostics[prefix + "diagnostic-parts"] = JSON.stringify(await Promise.all(values.map(async (value, index) =>
-      bytesToHex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(JSON.stringify(["pedido-proxy-part-v1", index, value])))))));
-    diagnostics[prefix + "diagnostic-message"] = bytesToHex(await crypto.subtle.digest("SHA-256", message));
-  }
+  const cookie = await encodeCookie(request.headers.get("cookie") || "", secret);
+  const signature = bytesToHex(await crypto.subtle.sign("HMAC", await signingKey(secret), await signatureMessage(request, body, origin, timestamp, ip)));
   return {
     [proxyHeaders.origin]: origin,
     [proxyHeaders.timestamp]: timestamp,
     [proxyHeaders.ip]: ip,
     [proxyHeaders.signature]: signature,
-    ...diagnostics,
+    // The dispatcher may strip Cookie. Encrypt the transport value so logs never
+    // disclose credentials; the existing request MAC also binds the plaintext.
+    [proxyHeaders.cookie]: cookie,
   };
 }
 export async function normalizeHostingRequest(request: Request, config: HostingProxyConfig, now = Date.now()): Promise<{request: Request; proxied: boolean}> {
@@ -118,14 +138,20 @@ export async function normalizeHostingRequest(request: Request, config: HostingP
     throw new HostingProxyError(403, "Não foi possível validar este endereço.");
   }
   const body = await proxyBody(request);
+  const authenticatedHeaders = new Headers(request.headers);
+  const cookieEnvelope = request.headers.get(proxyHeaders.cookie);
+  if (cookieEnvelope !== null) {
+    const cookie = await decodeCookie(cookieEnvelope, secret);
+    if (cookie) authenticatedHeaders.set("cookie", cookie); else authenticatedHeaders.delete("cookie");
+  }
   const verified = await crypto.subtle.verify("HMAC", await signingKey(secret),
     Uint8Array.from(signature.match(/../g)!, pair => parseInt(pair, 16)),
-    await signatureMessage(request, body, origin, timestamp, ip));
+    await signatureMessage(request, body, origin, timestamp, ip, authenticatedHeaders));
   if (!verified) throw new HostingProxyError(403, "Não foi possível validar esta solicitação.");
   const publicUrl = new URL(origin), incoming = new URL(request.url);
   publicUrl.pathname = incoming.pathname;
   publicUrl.search = incoming.search;
-  const headers = cleanProxyHeaders(request.headers);
+  const headers = cleanProxyHeaders(authenticatedHeaders);
   headers.set("host", publicUrl.host);
   headers.set("x-forwarded-proto", "https");
   headers.set("cf-connecting-ip", ip);

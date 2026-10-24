@@ -31,6 +31,7 @@ test('Netlify preserves the public origin, cookies, CSRF, client IP and private 
   const response = await forwardToBackend(inbound('/api/test?q=1', 'POST', '{"value":1}', {
     'oai-authenticated-user-id': 'forged-owner', 'oai-authenticated-user-email': 'forged@example.test',
     'x-forwarded-proto': 'http', 'cf-connecting-ip': 'forged-ip', 'x-pedido-proxy-verified': 'forged',
+    'x-pedido-proxy-cookie': 'v1.Zm9yZ2Vk',
   }), config, '203.0.113.10', async (url, options) => {
     calls++;
     assert.equal(url.href, config.PEDIDO_BACKEND_ORIGIN + '/api/test?q=1');
@@ -59,13 +60,57 @@ test('Netlify preserves the public origin, cookies, CSRF, client IP and private 
 
 test('forged public origins, cookies, CSRF, IP and request bodies fail signature verification', async () => {
   for (const [name, value] of [[proxyHeaders.origin, 'https://attacker.example'], [proxyHeaders.ip, '203.0.113.11'],
-    ['cookie', '__Host-pedido-session=forged'], ['x-pedido-csrf', 'ef'.repeat(32)], ['origin', 'https://attacker.example']]) {
+    [proxyHeaders.cookie, 'v1.' + btoa('__Host-pedido-session=forged').replace(/=+$/, '')], ['x-pedido-csrf', 'ef'.repeat(32)], ['origin', 'https://attacker.example']]) {
     await assert.rejects(normalizeHostingRequest(await signed('hello', {[name]: value}), config, now), error => error instanceof HostingProxyError && error.status === 403);
   }
   const request = await signed();
   await assert.rejects(normalizeHostingRequest(new Request(request.url, {method: 'POST', headers: request.headers, body: 'changed'}), config, now), {status: 403});
   await assert.rejects(normalizeHostingRequest(await signed(), config, now + 31_000), {status: 403});
   await assert.rejects(normalizeHostingRequest(await signed(), config, now - 6_000), {status: 403});
+});
+
+test('signed application cookies survive a dispatcher stripping Cookie and ignore hosting-provider credentials', async () => {
+  const response = await forwardToBackend(inbound('/api/test', 'POST', '{}', {
+    cookie: '__Host-pedido-csrf=' + csrf + '; __Host-pedido-session=valid-session; nf_sso=private-provider-session; unrelated=ignored',
+  }), config, '203.0.113.10', async (url, options) => {
+    assert.equal(options.headers.get('cookie'), '__Host-pedido-csrf=' + csrf + '; __Host-pedido-session=valid-session');
+    const envelope = options.headers.get(proxyHeaders.cookie);
+    assert.ok(envelope.startsWith('v1.'));
+    assert.ok(!envelope.includes(csrf) && !envelope.includes('valid-session'));
+    assert.ok(!atob(envelope.slice(3).replace(/-/g, '+').replace(/_/g, '/')).includes('valid-session'), 'transport must encrypt rather than only encode credentials');
+    const headers = new Headers(options.headers);
+    headers.delete('cookie');
+    const normalized = await normalizeHostingRequest(new Request(url, {...options, headers}), config);
+    assert.equal(normalized.request.headers.get('cookie'), '__Host-pedido-csrf=' + csrf + '; __Host-pedido-session=valid-session');
+    assert.equal(normalized.request.headers.get(proxyHeaders.cookie), null);
+    sameOrigin(normalized.request);
+    return new Response('ok');
+  });
+  assert.equal(response.status, 200);
+});
+
+test('an empty signed cookie remains empty despite dispatcher cookies, and forged or removed envelopes fail closed', async () => {
+  const empty = new Request(config.PEDIDO_BACKEND_ORIGIN + '/api/test');
+  const proof = await signProxyRequest(empty, new Uint8Array(0), config, '203.0.113.10', now);
+  const normalized = await normalizeHostingRequest(new Request(empty.url, {headers: {...proof, cookie: '__Host-pedido-session=forged'}}), config, now);
+  assert.equal(normalized.request.headers.get('cookie'), null);
+  const original = await signed();
+  const stripped = new Headers(original.headers);
+  stripped.delete('cookie'); stripped.delete(proxyHeaders.cookie);
+  await assert.rejects(normalizeHostingRequest(new Request(original.url, {method: 'POST', headers: stripped, body: 'hello'}), config, now), {status: 403});
+  for (const value of ['not-base64', 'v1.a', 'v1.' + 'A'.repeat(22_001)]) {
+    await assert.rejects(normalizeHostingRequest(await signed('hello', {[proxyHeaders.cookie]: value}), config, now), {status: 403});
+  }
+});
+
+test('legacy signatures still verify while gateways roll over, but never grant a forged transit session', async () => {
+  const original = await signed();
+  const headers = new Headers(original.headers);
+  headers.delete(proxyHeaders.cookie);
+  const legacy = await normalizeHostingRequest(new Request(original.url, {method: 'POST', headers, body: 'hello'}), config, now);
+  assert.equal(legacy.request.headers.get('cookie'), '__Host-pedido-csrf=' + csrf);
+  headers.set('cookie', '__Host-pedido-session=forged');
+  await assert.rejects(normalizeHostingRequest(new Request(original.url, {method: 'POST', headers, body: 'hello'}), config, now), {status: 403});
 });
 
 test('direct Sites requests keep their URL and normal flow; fake proxy headers cannot activate the bridge', async () => {
@@ -159,7 +204,7 @@ test('signed requests verify in the real Workers runtime, including browser orig
     .replace('"../lib/connector-context"', '"./context.mjs"')
     .replace('"../lib/hosting-proxy-policy"', '"./policy.mjs"')
     .replace('import.meta.env.DEV', 'false');
-  const handler = 'export default {async fetch(request){return Response.json({url:request.url,ip:request.headers.get("cf-connecting-ip"),owner:request.headers.get("oai-authenticated-user-id"),body:await request.text()});}};';
+  const handler = 'export default {async fetch(request){return Response.json({url:request.url,ip:request.headers.get("cf-connecting-ip"),owner:request.headers.get("oai-authenticated-user-id"),cookie:request.headers.get("cookie"),body:await request.text()});}};';
   const mf = new Miniflare({modules: [
     {type: 'ESModule', path: 'entry.mjs', contents: entry},
     {type: 'ESModule', path: 'policy.mjs', contents: policy},
@@ -167,9 +212,12 @@ test('signed requests verify in the real Workers runtime, including browser orig
     {type: 'ESModule', path: 'context.mjs', contents: 'export function runWithConnectorBinding(binding,fn){return fn();}'},
   ], compatibilityDate: '2026-05-15', bindings: config});
   try {
-    const response = await forwardToBackend(inbound('/api/test?q=1', 'POST', 'hello', {'oai-authenticated-user-id': 'forged-owner'}), config, '203.0.113.10', async (url, options) => mf.dispatchFetch(url, options));
+    const response = await forwardToBackend(inbound('/api/test?q=1', 'POST', 'hello', {'oai-authenticated-user-id': 'forged-owner'}), config, '203.0.113.10', async (url, options) => {
+      const headers = new Headers(options.headers); headers.delete('cookie');
+      return mf.dispatchFetch(url, {...options, headers});
+    });
     assert.equal(response.status, 200, await response.clone().text());
-    assert.deepEqual(await response.json(), {url: config.PEDIDO_PUBLIC_ORIGIN + '/api/test?q=1', ip: '203.0.113.10', owner: null, body: 'hello'});
+    assert.deepEqual(await response.json(), {url: config.PEDIDO_PUBLIC_ORIGIN + '/api/test?q=1', ip: '203.0.113.10', owner: null, cookie: '__Host-pedido-csrf=' + csrf, body: 'hello'});
     assert.equal((await mf.dispatchFetch(config.PEDIDO_BACKEND_ORIGIN + '/calculadora', {headers: {[proxyHeaders.verified]: config.PEDIDO_PUBLIC_ORIGIN}})).status, 403);
   } finally {await mf.dispose();}
 });
