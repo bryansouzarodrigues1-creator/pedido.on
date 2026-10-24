@@ -12,6 +12,14 @@ test('OCR rows preserve actual ingredients, sized prices, beverage and crust des
  const summary=calculateOrder(updated,{requestId:crypto.randomUUID(),customer:'Cliente',phone:'11999999999',method:'delivery',address:'Rua Teste, 100',payment:'Dinheiro',note:'',coupon:'',items:[{productIds:[updated.products[0].id],size:'g',crustId:updated.crusts[0].id,quantity:1,note:''}]});assert.equal(summary.total,5790);
 });
 test('an unsized single price is never silently assigned to a large pizza',()=>{const item=read('Pizzas\nCalabresa R$ 49,90').items[0];assert.equal(item.price,4990);assert.deepEqual(item.sizes,{p:null,m:null,g:null});assert.equal(readerItemReady(item),false);assert.throws(()=>applyReaderItems(defaultRestaurant('Teste'),[item]),/preços e tamanhos/);});
+test('explicitly separated pizza names keep consecutive prices even when a flavor is also an ingredient',()=>{
+ for(const separator of ['—','–','-']){
+  const result=read(`Pizzas\nCalabresa ${separator} R$ 45,00\nMussarela ${separator} R$ 40,00\nBebidas\nRefrigerante lata ${separator} R$ 6,00`);
+  assert.deepEqual(result.items.map(i=>[i.name,i.price]),[['Calabresa',4500],['Mussarela',4000],['Refrigerante lata',600]]);
+  assert.ok(result.items.slice(0,2).every(i=>!readerItemReady(i)&&Object.values(i.sizes).every(v=>v===null)),'unknown pizza sizes still require owner confirmation');
+  assert.equal(readerItemReady(result.items[2]),true);
+ }
+});
 test('explicit sized lines and shared category price are read without guessing',()=>{const first=read('Pizzas\nCalabresa P R$ 29,90 M R$ 39,90 G R$ 49,90').items[0];assert.deepEqual(first.sizes,{p:2990,m:3990,g:4990});const shared=read('Pizzas\nTodas as pizzas G R$ 50,00\nCalabresa\nMolho, queijo, calabresa\nFrango\nMolho, frango, catupiry');assert.equal(shared.items.length,2);assert.equal(shared.items[1].sizes.g,5000);});
 test('more than 35 rows and more than one source do not truncate recognized products',()=>{const pages=Array.from({length:2},(_,i)=>({id:`page-${i}`,lines:['Bebidas',...Array.from({length:24},(_,n)=>`Bebida ${i}-${n} R$ 12,00`)].map(text=>({text}))}));const result=readMenuPages(pages);assert.equal(result.items.length,48);assert.equal(result.pages,2);assert.equal(new Set(result.items.map(v=>v.id)).size,48);});
 test('unsupported sizes and private/contact/footer text remain visible for review',()=>{const result=read('Pizzas\nCalabresa GG R$ 79,90\nWhatsApp 11 99999-9999\nTaxa de entrega R$ 7,00\nPromoção do dia R$ 39,90');assert.equal(result.items.length,1);assert.equal(result.items[0].selected,false);assert.match(result.items[0].issues.join(' '),/P\/M\/G/);assert.equal(result.unmatched.length,3);});

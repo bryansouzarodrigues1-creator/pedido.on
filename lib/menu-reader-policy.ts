@@ -262,14 +262,17 @@ export function readMenuPages(pages:Pick<ReaderPage,"id"|"lines">[]):ReaderResul
       if(matches.length&&/^(todas|todos|qualquer sabor|preco unico|pizzas? (grandes?|medias?|pequenas?))/.test(norm)){
         flush();shared={};if(!unsupported&&labels.length===prices.length)labels.forEach((v,i)=>{if(v.size&&prices[i])shared[v.size]=prices[i]!;});else unmatched.push({sourceId:page.id,text:"Preço compartilhado a conferir: "+text});continue;
       }
-      const before=matches.length?text.slice(0,matches[0].index).replace(/\b(?:GG|P|M|G|pequena|média|grande|família|gigante|brotinho)\s*[-:·]?\s*$/i,"").replace(/[+.\-:·|\s]+$/g,""):text;
+      const before=matches.length?text.slice(0,matches[0].index).replace(/\b(?:GG|P|M|G|pequena|média|grande|família|gigante|brotinho)\s*[-:·]?\s*$/i,"").replace(/[+.\-–—:·|\s]+$/g,""):text;
       const bare=withoutSku(before.replace(/^\d{1,3}\s*[.)\-:]\s*/,"")).trim();
        const unbulleted=bare.replace(/^[•●▪»*]\s+/,"");
        const name=(kind==="pizza"?unbulleted.replace(/^x\s+(?!tudo\b|salada\b|bacon\b|burger\b)/i,"").replace(header.length>=2?/\s+\d{3,5}\s*[|/]\s*\d{3,5}$/:/$^/,""):unbulleted.replace(/^x\s+(?=coca[ -]|[aá]gua\b|refrigerante\b|guaran[aá]\b)/i,"")).trim();
       const ingredients=/^(ingredientes?\s*:|(?:molho|mucarela|mozzarella|queijo|tomate|massa)\s+\S|mussarela\s+(?:e|com)\b)/.test(norm)||!matches.length&&text.includes(",");
       if(pending&&ingredients&&!matches.length){pending.description=(pending.description?pending.description+" ":"")+text.replace(/^ingredientes?\s*:\s*/i,"");pending.description=pending.description.slice(0,600);pending.sourceText=(pending.sourceText+"\n"+text).slice(0,2000);pending.box=union(pending.box,raw.box);continue;}
       const prose=text.slice(0,matches[0]?.index??text.length).trim();
-      const markedProduct=skuSizes(text).length>0||/\b(?:GG|[PMG]|[wv]|6)\s*[:;]\s*\d{3,5}\b/i.test(text)||/^(?:[•●▪»*]\s*|x\s+(?=[A-ZÀ-Ü]))/u.test(prose);
+      // A short name explicitly separated from its price is a product even if
+      // the name is also an ingredient (for example, "Mussarela — R$ 40,00").
+      const separatedPrice=matches.length===1&&/\s[-–—]\s*$/.test(prose)&&validProductName(name)&&name.split(/\s+/).length<=5&&!/[,.!?;:]/.test(name);
+      const markedProduct=separatedPrice||skuSizes(text).length>0||/\b(?:GG|[PMG]|[wv]|6)\s*[:;]\s*\d{3,5}\b/i.test(text)||/^(?:[•●▪»*]\s*|x\s+(?=[A-ZÀ-Ü]))/u.test(prose);
       // A new priced accompaniment can begin with an ingredient word:
       // "Tomate-cereja + R$ 6" and "Molho da casa + R$ 4" are products,
       // not descriptions to concatenate onto "Bacon + R$ 8".

@@ -28,7 +28,7 @@ async function start(){
  await page.goto(base+'/criar',{waitUntil:'networkidle',timeout:90000});await page.waitForFunction(()=>document.querySelector('#owner-intake-message')?.disabled===false);
 }
 async function attach(name,buffer,mimeType='application/pdf'){
- if(!await page.locator('.idea-source').isVisible()){const add=page.getByRole('button',{name:'Enviar ou adicionar produtos',exact:true});if(await add.isVisible())await add.click();else await page.getByRole('button',{name:'Enviar PDF, foto ou TXT',exact:true}).click();}
+ if(!await page.locator('.idea-source').isVisible())await page.getByRole('button',{name:/^(?:Enviar ou adicionar produtos|Enviar PDF, foto ou TXT)$/}).click();
  await page.locator('.idea-file-actions input[accept*=".pdf"]').setInputFiles({name,mimeType,buffer});
 }
 async function storedItems(count){
