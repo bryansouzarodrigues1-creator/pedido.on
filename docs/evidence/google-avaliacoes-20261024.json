@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-24",
+  "feature": "Google review link per restaurant",
+  "sites": {
+    "version": 86,
+    "versionId": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_bd10cb07a6d0819182d647acf9ebff9c",
+    "sourceCommit": "d8f7c862af72590d87e52c1a1cf28d63a911e83b",
+    "sourceTree": "2027ee5da1d1bdf2ed5003f3d0b3cbb7a3d33b29",
+    "deploymentId": "appgdep_6adc8a234c048191b638b3c60f50b5d8",
+    "status": "succeeded",
+    "environmentRevision": 13,
+    "url": "https://forno-cardapios.waves4845.chatgpt.site",
+    "updatedAt": "2026-10-24T10:36:44.978760+00:00",
+    "archive": {
+      "archive_format": "tar",
+      "sediment_file_id": "file_00000000d508820e9c51dab1d632d98f",
+      "content_hash": "sha256:becd9260c7e6610d26848db55b3d548f3c88a575bbce6e27aa9f189cde2fd2b7",
+      "size_bytes": 26726400,
+      "file_count": 598
+    }
+  },
+  "github": {
+    "mainPR": 100,
+    "mainMerge": "813a7b27bf89fa3258d4a4237c266fdf06cc3804",
+    "mirrorPR": 54,
+    "mirrorMerge": "ab2e7da7b12d7d037e3f91f182c1eb46960457c8"
+  },
+  "tests": {
+    "local": 617,
+    "passed": 617,
+    "new": 8,
+    "typecheck": true,
+    "build": true,
+    "externalServices": "simulated",
+    "googleReviewsPosted": 0,
+    "chromeCI": 40086449711,
+    "windowsCI": 40086449712,
+    "authCI": 40086449708,
+    "chatCI": 40086449750,
+    "chatRetryPassed": true,
+    "chatInitialFailure": "Miniflare fixture migration assertion before the scenario",
+    "manualBrowserQA": false,
+    "manualBrowserLimitation": "managed preview ERR_CONNECTION_REFUSED",
+    "mirrorCI": 40086451427,
+    "mirrorCIPassed": false,
+    "mirrorCILimitation": "job failed before exposing steps/logs"
+  },
+  "lovable": {
+    "deploymentId": "7024ae0c-1400-40be-b93c-f32ba67a9c90",
+    "initialNativeStatus": "pending",
+    "currentSourceCommit": "ab2e7da7b12d7d037e3f91f182c1eb46960457c8",
+    "publicationVerifiedByHTTP": true,
+    "url": "https://pizzaria-on-estilos.lovable.app",
+    "pageStatus": 200,
+    "stylesheet": "https://pizzaria-on-estilos.lovable.app/assets/google-reviews-B1SeNaDo.css",
+    "stylesheetStatus": 200,
+    "containsExpectedStyles": true
+  },
+  "production": {
+    "migrations": 0,
+    "bulkRestaurantUpdates": 0,
+    "paidGeneration": 0,
+    "googleAPICalls": 0
+  },
+  "httpLimitation": {
+    "sitesExecutorStatus": 403,
+    "sitesExecutorBody": "error code: 1010"
+  }
+}
