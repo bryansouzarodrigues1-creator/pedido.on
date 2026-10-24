@@ -25,11 +25,12 @@ import {MiniMenu,Spinner,Modal} from "./ui";
 import {imageFromFile,loadBrandAssets,saveBrandAssets,type BrandAssets} from "@/lib/guest-brand-assets";
 import {nameFromBriefing} from "@/lib/studio-policy";
 import OwnerIntakeChat from "./owner-intake-chat";
+import MenuRequestStart from "./menu-request-start";
 import {emptyOwnerIntake,ownerPreviewFromDescription,intakeFinished,ownerPreviewDetails,withOwnerAnswers,ownerWithMenuContent,ownerVisualBriefing,ownerFacts,type OwnerIntake} from "@/lib/owner-intake";
 
 const FullMenu=lazy(()=>import("./menu"));
 function pendingMenuNotice(items:ReaderItem[]){const count=items.filter(item=>!readerItemReady(item)).length;return count?`${count} ${count===1?"produto precisa":"produtos precisam"} de conferência antes de entrar à venda. Os valores que o arquivo mostra ficam disponíveis para revisão.`:"";}
-const emptyMenuSourceNotice="O link não trouxe produtos. Envie PDF, TXT/CSV ou fotos do cardápio para completar a prévia.";
+const emptyMenuSourceNotice="Link guardado como referência. Solicite a importação pela equipe no painel ou envie PDF, TXT/CSV ou fotos para completar a prévia.";
 function makePreview(items:ReaderItem[],hasSource:boolean,photos:Record<string,string>={}):RestaurantData{return hasSource?previewMenuWithReaderItems(items,photos):defaultRestaurant("Sua pizzaria");}
 export default function IdeaStart(){
  const [finishOpen,setFinishOpen]=useState(false),[shareUrl,setShareUrl]=useState(""),[shareBusy,setShareBusy]=useState(false),[shareMessage,setShareMessage]=useState("");
@@ -152,7 +153,7 @@ export default function IdeaStart(){
        <div className="idea-composer-bottom idea-conversation-attachments">
        <button type="button" className="idea-pdf-shortcut" disabled={busy||saving||!initialized} onClick={()=>pdfQuickPicker.current?.click()}><FileText size={17}/>Importar PDF direto</button>
        {intakeFinished(intake)&&<button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>sourceOpen?setSourceOpen(false):openAttachments()}><Paperclip size={17}/>Enviar cardápio ou imagens {pages.length>0?"("+pages.length+")":""}</button>}
-       <a className="idea-extension-link" href="/extensao"><Download size={17}/>Baixar extensão e exportar meu cardápio</a><small>PDF com texto é lido no aparelho; preços e fotos ficam para conferência antes de publicar.</small>
+       <MenuRequestStart initialUrl={intake.source?.url}/><a className="idea-extension-link" href="/extensao"><Download size={17}/>Baixar extensão e exportar meu cardápio</a><small>PDF com texto é lido no aparelho; preços e fotos ficam para conferência antes de publicar.</small>
       </div>
      </div>
      {sourceOpen&&<div ref={sourcePane} className="idea-source"><div><strong><Paperclip size={17}/>Envie seu cardápio</strong><button className="icon-btn" type="button" aria-label="Recolher importação" onClick={()=>setSourceOpen(false)}><X size={16}/></button></div><p>PDF, TXT, CSV, fotos ou uma página salva do iFood. Até 8 páginas por leitura.</p><p><a className="text-button" href="/extensao">Baixar extensão e exportar meu cardápio <ArrowRight size={15}/></a></p><button type="button" className="text-button" disabled={busy||saving} onClick={()=>{setSourceOpen(false);if(!preview){const next=ownerPreviewFromDescription(intake,"");setIntake(next);void generate(next);}}}>Adicionar produtos depois <ArrowRight size={15}/></button>

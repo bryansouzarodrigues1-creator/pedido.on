@@ -31,7 +31,7 @@ test("menu imports take priority over photos, prices and ingredients; PDF suppor
  }
  const pdf=assistantAnswer("Como importar um PDF?");
  assert.equal(pdf.action,"Enviar fotos do cardápio");
- assert.match(pdf.reply,/capturas das páginas/);
+ assert.match(pdf.reply,/envie o PDF diretamente/);
  assert.equal(assistantAnswer("Como altero a foto do produto?").action,"Abrir Cardápio");
  assert.equal(assistantAnswer("Como mudo o preço no cardápio?").action,"Abrir Cardápio");
 });
@@ -49,7 +49,7 @@ test("renaming the shop is a local preview validated by existing restaurant rule
 
 test("iFood link and CNPJ help describes the local source reference without promising an active connector",()=>{
  const link=assistantAnswer("Como importar o link do iFood com fotos e preços?");
- assert.equal(link.kind,"guide");assert.equal(link.screen,"menu");assert.match(link.reply,/mensagem compartilhada inteira/);assert.match(link.reply,/catálogo público/);assert.match(link.reply,/bloquear o acesso/);
+ assert.equal(link.kind,"guide");assert.equal(link.screen,"menu");assert.match(link.reply,/mensagem compartilhada inteira/);assert.match(link.reply,/Solicitar trazer meu cardápio via link/);assert.match(link.reply,/Não há busca automática/);
  const cnpj=assistantAnswer("Como importar pelo CNPJ do iFood?");assert.match(cnpj.reply,/CNPJ sozinho não importa/);assert.match(cnpj.reply,/ainda não está ativa/);
 });
 

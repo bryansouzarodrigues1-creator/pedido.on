@@ -96,11 +96,11 @@ test('references with Unicode slugs are canonical HTTPS paths and their labels r
  assert.equal(parseIfoodStoreLink(url.replace('aione-pizzas-jardim-pero','a'.repeat(161))),null);
 });
 
-test('the reference UI exposes canonical public URLs and explains the public lookup and content fallback',()=>{
+test('the reference UI exposes canonical public URLs and explains the manual request and file import',()=>{
  const f=fixture();try{
   const View=f.load('components/menu-source-link.tsx').default;
   const html=renderToStaticMarkup(createElement(View,{source:inspectMenuSourceText(shared)}));
-  assert.match(html,/Link do iFood reconhecido/);assert.match(html,/Aione Pizzas Jardim Pero/);assert.match(html,/referência do endereço/);assert.match(html,/consultar o catálogo público/);assert.match(html,/iFood não liberar os produtos/);
+  assert.match(html,/Link do iFood reconhecido/);assert.match(html,/Aione Pizzas Jardim Pero/);assert.match(html,/referência do endereço/);assert.match(html,/Solicitar trazer meu cardápio via link/);assert.match(html,/equipe trazer os produtos e fotos/);
   assert.ok(html.includes(`href="${url}"`));assert.match(html,/rel="noopener noreferrer"/);assert.doesNotMatch(html,/UTM_Medium|secret|cnpj|Loja encontrada/i);
   const unsafe=renderToStaticMarkup(createElement(View,{source:inspectMenuSourceText('https://evil.example/menu')}));assert.doesNotMatch(unsafe,/href=/);assert.match(unsafe,/Use o link da loja ou o texto/);
   const plain=renderToStaticMarkup(createElement(View,{source:inspectMenuSourceText('Bebidas\nSuco R$ 8,00')}));assert.equal(plain,'');
@@ -123,7 +123,7 @@ test('shared-source recognition survives reopening, partial import and re-review
 
 test('a shared link in the Studio is local guidance, carries its literal message and cannot fall through to a paid request',()=>{
  for(const message of [url,shared,'Importe o cardápio dessa loja: '+url]){
-  const answer=assistantAnswer(message);assert.equal(answer.kind,'guide');assert.equal(answer.screen,'menu');assert.equal(answer.sourceText,message);assert.match(answer.reply,/consultar o catálogo público/);assert.match(answer.reply,/bloquear o acesso/);
+  const answer=assistantAnswer(message);assert.equal(answer.kind,'guide');assert.equal(answer.screen,'menu');assert.equal(answer.sourceText,message);assert.match(answer.reply,/Solicitar trazer meu cardápio via link/);assert.match(answer.reply,/não há busca automática/);
   for(const target of ['image','visual','product'])assert.throws(()=>creationRequest(target,message,'ai',defaultRestaurant('Pizzaria teste'),'test-request'),/leitor do cardápio/);
  }
  assert.equal(assistantAnswer('Crie uma capa com pizza artesanal e '+url),null,'An explicit creative image request keeps the established generation route');

@@ -5,7 +5,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {fixture} from './test-backend-fixture.mjs';
 import {defaultRestaurant} from '../lib/domain.ts';
 
-test('an existing unpublished empty account enters its own menu, with PDF-first import, an optional iFood action and no repeated creation flow',()=>{
+test('an existing unpublished empty account enters its own menu, with PDF-first import and a manual link request and no repeated creation flow',()=>{
  const f=fixture();try{
   const data=defaultRestaurant('Pizzaria existente');
   // Legacy record deliberately has no new presentation fields.
@@ -13,7 +13,7 @@ test('an existing unpublished empty account enters its own menu, with PDF-first 
   const record={id:'shop-a',slug:'pizzaria-existente',name:data.name,data:JSON.stringify(data),revision:7,liveRevision:0,published:false,plan:'essencial',createdAt:'2026-10-01',updatedAt:'2026-10-01'};
   const before=JSON.stringify(record),Dashboard=f.load('components/dashboard.tsx').default;
   const html=renderToStaticMarkup(createElement(Dashboard,{initialRestaurants:[record],user:{name:'Tester',email:'tester@example.test'},signOutUrl:'/sair'}));
-  assert.match(html,/Importar PDF ou fotos/);assert.match(html,/Tentar link do iFood/);assert.match(html,/Não tem PDF\? Solicitar que tragam meu cardápio/);assert.match(html,/Ver prévia/);
+  assert.match(html,/Importar PDF ou fotos/);assert.doesNotMatch(html,/Tentar link do iFood|Buscar produtos do iFood/);assert.match(html,/Solicitar trazer meu cardápio via link/);assert.match(html,/Ver prévia/);
   assert.match(html,/aria-label="Editar cardápio"/);assert.match(html,/>Aparência</);assert.match(html,/>Ofertas</);
   assert.doesNotMatch(html,/Três passos para começar|Sua assistente para montar|quatro estilos prontos|Criar prévia|Criar com IA/);
   assert.equal(JSON.stringify(record),before);
