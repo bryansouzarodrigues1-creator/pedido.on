@@ -90,10 +90,15 @@ export async function signProxyRequest(request: Request, body: Uint8Array, confi
   const signature = bytesToHex(await crypto.subtle.sign("HMAC", key, message));
   // Temporary, health-route-only transport diagnostics. These are keyed proofs
   // and a digest, never raw keys, cookies, tokens or request contents.
-  const diagnostics = new URL(request.url).pathname === "/api/hosting" ? {
-    [prefix + "diagnostic-key"]: bytesToHex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode("pedido-proxy-key-check-v1"))),
-    [prefix + "diagnostic-message"]: bytesToHex(await crypto.subtle.digest("SHA-256", message)),
-  } : {};
+  const diagnostics: Record<string, string> = {};
+  if (new URL(request.url).pathname === "/api/hosting") {
+    const parts = JSON.parse(new TextDecoder().decode(message));
+    const values = [parts[1], parts[2], parts[3], parts[4], parts[5], ...parts[6].map((pair: string[]) => pair[1]), parts[7]];
+    diagnostics[prefix + "diagnostic-context"] = bytesToHex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode("pedido-proxy-key-check-v1")));
+    diagnostics[prefix + "diagnostic-parts"] = JSON.stringify(await Promise.all(values.map(async (value, index) =>
+      bytesToHex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(JSON.stringify(["pedido-proxy-part-v1", index, value])))))));
+    diagnostics[prefix + "diagnostic-message"] = bytesToHex(await crypto.subtle.digest("SHA-256", message));
+  }
   return {
     [proxyHeaders.origin]: origin,
     [proxyHeaders.timestamp]: timestamp,
