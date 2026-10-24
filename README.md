@@ -1,6 +1,6 @@
 # pizzaria.on
 
-**Netlify — 24/10/2026:** correção de empacotamento integrada nas PRs #102/#56; **618 testes**, tipos/build Windows e Chrome aprovados. Produção Netlify compilada com acesso privado; a consulta assinada de saúde retornou 403, inclusive após rebuild sem cache. A liberação para qualquer pessoa foi bloqueada pela revisão automática e aguarda autorização explícita. Não anunciar como pronto para clientes. [Estado, provas e retomada](docs/NETLIFY.md).
+**Publicado — v88 / Netlify, 24/10/2026:** produção pública em https://pizzaria-on.netlify.app, com cookies transportados por envelope criptografado e assinatura validada. Calculadora, galeria de 80 modelos, nome e preços conferidos no navegador. Corrigida a mistura de sabores com travessão/preço. **623 testes**, TypeScript/build e quatro CIs finais aprovados. Servidor v88 e espelho Lovable sincronizados, sem migração ou geração paga. CI próprio do espelho continua falhando antes das etapas. [Entrega, provas e limites](docs/NETLIFY.md).
 
 **Publicado — v86, 24/10/2026:** botão **Avaliar no Google** no rodapé do cardápio e após o pedido concluído. O dono configura em **Pizzaria → Avaliações no Google**, testa, salva e publica; links de rascunho ficam privados. **617 testes**, tipos/build e CI Chrome/Windows/auth aprovados; job de chat aprovado na reexecução após falha de fixture. Sites e Lovable atualizados, sem migração ou API paga. CI do espelho segue com falha antes das etapas. [Uso, publicação e limites](docs/GOOGLE-AVALIACOES-20261024.md).
 

@@ -1,71 +1,113 @@
 {
   "date": "2026-10-24",
-  "status": "deployed_private_validation_pending",
-  "netlify": {
-    "name": "pizzaria-on",
-    "url": "https://pizzaria-on.netlify.app",
-    "audience": "private",
-    "sourceCommit": "beb000a05d69f7bad6ee10b3fb1740a6ad4bea21",
-    "productionDeploy": "6adccdb5520d8ae35c59dd0d",
-    "functionCount": 1,
-    "edgeFunctionCount": 1,
-    "buildSucceeded": true,
-    "publicRelease": false
+  "timezone": "America/Sao_Paulo",
+  "status": "public_deployed_and_proxy_verified",
+  "public_origin": "https://pizzaria-on.netlify.app",
+  "audience": {
+    "production": "anyone_on_internet",
+    "deploy_previews": "private_to_team",
+    "explicit_user_authorization": true
   },
   "backend": {
-    "projectId": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
-    "version": 86,
-    "sourceCommit": "d8f7c862af72590d87e52c1a1cf28d63a911e83b",
-    "environmentRevision": 14,
-    "deploymentId": "appgdep_6adcc7c899bc8191a9cc1e56775ad4e7",
+    "project_id": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "version": 88,
+    "source_commit": "698b5c7029c813be841161f14abf44347f6dea30",
+    "deployment_id": "appgdep_6adcfd3789c8819187ed837d50b86c7c",
+    "environment_revision": 14,
     "status": "succeeded"
   },
-  "github": {
-    "mainPR": 102,
-    "mainMerge": "beb000a05d69f7bad6ee10b3fb1740a6ad4bea21",
-    "mirrorPR": 56,
-    "mirrorMerge": "ee2439b7f8690a3d11e409bc6dcbf628c5b1dc34",
-    "matchingSourceTree": "68c67b21a7851f5df4d82f74ab93b501c2044a7d"
+  "netlify": {
+    "deploy_id": "6adcfa8f08c2724ebd6be98c",
+    "gateway_commit": "da6f516ed463edd72c225869f374bff2afe0adb9",
+    "edge_and_node_handlers": true,
+    "health": {
+      "status": 200,
+      "origin": "https://pizzaria-on.netlify.app",
+      "viaNetlify": true,
+      "dataReady": true
+    }
   },
-  "validation": {
-    "tests": 618,
-    "source": "GitHub Windows CI",
-    "windowsRun": 40103906560,
-    "windowsJob": 120901506111,
-    "windowsStatus": "success",
-    "chromeRun": 40103906529,
-    "chromeJob": 120901506350,
-    "chromeStatus": "success",
-    "mirrorRun": 40103950797,
-    "mirrorJob": 120901638418,
-    "mirrorStatus": "failure_before_steps",
-    "privateHomepage": "rendered",
-    "privateHostingHealth": {
-      "path": "/api/hosting",
-      "status": 403,
-      "error": "signature_validation_rejected"
+  "corrections": [
+    "self_contained_package",
+    "encrypted_authenticated_cookie_transport",
+    "shared_source_build_detection",
+    "explicit_flavor_price_lines"
+  ],
+  "temporary_diagnostics_removed": true,
+  "tests": {
+    "local": {
+      "tests": 623,
+      "pass": 623,
+      "fail": 0,
+      "typecheck": "passed",
+      "build": "passed"
     },
-    "readonlyNodeProbe": {
-      "method": "GET",
-      "status": 403,
-      "error": "signature_validation_rejected"
-    },
-    "afterCacheClear": "same_health_error"
+    "final_candidate": "40348d78bec8d2c4fc5b80afd8dad33340061358",
+    "workflows": [
+      {
+        "id": 40122060149,
+        "name": "Windows",
+        "conclusion": "success"
+      },
+      {
+        "id": 40122060122,
+        "name": "Chrome",
+        "conclusion": "success"
+      },
+      {
+        "id": 40122060169,
+        "name": "Auth and orders",
+        "conclusion": "success"
+      },
+      {
+        "id": 40122060183,
+        "name": "Menu reading benchmark",
+        "conclusion": "success"
+      }
+    ]
   },
-  "publicAccess": {
-    "action": "Make public",
-    "autoReview": "rejected",
-    "reason": "Changing a private project to access by anyone requires explicit audience authorization",
-    "actionExecuted": false
+  "manual_browser_checks": [
+    "public_creator_hydrates",
+    "exact_store_name",
+    "three_exact_products_and_prices",
+    "cover_loaded",
+    "80_models_and_search",
+    "model_change",
+    "account_fields_at_save",
+    "anonymous_data_and_node_routes_require_account",
+    "calculator_expected_values_duplicate_save_reload_csv"
+  ],
+  "mirror": {
+    "repository": "bryansouzarodrigues1-creator/pizzaria.on-chat",
+    "functional_pr": 58,
+    "merge_commit": "70dfe2b1c6a86016d1a3076eaa07fe2e4bb9b101",
+    "functional_tree": "0b018004eb4eabbabdc84dbe13c73e7d0c4fae5b",
+    "functional_tree_matches": true,
+    "workflow_id": 40122720554,
+    "workflow_conclusion": "failure_before_steps",
+    "lovable_project": "72174972-f3c2-4d02-8e0a-df834ebc4faa"
   },
-  "safeguards": {
-    "secretValuesRecorded": false,
-    "rawHeadersRecorded": false,
-    "restaurantWrites": 0,
-    "migrations": 0,
-    "accountCreation": 0,
-    "ordersCreated": 0,
-    "paidGenerations": 0,
-    "payments": 0
+  "preserved": {
+    "database": true,
+    "storage": true,
+    "existing_accounts": true,
+    "session_key": true
+  },
+  "no_paid_model_calls": true,
+  "no_customer_data_writes": true,
+  "no_migrations": true,
+  "no_payments": true,
+  "no_emails": true,
+  "remaining_limits": [
+    "real_ifood_catalog_import_not_homologated",
+    "unspecified_pizza_sizes_require_owner_confirmation",
+    "real_customer_signup_login_and_live_billing_not_executed",
+    "mirror_ci_fails_before_steps"
+  ],
+  "history": {
+    "initial_package_failure": "file:///lib/netlify-proxy.ts outside base",
+    "private_checkpoint_health_status": 403,
+    "public_action_initially_blocked_then_explicitly_authorized": true,
+    "cookie_mismatch_confirmed_without_logging_raw_values": true
   }
 }
