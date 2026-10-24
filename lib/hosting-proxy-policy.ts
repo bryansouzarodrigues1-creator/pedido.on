@@ -85,12 +85,21 @@ export async function signProxyRequest(request: Request, body: Uint8Array, confi
   if (!origin || !validProxySecret(secret)) throw new HostingProxyError(503, "Este endereço ainda está sendo preparado.");
   const ip = /^[a-f0-9:.]{3,64}$/i.test(clientIp) ? clientIp : "anonymous";
   const timestamp = String(Math.floor(now / 1000));
-  const signature = bytesToHex(await crypto.subtle.sign("HMAC", await signingKey(secret), await signatureMessage(request, body, origin, timestamp, ip)));
+  const key = await signingKey(secret);
+  const message = await signatureMessage(request, body, origin, timestamp, ip);
+  const signature = bytesToHex(await crypto.subtle.sign("HMAC", key, message));
+  // Temporary, health-route-only transport diagnostics. These are keyed proofs
+  // and a digest, never raw keys, cookies, tokens or request contents.
+  const diagnostics = new URL(request.url).pathname === "/api/hosting" ? {
+    [prefix + "diagnostic-key"]: bytesToHex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode("pedido-proxy-key-check-v1"))),
+    [prefix + "diagnostic-message"]: bytesToHex(await crypto.subtle.digest("SHA-256", message)),
+  } : {};
   return {
     [proxyHeaders.origin]: origin,
     [proxyHeaders.timestamp]: timestamp,
     [proxyHeaders.ip]: ip,
     [proxyHeaders.signature]: signature,
+    ...diagnostics,
   };
 }
 export async function normalizeHostingRequest(request: Request, config: HostingProxyConfig, now = Date.now()): Promise<{request: Request; proxied: boolean}> {
