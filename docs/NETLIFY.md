@@ -1,79 +1,68 @@
-# Preparação para a Netlify
+# Netlify — entrega de 24/10/2026
 
-O código está preparado para usar a Netlify como **endereço público** do pedido.on. Esta preparação não implantou a Netlify nem alterou o site publicado. O aplicativo continua na versão 17 em `https://forno-cardapios.waves4845.chatgpt.site`.
+## Situação confirmada
 
-## Como será hospedado
+O projeto **pizzaria-on** foi criado na Netlify e está ligado à branch main de bryansouzarodrigues1-creator/pedido.on. O deploy de produção compila e está publicado com **acesso privado da Netlify**. O endereço reservado é https://pizzaria-on.netlify.app .
 
-| Parte | Onde continua |
+**Ainda não considerar o endereço pronto para clientes.** A página inicial abriu na sessão autenticada da Netlify, mas a consulta privada a /api/hosting retornou HTTP 403, com “Não foi possível validar esta solicitação.” Uma consulta GET sem criação de dados pela função Node também retornou o mesmo erro. A reconstrução sem cache concluiu, mas não resolveu essa validação.
+
+A revisão automática recusou a ação **Make public** porque ela torna o projeto privado acessível a qualquer pessoa na internet. A mudança não foi executada nem contornada. Falta autorização explícita para essa audiência e a conferência do caminho anônimo real. Não descrever a publicação pública ou a conexão assinada de produção como homologadas.
+
+## O que foi entregue
+
+O primeiro build falhou ao resolver um import fora da pasta base: file:///lib/netlify-proxy.ts. A correção emite um pacote completo em deploy/netlify/generated/, com as duas funções e as duas políticas compartilhadas. O netlify.toml aponta para esse pacote. As fontes canônicas continuam únicas, e os arquivos gerados ficam fora do Git.
+
+| Parte | Hospedagem mantida |
 | --- | --- |
-| Endereço público, encaminhamento e HTTPS | Netlify, com gateway assinado |
-| Páginas React/Vinext, painel e API | Aplicativo atual em Sites/Workers |
-| Pizzarias, pedidos, sessões, limites e preços | D1 atual |
-| Imagens e comprovantes privados | R2 atual |
+| Novo endereço e funções de encaminhamento | Netlify |
+| Aplicativo React/Vinext e API | Sites/Workers atual, v86 |
+| Pizzarias, pedidos e sessões | D1 atual |
+| Fotos e comprovantes | R2 atual |
 | Contas e senhas | Supabase Auth atual |
-| Criação de textos e imagens | Serviço Lovable atual |
+| Serviço de criação | Lovable atual |
 
-Isso é uma entrada Netlify conectada ao servidor atual. **Não é uma migração completa do servidor, banco ou arquivos para a Netlify.** O Vinext usa bindings `cloudflare:workers`, D1 e R2; publicar somente `dist/client` perderia as páginas dinâmicas e as funções do negócio. Não desligue o site atual.
+A chave exclusiva foi cadastrada como segredo na produção Netlify e no servidor Sites, com PEDIDO_PUBLIC_ORIGIN. Nenhuma chave de sessão, Supabase, IA ou pagamento foi copiada para a Netlify. O servidor Sites foi republicado com a mesma v86 e ambiente revisão 14. Não houve migração ou gravação de pizzaria nesta entrega.
 
-O gateway encaminha páginas, arquivos, RSC, APIs, cookies e uploads, mantendo o novo domínio no navegador. A assinatura vincula URL, método, corpo, origem, IP e cabeçalhos de autenticação. O servidor só aceita o domínio HTTPS cadastrado e uma assinatura recente. Cabeçalhos de identidade ChatGPT e de encaminhamento enviados pelo visitante são removidos. As regras existentes de propriedade, CSRF, Pix e cota de IA continuam valendo.
+## Validação
 
-Uploads passam por Edge Functions para preservar comprovantes de até 5 MB. As rotas de criação usam uma Function Node separada: a Netlify documenta 60 segundos por chamada; o gateway espera até 55 segundos. Não existe repetição automática de uma geração. Se o tempo acabar, o painel mantém o mesmo `requestId` e oferece **Ver resultado**. O servidor conserva a chamada já iniciada com `waitUntil`, dentro do limite da plataforma; chamadas excepcionalmente demoradas ainda precisam ser conferidas. As demais rotas têm espera de 25 segundos.
+- **618 testes aprovados** na candidata Windows, incluindo a regressão que prepara o pacote e carrega as duas funções depois de remover as fontes externas da fixture.
+- TypeScript e build completos aprovados no mesmo CI; Chrome da candidata e verificações públicas existentes aprovados.
+- Netlify confirmou um deploy preview e os deploys de produção, com uma Function Node e uma Edge Function.
+- O espelho completo do código principal coincide por SHA de árvore, incluindo a correção de empacotamento.
+- O CI do espelho Lovable falhou antes de disponibilizar etapas. Esse CI não é declarado aprovado.
+- Nenhum pagamento, pedido, conta, e-mail ou geração de IA foi criado por estas conferências.
 
-## Valores para configurar depois
+O teste completo local iniciado antes do reinício da sessão perdeu seu arquivo de resultado; o total 618 acima vem do log preservado pelo GitHub. Os testes externos de serviços nos fixtures continuam simulados; os builds Netlify e a consulta privada descrita acima são reais.
 
-Gere uma chave nova de conexão com 32 bytes aleatórios em hexadecimal. Ela é diferente de `AUTH_SESSION_KEY`; a chave das sessões permanece intacta. Não coloque a chave em commits, mensagens, arquivos públicos ou variáveis `NEXT_PUBLIC_*`/`VITE_*`.
+## Configuração e retomada
 
-| Variável | Netlify | Servidor atual |
-| --- | --- | --- |
-| `PEDIDO_PUBLIC_ORIGIN` | URL HTTPS principal, sem caminho, exemplo `https://pedido-on.netlify.app` | O mesmo valor |
-| `PEDIDO_PROXY_SECRET` | Nova chave de conexão, 64 caracteres hexadecimais | A mesma chave |
-| `PEDIDO_BACKEND_ORIGIN` | `https://forno-cardapios.waves4845.chatgpt.site` | Não precisa |
-
-Na Netlify, cadastre os três valores com escopos **Builds, Functions e Runtime**, disponíveis para Functions e Edge Functions. Não basta escrevê-los em `[build.environment]`: valores do `netlify.toml` não ficam automaticamente disponíveis às Functions. O build de produção bloqueia variáveis ausentes ou inválidas sem imprimir seus valores.
-
-As chaves Supabase, Lovable, sessão e pagamentos ficam nas hospedagens atuais. Não copie todas as variáveis para a Netlify. Não ativar Stripe ou importação OpenAI como parte desta mudança.
-
-## Ordem da implantação futura
-
-1. Criar o projeto Netlify ligado a `bryansouzarodrigues1-creator/pedido.on`, branch `main`, e definir seu endereço principal. As configurações abaixo já estão no `netlify.toml` da raiz. Ainda não direcionar clientes para esse endereço.
-2. Configurar os três valores acima na Netlify. O pacote separado evita a detecção indevida do aplicativo principal como um Next.js convencional.
-3. Publicar a preparação do servidor pelo fluxo oficial Sites, no mesmo projeto/audiência, e cadastrar nele `PEDIDO_PUBLIC_ORIGIN` e `PEDIDO_PROXY_SECRET`. Preservar as demais variáveis, D1/R2, Supabase, lista de teste e chave de sessões. **Esta etapa ainda não foi executada.**
-4. No Supabase, acrescentar os URLs exatos do novo domínio à lista de redirecionamento: `/redefinir-senha` e `/api/auth/google/callback/*` (nonce do fluxo). Manter os URLs atuais durante a transição. Conferir o provedor Google e o domínio de CAPTCHA se esses recursos estiverem ativos. Não liberar todos os subdomínios `*.netlify.app`.
-5. Implantar a entrada Netlify e executar a conferência sem geração paga: `pnpm check:netlify --live https://seu-endereco.netlify.app`.
-6. Conferir no navegador login por e-mail, recuperação, cardápio publicado, pedido, Pix/comprovante privado, uma geração autorizada, **Ver resultado**, aplicação no rascunho e publicação. Só depois divulgar o novo endereço ou apontar o domínio próprio.
-
-| Campo de build | Valor |
+| Campo Netlify | Valor |
 | --- | --- |
-| Base directory | `deploy/netlify` |
-| Build command | `node ../../scripts/prepare-netlify.mjs` |
-| Publish directory | `public` (relativo à base) |
-| Functions directory | `netlify/functions` (relativo à base) |
-| Node.js | 24 |
+| Repositório | bryansouzarodrigues1-creator/pedido.on |
+| Branch | main |
+| Base | deploy/netlify |
+| Build | node ../../scripts/prepare-netlify.mjs |
+| Publish | public, relativo à base |
+| Functions | generated/functions |
+| Edge Functions | generated/edge-functions |
+| Node | 24 |
 
-Não usar `pnpm build` da raiz como build Netlify: esse comando produz o Worker Sites. `pnpm build:netlify` prepara somente a entrada Netlify. O cliente e o serviço Lovable não precisam ser reconstruídos por essa entrada.
+Na Netlify, PEDIDO_BACKEND_ORIGIN aponta para https://forno-cardapios.waves4845.chatgpt.site e PEDIDO_PUBLIC_ORIGIN para https://pizzaria-on.netlify.app. PEDIDO_PROXY_SECRET é secreto e precisa estar disponível em Builds, Functions e Runtime. O valor de produção foi atualizado; desenvolvimento local continua sem ele. Não registrar valores, cookies, assinaturas ou dados de logs no repositório.
 
-## Domínio, contas e histórico
+Próximo marco: após autorização explícita da audiência, tornar somente a produção pública; as prévias permanecem privadas. Validar /api/hosting até retornar origin correto, viaNetlify=true e dataReady=true; depois conferir início, calculadora, acesso por e-mail e negativas de autorização. Se a assinatura continuar rejeitada, diagnosticar e corrigir antes de divulgar o endereço. Não desabilitar a assinatura ou as regras de propriedade/CSRF.
 
-- Cookies ficam no novo domínio. O usuário entra novamente por Supabase; suas pizzarias e pedidos continuam no D1 com o mesmo proprietário. Sessões ChatGPT de Sites não são um login disponível na Netlify. Se existir loja vinculada a um proprietário ChatGPT, manter seu acesso no site atual e planejar uma transferência explícita de propriedade antes de migrar esse usuário.
-- A calculadora permanece sem cadastro. Seu histórico usa armazenamento do navegador por domínio: os cálculos do endereço antigo não aparecem automaticamente no novo. O download em texto no site antigo permite guardar uma cópia.
-- Os links antigos de cardápio e acompanhamento continuam no servidor atual. Os novos links usam o domínio Netlify. O serviço Lovable continua fazendo claim no servidor atual; não alterar seus endpoints nem gastar créditos de construção por causa do novo endereço.
-- Deploy previews não recebem autorização automática para usar contas e dados de produção. O gateway exige o endereço principal configurado; não cadastrar previews com curingas.
-- Se a Netlify falhar, voltar a divulgar o endereço Sites atual. Retirar as duas variáveis da ponte desativa o acesso assinado sem alterar dados ou sessões existentes.
+Google login e CAPTCHA não estavam ativados no ambiente conferido. Não habilitá-los por causa desta publicação. Se esses recursos forem ativados depois, cadastrar somente os callbacks/hostnames exatos do novo domínio e preservar os antigos. Recuperação de senha e validações financeiras mantêm seus limites anteriores.
 
-## Verificação local e limites
+Os endereços Sites e Lovable permanecem disponíveis durante a preparação. Não desligar D1/R2/Supabase ou apontar o frontend para outro banco para contornar a validação.
 
-```sh
-pnpm test
-pnpm typecheck
-pnpm build:netlify
-pnpm check:netlify
-pnpm build
-```
+## Referências
 
-Os testes novos usam respostas e contas simuladas e o runtime Workers real para a assinatura. A conferência `--live` faz somente GETs: inicial, calculadora, saúde da conexão e saúde da IA. Não cria conta, não envia e-mail/pedido, não faz claim e não gera imagem/texto. A implantação Netlify e os testes reais de navegador permanecem para a etapa seguinte.
-
-Na preparação de 11/10/2026 passaram 103 testes (10 novos do gateway), typecheck, build do aplicativo, preparação Netlify, lockfile separado e empacotamento das funções Edge/Node. O build de produção também foi conferido: bloqueia configuração ausente e aceita os três valores válidos de teste. Não houve novas chamadas pagas nem créditos Lovable usados nessa preparação.
-
-Uma conferência adicional executou o aplicativo compilado no Workers local com D1/R2 de teste, passando pela conexão assinada: `/api/hosting`, `/api/auth/config`, `/calculadora`, `/` e `/assets/pizza.webp` retornaram 200. A origem pública foi preservada, a saúde confirmou a ponte e o cookie CSRF seguro foi mantido. Essa evidência é local; não representa uma implantação Netlify ou acesso aos dados de produção.
-
-Referências oficiais consultadas em 11/10/2026: [Monorepos](https://docs.netlify.com/build/configure-builds/monorepos/), [Functions e limites](https://docs.netlify.com/build/functions/configuration/), [API e streaming](https://docs.netlify.com/build/functions/api/), [Edge Functions](https://docs.netlify.com/build/edge-functions/api/), [assinaturas Workers](https://developers.cloudflare.com/workers/examples/signing-requests/).
+- PR principal #102, merge beb000a05d69f7bad6ee10b3fb1740a6ad4bea21.
+- Espelho #56, merge ee2439b7f8690a3d11e409bc6dcbf628c5b1dc34.
+- Árvore funcional compartilhada: 68c67b21a7851f5df4d82f74ab93b501c2044a7d.
+- Windows: 40103906560, job 120901506111.
+- Chrome: 40103906529, job 120901506350.
+- Sites v86, implantação appgdep_6adcc7c899bc8191a9cc1e56775ad4e7, ambiente 14.
+- Netlify: primeiro build 6adc9f86b68748c533be48d5 (falhou), preview 6adcc47c2a8abd1cd854f818 (concluído), produção 6adcc87ccc9aa8d4d1471f79 (concluída), rebuild sem cache 6adccdb5520d8ae35c59dd0d (concluído).
+- [Evidência sanitizada](evidence/netlify-20261024.json).
+- [Netlify: variáveis das Edge Functions](https://docs.netlify.com/build/edge-functions/environment-variables/).
