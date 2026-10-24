@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "reviewDateUTC": "2026-10-24",
+  "scope": "feasibility research and controlled extension tests; no nationwide capture",
+  "stripe": {
+    "nativeConnectorResponded": true,
+    "financialWrites": false,
+    "directoryCliSearchSucceeded": false,
+    "directoryCliLimitation": "local Unix socket operation not permitted; no account credentials copied"
+  },
+  "previousTask": {
+    "mainPR": 98,
+    "mirrorPR": 52,
+    "mirrorMerged": true,
+    "mirrorMerge": "d522220eaea9696e6ec702a12e1ebe1d8f88c3ec",
+    "manualValidation": "three Markdown documents, matching blob hashes",
+    "ciRun": 40048993909,
+    "ciAttempts": 2,
+    "ciVerifiedSuccess": false
+  },
+  "extension": {
+    "version": "0.4.0",
+    "tests": 7,
+    "passed": 7,
+    "realStoreTest": false,
+    "fixture": "synthetic DOM",
+    "maximumItemsPerRequest": 200,
+    "sourceHashes": [
+      {
+        "path": "scripts/check-ifood-extension.test.mjs",
+        "sha": "9e9905e78811fa6502efa6f5add1aa695a66736c"
+      },
+      {
+        "path": "tools/ifood-import-extension/manifest.json",
+        "sha": "8a4f60daa314affbec92724c9a8428c3030df02b"
+      },
+      {
+        "path": "tools/ifood-import-extension/extractor.js",
+        "sha": "3a1cf5a1eca32e17daacda4c577ea8a43450b8cc"
+      },
+      {
+        "path": "tools/ifood-import-extension/format.js",
+        "sha": "135ceddf0e6578d36fb94f161a0c567cfdb79f42"
+      },
+      {
+        "path": "lib/menu-reader-policy.ts",
+        "sha": "74b184ca2575ca6a85e4a949064eef902c1bd87e"
+      }
+    ],
+    "localMatchesCurrentSource": true
+  },
+  "sources": [
+    {
+      "url": "https://apify.com/yasmany.casanova/ifood-scraper",
+      "type": "provider documentation",
+      "advertisedIndex": "98000+ restaurants across categories; not 98000 pizza menus",
+      "menuFetchedSeparately": true,
+      "liveExecution": false
+    },
+    {
+      "url": "https://github.com/ricardotachinardi/ifood-scraper",
+      "type": "historical publisher repository",
+      "datasetDates": [
+        "2020-11",
+        "2021-02"
+      ],
+      "restaurantMetadataSpiderReviewed": true,
+      "fullDatasetDownloaded": false,
+      "reuseLicenseValidated": false
+    }
+  ],
+  "hypotheticalCost": {
+    "restaurantCount": 1000,
+    "itemsPerRestaurant": 50,
+    "pricePerItemUSD": 0.025,
+    "expectedItems": 50000,
+    "eventSubtotalUSD": 1250,
+    "actualRestaurantCount": false,
+    "includesAllCosts": false,
+    "guaranteesCoverage": false
+  },
+  "production": {
+    "applicationChanges": false,
+    "environmentChanges": false,
+    "restaurantDataChanges": false,
+    "paidActorRuns": 0
+  }
+}
