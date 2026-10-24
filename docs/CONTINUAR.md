@@ -1,6 +1,6 @@
 # Continuar a pizzaria.on
 
-**Em validação — 24/10/2026:** atendimento por link substitui a busca automática na interface; fila e entrega pela extensão preservadas. Convite de instalação respeita o X, sugestões diárias reutilizam produtos/fotos sem modelos. [Fluxo e validação](ATENDIMENTO-E-DIVULGACAO-20261024.md). Registrar CI/publicação antes de anunciar como entregue.
+**Publicado — v89, 24/10/2026, 18:46 de Brasília:** atendimento por link substitui a busca automática na interface; solicitação com protocolo, fila e entrega pela extensão para revisão. Convite de instalação respeita o X; sugestões diárias reutilizam produtos/fotos sem modelos. **627 testes**, tipos/build e os três CIs principais aprovados. Netlify e Lovable conferidos. Mirror CI falha antes das etapas; captura iFood real e instalação física não foram executadas. [Fluxo e provas](ATENDIMENTO-E-DIVULGACAO-20261024.md).
 
 **Publicado — v88 / Netlify, 24/10/2026:** produção pública em https://pizzaria-on.netlify.app, com cookies transportados por envelope criptografado e assinatura validada. Calculadora, galeria de 80 modelos, nome e preços conferidos no navegador. Corrigida a mistura de sabores com travessão/preço. **623 testes**, TypeScript/build e quatro CIs finais aprovados. Servidor v88 e espelho Lovable sincronizados, sem migração ou geração paga. CI próprio do espelho continua falhando antes das etapas. [Entrega, provas e limites](NETLIFY.md).
 

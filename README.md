@@ -1,6 +1,6 @@
 # pizzaria.on
 
-**Em validação — 24/10/2026:** solicitação manual de cardápio por link no painel, convite de aplicativo com X persistente no rodapé e sugestões diárias com textos e artes locais a partir dos produtos. Sem busca automática na entrada e sem consumo de tokens na divulgação. [Fluxo e limites](docs/ATENDIMENTO-E-DIVULGACAO-20261024.md).
+**Publicado — v89, 24/10/2026, 18:46 de Brasília:** solicitação manual de cardápio por link com protocolo no painel, convite de aplicativo com X persistente no rodapé e sugestões diárias com textos e artes locais dos produtos. **627 testes**, tipos/build, Chrome, Windows e autenticação/pedidos aprovados. Netlify e Lovable atualizados; CI próprio do espelho continua falhando antes das etapas. [Uso e provas](docs/ATENDIMENTO-E-DIVULGACAO-20261024.md).
 
 **Publicado — v88 / Netlify, 24/10/2026:** produção pública em https://pizzaria-on.netlify.app, com cookies transportados por envelope criptografado e assinatura validada. Calculadora, galeria de 80 modelos, nome e preços conferidos no navegador. Corrigida a mistura de sabores com travessão/preço. **623 testes**, TypeScript/build e quatro CIs finais aprovados. Servidor v88 e espelho Lovable sincronizados, sem migração ou geração paga. CI próprio do espelho continua falhando antes das etapas. [Entrega, provas e limites](docs/NETLIFY.md).
 
