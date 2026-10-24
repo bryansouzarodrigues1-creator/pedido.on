@@ -7,6 +7,6 @@ export default function MenuSourceLink({source}:{source:MenuSourceText}){
  return <aside className="reader-link-reference" aria-label="Referência do cardápio" role="status">
   <b><LinkIcon size={17}/>{source.status==="multiple"?"Links de várias lojas reconhecidos":"Link do iFood reconhecido"}</b>
   {source.links.map(link=><div className="reader-link-store" key={link.storeId}><div><strong>{link.storeLabel}</strong><span>{link.locationLabel} · referência do endereço</span></div><a className="text-button" href={link.url} target="_blank" rel="noopener noreferrer">Abrir no iFood<ExternalLink size={15}/></a></div>)}
-  <p>Vamos consultar o catálogo público. Se o iFood não liberar os produtos, abra a loja e envie PDF, TXT, CSV ou fotos.{source.status==="multiple"?" Confira de qual loja vem cada item.":""}</p>
+  <p>Este endereço é uma referência. Para a equipe trazer os produtos e fotos, use Solicitar trazer meu cardápio via link. Você também pode importar PDF, TXT, CSV ou fotos.{source.status==="multiple"?" Confira de qual loja vem cada item.":""}</p>
  </aside>;
 }

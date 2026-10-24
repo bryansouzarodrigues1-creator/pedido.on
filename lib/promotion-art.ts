@@ -3,7 +3,7 @@ import {promotionLabel,bundleDescription,isActivePromotion,type Promotion} from 
 export function promotionVersion(data:RestaurantData,promotion:Promotion){
  const ids=promotion.kind==="bundle"?promotion.items.map(item=>item.productId):[promotion.productId];
  const offer=[promotion.id,promotion.kind==="bundle"?"bundle":"product",promotion.price,promotion.startsAt,promotion.endsAt,promotion.enabled,promotion.kind==="bundle"?[promotion.name,promotion.items.map(item=>[item.productId,item.size||"",item.quantity])]:[promotion.productId,promotion.size||""]];
- return JSON.stringify([data.name,data.logo,offer,ids.map(id=>{const p=data.products.find(item=>item.id===id);return p?[p.id,p.name,p.enabled,p.kind,p.price,p.sizes.p,p.sizes.m,p.sizes.g]:[id];})]);
+ return JSON.stringify([data.name,data.logo,data.accent,data.cover,offer,ids.map(id=>{const p=data.products.find(item=>item.id===id);return p?[p.id,p.name,p.image,p.enabled,p.kind,p.price,p.sizes.p,p.sizes.m,p.sizes.g]:[id];})]);
 }
 export function promotionArt(data:RestaurantData,promotion:Promotion,slug:string,now=Date.now()){
  if(!isActivePromotion(data,promotion,now))throw Error("Esta promoção encerrou ou está indisponível. Atualize a oferta antes de divulgar.");

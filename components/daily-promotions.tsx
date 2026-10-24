@@ -1,6 +1,8 @@
 "use client";
 import {useState,useEffect} from "react";
 import {Copy,Trash2,Check,Plus,Pencil} from "lucide-react";
+import DailyCampaigns from "./daily-campaigns";
+import {campaignPromotion} from "@/lib/daily-campaigns";
 import {Modal} from "./ui";
 import {money,restaurantSchema,type RestaurantData,type Size} from "@/lib/domain";
 import {availableProduct} from "@/lib/menu-sales";
@@ -35,7 +37,7 @@ export function PromotionEditor({data,value,onChange,onSave,onCancel,error}:{dat
  </form>;
 }
 
-export default function DailyPromotions({data,slug,onChange,canShare,onActivityChange}:{data:RestaurantData;slug:string;onChange:(patch:Partial<RestaurantData>)=>void;canShare:boolean;onActivityChange?:(active:boolean)=>void}){
+export default function DailyPromotions({data,slug,onChange,canShare,onActivityChange,suggestionsOnly=false}:{data:RestaurantData;slug:string;onChange:(patch:Partial<RestaurantData>)=>void;canShare:boolean;onActivityChange?:(active:boolean)=>void;suggestionsOnly?:boolean}){
  const [editing,setEditing]=useState(false),[editingId,setEditingId]=useState<string|null>(null),[value,setValue]=useState(fresh),[error,setError]=useState(""),[copied,setCopied]=useState(""),[copyText,setCopyText]=useState("");
  const [now,setNow]=useState(Date.now);
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer);},[]);
@@ -58,10 +60,10 @@ export default function DailyPromotions({data,slug,onChange,canShare,onActivityC
  async function copy(p:Promotion){const text=promotionMessage(data,p,`${location.origin}/p/${slug}`);try{await navigator.clipboard.writeText(text);setCopied(p.id);setCopyText("");setTimeout(()=>setCopied(""),2500);}catch{setCopyText(text);}}
  const active=data.promotions.filter(p=>Date.parse(p.endsAt)>now),expired=data.promotions.filter(p=>Date.parse(p.endsAt)<=now);
  const row=(p:Promotion)=><article className="promotion-row" key={p.id}><div><b>{promotionLabel(data,p)}</b><span>{money(p.price)} · {!p.enabled?"Pausada":Date.parse(p.endsAt)<=now?"Encerrada":!promotionAvailable(data,p)?"Item indisponível":"Até "+dateLabel(p.endsAt)}</span></div><button type="button" className="icon-btn" disabled={!canShare||Date.parse(p.endsAt)<=now||!p.enabled||!promotionAvailable(data,p)} aria-label={`Copiar divulgação de ${promotionLabel(data,p)}`} title={canShare?"Copiar divulgação":"Atualize o cardápio para divulgar"} onClick={()=>void copy(p)}>{copied===p.id?<Check size={17}/>:<Copy size={17}/>}</button><button type="button" className="icon-btn" aria-label={`Editar ${promotionLabel(data,p)}`} onClick={()=>start(p)}><Pencil size={17}/></button><button type="button" className="icon-btn" aria-label={`Remover ${promotionLabel(data,p)}`} onClick={()=>onChange({promotions:data.promotions.filter(v=>v.id!==p.id)})}><Trash2 size={17}/></button></article>;
- return <section className="daily-promotions panel-card"><div className="promotion-heading"><h2>Promoções</h2><button type="button" className="btn outline small" disabled={!data.products.some(availableProduct)||data.promotions.length>=12} onClick={()=>start()}><Plus size={16}/>Criar</button></div>
+ return <section className="daily-promotions panel-card"><DailyCampaigns data={data} slug={slug} canShare={canShare} onPrepare={campaign=>{start(campaignPromotion(campaign));setEditingId(null);setValue(old=>({...old,duration:"today",ends:""}));}}/>{!suggestionsOnly&&<><div className="promotion-heading"><h2>Promoções</h2><button type="button" className="btn outline small" disabled={!data.products.some(availableProduct)||data.promotions.length>=12} onClick={()=>start()}><Plus size={16}/>Criar</button></div>
   {active.map(row)}{expired.length>0&&<details className="promotion-archive"><summary>Encerradas · {expired.length}</summary>{expired.map(row)}</details>}
   {data.promotions.length>0&&!canShare&&<small>Atualize o cardápio para mostrar as ofertas.</small>}
   {copyText&&<textarea className="promotion-copy" readOnly rows={5} aria-label="Divulgação para copiar" value={copyText}/>}
-  <Modal open={editing} onClose={close} title={editingId?"Editar promoção":"Nova promoção"}><PromotionEditor data={data} value={value} onChange={setValue} onSave={add} onCancel={close} error={error}/></Modal>
+  </>}<Modal open={editing} onClose={close} title={editingId?"Editar promoção":"Nova promoção"}><PromotionEditor data={data} value={value} onChange={setValue} onSave={add} onCancel={close} error={error}/></Modal>
  </section>;
 }

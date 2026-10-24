@@ -26,21 +26,21 @@ try{
  const created=await api('/api/restaurants','POST',{name:'Assistência QA isolada',slug:'assistencia-qa-'+Date.now(),theme:'editorial',plan:'essencial'});assert.equal(created.status,201,JSON.stringify(created.body));const shop=created.body.restaurant,before=JSON.parse(shop.data);
  await page.goto(base+'/app?loja='+shop.id,{waitUntil:'networkidle'});
  await page.getByRole('button',{name:'Importar PDF ou fotos',exact:true}).waitFor();
- const support=page.getByRole('region',{name:'Atendimento pelo WhatsApp'});await support.getByText('+55 (22) 99999-8888',{exact:true}).waitFor();
- await followLink(support.getByRole('link',{name:'Falar com o suporte no WhatsApp'}),'5522999998888');
- const request=page.locator('details[aria-label="Importação assistida do iFood"]');await request.locator('summary').first().click();
- const submit=request.getByRole('button',{name:'Solicitar que tragam meu cardápio',exact:true});assert.equal(await submit.isEnabled(),false);
+ const request=page.locator('details[aria-label="Solicitar trazer meu cardápio via link"]');await request.locator('summary').first().click();
+ await followLink(request.getByRole('link',{name:'Falar com o suporte · +55 (22) 99999-8888',exact:true}),'5522999998888');
+ assert.equal(await page.getByRole('button',{name:'Tentar link do iFood',exact:true}).count(),0);
+ const submit=request.getByRole('button',{name:'Enviar solicitação de cardápio',exact:true});assert.equal(await submit.isEnabled(),false);
  await request.getByLabel('Seu WhatsApp com DDD (para respondermos à solicitação)',{exact:true}).fill('99999-0210');
- await request.getByLabel('Link da sua loja no iFood',{exact:true}).fill('https://www.ifood.com.br/delivery/teste-rj/loja/123e4567-e89b-42d3-a456-426614174000');
+ await request.getByLabel('Link ou mensagem de compartilhamento da sua loja no iFood',{exact:true}).fill('Esse lugar é a sua cara! Use o ícone de coração para salvar nos Favoritos. Loja QA - https://www.ifood.com.br/delivery/teste-rj/loja/123e4567-e89b-42d3-a456-426614174000');
  await request.getByLabel('Confirmo que sou responsável por esta loja e autorizo a leitura do cardápio acessível.',{exact:true}).check();assert.equal(await submit.isEnabled(),false);
  await request.getByLabel('Seu WhatsApp com DDD (para respondermos à solicitação)',{exact:true}).fill('(22) 99999-0210');assert.equal(await submit.isEnabled(),false);
  await request.getByLabel('Autorizo o suporte do Pizzaria.on a entrar em contato comigo pelo WhatsApp informado para tratar desta solicitação.',{exact:true}).check();assert.equal(await submit.isEnabled(),true);
- await submit.click();await request.getByRole('status').filter({hasText:'Solicitação registrada'}).waitFor();
+ await submit.click();await request.getByRole('status').filter({hasText:'Recebida pela equipe'}).waitFor();
  for(const width of [320,412,1280]){await page.setViewportSize({width,height:900});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'Request must fit '+width+'px');}
  await page.setViewportSize({width:412,height:915});await page.screenshot({path:path.join(output,'request-mobile.png'),fullPage:true});
  checks.push({name:'official support link intercepted; customer DDD and separate consents required; responsive request saved',ok:true});
 
- const ownerRequest=await api('/api/restaurants/'+shop.id+'/import-assistance');assert.equal(ownerRequest.status,200);const requestId=ownerRequest.body.request.id;assert.equal(ownerRequest.body.request.contactWhatsApp,'5522999990210');
+ const ownerRequest=await api('/api/restaurants/'+shop.id+'/import-assistance');assert.equal(ownerRequest.status,200);const requestId=ownerRequest.body.request.id;assert.equal(ownerRequest.body.request.contactWhatsApp,'5522999990210');assert.equal(ownerRequest.body.request.storeUrl,'https://www.ifood.com.br/delivery/teste-rj/loja/123e4567-e89b-42d3-a456-426614174000');
  admin=await context.newPage();admin.setDefaultTimeout(25000);admin.on('pageerror',e=>errors.push(e.message));await admin.goto(base+'/admin/importacoes',{waitUntil:'networkidle'});
  const row=admin.locator('.account-card > div > section').filter({has:admin.getByText(shop.name,{exact:true})});await row.getByRole('link',{name:'Responder pelo WhatsApp',exact:true}).waitFor();
  await followLink(row.getByRole('link',{name:'Responder pelo WhatsApp',exact:true}),'5522999990210');
@@ -151,7 +151,7 @@ try{
  const blockedData=(await api('/api/restaurants')).body.restaurants.find(r=>r.id===blockedShop.id);
  assert.equal(blockedData.data,blockedShop.data);assert.equal(blockedData.published,false);
  await page.goto(base+'/app?loja='+blockedShop.id,{waitUntil:'networkidle'});
- const ownerBlocked=page.locator('details[aria-label="Importação assistida do iFood"]');
+ const ownerBlocked=page.locator('details[aria-label="Solicitar trazer meu cardápio via link"]');
  await ownerBlocked.getByRole('alert').filter({hasText:'HTTP 403'}).waitFor();
  assert.equal(await ownerBlocked.getByRole('button',{name:'Levar produtos ao leitor para revisar'}).count(),0);
  await page.getByRole('button',{name:'Importar PDF ou fotos',exact:true}).waitFor();

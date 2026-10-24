@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import {formatBrazilWhatsApp,supportWhatsAppLink} from "@/lib/support-whatsapp";
+import {assistanceStatusLabel} from "@/lib/menu-assistance-client";
 import MenuRunnerResultImport from "./menu-runner-result-import";
 import MenuCaptureFailureImport from "./menu-capture-failure-import";
 type Item={id:string;restaurantId:string;restaurantName:string;storeUrl:string;ownerNote:string;contactWhatsApp:string;status:string;requestedAt:string;receivedAt:string|null;pairingExpiresAt:number|null};
@@ -15,11 +16,11 @@ export default function MenuImportAdmin(){
  setCode(data.pairingCode);setPairedId(requestId);setNotice(data.message||"Código temporário gerado.");await load();
  }catch(e){setError(e instanceof Error?e.message:"Falha ao gerar código.");}finally{setBusy(false);}}
  return <section className="account-card" aria-label="Solicitações de cardápio assistido">
- <h2>Solicitações de importação do iFood</h2><p>Responda pelo WhatsApp autorizado pelo cliente e entregue o resultado do robô para revisão. Se usar a extensão, confira o mesmo cardápio e gere um código temporário. O dono confere os dados antes de usar no rascunho.</p>
+ <h2>Solicitações de cardápio via link</h2><p>Receba o link, abra a loja solicitada e use a extensão para trazer os produtos, textos e fotos disponíveis. Gere um código temporário para entregar ao cliente. Responda pelo WhatsApp autorizado se precisar combinar o prazo. O dono confere os dados antes de usar no rascunho.</p>
  <button className="btn outline" disabled={busy} type="button" onClick={()=>void load().catch(e=>setError(e.message))}>Atualizar solicitações</button>
  {items.length===0?<p>Nenhuma solicitação encontrada.</p>:<div style={{display:"grid",gap:12,marginTop:16}}>{items.map(item=>
  <section key={item.id} style={{padding:12,border:"1px solid #b8b8b8",borderRadius:10}}>
-  <strong>{item.restaurantName}</strong><p>Estado: {item.status} · {new Date(item.requestedAt).toLocaleString("pt-BR")}</p>
+  <strong>{item.restaurantName}</strong><p>Protocolo {item.id.slice(0,8).toUpperCase()} · {assistanceStatusLabel(item.status)} · {new Date(item.requestedAt).toLocaleString("pt-BR")}</p>
   <p><a href={item.storeUrl} target="_blank" rel="noreferrer noopener">Abrir cardápio solicitado</a></p>
   {item.ownerNote&&<p>Observação do dono: {item.ownerNote}</p>}
   {item.contactWhatsApp&&<p>WhatsApp autorizado do cliente: <strong>{formatBrazilWhatsApp(item.contactWhatsApp)||item.contactWhatsApp}</strong>. <a href={supportWhatsAppLink(item.contactWhatsApp,`Olá! Aqui é o suporte do Pizzaria.on. Recebemos sua solicitação sobre o cardápio da ${item.restaurantName}. Como podemos ajudar?`)||"#"} target="_blank" rel="noreferrer noopener">Responder pelo WhatsApp</a></p>}

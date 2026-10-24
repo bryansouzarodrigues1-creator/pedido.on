@@ -20,11 +20,11 @@ export const ownerIntakeSchema=z.object({
 export type OwnerIntake=z.infer<typeof ownerIntakeSchema>;
 export const emptyOwnerIntake=():OwnerIntake=>({answers:{},step:0,initialMessage:""});
 export const ownerQuestions=[
-  "Qual é o nome da pizzaria e como você imagina o cardápio? Se já tiver um link do iFood, pode começar por ele.",
+  "Qual é o nome da pizzaria e como você imagina o cardápio? Você pode importar um PDF ou fotos do cardápio.",
   "Onde fica a pizzaria? Informe rua, número, bairro, cidade e estado. Se não tiver endereço para divulgar, responda 'depois'.",
   "Qual WhatsApp os clientes devem usar para fazer pedidos? Inclua o DDD. Pode responder 'depois'.",
   "Qual é o horário de funcionamento? Ex.: terça a domingo, 18h às 23h. Se ainda não definiu, responda 'depois'.",
-  "Traga seu cardápio por link do iFood, PDF, TXT ou foto. Também pode colar os produtos com preços aqui.",
+  "Traga seu cardápio por PDF, TXT ou foto. Também pode colar os produtos com preços aqui.",
 ] as const;
 
 const simplified=(text:string)=>text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
