@@ -43,6 +43,7 @@ next-env.d.ts
 /deploy/netlify/.netlify/
 /deploy/netlify/node_modules/
 /deploy/netlify/public/
+/deploy/netlify/generated/
 # Checkout-local execution profile and tool state; never publish them.
 /.sites-runtime/
 /.agents/
