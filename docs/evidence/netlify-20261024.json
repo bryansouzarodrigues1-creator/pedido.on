@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-24",
+  "status": "deployed_private_validation_pending",
+  "netlify": {
+    "name": "pizzaria-on",
+    "url": "https://pizzaria-on.netlify.app",
+    "audience": "private",
+    "sourceCommit": "beb000a05d69f7bad6ee10b3fb1740a6ad4bea21",
+    "productionDeploy": "6adccdb5520d8ae35c59dd0d",
+    "functionCount": 1,
+    "edgeFunctionCount": 1,
+    "buildSucceeded": true,
+    "publicRelease": false
+  },
+  "backend": {
+    "projectId": "appgprj_6ac6d3ea9f7881918f315a156338ed52",
+    "version": 86,
+    "sourceCommit": "d8f7c862af72590d87e52c1a1cf28d63a911e83b",
+    "environmentRevision": 14,
+    "deploymentId": "appgdep_6adcc7c899bc8191a9cc1e56775ad4e7",
+    "status": "succeeded"
+  },
+  "github": {
+    "mainPR": 102,
+    "mainMerge": "beb000a05d69f7bad6ee10b3fb1740a6ad4bea21",
+    "mirrorPR": 56,
+    "mirrorMerge": "ee2439b7f8690a3d11e409bc6dcbf628c5b1dc34",
+    "matchingSourceTree": "68c67b21a7851f5df4d82f74ab93b501c2044a7d"
+  },
+  "validation": {
+    "tests": 618,
+    "source": "GitHub Windows CI",
+    "windowsRun": 40103906560,
+    "windowsJob": 120901506111,
+    "windowsStatus": "success",
+    "chromeRun": 40103906529,
+    "chromeJob": 120901506350,
+    "chromeStatus": "success",
+    "mirrorRun": 40103950797,
+    "mirrorJob": 120901638418,
+    "mirrorStatus": "failure_before_steps",
+    "privateHomepage": "rendered",
+    "privateHostingHealth": {
+      "path": "/api/hosting",
+      "status": 403,
+      "error": "signature_validation_rejected"
+    },
+    "readonlyNodeProbe": {
+      "method": "GET",
+      "status": 403,
+      "error": "signature_validation_rejected"
+    },
+    "afterCacheClear": "same_health_error"
+  },
+  "publicAccess": {
+    "action": "Make public",
+    "autoReview": "rejected",
+    "reason": "Changing a private project to access by anyone requires explicit audience authorization",
+    "actionExecuted": false
+  },
+  "safeguards": {
+    "secretValuesRecorded": false,
+    "rawHeadersRecorded": false,
+    "restaurantWrites": 0,
+    "migrations": 0,
+    "accountCreation": 0,
+    "ordersCreated": 0,
+    "paidGenerations": 0,
+    "payments": 0
+  }
+}

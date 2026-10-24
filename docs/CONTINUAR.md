@@ -1,5 +1,7 @@
 # Continuar a pizzaria.on
 
+**Netlify — 24/10/2026:** correção de empacotamento integrada nas PRs #102/#56; **618 testes**, tipos/build Windows e Chrome aprovados. Produção Netlify compilada com acesso privado; a consulta assinada de saúde retornou 403, inclusive após rebuild sem cache. A liberação para qualquer pessoa foi bloqueada pela revisão automática e aguarda autorização explícita. Não anunciar como pronto para clientes. [Estado, provas e retomada](NETLIFY.md).
+
 **Publicado — v86, 24/10/2026:** botão **Avaliar no Google** no rodapé do cardápio e após o pedido concluído. O dono configura em **Pizzaria → Avaliações no Google**, testa, salva e publica; links de rascunho ficam privados. **617 testes**, tipos/build e CI Chrome/Windows/auth aprovados; job de chat aprovado na reexecução após falha de fixture. Sites e Lovable atualizados, sem migração ou API paga. CI do espelho segue com falha antes das etapas. [Uso, publicação e limites](GOOGLE-AVALIACOES-20261024.md).
 
 **Base nacional — 24/10/2026 UTC:** Stripe reconectado e consulta respondida; espelho #52 integrado após conferência documental, com falha de CI antes das etapas registrada. Investigação distingue índice de restaurantes de cardápios completos: nenhum catálogo nacional atual obtido. Sete testes controlados da extensão passaram; priorizar acervo por cliente com origem, data e revisão. Aplicativo segue v85, sem nova aquisição ou implantação. [Viabilidade e evidência](BASE-NACIONAL-CARDAPIOS-20261024.md).
