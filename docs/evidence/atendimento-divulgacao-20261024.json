@@ -1,0 +1,91 @@
+{
+  "publishedVersion": 89,
+  "sourceCommit": "77c5c3463dca2ced0fc5c41b77faa6331b659957",
+  "sourceTree": "ce7241c48a229aad8a69fd84da9b4f71bd555325",
+  "deployment": {
+    "id": "appgdep_6add272a91ec819187b0efd76a173bbc",
+    "status": "succeeded",
+    "completedAt": "2026-10-24T21:46:41.351006+00:00",
+    "environmentRevision": 14
+  },
+  "production": "https://pizzaria-on.netlify.app/",
+  "lovable": "https://pizzaria-on-estilos.lovable.app/",
+  "main": {
+    "pr": 109,
+    "head": "c2b2d1e79dddb0d2cd521fb31ad93766ffee8534",
+    "merge": "051d80bdd1f98d8768ab31b58de91a914f0bd1ac"
+  },
+  "mirror": {
+    "pr": 60,
+    "merge": "8580b96b7012ceba1ef16212a0649b98eca1b13d",
+    "sourceTreeMatches": true,
+    "projectStatus": "ready",
+    "published": true,
+    "ci": {
+      "id": 40135574641,
+      "conclusion": "failure",
+      "job": 120996268248,
+      "steps": []
+    }
+  },
+  "validation": {
+    "localTests": {
+      "passed": 627,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "chrome": {
+      "run": 40135320217,
+      "job": 120995504256,
+      "conclusion": "success",
+      "artifact": 12576263890,
+      "localSuites": 11,
+      "publicSuitesScope": "read-only on preceding v88 before publication"
+    },
+    "windows": {
+      "run": 40135320212,
+      "conclusion": "success"
+    },
+    "authAndOrders": {
+      "run": 40135320234,
+      "conclusion": "success"
+    },
+    "targetedChrome": {
+      "assistance": {
+        "checks": 7,
+        "passed": true
+      },
+      "dailyCampaigns": {
+        "checks": 4,
+        "passed": true
+      },
+      "owner": {
+        "checks": 4,
+        "passed": true
+      }
+    },
+    "publishedUi": {
+      "newRequestEntry": true,
+      "invalidLinkDisabled": true,
+      "validLinkEnabled": true,
+      "closedInstallInviteAfterReload": {
+        "top": 0,
+        "footer": 1
+      },
+      "lovableNewRequestEntry": true
+    }
+  },
+  "boundaries": {
+    "identityAndCapture": "simulated only in isolated tests",
+    "nativeAndroidInstallation": false,
+    "realIfoodCollection": false,
+    "modelCalls": 0,
+    "paidGeneration": 0,
+    "whatsAppMessagesSent": 0,
+    "productionTestAccountsCreated": 0,
+    "productionCustomerRecordsModified": 0,
+    "newMigrations": 0,
+    "credentialsChanged": false
+  }
+}
