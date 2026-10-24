@@ -1,68 +1,73 @@
-# Netlify — entrega de 24/10/2026
+# Netlify — publicação concluída em 24/10/2026
 
-## Situação confirmada
+## Estado atual
 
-O projeto **pizzaria-on** foi criado na Netlify e está ligado à branch main de bryansouzarodrigues1-creator/pedido.on. O deploy de produção compila e está publicado com **acesso privado da Netlify**. O endereço reservado é https://pizzaria-on.netlify.app .
+Produção pública: **https://pizzaria-on.netlify.app**. A audiência foi autorizada explicitamente pelo proprietário e confirmada no painel: qualquer pessoa pode acessar a produção; deploy previews continuam privados da equipe.
 
-**Ainda não considerar o endereço pronto para clientes.** A página inicial abriu na sessão autenticada da Netlify, mas a consulta privada a /api/hosting retornou HTTP 403, com “Não foi possível validar esta solicitação.” Uma consulta GET sem criação de dados pela função Node também retornou o mesmo erro. A reconstrução sem cache concluiu, mas não resolveu essa validação.
+A consulta real a /api/hosting retornou HTTP 200, com origin=https://pizzaria-on.netlify.app, viaNetlify=true e dataReady=true. O aplicativo usa o servidor **Sites v88**, publicado com ambiente revisão 14. O novo domínio mantém D1, R2, Supabase, contas e chave interna de sessão existentes.
 
-A revisão automática recusou a ação **Make public** porque ela torna o projeto privado acessível a qualquer pessoa na internet. A mudança não foi executada nem contornada. Falta autorização explícita para essa audiência e a conferência do caminho anônimo real. Não descrever a publicação pública ou a conexão assinada de produção como homologadas.
-
-## O que foi entregue
-
-O primeiro build falhou ao resolver um import fora da pasta base: file:///lib/netlify-proxy.ts. A correção emite um pacote completo em deploy/netlify/generated/, com as duas funções e as duas políticas compartilhadas. O netlify.toml aponta para esse pacote. As fontes canônicas continuam únicas, e os arquivos gerados ficam fora do Git.
-
-| Parte | Hospedagem mantida |
+| Parte | Hospedagem |
 | --- | --- |
-| Novo endereço e funções de encaminhamento | Netlify |
-| Aplicativo React/Vinext e API | Sites/Workers atual, v86 |
+| Endereço público e funções de encaminhamento | Netlify |
+| Aplicativo e APIs | Sites/Workers atual, v88 |
 | Pizzarias, pedidos e sessões | D1 atual |
 | Fotos e comprovantes | R2 atual |
 | Contas e senhas | Supabase Auth atual |
-| Serviço de criação | Lovable atual |
+| Serviço de criação e frontend conectado | Lovable atual |
 
-A chave exclusiva foi cadastrada como segredo na produção Netlify e no servidor Sites, com PEDIDO_PUBLIC_ORIGIN. Nenhuma chave de sessão, Supabase, IA ou pagamento foi copiada para a Netlify. O servidor Sites foi republicado com a mesma v86 e ambiente revisão 14. Não houve migração ou gravação de pizzaria nesta entrega.
+## Correções confirmadas
 
-## Validação
+1. **Pacote completo:** o primeiro build tentava importar file:///lib/netlify-proxy.ts fora da pasta base. O preparo agora gera as duas funções e suas políticas em deploy/netlify/generated/, sem embutir valores de ambiente nos arquivos públicos.
+2. **Cookies e assinatura:** mesmo após tornar a produção pública, o dispatcher removia Cookie. O diagnóstico temporário confirmou a mesma chave e divergência somente no cookie. O gateway encaminha apenas cookies __Host-pedido-* em um envelope AES-GCM, com chave derivada por HKDF. O servidor descriptografa o envelope e valida o MAC existente antes de usar seu conteúdo. O MAC continua vinculando método, URL, origem, timestamp, IP, cabeçalhos e corpo. Cookies de login do provedor não são encaminhados. Assinaturas antigas continuam verificadas durante a atualização. Os cabeçalhos temporários de diagnóstico foram removidos.
+3. **Deploy automático:** a Netlify ignorava alterações nas políticas fora da pasta base. scripts/ignore-netlify-build.mjs acompanha as fontes canônicas e o preparo do pacote, ignora somente mudanças sem efeito no gateway e compila quando o cache/histórico são desconhecidos.
+4. **Leitura do cardápio:** Calabresa — R$ 45,00 e Mussarela — R$ 40,00 viravam um item com preços conflitantes. Linhas curtas com hífen/travessão explícito agora mantêm sabores e valores separados. Os separadores finais saem do nome. Tamanhos ausentes continuam para confirmação do dono.
 
-- **618 testes aprovados** na candidata Windows, incluindo a regressão que prepara o pacote e carrega as duas funções depois de remover as fontes externas da fixture.
-- TypeScript e build completos aprovados no mesmo CI; Chrome da candidata e verificações públicas existentes aprovados.
-- Netlify confirmou um deploy preview e os deploys de produção, com uma Function Node e uma Edge Function.
-- O espelho completo do código principal coincide por SHA de árvore, incluindo a correção de empacotamento.
-- O CI do espelho Lovable falhou antes de disponibilizar etapas. Esse CI não é declarado aprovado.
-- Nenhum pagamento, pedido, conta, e-mail ou geração de IA foi criado por estas conferências.
+## Testes
 
-O teste completo local iniciado antes do reinício da sessão perdeu seu arquivo de resultado; o total 618 acima vem do log preservado pelo GitHub. Os testes externos de serviços nos fixtures continuam simulados; os builds Netlify e a consulta privada descrita acima são reais.
+- **623 testes locais aprovados**, zero falhas; TypeScript e build completos aprovados.
+- Candidata final 40348d78bec8d2c4fc5b80afd8dad33340061358: Windows, Chrome, autenticação/pedidos e benchmark de leitura aprovados.
+- As regressões cobrem Cookie removido no transporte, envelope inválido/ausente, cookie vazio, assinatura antiga, CSRF/propriedade e execução no runtime Workers.
+- Detecção de build testada com commits Git reais em repositório temporário.
+- No navegador pela Netlify: nome Sapore di Napoli preservado, três itens com R$ 45,00 / R$ 40,00 / R$ 6,00, capa carregada, mudança de modelo, **80 modelos selecionáveis** e busca.
+- Salvar a pizzaria apresentou WhatsApp, e-mail e senha. Consultas de dados e criação sem login exigiram conta; não criaram dados.
+- Calculadora: custo R$ 20,00 + despesas 15% + acréscimo 135% = preço R$ 50,00, lucro bruto R$ 30,00, reserva R$ 3,00 e sobra R$ 27,00. Duplicação, salvamento, recarga e CSV com os mesmos números conferidos.
+- O CI próprio do espelho Lovable voltou a falhar **antes de disponibilizar etapas**; não é declarado aprovado. As fontes funcionais do espelho coincidem por SHA de árvore com o principal.
+- Um CI Chrome intermediário falhou no seletor de anexo após a transição para a prévia. O seletor passou a acompanhar a ação de upload atual, preservando os cenários e assertivas. O CI final passou.
 
-## Configuração e retomada
+Serviços externos nos fixtures continuam simulados. Não houve cadastro, pedido, pagamento, e-mail, publicação de restaurante, migração ou chamada a modelo pago nesta entrega. As prévias e cálculos manuais ficaram no navegador de teste.
 
-| Campo Netlify | Valor |
+## Configuração
+
+| Campo | Valor |
 | --- | --- |
-| Repositório | bryansouzarodrigues1-creator/pedido.on |
+| Repositório Netlify | bryansouzarodrigues1-creator/pedido.on |
 | Branch | main |
 | Base | deploy/netlify |
 | Build | node ../../scripts/prepare-netlify.mjs |
+| Ignore | node ./../../scripts/ignore-netlify-build.mjs |
 | Publish | public, relativo à base |
 | Functions | generated/functions |
 | Edge Functions | generated/edge-functions |
 | Node | 24 |
 
-Na Netlify, PEDIDO_BACKEND_ORIGIN aponta para https://forno-cardapios.waves4845.chatgpt.site e PEDIDO_PUBLIC_ORIGIN para https://pizzaria-on.netlify.app. PEDIDO_PROXY_SECRET é secreto e precisa estar disponível em Builds, Functions e Runtime. O valor de produção foi atualizado; desenvolvimento local continua sem ele. Não registrar valores, cookies, assinaturas ou dados de logs no repositório.
+PEDIDO_BACKEND_ORIGIN aponta para https://forno-cardapios.waves4845.chatgpt.site; PEDIDO_PUBLIC_ORIGIN aponta para https://pizzaria-on.netlify.app. PEDIDO_PROXY_SECRET permanece secreto e disponível nos escopos de execução/build necessários. Não registrar chaves, cookies, envelopes, assinaturas, IPs ou cabeçalhos de execução no GitHub.
 
-Próximo marco: após autorização explícita da audiência, tornar somente a produção pública; as prévias permanecem privadas. Validar /api/hosting até retornar origin correto, viaNetlify=true e dataReady=true; depois conferir início, calculadora, acesso por e-mail e negativas de autorização. Se a assinatura continuar rejeitada, diagnosticar e corrigir antes de divulgar o endereço. Não desabilitar a assinatura ou as regras de propriedade/CSRF.
+O gateway publicado vem da correção #106; mudanças posteriores apenas no aplicativo são servidas pelo backend v88 e não precisam reconstruir o gateway. O filtro agora considera alterações futuras nas dependências compartilhadas. Não desabilitar MAC, CSRF ou propriedade para contornar falhas.
 
-Google login e CAPTCHA não estavam ativados no ambiente conferido. Não habilitá-los por causa desta publicação. Se esses recursos forem ativados depois, cadastrar somente os callbacks/hostnames exatos do novo domínio e preservar os antigos. Recuperação de senha e validações financeiras mantêm seus limites anteriores.
+## Limites que permanecem
 
-Os endereços Sites e Lovable permanecem disponíveis durante a preparação. Não desligar D1/R2/Supabase ou apontar o frontend para outro banco para contornar a validação.
+- Importação automática real do catálogo iFood continua sem homologação; esta publicação não resolve o bloqueio externo anterior. Arquivos do dono e revisão assistida continuam disponíveis.
+- Pizzas sem tamanho exigem confirmação antes de vender. Fotos ilustrativas continuam identificadas; fotos de produtos do dono dependem do material enviado.
+- Avaliações Google aparecem após o dono configurar, salvar e publicar seu próprio link. Nenhuma avaliação foi enviada.
+- Cadastro/login real de cliente e cobrança em produção não foram executados neste teste. Google login e CAPTCHA não foram ativados por esta publicação.
+- O backend continua no Sites atual; não houve migração integral para infraestrutura independente.
 
-## Referências
+## Referências e continuidade
 
-- PR principal #102, merge beb000a05d69f7bad6ee10b3fb1740a6ad4bea21.
-- Espelho #56, merge ee2439b7f8690a3d11e409bc6dcbf628c5b1dc34.
-- Árvore funcional compartilhada: 68c67b21a7851f5df4d82f74ab93b501c2044a7d.
-- Windows: 40103906560, job 120901506111.
-- Chrome: 40103906529, job 120901506350.
-- Sites v86, implantação appgdep_6adcc7c899bc8191a9cc1e56775ad4e7, ambiente 14.
-- Netlify: primeiro build 6adc9f86b68748c533be48d5 (falhou), preview 6adcc47c2a8abd1cd854f818 (concluído), produção 6adcc87ccc9aa8d4d1471f79 (concluída), rebuild sem cache 6adccdb5520d8ae35c59dd0d (concluído).
+- Principal: #102 (pacote), #104 (diagnóstico temporário), #105 (detecção de build), #106 (cookies), #107 (sabores/preços).
+- Espelho funcional: #58, merge 70dfe2b1c6a86016d1a3076eaa07fe2e4bb9b101.
+- Árvore funcional compartilhada: 0b018004eb4eabbabdc84dbe13c73e7d0c4fae5b.
+- Sites v88: fonte 698b5c7029c813be841161f14abf44347f6dea30, implantação appgdep_6adcfd3789c8819187ed837d50b86c7c.
+- Netlify: produção 6adcfa8f08c2724ebd6be98c, gateway da6f516ed463edd72c225869f374bff2afe0adb9.
+- CI final: Windows 40122060149; Chrome 40122060122; auth/pedidos 40122060169; leitura 40122060183.
 - [Evidência sanitizada](evidence/netlify-20261024.json).
-- [Netlify: variáveis das Edge Functions](https://docs.netlify.com/build/edge-functions/environment-variables/).
