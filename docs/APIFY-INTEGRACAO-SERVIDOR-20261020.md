@@ -33,7 +33,7 @@ As janelas de D1 são fixas, alinhadas ao epoch, não meses civis nem intervalos
 
 O token vai somente em `Authorization: Bearer` para `api.apify.com`, com redirecionamento manual. Não vai na URL, navegador, cache, mensagens de erro ou Git. Cookies/CSRF do visitante não são encaminhados ao provedor. Nenhum token da conexão do chat foi copiado. Não há migração de banco; usa a tabela `rate_buckets` existente e Cache API do Worker.
 
-**Custo:** a loja do Actor documenta US$0,025 por restaurante em eventos PPE e avisa que compute/memória, tráfego e armazenamento da plataforma podem ser cobrados separadamente. O limite enviado à API e as reservas são proteções de execução; não substituem conferir os limites/faturamento da conta Apify e não provam custo zero em falhas. Nenhuma nova execução de Actor externo ou contratação foi feita nesta continuação.
+**Custo — atualizado em 24/10/2026 UTC:** a [página de preços do Actor](https://apify.com/viralanalyzer/ifood-restaurant-intelligence/pricing) documenta US$0,025 por restaurante em eventos PPE com custos de plataforma incluídos. Isso corrige a indicação anterior de custos de plataforma separados para este contrato. O limite enviado à API e as reservas são proteções de execução; não substituem conferir os limites/faturamento da conta Apify e não provam custo zero em falhas. Nenhuma nova execução de Actor externo ou contratação foi feita nesta continuação.
 
 ## Ativação pendente
 
