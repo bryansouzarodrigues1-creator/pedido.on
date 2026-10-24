@@ -4,7 +4,9 @@ import {httpsOrigin} from '../lib/hosting-proxy-policy.ts';
 const root = new URL('../', import.meta.url);
 const required = ['netlify.toml', 'deploy/netlify/package.json', 'deploy/netlify/pnpm-lock.yaml',
   'deploy/netlify/netlify/edge-functions/gateway.ts', 'deploy/netlify/netlify/functions/creation.ts',
-  'lib/hosting-proxy-policy.ts', 'lib/netlify-proxy.ts', 'app/api/hosting/route.ts', 'docs/NETLIFY.md'];
+  'lib/hosting-proxy-policy.ts', 'lib/netlify-proxy.ts', 'app/api/hosting/route.ts', 'docs/NETLIFY.md',
+  'deploy/netlify/generated/shared/hosting-proxy-policy.ts', 'deploy/netlify/generated/shared/netlify-proxy.ts',
+  'deploy/netlify/generated/edge-functions/gateway.ts', 'deploy/netlify/generated/functions/creation.ts'];
 for (const filename of required) await access(new URL(filename, root));
 const packageData = JSON.parse(await readFile(new URL('deploy/netlify/package.json', root), 'utf8'));
 if (packageData.dependencies?.next || packageData.dependencies?.vinext) throw new Error('O gateway Netlify deve usar seu pacote separado.');

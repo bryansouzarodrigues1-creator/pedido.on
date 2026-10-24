@@ -17,6 +17,26 @@ for (const name of ['netlify.toml', 'deploy/netlify/netlify/edge-functions/gatew
   'deploy/netlify/netlify/functions/creation.ts', 'lib/hosting-proxy-policy.ts', 'lib/netlify-proxy.ts']) {
   await readFile(new URL(name, root), 'utf8');
 }
+// Edge bundling is rooted at the Netlify base directory. Emit a self-contained
+// package there; canonical handlers and policies stay in their source locations.
+const generated = new URL('deploy/netlify/generated/', root);
+for (const [destination, source] of [
+  ['shared/hosting-proxy-policy.ts', 'lib/hosting-proxy-policy.ts'],
+  ['shared/netlify-proxy.ts', 'lib/netlify-proxy.ts'],
+  ['edge-functions/gateway.ts', 'deploy/netlify/netlify/edge-functions/gateway.ts'],
+  ['functions/creation.ts', 'deploy/netlify/netlify/functions/creation.ts'],
+]) {
+  let content = await readFile(new URL(source, root), 'utf8');
+  if (destination.startsWith('edge-functions/') || destination.startsWith('functions/')) {
+    const updated = content.replace(/from ["']\.\.\/\.\.\/\.\.\/\.\.\/lib\/netlify-proxy\.ts["'];/,
+      'from "../shared/netlify-proxy.ts";');
+    if (updated === content) throw new Error('Confira o import do gateway em ' + source);
+    content = updated;
+  }
+  const target = new URL(destination, generated);
+  await mkdir(new URL('./', target), {recursive: true});
+  await writeFile(target, content);
+}
 const output = new URL('deploy/netlify/public/', root);
 await mkdir(output, {recursive: true});
 const maintenance = '<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>pedido.on</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#171713;color:#fff;font:18px system-ui}main{max-width:420px;padding:32px}b{color:#ee4a32}h1{font-size:32px}p{color:#bfc0b8;line-height:1.6}</style><main><b>pedido.on</b><h1>Estamos preparando este endereço.</h1><p>Volte em breve para acessar sua pizzaria.</p></main></html>';
