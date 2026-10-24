@@ -2,6 +2,7 @@
 # Runtime variables must be configured in Netlify UI, never in this file.
 [build]
   base = "deploy/netlify"
+  ignore = "node ./../../scripts/ignore-netlify-build.mjs"
   command = "node ../../scripts/prepare-netlify.mjs"
   publish = "public"
   edge_functions = "generated/edge-functions"
