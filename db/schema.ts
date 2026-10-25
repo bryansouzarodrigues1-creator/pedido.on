@@ -97,3 +97,10 @@ export const menuImportAssistancePhotos=sqliteTable("menu_import_assistance_phot
 
 // Anonymous, unlisted design previews contain no account credentials.
 export const guestMenuPreviews=sqliteTable("guest_menu_previews",{id:text("id").primaryKey(),objectKey:text("object_key").notNull(),createdAt:integer("created_at").notNull(),expiresAt:integer("expires_at").notNull()});
+
+// Administrator-created, unlisted prospect previews. No account or payment credentials.
+export const adminSharedMenus=sqliteTable("admin_shared_menus",{
+ id:text("id").primaryKey(),createdBy:text("created_by").notNull(),requestId:text("request_id").notNull(),contentHash:text("content_hash").notNull(),
+ label:text("label").notNull(),objectKey:text("object_key").notNull(),createdAt:integer("created_at").notNull(),updatedAt:integer("updated_at").notNull(),
+ expiresAt:integer("expires_at").notNull(),disabledAt:integer("disabled_at"),version:integer("version").notNull().default(1)
+},t=>[uniqueIndex("admin_shared_menus_request_idx").on(t.requestId),index("admin_shared_menus_created_idx").on(t.createdAt)]);

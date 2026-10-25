@@ -20,7 +20,7 @@ try{
  assert.equal(await page.locator('input[type=email],input[type=password]').count(),0);
  await say('Minha pizzaria se chama Memórias do Forno QA. Quero madeira e nostalgia.\nBebidas\nÁgua mineral R$ 5,00\nSuco natural R$ 8,00');
  assert.equal(await page.locator('.ai-selected .texture-wood').count(),1);
- assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),'Memórias do Forno QA');
+ assert.equal(await page.locator('.ai-selected .mini-top strong, .restaurant-brand strong').textContent(),'Memórias do Forno QA');
  assert.equal(await page.locator('.ai-selected .mini-product').count(),2);
  assert.equal(await page.locator('input[type=email],input[type=password]').count(),0);assert.deepEqual(writes,[]);
  for(const width of [320,412,1280]){await page.setViewportSize({width,height:915});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
@@ -32,9 +32,9 @@ try{
  for(const width of [320,412,1280]){await page.setViewportSize({width,height:915});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
  await page.setViewportSize({width:412,height:915});await page.locator('.ai-style-card').first().scrollIntoViewIfNeeded();await page.screenshot({path:path.join(output,'galeria-80-mobile.png'),fullPage:false});
  checks.push('80 editable models open together, filter by name and fit mobile and desktop');
- await page.locator('.ai-selected-more summary').click();await page.getByRole('button',{name:'Compartilhar prévia de teste (7 dias)',exact:true}).click();
- const link=page.locator('.creator-share-result a');await link.waitFor();const href=await link.getAttribute('href');assert.match(href,/\/v\/[a-f0-9]{32}$/);
- const fresh=await browser.newContext({...devices['Pixel 7'],serviceWorkers:'block'}),viewer=await fresh.newPage();await viewer.goto(href,{waitUntil:'networkidle'});assert.match(await viewer.locator('.mini-top strong').textContent(),/Memórias do Forno QA/);assert.equal(await viewer.locator('.mini-product').count(),2);assert.match(await viewer.locator('.shared-preview-banner').textContent(),/ainda não recebe pedidos/);await viewer.screenshot({path:path.join(output,'link-sem-cadastro.png'),fullPage:true});await fresh.close();
+ await page.locator('.ai-selected-more summary').click();await page.getByRole('button',{name:/^(Compartilhar prévia de teste \(7 dias\)|Enviar prévia ao cliente)$/}).click();
+ const link=page.locator('.creator-share-result > a');await link.waitFor();const href=await link.getAttribute('href');assert.match(href,/\/v\/[a-f0-9]{32}$/);
+ const fresh=await browser.newContext({...devices['Pixel 7'],serviceWorkers:'block'}),viewer=await fresh.newPage();await viewer.goto(href,{waitUntil:'networkidle'});assert.match(await viewer.locator('.mini-top strong, .restaurant-brand strong').textContent(),/Memórias do Forno QA/);assert.equal(await viewer.locator('.products-grid > button').count(),2);assert.match(await viewer.locator('.shared-preview-banner').textContent(),/ainda não recebe pedidos/);await viewer.screenshot({path:path.join(output,'link-sem-cadastro.png'),fullPage:true});await fresh.close();
  checks.push('fresh visitor opens the actual unlisted D1/R2 preview without an account');
  await page.getByRole('button',{name:'Salvar minha pizzaria',exact:true}).click();await page.getByLabel('Seu melhor e-mail').waitFor();assert.equal(await page.getByLabel('Nome da pizzaria',{exact:true}).inputValue(),'Memórias do Forno QA');assert.equal(await page.getByLabel('Crie uma senha',{exact:true}).count(),1);assert.ok(writes.every(p=>p==='/api/guest-previews'));
  checks.push('email and password appear only alongside final pizzeria details');
@@ -63,14 +63,14 @@ try{
  assert.match(await page.locator('.owner-source-fallback').textContent(),/equipe/);
  await nameConfirm.getByRole('button',{name:'Usar este nome',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();
  assert.match(await page.locator('.ai-gallery-sample').textContent(),/não são da sua pizzaria/);assert.equal(await page.locator('.ai-selected .mini-product').count(),3);
- await page.getByRole('textbox',{name:/Nome que aparece no seu cardápio/}).fill('Pizzaria Azul Confirmada');assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),'Pizzaria Azul Confirmada');
+ await page.getByRole('textbox',{name:/Nome que aparece no seu cardápio/}).fill('Pizzaria Azul Confirmada');assert.equal(await page.locator('.ai-selected .mini-top strong, .restaurant-brand strong').textContent(),'Pizzaria Azul Confirmada');
  checks.push('pasted URL stays a local reference with zero catalog queries, explicit human request and editable confirmed name');
  await context.close();await open();let automaticCalls=0;
  const master='https://www.ifood.com.br/delivery/armacao-dos-buzios-rj/master-pizzas---buzios-sao-jose/cd5f08e7-d71c-4918-9fb4-963192b8a85b';
  const shared='Esse lugar é a sua cara! Use o ícone de coração no app pra salvar a loja na sua área de Favoritos. Master Pizzas - Búzios - '+master+'?UTM_Medium=share';
  await context.route('**/api/menu-source',async route=>{automaticCalls++;assert.equal(route.request().postDataJSON().url,master);await new Promise(resolve=>setTimeout(resolve,1600));return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({status:'needs_content',url:master,count:0,text:'',message:'O iFood não liberou o catálogo por esse link. Bloqueio simulado para testar identificação.'})});});
  await page.locator('#owner-intake-message').evaluate((el,text)=>{const clipboardData=new DataTransfer();clipboardData.setData('text/plain',text);for(let i=0;i<2;i++)el.dispatchEvent(new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData}));},shared);
- const recognized=page.getByRole('region',{name:'Confirme o nome da pizzaria'});await recognized.getByRole('heading',{name:'Master Pizzas - Búzios',exact:true}).waitFor();await recognized.getByRole('button',{name:'Usar este nome',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(automaticCalls,0);assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),'Master Pizzas - Búzios');assert.equal(await page.locator('.ai-selected .mini-product').count(),3);await page.reload({waitUntil:'networkidle'});await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-selected .mini-top strong').textContent(),'Master Pizzas - Búzios');assert.equal(automaticCalls,0);checks.push('clipboard Share message keeps the exact confirmed trade name after reload and never starts a crawler');
+ const recognized=page.getByRole('region',{name:'Confirme o nome da pizzaria'});await recognized.getByRole('heading',{name:'Master Pizzas - Búzios',exact:true}).waitFor();await recognized.getByRole('button',{name:'Usar este nome',exact:true}).click();await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(automaticCalls,0);assert.equal(await page.locator('.ai-selected .mini-top strong, .restaurant-brand strong').textContent(),'Master Pizzas - Búzios');assert.equal(await page.locator('.ai-selected .mini-product').count(),3);await page.reload({waitUntil:'networkidle'});await page.locator('.ai-selected .mini-menu').waitFor();assert.equal(await page.locator('.ai-selected .mini-top strong, .restaurant-brand strong').textContent(),'Master Pizzas - Búzios');assert.equal(automaticCalls,0);checks.push('clipboard Share message keeps the exact confirmed trade name after reload and never starts a crawler');
 
  assert.deepEqual(errors,[]);
  console.log('PASS CREATOR '+checks.length+' scenarios');

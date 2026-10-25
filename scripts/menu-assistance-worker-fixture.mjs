@@ -16,6 +16,10 @@ export async function assistanceRuntime({support='',push={},outbound=()=>{throw 
  const key=pauseUploads?'paused-upload':'normal';
  if(!bundles.has(key))bundles.set(key,esbuild.build({stdin:{contents:`
  import {requestContext} from 'test-request-context';
+ import * as shares from './app/api/admin/shared-menus/route.ts';
+ import * as shareEdit from './app/api/admin/shared-menus/[id]/route.ts';
+ import * as shareRead from './app/api/shared-menus/[id]/route.ts';
+ import * as workspace from './app/api/admin/workspace/route.ts';
  import * as owner from './app/api/restaurants/[id]/import-assistance/route.ts';
  import * as admin from './app/api/admin/menu-import-assistance/route.ts';
  import * as runner from './app/api/admin/menu-import-results/route.ts';
@@ -29,6 +33,10 @@ export async function assistanceRuntime({support='',push={},outbound=()=>{throw 
  import * as restaurant from './app/api/restaurants/[id]/route.ts';
  export default {fetch(request){return requestContext.run(request,async()=>{
   const u=new URL(request.url),match=/^\\/api\\/restaurants\\/([^/]+)(\\/import-assistance)?$/.exec(u.pathname);
+  if(u.pathname==='/api/admin/workspace')return workspace.GET(request);
+  if(u.pathname==='/api/admin/shared-menus')return shares[request.method](request);
+  if(u.pathname.startsWith('/api/admin/shared-menus/'))return shareEdit[request.method](request,{params:Promise.resolve({id:u.pathname.split('/').at(-1)})});
+  if(u.pathname.startsWith('/api/shared-menus/'))return shareRead.GET(request,{params:Promise.resolve({id:u.pathname.split('/').at(-1)})});
   if(u.pathname==='/api/restaurants')return restaurants[request.method](request);
   if(u.pathname==='/api/creator/availability')return availability[request.method](request);
   if(u.pathname==='/api/guest-previews')return guests[request.method](request);
