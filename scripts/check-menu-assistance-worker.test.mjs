@@ -132,6 +132,14 @@ test('migration 0016 preserves existing restaurant, account and session records'
  }finally{await f.close();}
 });
 
+test('configured eight-digit support contact survives the real worker response unchanged',async()=>{
+ const f=await assistanceRuntime({support:'+55 (22) 9888-7777'});
+ try{
+  const response=await f.owner();assert.equal(response.status,200);
+  assert.deepEqual((await response.json()).supportWhatsApp,{number:'552298887777',display:'+55 (22) 9888-7777'});
+ }finally{await f.close();}
+});
+
 test('support contact is absent for missing or malformed configuration',async()=>{
  for(const support of ['', 'not-a-phone']){const f=await assistanceRuntime({support});try{const response=await f.owner();assert.equal(response.status,200);assert.equal((await response.json()).supportWhatsApp,null);}finally{await f.close();}}
 });
