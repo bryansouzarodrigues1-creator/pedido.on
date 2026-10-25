@@ -1,19 +1,20 @@
 {
   "date": "2026-10-25",
-  "version": 91,
-  "publishedAt": "2026-10-25T10:58:03.181509+00:00",
+  "version": 92,
+  "publishedAt": "2026-10-25T11:24:54.022588+00:00",
   "production": {
     "primary": "https://pizzaria-on.netlify.app",
     "backend": "https://forno-cardapios.waves4845.chatgpt.site",
-    "sourceCommit": "777a03fc11493464c1f66874e3b40f3aef9278fe",
-    "canonicalCommit": "a0dcfa91bed308bdebff48cd0cda442bc265e622",
-    "tree": "9b278d6013d4341ce94fa8a63e3c89e381ce82eb",
-    "versionId": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_3a8aa3357548819186d241a652a841dd",
-    "deploymentId": "appgdep_6adde0a474ec8191beefe382e7bdf5b0",
-    "envRevision": 14
+    "sourceCommit": "c4a8e1c11f38ea4ec0346f85ff864f1bb5593301",
+    "canonicalCommit": "ced7eea5f9c3ab968608ffbb482f5a4792b1a3fa",
+    "tree": "ff78d222bdec0c3f3e75d06daa76e9435962168a",
+    "versionId": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_1891b5b225f881918ca78c22bb1ce537",
+    "deploymentId": "appgdep_6adde6ee4a4c8191b5e04688e43ac322",
+    "envRevision": 15,
+    "mainMerge": "b06e953437ef0173e9b05e5439be782fa4b65716"
   },
   "checks": {
-    "unitTests": 652,
+    "unitTests": 655,
     "unitResult": "pass",
     "typecheck": "pass",
     "build": "pass",
@@ -51,24 +52,54 @@
         "conclusion": "success"
       }
     ],
-    "publicUi": "Forgot-password page verified on Netlify; reports recovery unavailable while SMTP and support are absent."
+    "publicUi": "Netlify and Lovable forgot-password pages verified: support button visible; exact operator-confirmed destination preserved; no WhatsApp message sent.",
+    "qaContractCorrection": {
+      "commit": "59e1c29e9c9d95d3e43e59be3865a6d1c679be12",
+      "tree": "6d9c9c1d120180655abee9aa5cda4611a7d38efe",
+      "note": "Only a QA script changed after runtime publication: an unconfirmed public signup mock must show an error and no access card.",
+      "initialChromeRun": 40188583127,
+      "initialLocalSuitesPassed": 13
+    },
+    "pr119": [
+      {
+        "id": 40189211416,
+        "name": "Group beta auth and order checks",
+        "conclusion": "success"
+      },
+      {
+        "id": 40189211364,
+        "name": "Windows QA - Pizzaria.on (no production)",
+        "conclusion": "success"
+      },
+      {
+        "id": 40189211413,
+        "name": "Chrome browser QA (isolated local data)",
+        "conclusion": "success"
+      }
+    ],
+    "finalQaHead": "59e1c29e9c9d95d3e43e59be3865a6d1c679be12"
   },
   "configuration": {
-    "supportWhatsAppConfigured": false,
+    "supportWhatsAppConfigured": true,
+    "supportDigitsPreserved": true,
     "emailRecoveryEnabled": false,
     "realAccountOrPasswordChanged": false,
     "paidGeneration": false
   },
   "pending": [
-    "Official support WhatsApp with DDD",
     "Administrator MFA enrollment and recent step-up",
     "Verified owner factor and browser-bound one-use recovery",
     "Passkey compatibility and rollout validation"
   ],
   "lovable": {
-    "codeCommit": "777bb73da209457136e20b47c2e91034e91ddfde",
-    "deployment": "65181228-5095-4a96-a39f-ba442088a7cb",
-    "status": "publication requested; live UI must be verified"
+    "codeCommit": "76db2aa0849192768613f6f1bf44fd700c74a9ec",
+    "qaCommit": "195d6e49ed0be0ee1d242fb0b9bc81fe220ee70e",
+    "deployment": "c4a1d02a-50f3-4b07-ae74-2c0e71378056",
+    "status": "Published UI verified in browser; exact support destination preserved.",
+    "ci": {
+      "run": 40188920208,
+      "result": "failure before job steps; not presented as passed"
+    }
   },
   "securityIssue": 116
 }

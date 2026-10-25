@@ -1,6 +1,6 @@
 # Recuperação de acesso pelo WhatsApp — estado em 25/10/2026
 
-A interface e o backend foram publicados na v91. O botão **Solicitar recuperação pelo WhatsApp** depende de `PEDIDO_SUPPORT_WHATSAPP`; esse número oficial continua ausente no ambiente Sites (revisão 14) e não foi encontrado no histórico. Nunca usar números de testes, clientes ou outros projetos para preencher essa configuração.
+A interface e o backend estão publicados na **v92**. `PEDIDO_SUPPORT_WHATSAPP` foi configurado no runtime (revisão 15) com o contato confirmado pelo proprietário. O botão **Solicitar recuperação pelo WhatsApp** e seu destino exato foram conferidos na Netlify e no Lovable. O formato de oito dígitos depois do DDD é preservado, sem acrescentar dígitos. Não gravar o número real no GitHub; usar somente a configuração do servidor.
 
 - O canal abre uma conversa de suporte e não comprova identidade nem cria sessão.
 - O cliente pode escrever o e-mail de cadastro na mensagem. Senhas, tokens e códigos não são incluídos.
