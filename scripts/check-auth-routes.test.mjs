@@ -95,6 +95,20 @@ async function login(f,email='owner@example.test',password=initialPassword,next=
   return {response,cookie:sessionCookie(response)};
 }
 
+test('registration resumes immediately after reset completion despite retained maintenance bindings',async()=>{
+ const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
+ Object.assign(f.env,{PEDIDO_RESET_ID:crypto.randomUUID(),PEDIDO_RESET_CUTOFF:new Date(Date.now()-1000).toISOString(),PEDIDO_RESET_UNTIL:String(Math.floor(Date.now()/1000)+300)});
+ try{
+  const blocked=await f.call('auth','POST',{action:'register'},{});assert.equal(blocked.status,503);assert.equal(p.calls.length,0);
+  f.db.prepare("INSERT INTO platform_maintenance_runs(id,status,created_at) VALUES (?,'done',?)").run(f.env.PEDIDO_RESET_ID,new Date().toISOString());
+  const invalid=await f.call('auth','POST',{action:'register'},{});assert.equal(invalid.status,400);assert.equal(p.calls.length,0);
+  const config=await (await f.call('auth','GET',{action:'config'})).json();assert.equal(config.registrationEnabled,true);
+  const created=await f.call('auth','POST',{action:'register'},{name:'Dono de teste',email:'after-reset@example.test',password:'teste6'});
+  assert.equal(created.status,200,await created.clone().text());assert.equal((await created.json()).ok,true);
+  assert.equal(f.db.prepare('SELECT count(*) AS n FROM restaurants').get().n,2);
+ }finally{globalThis.fetch=originalFetch;f.close();}
+});
+
 test('prototype registration enters the panel directly and only recovery sends mail for approved accounts',async()=>{
   const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
   f.env.PEDIDO_EMAIL_DELIVERY_READY='false';f.env.PEDIDO_AUTH_MODE='prototype';f.env.PEDIDO_AUTH_TEST_EMAILS='  OWNER@example.test  ';

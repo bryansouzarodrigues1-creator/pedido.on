@@ -15,6 +15,16 @@ test('maintenance is inert unless explicitly armed with a bounded runtime window
  assert.equal(maintenanceActive({PEDIDO_RESET_ID:crypto.randomUUID(),PEDIDO_RESET_UNTIL:'99999999999',PEDIDO_RESET_CUTOFF:new Date().toISOString()}),false);
  const f=setup();try{delete f.env.PEDIDO_RESET_ID;await f.run(f.env);assert.equal(f.db.prepare('SELECT count(*) AS n FROM restaurants').get().n,2);assert.equal(f.media.size,2);}finally{f.close();}
 });
+test('completed maintenance cannot block authentication when old host bindings remain',async()=>{
+ const f=setup();try{
+  const blocks=f.load('lib/platform-maintenance.ts').maintenanceBlocksAuthentication;
+  assert.equal(await blocks(f.env),true);
+  f.db.prepare("INSERT INTO platform_maintenance_runs(id,status,created_at) VALUES (?,'done',?)").run(f.env.PEDIDO_RESET_ID,new Date().toISOString());
+  assert.equal(await blocks(f.env),false);
+  assert.equal(f.db.prepare('SELECT count(*) AS n FROM restaurants').get().n,2);
+  f.env.PEDIDO_RESET_ID='disabled';assert.equal(await blocks(f.env),false);
+ }finally{f.close();}
+});
 test('authorized reset erases business rows, retains schema and newer media, and never repeats',async()=>{
  const f=setup();try{
   const schema=f.db.prepare("SELECT name,sql FROM sqlite_master WHERE type IN ('table','index') ORDER BY name").all();

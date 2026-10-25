@@ -1,0 +1,22 @@
+name: Published registration availability (no account creation)
+on:
+  pull_request:
+    paths:
+      - 'lib/platform-maintenance.ts'
+      - 'app/api/auth/**'
+      - 'scripts/check-registration-availability.mjs'
+      - '.github/workflows/registration-availability.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check primary signup validation without creating an account
+        run: node scripts/check-registration-availability.mjs https://pizzaria-on.netlify.app
