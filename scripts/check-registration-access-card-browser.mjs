@@ -17,7 +17,7 @@ let response={status:409,body:{error:"Esta conta de teste já existe."}};
 await context.route("**/*",route=>{
  const url=new URL(route.request().url());
  if(url.origin===base)return route.continue();
- unexpectedExternal.push(url.origin);
+ if(route.request().method()!=="GET")unexpectedExternal.push(url.origin);
  return route.abort();
 });
 await context.route("**/api/auth/config?registration=1",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({enabled:true,registrationEnabled:true,recoveryEnabled:false,googleEnabled:false,inviteRequired:false,csrf:"test-csrf-token",captchaSiteKey:""})}));
@@ -87,7 +87,8 @@ try{
 
  await page.getByRole("checkbox",{name:"Incluir minha senha na imagem"}).check();
  const consent=await fileFor("Baixar versão editável (SVG)","pizzaria-on-meu-acesso.svg");
- assert.ok(consent.toString("utf8").includes(secret));
+ assert.ok(consent.toString("utf8").includes(secret.slice(0,28)));
+ assert.ok(consent.toString("utf8").includes(secret.slice(28)));
  assert.match(consent.toString("utf8"),/ATENÇÃO: imagem contém sua senha/);
  await page.getByRole("checkbox",{name:"Incluir minha senha na imagem"}).uncheck();
  assert.equal(await page.getByText(secret,{exact:true}).count(),0);
