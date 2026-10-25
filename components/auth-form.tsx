@@ -5,6 +5,7 @@ import {ArrowLeft,ArrowRight,Eye,EyeOff,Mail,ShieldCheck,CheckCircle2,Loader2,Lo
 import {Brand} from "./ui";
 import RegistrationAccessCard from "./registration-access-card";
 import {chatGPTSignOutPath} from "@/lib/auth-paths";
+import {MIN_PASSWORD_LENGTH,ADMIN_PASSWORD_MIN_LENGTH,setPasswordValidity} from "@/lib/password-policy";
 import {supportWhatsAppLink} from "@/lib/support-whatsapp";
 type Mode="login"|"register"|"recover"|"confirm-email"|"reset"|"logout";
 type AuthConfig={enabled:boolean;registrationEnabled:boolean;recoveryEnabled:boolean;prototype:boolean;inviteRequired:boolean;googleEnabled:boolean;csrf:string;captchaSiteKey:string;supportWhatsApp?:string|null};
@@ -22,7 +23,7 @@ const copy={
  register:{tag:"1 MÊS GRÁTIS · 30 DIAS",title:"Salve o cardápio da sua pizzaria.",text:"Seu teste começa ao criar a primeira pizzaria. Sem cartão de crédito e sem cobrança automática.",button:"Criar minha conta grátis"},
  recover:{tag:"VAMOS RESOLVER",title:"Esqueceu a senha?",text:"Informe seu e-mail. Enviaremos um link para você escolher uma nova senha.",button:"Enviar link de recuperação"},
  "confirm-email":{tag:"SÓ FALTA CONFIRMAR",title:"Vamos abrir sua conta.",text:"Confirme seu e-mail para começar a montar seu cardápio.",button:"Confirmar meu e-mail"},
- reset:{tag:"UM NOVO COMEÇO",title:"Escolha uma nova senha.",text:"Use pelo menos 12 caracteres. Uma frase curta é mais fácil de lembrar.",button:"Salvar nova senha"},
+ reset:{tag:"UM NOVO COMEÇO",title:"Escolha uma nova senha.",text:"Use pelo menos 8 caracteres. Uma frase é mais fácil de lembrar.",button:"Salvar nova senha"},
  logout:{tag:"ATÉ A PRÓXIMA",title:"Encerrar sua sessão?",text:"Você pode voltar quando quiser. Seu cardápio continua salvo.",button:"Sair da minha conta"}
 };
 export default function AuthForm({mode,next="/app",tokenHash="",recoveryCode="",recoveryReady=false,oauthError=""}:{mode:Mode;next?:string;tokenHash?:string;recoveryCode?:string;recoveryReady?:boolean;oauthError?:string}){
@@ -30,6 +31,7 @@ export default function AuthForm({mode,next="/app",tokenHash="",recoveryCode="",
  const [registeredNext,setRegisteredNext]=useState<string|null>(null);
  const [adminInvite,setAdminInvite]=useState("");
  useEffect(()=>{if(mode!=="register")return;const token=new URLSearchParams(location.hash.slice(1)).get("adminInvite");if(token){history.replaceState(null,"",location.pathname+location.search);if(/^[a-f0-9]{64}$/.test(token))setAdminInvite(token);}},[mode]);
+ const minimum=adminInvite?ADMIN_PASSWORD_MIN_LENGTH:MIN_PASSWORD_LENGTH;
  const content=copy[mode],needsPassword=mode==="login"||mode==="register"||mode==="reset"&&ready,available=mode==="register"?config?.registrationEnabled:mode==="recover"?config?.recoveryEnabled:config?.enabled;
  const supportLink=config?.supportWhatsApp?supportWhatsAppLink(config.supportWhatsApp,"Olá! Sou cliente da Pizzaria.on e quero solicitar recuperação da minha conta."+(email.trim()?" Meu e-mail cadastrado é "+email.trim()+".":"")+" Podemos confirmar minha identidade antes de qualquer alteração?"):null;
  const missingLink=mode==="confirm-email"&&!tokenHash||mode==="reset"&&!ready&&!tokenHash&&!recoveryCode;
@@ -56,8 +58,9 @@ export default function AuthForm({mode,next="/app",tokenHash="",recoveryCode="",
  {mode==="register"&&config?.inviteRequired&&<label className="auth-field">Seu convite<input required autoComplete="off" spellCheck={false} minLength={16} maxLength={128} value={inviteCode} onChange={e=>setInviteCode(e.target.value)} placeholder="Cole o código recebido no grupo"/></label>}
  {mode==="register"&&<label className="auth-field">Seu nome<input autoComplete="name" required minLength={2} maxLength={100} value={name} onChange={e=>setName(e.target.value)} placeholder="Como podemos chamar você?"/></label>}
  {(mode==="login"||mode==="register"||mode==="recover")&&<label className="auth-field">E-mail<input type="email" autoComplete="email" required maxLength={254} value={email} onChange={e=>setEmail(e.target.value)} placeholder="voce@suapizzaria.com.br"/></label>}
- {needsPassword&&<label className="auth-field">Senha<div className="password-input"><input type={show?"text":"password"} autoComplete={mode==="login"?"current-password":"new-password"} required minLength={mode==="login"?undefined:12} maxLength={128} value={password} onChange={e=>setPassword(e.target.value)} placeholder={mode==="login"?"Sua senha":"Pelo menos 12 caracteres"}/><button type="button" aria-label={show?"Ocultar senha":"Mostrar senha"} onClick={()=>setShow(!show)}>{show?<EyeOff size={18}/>:<Eye size={18}/>}</button></div></label>}
- {mode==="reset"&&ready&&<label className="auth-field">Confirme a senha<input type={show?"text":"password"} autoComplete="new-password" required minLength={12} maxLength={128} value={confirmation} onChange={e=>setConfirmation(e.target.value)} placeholder="Repita a nova senha"/></label>}
+ {needsPassword&&<label className="auth-field">Senha<div className="password-input"><input type={show?"text":"password"} autoComplete={mode==="login"?"current-password":"new-password"} required minLength={mode==="login"?undefined:minimum} aria-describedby={mode==="login"?undefined:"auth-password-hint"} onInvalid={e=>setPasswordValidity(e.currentTarget,mode==="login"?1:minimum)} maxLength={128} value={password} onChange={e=>{e.currentTarget.setCustomValidity("");setPassword(e.target.value);}} placeholder={mode==="login"?"Sua senha":`Pelo menos ${minimum} caracteres`}/><button type="button" aria-label={show?"Ocultar senha":"Mostrar senha"} onClick={()=>setShow(!show)}>{show?<EyeOff size={18}/>:<Eye size={18}/>}</button></div></label>}
+ {needsPassword&&mode!=="login"&&<p id="auth-password-hint" className="auth-small-note">{minimum} caracteres ou mais. Pode usar uma frase.</p>}
+ {mode==="reset"&&ready&&<label className="auth-field">Confirme a senha<input type={show?"text":"password"} autoComplete="new-password" required minLength={minimum} maxLength={128} onInvalid={e=>setPasswordValidity(e.currentTarget,minimum)} value={confirmation} onChange={e=>{e.currentTarget.setCustomValidity("");setConfirmation(e.target.value);}} placeholder="Repita a nova senha"/></label>}
  {mode==="login"&&<div className="auth-forgot"><a href="/esqueci-senha">Esqueci minha senha</a>{!config?.recoveryEnabled&&supportLink&&<a href={supportLink} target="_blank" rel="noopener noreferrer">Solicitar pelo WhatsApp</a>}</div>}
  {mode==="register"&&<p className="auth-small-note">Seu cadastro dá acesso direto ao painel, sem confirmação por e-mail.</p>}
  {config?.captchaSiteKey&&["login","register","recover"].includes(mode)&&<Captcha key={captchaVersion} siteKey={config.captchaSiteKey} onToken={setCaptcha}/>}

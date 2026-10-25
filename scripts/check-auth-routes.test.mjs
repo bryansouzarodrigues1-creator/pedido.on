@@ -152,6 +152,36 @@ test('prototype fails closed with an absent or malformed allowlist even if publi
   }finally{globalThis.fetch=originalFetch;f.close();}
 });
 
+test('ordinary signup accepts eight characters and rejects seven before contacting the provider',async()=>{
+ const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
+ try{
+  const input={name:'Dono de teste',email:'new-owner@example.test',password:'mock777'};
+  const denied=await f.call('auth','POST',{action:'register'},input);
+  assert.equal(denied.status,400);assert.match((await denied.json()).error,/8 caracteres/);
+  assert.equal(p.calls.length,0);assert.equal(p.users.size,0);
+  const created=await f.call('auth','POST',{action:'register'},{...input,password:'mock8888'});
+  assert.equal(created.status,200,await created.clone().text());
+  assert.equal(p.calls.find(c=>c.path==='signup').body.password.length,8);
+  assert.equal(f.db.prepare('SELECT count(*) AS n FROM account_profiles').get().n,1);
+ }finally{globalThis.fetch=originalFetch;f.close();}
+});
+
+test('private administrator signup and password changes retain the twelve-character minimum',async()=>{
+ const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
+ try{
+  const invite='ef'.repeat(32);
+  Object.assign(f.env,{PLATFORM_ADMIN_EMAIL:'owner@example.test',PLATFORM_ADMIN_AUTHORITY:'ab'.repeat(32),PLATFORM_ADMIN_INVITE_HASH:await sha256(invite),PLATFORM_ADMIN_INVITE_EXPIRES:String(Math.floor(Date.now()/1000)+3600)});
+  const denied=await f.call('auth','POST',{action:'register'},{name:'Admin de teste',email:'owner@example.test',password:'mock8888',adminInvite:invite});
+  assert.equal(denied.status,400);assert.match((await denied.json()).error,/12 caracteres/);assert.equal(p.calls.length,0);
+  p.add('owner@example.test');f.env.PLATFORM_ADMIN_ACCOUNT_ID='supabase:'+firstId;
+  const {cookie}=await login(f);
+  const changed=await f.call('auth','POST',{action:'password'},{password:'mock8888',currentPassword:initialPassword},cookieHeader(cookie));
+  assert.equal(changed.status,400);assert.match((await changed.json()).error,/12 a 128/);
+  assert.equal(p.calls.filter(c=>c.path==='user'&&c.method==='PUT').length,0);
+  assert.equal(p.users.get('owner@example.test').password,initialPassword);
+ }finally{globalThis.fetch=originalFetch;f.close();}
+});
+
 test('registration signs in immediately without mail and stores only a protected verified-provider session',async()=>{
   const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
   f.env.PEDIDO_EMAIL_DELIVERY_READY='false';

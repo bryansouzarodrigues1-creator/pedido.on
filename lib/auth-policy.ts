@@ -10,7 +10,7 @@ export function safeReturnPath(value: unknown, fallback = "/app") {
 }
 export function providerOrigin(value:string) { try {const u=new URL(value);return u.protocol==="https:"&&!u.username&&!u.password&&u.pathname==="/"&&!u.search&&!u.hash?u.origin:"";}catch{return "";}}
 export function normalizeEmail(value:string){return value.trim().toLowerCase();}
-export function validPassword(value:string){return value.length>=12&&value.length<=128&&!/\x00/.test(value);}
+export {validPassword} from "./password-policy.ts";
 export function sessionCookieName(secure:boolean){return secure?SESSION_COOKIE:LOCAL_SESSION_COOKIE;}
 export function sessionCookie(value:string,secure:boolean,maxAge:number){return sessionCookieName(secure)+"="+value+"; Path=/; HttpOnly; SameSite=Lax; Max-Age="+Math.max(0,maxAge)+(secure?"; Secure":"");}
 export function readSessionCookie(value:string,secure:boolean){const key=sessionCookieName(secure)+"=";const token=value.split(";").map(s=>s.trim()).find(s=>s.startsWith(key))?.slice(key.length)||"";return /^[a-f0-9]{64}$/.test(token)?token:"";}

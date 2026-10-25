@@ -1,3 +1,4 @@
+import {validPassword,MIN_PASSWORD_LENGTH,ADMIN_PASSWORD_MIN_LENGTH} from "./password-policy";
 import {env} from "cloudflare:workers";
 import {headers} from "next/headers";
 import {redirect} from "next/navigation";
@@ -10,7 +11,7 @@ import {enrollTrial} from "./trial";
 import {HttpError,throttle} from "./http";
 import {providerFailure} from "./provider-diagnostics";
 import {providerAdminAuthority} from "./admin-enrollment-policy";
-import {prototypeEmailAllowed,inviteOnlyRegistration,registrationAvailable} from "./platform";
+import {platformAdmin,prototypeEmailAllowed,inviteOnlyRegistration,registrationAvailable} from "./platform";
 import {providerOrigin,readSessionCookie,sessionCookie,randomToken,sha256,sealTokens,openTokens,SESSION_SECONDS,RECOVERY_SECONDS,safeReturnPath,allowsAccountAccess} from "./auth-policy";
 export type AccountUser={userId:string;displayName:string;email:string;fullName:string|null;provider:"supabase"|"chatgpt";loginMethod:"email"|"google"|"internal";adminAuthority?:string};
 type AuthEnv={SUPABASE_URL?:string;SUPABASE_PUBLISHABLE_KEY?:string;AUTH_SESSION_KEY?:string;TURNSTILE_SITE_KEY?:string;PEDIDO_GOOGLE_ENABLED?:string;PEDIDO_LEGACY_AUTH_ENABLED?:string};
@@ -91,6 +92,8 @@ export async function requireAccountUser(returnTo="/app"){const user=await getAc
 export async function recoverySession(){const value=await readLocalSession();return value?.row.scope==="recovery"?value:null;}
 export async function changePassword(password:string,currentPassword?:string){
   const session=await readLocalSession();if(!session)throw new HttpError(401,"Solicite um novo link ou entre novamente.");
+  const minimum=platformAdmin(session.user)?ADMIN_PASSWORD_MIN_LENGTH:MIN_PASSWORD_LENGTH;
+  if(!validPassword(password,minimum))throw new HttpError(400,`Use uma senha com ${minimum} a 128 caracteres.`);
   if(session.row.scope!=="recovery"){
     if(!currentPassword)throw new HttpError(400,"Informe a senha atual.");
     const reauth=await providerRequest<ProviderSession>("token?grant_type=password","POST",{email:session.user.email,password:currentPassword});
