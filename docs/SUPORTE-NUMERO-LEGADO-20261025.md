@@ -9,3 +9,7 @@ O contato real fica apenas na configuração de runtime do servidor. Não inseri
 O botão **Solicitar recuperação pelo WhatsApp** abre um atendimento. Não envia mensagens sozinho, revela senhas, aprova recuperação, altera contas ou cria sessão. Permanecem os requisitos da issue #116 para recuperação exclusiva pelo titular; SMTP, MFA e passkeys não são ativados por este corretivo.
 
 Os testes usam números sintéticos e cobrem preservação dos dígitos, apresentação, URL do WhatsApp, DDD 55, formatos malformados e a resposta do Worker isolado com D1/R2 locais. Não consultam a existência de números no WhatsApp e não modificam contas reais. A evidência de publicação e a conferência pública devem registrar separadamente versão, ambiente aplicado e destino do botão, sem publicar o contato em documentação.
+
+## Publicação
+
+A v92 está publicada desde 25/10/2026 às 08:24 de Brasília, com a revisão de ambiente 15. Netlify e Lovable exibiram o botão com o destino exato configurado. Nenhuma mensagem foi enviada. [Publicação, testes e limites](PUBLICACAO-ACESSO-20261025.md).
