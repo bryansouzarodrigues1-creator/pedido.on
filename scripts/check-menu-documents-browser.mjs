@@ -107,8 +107,15 @@ try{
  await page.locator('input[autocomplete=name]').fill('Forno Azul Teste');await page.locator('input[type=email]').fill('forno-azul@example.invalid');await page.locator('input[autocomplete=new-password]').fill('curta');
  await page.locator('.auth-main form button[type=submit]').click();assert.equal(signup.length,0);assert.equal(await page.locator('input[autocomplete=new-password]').evaluate(el=>el.validity.tooShort),true);
  await page.locator('input[autocomplete=new-password]').fill('Senha Ficticia 123!');await page.getByRole('button',{name:'Mostrar senha',exact:true}).click();assert.equal(await page.locator('input[autocomplete=new-password]').inputValue(),'Senha Ficticia 123!');
- await page.locator('.auth-main form button[type=submit]').click();if(publicReadOnly)await page.getByText('Cadastro fictício recebido no teste.',{exact:true}).waitFor();else await page.getByRole('heading',{name:'Guarde seu acesso à Pizzaria.on'}).waitFor();assert.equal(signup.length,1);assert.equal(signup[0].password,'Senha Ficticia 123!');assert.equal(signup[0].confirmation,undefined);
- checks.push({name:'signup uses one password and CSRF, then shows protected access card only after a confirmed mock registration',ok:true});
+ await page.locator('.auth-main form button[type=submit]').click();
+ if(publicReadOnly){
+  // The public mock deliberately does not confirm account creation. A message
+  // alone must never unlock the access card or imply a real account exists.
+  await page.getByRole('alert').filter({hasText:'O cadastro não foi confirmado. Confira sua conta antes de continuar.'}).waitFor();
+  assert.equal(await page.getByRole('heading',{name:'Guarde seu acesso à Pizzaria.on'}).count(),0);
+ }else await page.getByRole('heading',{name:'Guarde seu acesso à Pizzaria.on'}).waitFor();
+ assert.equal(signup.length,1);assert.equal(signup[0].password,'Senha Ficticia 123!');assert.equal(signup[0].confirmation,undefined);
+ checks.push({name:publicReadOnly?'signup mock without explicit confirmation is rejected and never shows an access card':'signup uses one password and CSRF, then shows protected access card only after a confirmed mock registration',ok:true});
  assert.deepEqual(errors,[]);
 }catch(e){await page?.screenshot({path:path.join(output,'failure.png'),fullPage:true}).catch(()=>{});throw e;}
 finally{await context?.close().catch(()=>{});await browser.close();await writeFile(path.join(output,'summary.json'),JSON.stringify({checks,errors,scope:'Fictitious documents; real PDF.js/OCR; signup controlled mock; no paid providers or production writes'},null,2));}
