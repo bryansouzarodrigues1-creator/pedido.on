@@ -77,6 +77,7 @@ jobs:
             .sites-runtime/browser-ci/customer-journey/
             .sites-runtime/browser-ci/guest/evidence/
             .sites-runtime/browser-ci/calculator/
+            .sites-runtime/browser-ci/registration-card/
             .sites-runtime/browser-ci/handoff/
             .sites-runtime/browser-ci/owner/
             .sites-runtime/browser-ci/store-safety/
