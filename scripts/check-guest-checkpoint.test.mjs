@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import 'fake-indexeddb/auto';
-import {saveLaunchCheckpoint,loadLaunchCheckpoint,clearLaunchCheckpoint} from '../lib/menu-launch-checkpoint.ts';
+import {adminLaunchKey,saveLaunchCheckpoint,loadLaunchCheckpoint,clearLaunchCheckpoint} from '../lib/menu-launch-checkpoint.ts';
 import {readMenuLaunch} from '../lib/menu-launch.ts';
 import {adoptMenuLaunch} from '../lib/menu-launch-storage.ts';
 const storage=()=>{const values=new Map();return {getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)};};
@@ -40,4 +40,14 @@ test('a failed handoff retains its existing restaurant instead of moving attachm
  await assert.rejects(adoptMenuLaunch(value,crypto.randomUUID(),store),/outro rascunho/);
  assert.deepEqual(await loadLaunchCheckpoint(store),value);
  await adoptMenuLaunch(value,target,store);assert.equal(await loadLaunchCheckpoint(store),null);
+});
+
+test('administrative and public drafts survive independently in localStorage and IndexedDB',async()=>{
+ const store=storage(),guest=launch(),admin=launch({idea:'Apresentação para cliente QA'});
+ await saveLaunchCheckpoint(guest,store);await saveLaunchCheckpoint(admin,store,adminLaunchKey);
+ assert.deepEqual(await loadLaunchCheckpoint(store),guest);assert.deepEqual(await loadLaunchCheckpoint(store,adminLaunchKey),admin);
+ await clearLaunchCheckpoint(admin.id,store,adminLaunchKey);assert.equal(await loadLaunchCheckpoint(store,adminLaunchKey),null);assert.deepEqual(await loadLaunchCheckpoint(store),guest);await clearLaunchCheckpoint(guest.id,store);
+});
+test('administrative draft recovers with localStorage blocked without adopting a personal draft',async()=>{
+ const admin=launch();await saveLaunchCheckpoint(admin,blocked,adminLaunchKey);assert.deepEqual(await loadLaunchCheckpoint(blocked,adminLaunchKey),admin);assert.equal(await loadLaunchCheckpoint(blocked),null);await clearLaunchCheckpoint(admin.id,blocked,adminLaunchKey);
 });
