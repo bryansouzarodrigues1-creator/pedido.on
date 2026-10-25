@@ -16,6 +16,7 @@ async function open(persistent=false){context=persistent?await chromium.launchPe
 async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();await page.locator('.ai-selected .mini-menu').waitFor();}
 try{
  await open(true);
+ assert.equal(await page.locator('.creator-intro strong').textContent(),'10 dias grátis.');
  assert.equal(await page.getByRole('button',{name:'Tenho um link do iFood',exact:true}).count(),0);
  assert.equal(await page.locator('input[type=email],input[type=password]').count(),0);
  await say('Minha pizzaria se chama Memórias do Forno QA. Quero madeira e nostalgia.\nBebidas\nÁgua mineral R$ 5,00\nSuco natural R$ 8,00');

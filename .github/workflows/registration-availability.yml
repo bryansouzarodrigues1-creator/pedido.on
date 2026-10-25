@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'lib/platform-maintenance.ts'
+      - 'lib/trial*.ts'
+      - 'lib/ai-budget.ts'
       - 'app/api/auth/**'
       - 'scripts/check-registration-availability.mjs'
       - '.github/workflows/registration-availability.yml'
