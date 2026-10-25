@@ -24,7 +24,7 @@ try{
  for(const text of messages){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();}
  if(!quick)await page.getByRole('button',{name:/Criar minha prévia|Ver meus 12 modelos personalizados/}).click();
  await chooseMenuPreview(page);assert.equal(await page.locator('input[type=email],input[type=password]').count(),0);
- if(quick)assert.equal(await page.getByRole('button',{name:/Criar link da prévia sem cadastro|Compartilhar prévia de teste/,includeHidden:true}).count(),1);
+ if(quick)assert.equal(await page.getByRole('button',{name:/Enviar prévia ao cliente|Criar link da prévia sem cadastro|Compartilhar prévia de teste/,includeHidden:true}).count(),1);
  await page.getByRole('button',{name:'Escolher outro',exact:true}).click();await page.locator('.ai-style-card').first().waitFor();
  assert.equal(await page.locator('.ai-style-card').count(),4);assert.equal(await page.locator('.ai-style-card .mini-top strong').first().textContent(),'Forno Azul Público QA');
  assert.match(await page.locator('.mini-store-address').first().textContent(),/Rua de Teste/);assert.match(await page.locator('.mini-store-hours').first().textContent(),/23h30/);
