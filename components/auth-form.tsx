@@ -7,6 +7,7 @@ import RegistrationAccessCard from "./registration-access-card";
 import {chatGPTSignOutPath} from "@/lib/auth-paths";
 import {MIN_PASSWORD_LENGTH,ADMIN_PASSWORD_MIN_LENGTH,setPasswordValidity} from "@/lib/password-policy";
 import {supportWhatsAppLink} from "@/lib/support-whatsapp";
+import {TRIAL_DAYS} from "@/lib/trial-policy";
 type Mode="login"|"register"|"recover"|"confirm-email"|"reset"|"logout";
 type AuthConfig={enabled:boolean;registrationEnabled:boolean;recoveryEnabled:boolean;prototype:boolean;inviteRequired:boolean;googleEnabled:boolean;csrf:string;captchaSiteKey:string;supportWhatsApp?:string|null};
 type AuthResult={ok?:boolean;error?:string;message?:string;next?:string;chatgpt?:boolean;url?:string};
@@ -20,7 +21,7 @@ export function Captcha({siteKey,onToken}:{siteKey:string;onToken:(v:string)=>vo
 }
 const copy={
  login:{tag:"BEM-VINDO DE VOLTA",title:"Sua pizzaria está on.",text:"Entre para cuidar do cardápio e acompanhar seus pedidos.",button:"Entrar no meu painel"},
- register:{tag:"1 MÊS GRÁTIS · 30 DIAS",title:"Salve o cardápio da sua pizzaria.",text:"Seu teste começa ao criar a primeira pizzaria. Sem cartão de crédito e sem cobrança automática.",button:"Criar minha conta grátis"},
+ register:{tag:`${TRIAL_DAYS} DIAS GRÁTIS`,title:"Salve o cardápio da sua pizzaria.",text:"Seu teste começa ao criar a primeira pizzaria. Sem cartão de crédito e sem cobrança automática.",button:"Criar minha conta grátis"},
  recover:{tag:"VAMOS RESOLVER",title:"Esqueceu a senha?",text:"Informe seu e-mail. Enviaremos um link para você escolher uma nova senha.",button:"Enviar link de recuperação"},
  "confirm-email":{tag:"SÓ FALTA CONFIRMAR",title:"Vamos abrir sua conta.",text:"Confirme seu e-mail para começar a montar seu cardápio.",button:"Confirmar meu e-mail"},
  reset:{tag:"UM NOVO COMEÇO",title:"Escolha uma nova senha.",text:`Use pelo menos ${MIN_PASSWORD_LENGTH} caracteres. Uma frase é mais fácil de lembrar.`,button:"Salvar nova senha"},
