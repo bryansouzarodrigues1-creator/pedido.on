@@ -24,8 +24,8 @@ test('only R$49 is purchasable and visible, while old plan catalog stays for his
   assert.equal(planIds.length,3);
   assert.ok(html.includes('href="/assinatura?plan=essencial"'));
   assert.ok(html.includes("Ver assinatura de R$ 49/mês"));
-  assert.ok(html.includes("Começar meu mês grátis"));
-  assert.ok(html.includes("30 dias a partir da sua primeira pizzaria"));
+  assert.ok(html.includes("Começar meus 10 dias grátis"));
+  assert.ok(html.includes("10 dias grátis a partir da sua primeira pizzaria"));
   assert.ok(html.includes('href="/cadastro?next=%2Fapp%3Fnew%3D1%26plan%3Dessencial"'));
   assert.ok(!html.includes('href="/assinatura?plan=profissional"'));
   assert.ok(!html.includes('href="/assinatura?plan=rede"'));

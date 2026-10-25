@@ -27,8 +27,8 @@ export async function aiEntitlement(ownerId:string,now=new Date()):Promise<Windo
  if(stripe&&["active","trialing","past_due"].includes(stripe.status)&&stripe.paid_through>seconds&&Object.hasOwn(planCatalog,stripe.paid_plan)&&(!paid||planCatalog[stripe.paid_plan].images>paid.images))paid={...calendar,period:"paid:"+calendar.start,scope:"cycle",plan:stripe.paid_plan,images:planCatalog[stripe.paid_plan].images,texts:planCatalog[stripe.paid_plan].texts};
  if(access.mode==="grant"&&(!paid||moreGenerousPlan(access.plan,paid.plan)===access.plan)){const plan=planCatalog[access.plan];return {...calendar,period:"month:"+calendar.start,scope:"month",plan:access.plan,images:plan.images,texts:plan.texts};}
  if(paid)return paid;
- const trial=await db.prepare("SELECT started_at FROM account_trials WHERE owner_id=?").bind(ownerId).first<{started_at:number|null}>();
- if(trial){const value=trialFromStart(trial.started_at,seconds);return value.status==="active"?{start:iso(trial.started_at!),end:iso(value.endsAt),period:"trial:"+trial.started_at,scope:"trial",plan:"trial",...trialAi}:none;}
+ const trial=await db.prepare("SELECT started_at,ends_at FROM account_trials WHERE owner_id=?").bind(ownerId).first<{started_at:number|null;ends_at:number|null}>();
+ if(trial){const value=trialFromStart(trial.started_at,seconds,trial.ends_at);return value.status==="active"?{start:iso(trial.started_at!),end:iso(value.endsAt),period:"trial:"+trial.started_at,scope:"trial",plan:"trial",...trialAi}:none;}
  // Pre-trial accounts keep the former allowance; selecting a plan in a draft grants nothing.
  return {...calendar,period:"legacy:"+calendar.start,scope:"month",plan:"legacy",images:3,texts:20};
 }

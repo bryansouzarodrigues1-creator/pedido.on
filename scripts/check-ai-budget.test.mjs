@@ -2,12 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture,png} from './test-backend-fixture.mjs';
 import {planCatalog,aiCostUnits} from '../lib/plan-catalog.ts';
+import {TRIAL_SECONDS} from '../lib/trial-policy.ts';
 function enable(f){Object.assign(f.env,{PEDIDO_AI_PLAN_QUOTAS:'true',PEDIDO_IMAGE_ENABLED:'true',PEDIDO_IMAGE_ENDPOINT:'https://pedido-on-imagens.lovable.app/api/pedido-on/image',PEDIDO_STUDIO_ENABLED:'true',PEDIDO_STUDIO_ENDPOINT:'https://pedido-on-imagens.lovable.app/api/pedido-on/studio'});}
-function trial(f,owner='owner-a',start=Math.floor(Date.now()/1000)-600){f.db.prepare('INSERT INTO account_trials(owner_id,registered_at,started_at,ends_at) VALUES(?,?,?,?)').run(owner,new Date().toISOString(),start,start+30*86400);}
+function trial(f,owner='owner-a',start=Math.floor(Date.now()/1000)-600){f.db.prepare('INSERT INTO account_trials(owner_id,registered_at,started_at,ends_at) VALUES(?,?,?,?)').run(owner,new Date().toISOString(),start,start+TRIAL_SECONDS);}
 function paid(f,plan='profissional'){const date=new Date().toISOString(),due=date.slice(0,10),end=Math.floor(Date.now()/1000)+29*86400;f.db.prepare("INSERT INTO asaas_intents(id,owner_id,environment,plan,reference,document_hash,created_at,updated_at,catalog_version) VALUES('intent-a','owner-a','production',?,'test-reference','test-hash',?,?,2)").run(plan,date,date);f.db.prepare("INSERT INTO asaas_subscriptions(id,owner_id,environment,remote_id,customer_id,intent_id,plan,status,paid_through,paid_plan,created_at,updated_at) VALUES('production:sub_a','owner-a','production','sub_a','cus_a','intent-a',?,'ACTIVE',?,?,?,?)").run(plan,end,plan,date,date);f.db.prepare("INSERT INTO asaas_payments(id,subscription_key,remote_id,customer_id,status,amount,due_date,updated_at) VALUES('pay_a','production:sub_a','pay_a','cus_a','RECEIVED',?,?,?)").run(planCatalog[plan].amount,due,date);}
 const input=()=>({requestId:crypto.randomUUID(),asset:'logo',description:'Forno e pizza em estilo artesanal.',theme:'editorial',accent:'#bd391d'});
-test('trial is one thirty-day window shared by stores; selecting an unpaid plan never grants paid AI',async()=>{const f=fixture();try{enable(f);trial(f);f.db.prepare("UPDATE restaurants SET plan='rede' WHERE owner_id='owner-a'").run();const budget=f.load('lib/ai-budget.ts');let allowance=await budget.budgetAllowance('owner-a','image');assert.equal(allowance.limit,7);assert.equal(allowance.scope,'trial');assert.equal((await budget.budgetAllowance('owner-a','text')).limit,100);
- f.db.prepare('UPDATE account_trials SET started_at=? WHERE owner_id=?').run(Math.floor(Date.now()/1000)-31*86400,'owner-a');allowance=await budget.budgetAllowance('owner-a','image');assert.equal(allowance.limit,0);assert.equal(allowance.available,false);assert.equal(await f.load('lib/billing.ts').canServeMenu('owner-a','shop-a'),true);
+test('AI respects the recorded trial deadline: new ten-day expiry and previously granted thirty-day access',async()=>{
+ const f=fixture();try{
+  enable(f);const now=new Date(),start=Math.floor(now.getTime()/1000)-15*86400,end=start+30*86400;
+  trial(f,'owner-a',start);const budget=f.load('lib/ai-budget.ts');
+  assert.equal((await budget.aiEntitlement('owner-a',now)).scope,'unavailable');
+  f.db.prepare('UPDATE account_trials SET ends_at=? WHERE owner_id=?').run(end,'owner-a');
+  const legacy=await budget.aiEntitlement('owner-a',now);assert.equal(legacy.scope,'trial');assert.equal(legacy.end,new Date(end*1000).toISOString());assert.equal(legacy.images,7);
+  assert.equal((await budget.aiEntitlement('owner-a',new Date(end*1000))).scope,'unavailable');
+ }finally{f.close();}
+});
+test('trial is one ten-day window shared by stores; selecting an unpaid plan never grants paid AI',async()=>{const f=fixture();try{enable(f);trial(f);f.db.prepare("UPDATE restaurants SET plan='rede' WHERE owner_id='owner-a'").run();const budget=f.load('lib/ai-budget.ts');let allowance=await budget.budgetAllowance('owner-a','image');assert.equal(allowance.limit,7);assert.equal(allowance.scope,'trial');assert.equal((await budget.budgetAllowance('owner-a','text')).limit,100);
+ const expiredStart=Math.floor(Date.now()/1000)-11*86400;f.db.prepare('UPDATE account_trials SET started_at=?,ends_at=? WHERE owner_id=?').run(expiredStart,expiredStart+TRIAL_SECONDS,'owner-a');allowance=await budget.budgetAllowance('owner-a','image');assert.equal(allowance.limit,0);assert.equal(allowance.available,false);assert.equal(await f.load('lib/billing.ts').canServeMenu('owner-a','shop-a'),true);
  assert.equal((await budget.budgetAllowance('owner-b','image')).limit,3);
 }finally{f.close();}});
 test('paid quotas follow a confirmed owner invoice; pending, wrong-value, refund and suspension cannot grant more AI',async()=>{const f=fixture();try{enable(f);trial(f);paid(f,'rede');const budget=f.load('lib/ai-budget.ts');assert.equal((await budget.budgetAllowance('owner-a','image')).limit,60);assert.equal((await budget.budgetAllowance('owner-a','text')).limit,400);assert.equal((await budget.budgetAllowance('owner-b','image')).limit,3);
