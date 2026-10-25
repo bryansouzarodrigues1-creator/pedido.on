@@ -28,7 +28,7 @@ function saveBlob(blob:Blob,filename:string){
   document.body.appendChild(link);
   link.click();
   link.remove();
-  window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+  window.setTimeout(()=>URL.revokeObjectURL(url),30000);
 }
 
 async function asPng(svg:string):Promise<Blob>{
@@ -66,6 +66,7 @@ export default function RegistrationAccessCard({email,name,password,onContinue}:
         localImageAsDataUrl("/assets/pizza.webp"),
         localImageAsDataUrl("/assets/pedido-symbol.png")
       ]);
+      if(!pizzaDataUrl||!logoDataUrl)throw new Error("Não foi possível carregar as imagens oficiais da Pizzaria.on. Tente novamente.");
       const svg=buildRegistrationCardSvg({name,email,password,domain,includePassword,pizzaDataUrl,logoDataUrl});
       const filename="pizzaria-on-meu-acesso."+(format==="png"?"png":"svg");
       saveBlob(format==="png"?await asPng(svg):new Blob([svg],{type:"image/svg+xml;charset=utf-8"}),filename);
