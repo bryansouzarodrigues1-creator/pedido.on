@@ -12,9 +12,10 @@ import {startPasswordRecovery,finishPasswordRecovery} from "@/lib/password-recov
 import {env} from "cloudflare:workers";
 import {maintenanceActive,runPlatformMaintenance,type MaintenanceEnv} from "@/lib/platform-maintenance";
 import {validAdminEnrollment,type AdminEnrollmentEnv} from "@/lib/admin-enrollment-policy";
+import {MIN_PASSWORD_LENGTH,ADMIN_PASSWORD_MIN_LENGTH} from "@/lib/password-policy";
 export const dynamic="force-dynamic";
 const email=z.string().trim().max(254).email("Confira seu e-mail.").transform(normalizeEmail);
-const password=z.string().refine(validPassword,"Use uma senha com 12 a 128 caracteres.");
+const password=z.string().refine(validPassword,"Use uma senha com 8 a 128 caracteres.");
 const captcha=z.string().max(4000).optional();
 type Context={params:Promise<{action:string}>};
 export async function GET(request:Request,{params}:Context){try{
@@ -61,7 +62,8 @@ export async function POST(request:Request,{params}:Context){try{
   if(action==="register"){
     if(data.adminInvite&&!await validAdminEnrollment(data.email,data.adminInvite,env as typeof env&AdminEnrollmentEnv))throw new HttpError(403,"O convite de administrador é inválido ou expirou. Use o e-mail autorizado.");
     if(!await validRegistrationInvite(data.inviteCode))throw new HttpError(403,"Código de convite inválido. Confira o código enviado ao grupo.");
-    if(!data.password||!validPassword(data.password)||!data.name)throw new HttpError(400,"Informe seu nome e uma senha com pelo menos 12 caracteres.");
+    const minimum=data.adminInvite?ADMIN_PASSWORD_MIN_LENGTH:MIN_PASSWORD_LENGTH;
+    if(!data.password||!validPassword(data.password,minimum)||!data.name)throw new HttpError(400,`Informe seu nome e uma senha com pelo menos ${minimum} caracteres.`);
     // Invited owners enter directly; registration must never send confirmation mail.
     const settings=await providerRequest<{external?:{email?:boolean};mailer_autoconfirm?:boolean;disable_signup?:boolean}>("settings","GET");
     if(settings.external?.email!==true||settings.disable_signup!==false||typeof settings.mailer_autoconfirm!=="boolean"

@@ -19,7 +19,7 @@ test('recovery credentials are restricted and expire sooner than account session
  for(const scope of ['recovery','signup','admin',''])assert.equal(allowsAccountAccess(scope),false);
  assert.equal(verificationPurpose('confirm-email'),'email');assert.equal(verificationPurpose('confirm-recovery'),'recovery');assert.equal(verificationPurpose('signup'),null);
  assert.equal(RECOVERY_SECONDS,900);assert.ok(RECOVERY_SECONDS<SESSION_SECONDS);
- assert.equal(validPassword('short'),false);assert.equal(validPassword('frase para minha pizzaria'),true);assert.equal(validPassword('x'.repeat(129)),false);assert.equal(validPassword('x'.repeat(12)+'\0'),false);
+ assert.equal(validPassword('short'),false);assert.equal(validPassword('x'.repeat(7)),false);assert.equal(validPassword('x'.repeat(8)),true);assert.equal(validPassword('x'.repeat(11)),true);assert.equal(validPassword('frase para minha pizzaria'),true);assert.equal(validPassword('x'.repeat(128)),true);assert.equal(validPassword('x'.repeat(129)),false);assert.equal(validPassword('x'.repeat(12)+'\0'),false);assert.equal(validPassword('x'.repeat(11),12),false);assert.equal(validPassword('x'.repeat(12),12),true);
 });
 test('cookies are scoped, HttpOnly and secure; tokens are stored only as hashes',async()=>{
  const token=randomToken(),cookie=sessionCookie(token,true,SESSION_SECONDS);assert.match(token,/^[a-f0-9]{64}$/);assert.notEqual(randomToken(),token);
