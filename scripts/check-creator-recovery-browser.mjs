@@ -10,7 +10,7 @@ const output=path.resolve(process.env.QA_BROWSER_OUTPUT||'.sites-runtime/browser
 const browser=await chromium.launch({executablePath:process.env.QA_CHROME_PATH,headless:true}),checks=[],errors=[];
 let context,page;
 async function open(){context=await browser.newContext({...devices['Pixel 7'],locale:'pt-BR',serviceWorkers:'block'});await context.route('**/*',r=>new URL(r.request().url()).origin===base?r.continue():r.abort());page=await context.newPage();page.setDefaultTimeout(20000);page.on('pageerror',e=>errors.push(e.message));await page.goto(base+'/criar',{waitUntil:'networkidle',timeout:90000});await page.waitForFunction(()=>document.querySelector('#owner-intake-message')?.disabled===false);}
-async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();await page.locator('.ai-selected .customer-menu').waitFor();}
+async function say(text){await page.locator('#owner-intake-message').fill(text);await page.locator('.owner-intake-reply button[type=submit]').click();await page.locator('.ai-selected .mini-menu').waitFor();}
 async function doubleSubmit(){await page.locator('.creator-finish form').evaluate(form=>{form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));});}
 const json=(route,status,value)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(value)});
 try{

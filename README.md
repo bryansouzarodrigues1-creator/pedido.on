@@ -1,6 +1,6 @@
 # pizzaria.on
 
-**Candidato em validação — 25/10/2026 UTC:** calculadora gratuita com ficha técnica, taxas e margem; prévias adaptadas; admin de cardápios compartilhados com criação, validade, pausa e renovação. 639 testes e tipos locais passaram. Publicação e Chrome ainda em conferência. [Escopo e validação](docs/CALCULADORA-E-ADMIN-20261025.md).
+**Candidato em validação — 25/10/2026 UTC:** calculadora gratuita com ficha técnica, taxas e margem; prévias adaptadas; admin de cardápios compartilhados com criação, validade, pausa e renovação. 641 testes e tipos locais passaram. Publicação e Chrome ainda em conferência. [Escopo e validação](docs/CALCULADORA-E-ADMIN-20261025.md).
 
 **Publicado — v89, 24/10/2026, 18:46 de Brasília:** solicitação manual de cardápio por link com protocolo no painel, convite de aplicativo com X persistente no rodapé e sugestões diárias com textos e artes locais dos produtos. **627 testes**, tipos/build, Chrome, Windows e autenticação/pedidos aprovados. Netlify e Lovable atualizados; CI próprio do espelho continua falhando antes das etapas. [Uso e provas](docs/ATENDIMENTO-E-DIVULGACAO-20261024.md).
 

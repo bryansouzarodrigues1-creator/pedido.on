@@ -9,7 +9,7 @@ Candidato ainda em validação; a produção permanece v89 até a implantação 
 - Convite de aplicativo compacto; fechar mantém a posição no rodapé neste navegador, sem voltar ao topo automaticamente.
 - Compartilhamento da prévia visível no criador; copiar ou abrir WhatsApp depende de ação do usuário. Nenhuma mensagem é enviada automaticamente.
 - `/admin`: navegação de operação, pendências, verificação/denúncias, relatório de uso e registros de faturas separados entre produção e sandbox. Configuração não significa entrega homologada nem saldo bancário.
-- `/admin/cardapios/novo`: compositor existente com PDF, fotos, textos, nome e 80 modelos. Rascunho administrativo separado do projeto público; revisão explícita antes de gerar link.
+- `/admin/cardapios/novo`: compositor existente com PDF, fotos, textos, nome e 80 modelos. Rascunho administrativo separado do projeto público e recuperável ao recarregar; revisão explícita antes de gerar link.
 - `/admin/cardapios`: busca, paginação, situação, copiar/conferir, enviar pelo WhatsApp, renovar 30 dias, pausar e restaurar.
 - `/c/<id>`: apresentação funcional sem cadastro, produtos e preços conferidos, carrinho de simulação, botão vermelho **Criar meu cardápio** no topo e rodapé. Não recebe pedidos nem Pix; credenciais Pix são removidas do snapshot. Modelos sem produtos usam exemplos rotulados.
 - `/v/<id>`: compartilhamento público de 7 dias preservado, agora com apresentação adaptada e a mesma chamada para criar cardápio.
@@ -20,4 +20,4 @@ Migração 0018 aditiva cria somente `admin_shared_menus` e seus índices. Conta
 
 ## Validação
 
-639 testes locais passaram, incluindo workerd/D1/R2 reais em ambiente descartável e cálculo em centavos. TypeScript passou. Chrome isolado, build, sincronização e publicação: pendentes nesta revisão; atualizar com evidências após concluir.
+641 testes locais passaram, incluindo workerd/D1/R2 reais em ambiente descartável e cálculo em centavos. TypeScript passou. Chrome isolado, build, sincronização e publicação: pendentes nesta revisão; atualizar com evidências após concluir.
