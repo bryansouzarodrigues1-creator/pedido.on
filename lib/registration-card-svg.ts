@@ -23,21 +23,25 @@ function lines(value:string,limit:number):string[]{
  * By default, no password is included in the image. An explicit opt-in is needed.
  */
 export function buildRegistrationCardSvg(data:CardData):string{
-  const emailLines=lines(data.email.trim(),45);
-  const passwordLines=data.includePassword?lines(data.password,34):["••••••••••••"];
-  const domainLines=lines(data.domain,45);
-  const passwordLabelY=370+emailLines.length*29;
+  const nameLines=lines(data.name.trim()||"proprietário",34);
+  const emailLines=lines(data.email.trim(),30);
+  const passwordLines=data.includePassword?lines(data.password,28):["••••••••••••"];
+  const domainLines=lines(data.domain,32);
+  const emailLabelY=319+(nameLines.length-1)*25;
+  const passwordLabelY=emailLabelY+51+emailLines.length*29;
   const passwordTextY=passwordLabelY+46;
   const noteY=passwordTextY+passwordLines.length*29+32;
   const footerHeight=102+domainLines.length*29;
   const height=Math.max(810,noteY+50+footerHeight);
   const footerLineY=height-footerHeight;
-  const photo=(data.pizzaDataUrl||"").startsWith("data:image/")?
+  const safeImage=(value:string)=>/^data:image\/(?:png|webp|jpe?g);base64,[a-z0-9+/=]+$/i.test(value);
+  const photo=safeImage(data.pizzaDataUrl||"")?
     '<image href="'+data.pizzaDataUrl+'" x="845" y="83" width="355" height="'+(height-166)+'" preserveAspectRatio="xMidYMid slice"/>':"";
-  const logo=(data.logoDataUrl||"").startsWith("data:image/")?
+  const logo=safeImage(data.logoDataUrl||"")?
     '<image href="'+data.logoDataUrl+'" x="81" y="69" width="65" height="65"/>':
     '<circle cx="112" cy="103" r="29" fill="#ffd34e"/><path d="M95 98l34 17-15-34z" fill="#ff6b43"/>';
-  const emailText=emailLines.map((line,i)=>'<text x="88" y="'+(344+i*29)+'" font-family="Arial,sans-serif" font-size="24" fill="#ffffff">'+xml(line)+'</text>').join("");
+  const nameText=nameLines.map((line,i)=>'<text x="88" y="'+(298+i*25)+'" font-family="Arial,sans-serif" font-size="19" fill="#bbcbda">Conta de '+xml(line)+'</text>').join("");
+  const emailText=emailLines.map((line,i)=>'<text x="88" y="'+(emailLabelY+25+i*29)+'" font-family="Arial,sans-serif" font-size="24" fill="#ffffff">'+xml(line)+'</text>').join("");
   const secretText=passwordLines.map((line,i)=>'<text x="88" y="'+(passwordTextY+i*29)+'" font-family="Arial,sans-serif" font-size="24" fill="'+(data.includePassword?"#fff":"#ffcf55")+'">'+xml(line)+'</text>').join("");
   const domainText=domainLines.map((line,i)=>'<text x="90" y="'+(footerLineY+66+i*26)+'" font-family="Arial,sans-serif" font-size="20" fill="#ffcf55">'+xml(line)+'</text>').join("");
   return [
@@ -53,8 +57,8 @@ export function buildRegistrationCardSvg(data:CardData):string{
     '<text x="198" y="111" font-family="Arial,sans-serif" font-size="45" font-weight="800" fill="#fff">pizzaria<tspan fill="#ffd24f">.on</tspan></text>',
     '<text x="88" y="205" font-family="Arial,sans-serif" font-size="18" letter-spacing="3" font-weight="700" fill="#ffc94a">SEU CARDÁPIO, SUA IDENTIDADE</text>',
     '<text x="88" y="266" font-family="Arial,sans-serif" font-size="53" font-weight="800" fill="#ffffff">Meu acesso</text>',
-    '<text x="88" y="298" font-family="Arial,sans-serif" font-size="19" fill="#bbcbda">Conta de '+xml(data.name.trim().slice(0,70)||"proprietário")+'</text>',
-    '<text x="88" y="319" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#ffcf55">MEU E-MAIL</text>',
+    nameText,
+    '<text x="88" y="'+emailLabelY+'" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#ffcf55">MEU E-MAIL</text>',
     emailText,
     '<text x="88" y="'+passwordLabelY+'" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#ffcf55">MINHA SENHA</text>',
     secretText,
