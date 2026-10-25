@@ -1,5 +1,7 @@
 # Continuar a pizzaria.on
 
+**Publicado — v91, 25/10/2026, 07:58 de Brasília:** fonte atual até a PR #117 publicada no backend e na Netlify. Cartão de acesso, orientações de recuperação e segurança do titular incluídos; 652 testes, tipos/build e CIs das PRs #115/#117 aprovados. O WhatsApp oficial continua ausente no ambiente; o botão só pode ser ativado após informar o contato com DDD. SMTP e recuperação sem senha/MFA não foram ativados. [Publicação e pendências](PUBLICACAO-ACESSO-20261025.md).
+
 **Publicado e conferido — v90, 24/10/2026 (Brasília):** calculadora gratuita, ficha técnica, taxas/margem, layouts adaptados, instalação discreta e administração de cardápios compartilhados com botão vermelho “Criar meu cardápio”. PR #112 e espelho #62 integrados; **641 testes locais** registrados, quatro CIs principais aprovados e rotas públicas conferidas. Falta ensaio de criação/pausa/renovação com administrador real na produção. [Detalhes](CALCULADORA-E-ADMIN-20261025.md).
 
 **Publicado — v89, 24/10/2026, 18:46 de Brasília:** atendimento por link substitui a busca automática na interface; solicitação com protocolo, fila e entrega pela extensão para revisão. Convite de instalação respeita o X; sugestões diárias reutilizam produtos/fotos sem modelos. **627 testes**, tipos/build e os três CIs principais aprovados. Netlify e Lovable conferidos. Mirror CI falha antes das etapas; captura iFood real e instalação física não foram executadas. [Fluxo e provas](ATENDIMENTO-E-DIVULGACAO-20261024.md).

@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-25",
+  "version": 91,
+  "publishedAt": "2026-10-25T10:58:03.181509+00:00",
+  "production": {
+    "primary": "https://pizzaria-on.netlify.app",
+    "backend": "https://forno-cardapios.waves4845.chatgpt.site",
+    "sourceCommit": "777a03fc11493464c1f66874e3b40f3aef9278fe",
+    "canonicalCommit": "a0dcfa91bed308bdebff48cd0cda442bc265e622",
+    "tree": "9b278d6013d4341ce94fa8a63e3c89e381ce82eb",
+    "versionId": "appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_3a8aa3357548819186d241a652a841dd",
+    "deploymentId": "appgdep_6adde0a474ec8191beefe382e7bdf5b0",
+    "envRevision": 14
+  },
+  "checks": {
+    "unitTests": 652,
+    "unitResult": "pass",
+    "typecheck": "pass",
+    "build": "pass",
+    "pr115": [
+      {
+        "id": 40182851266,
+        "name": "Windows QA - Pizzaria.on (no production)",
+        "conclusion": "success"
+      },
+      {
+        "id": 40182851295,
+        "name": "Group beta auth and order checks",
+        "conclusion": "success"
+      },
+      {
+        "id": 40182851282,
+        "name": "Chrome browser QA (isolated local data)",
+        "conclusion": "success"
+      }
+    ],
+    "pr117": [
+      {
+        "id": 40184087493,
+        "name": "Group beta auth and order checks",
+        "conclusion": "success"
+      },
+      {
+        "id": 40184087484,
+        "name": "Windows QA - Pizzaria.on (no production)",
+        "conclusion": "success"
+      },
+      {
+        "id": 40184087553,
+        "name": "Chrome browser QA (isolated local data)",
+        "conclusion": "success"
+      }
+    ],
+    "publicUi": "Forgot-password page verified on Netlify; reports recovery unavailable while SMTP and support are absent."
+  },
+  "configuration": {
+    "supportWhatsAppConfigured": false,
+    "emailRecoveryEnabled": false,
+    "realAccountOrPasswordChanged": false,
+    "paidGeneration": false
+  },
+  "pending": [
+    "Official support WhatsApp with DDD",
+    "Administrator MFA enrollment and recent step-up",
+    "Verified owner factor and browser-bound one-use recovery",
+    "Passkey compatibility and rollout validation"
+  ],
+  "lovable": {
+    "codeCommit": "777bb73da209457136e20b47c2e91034e91ddfde",
+    "deployment": "65181228-5095-4a96-a39f-ba442088a7cb",
+    "status": "publication requested; live UI must be verified"
+  },
+  "securityIssue": 116
+}
