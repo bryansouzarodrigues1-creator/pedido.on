@@ -40,7 +40,7 @@ export function buildRegistrationCardSvg(data:CardData):string{
   const logo=safeImage(data.logoDataUrl||"")?
     '<image href="'+data.logoDataUrl+'" x="81" y="69" width="65" height="65"/>':
     '<circle cx="112" cy="103" r="29" fill="#ffd34e"/><path d="M95 98l34 17-15-34z" fill="#ff6b43"/>';
-  const nameText=nameLines.map((line,i)=>'<text x="88" y="'+(298+i*25)+'" font-family="Arial,sans-serif" font-size="19" fill="#bbcbda">Conta de '+xml(line)+'</text>').join("");
+  const nameText=nameLines.map((line,i)=>'<text x="88" y="'+(298+i*25)+'" font-family="Arial,sans-serif" font-size="19" fill="#bbcbda">'+(i===0?"Conta de ":"")+xml(line)+'</text>').join("");
   const emailText=emailLines.map((line,i)=>'<text x="88" y="'+(emailLabelY+25+i*29)+'" font-family="Arial,sans-serif" font-size="24" fill="#ffffff">'+xml(line)+'</text>').join("");
   const secretText=passwordLines.map((line,i)=>'<text x="88" y="'+(passwordTextY+i*29)+'" font-family="Arial,sans-serif" font-size="24" fill="'+(data.includePassword?"#fff":"#ffcf55")+'">'+xml(line)+'</text>').join("");
   const domainText=domainLines.map((line,i)=>'<text x="90" y="'+(footerLineY+66+i*26)+'" font-family="Arial,sans-serif" font-size="20" fill="#ffcf55">'+xml(line)+'</text>').join("");
