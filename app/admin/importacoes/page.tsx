@@ -1,3 +1,4 @@
+import AdminNav from "@/components/admin-nav";
 import {notFound} from "next/navigation";
 import {requireAccountUser} from "@/lib/auth";
 import {platformAdmin} from "@/lib/platform";
@@ -8,7 +9,7 @@ export default async function AssistancePage(){
  const user=await requireAccountUser("/admin/importacoes");
  if(!platformAdmin(user))notFound();
  return <main className="container" style={{paddingTop:30,paddingBottom:70}}>
-  <p><a href="/admin">← Voltar à administração</a></p><h1>Importações assistidas</h1>
+  <AdminNav active="/admin/importacoes"/><h1>Importações assistidas</h1>
   <MenuImportAdmin/>
  </main>;
 }

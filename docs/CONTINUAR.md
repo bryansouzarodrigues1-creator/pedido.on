@@ -1,5 +1,7 @@
 # Continuar a pizzaria.on
 
+**Publicado e conferido — v90, 24/10/2026 (Brasília):** calculadora gratuita, ficha técnica, taxas/margem, layouts adaptados, instalação discreta e administração de cardápios compartilhados com botão vermelho “Criar meu cardápio”. PR #112 e espelho #62 integrados; **641 testes locais** registrados, quatro CIs principais aprovados e rotas públicas conferidas. Falta ensaio de criação/pausa/renovação com administrador real na produção. [Detalhes](CALCULADORA-E-ADMIN-20261025.md).
+
 **Publicado — v89, 24/10/2026, 18:46 de Brasília:** atendimento por link substitui a busca automática na interface; solicitação com protocolo, fila e entrega pela extensão para revisão. Convite de instalação respeita o X; sugestões diárias reutilizam produtos/fotos sem modelos. **627 testes**, tipos/build e os três CIs principais aprovados. Netlify e Lovable conferidos. Mirror CI falha antes das etapas; captura iFood real e instalação física não foram executadas. [Fluxo e provas](ATENDIMENTO-E-DIVULGACAO-20261024.md).
 
 **Publicado — v88 / Netlify, 24/10/2026:** produção pública em https://pizzaria-on.netlify.app, com cookies transportados por envelope criptografado e assinatura validada. Calculadora, galeria de 80 modelos, nome e preços conferidos no navegador. Corrigida a mistura de sabores com travessão/preço. **623 testes**, TypeScript/build e quatro CIs finais aprovados. Servidor v88 e espelho Lovable sincronizados, sem migração ou geração paga. CI próprio do espelho continua falhando antes das etapas. [Entrega, provas e limites](NETLIFY.md).

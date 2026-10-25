@@ -17,7 +17,7 @@ const { chromium, devices } = require(process.env.QA_PLAYWRIGHT_MODULE || 'playw
         await p.goto(base + '/calculadora', { waitUntil: 'networkidle' });
         if (await p.locator('.flavor-pricing').count()) {
             const flavors=p.getByRole('region',{name:'Calculadora de preços por sabor'});
-            await flavors.getByRole('button',{name:'Usar exemplos da imagem',exact:true}).click();
+            await flavors.getByRole('button',{name:/^(Usar exemplos da imagem|Ver exemplo preenchido)$/}).click();
             assert.equal(await flavors.locator('.flavor-price-card').count(),5);
             assert.match(await flavors.getByLabel('Preço sugerido do sabor 1',{exact:true}).textContent(),/65,03/);
             await flavors.getByRole('textbox',{name:'Custo total do sabor 1',exact:true}).fill('20,00');

@@ -1,0 +1,28 @@
+# Calculadora e administração de cardápios — 25/10/2026 UTC
+
+**v90 integrada e recursos públicos conferidos em 24/10/2026 (horário de Brasília).** A implementação foi unida à `main` pela PR #112 e espelhada na PR #62 do Lovable. As conferências abaixo são somente leitura; não criaram cardápios nem modificaram contas de clientes.
+
+## Fluxos entregues no código
+
+- `/calculadora`: sem conta ou assinatura; custo pronto ou ficha por ingrediente (kg/g, L/ml, unidade), perdas, embalagem, gás/energia e outros custos. Dois métodos explícitos: acréscimo sobre custo ou margem sobre venda. Taxas sobre a venda incluídas, comparação com preço praticado, duplicação, salvamento local, CSV, cópia JSON, restauração e impressão/PDF. A tabela v1 e os cálculos mensais anteriores continuam legíveis.
+- Reserva de despesas é percentual do custo; evite repetir a mesma despesa na ficha e na reserva. Perdas usam rendimento `custo / (1 - perdas)`. Preço por margem é `(custo + reserva) / (1 - taxas - margem)`, arredondado para cima em centavos. Acréscimo preserva a conta antiga quando não há taxa; com taxas, divide o preço-base por `1 - taxas`. Não é garantia de resultado financeiro.
+- Convite de aplicativo compacto; fechar mantém a posição no rodapé neste navegador, sem voltar ao topo automaticamente.
+- Compartilhamento da prévia visível no criador; copiar ou abrir WhatsApp depende de ação do usuário. Nenhuma mensagem é enviada automaticamente.
+- `/admin`: navegação de operação, pendências, verificação/denúncias, relatório de uso e registros de faturas separados entre produção e sandbox. Configuração não significa entrega homologada nem saldo bancário.
+- `/admin/cardapios/novo`: compositor existente com PDF, fotos, textos, nome e 80 modelos. Rascunho administrativo separado do projeto público e recuperável ao recarregar; revisão explícita antes de gerar link.
+- `/admin/cardapios`: busca, paginação, situação, copiar/conferir, enviar pelo WhatsApp, renovar 30 dias, pausar e restaurar.
+- `/c/<id>`: apresentação funcional sem cadastro, produtos e preços conferidos, carrinho de simulação, botão vermelho **Criar meu cardápio** no topo e rodapé. Não recebe pedidos nem Pix; credenciais Pix são removidas do snapshot. Modelos sem produtos usam exemplos rotulados.
+- `/v/<id>`: compartilhamento público de 7 dias preservado, agora com apresentação adaptada e a mesma chamada para criar cardápio.
+
+## Segurança e persistência
+
+Migração 0018 aditiva cria somente `admin_shared_menus` e seus índices. Contas, restaurantes, pedidos, pagamentos e publicações existentes permanecem nas mesmas tabelas. Administração é conferida no servidor; mutações exigem mesma origem e CSRF. Criação tem chave de idempotência, confirmação e limite; alterações usam versão para conflito entre abas. Link pausado/expirado retorna 410 sem conteúdo. Respostas não incluem IDs de conta, chaves ou metadados internos. Nenhuma cobrança ou geração paga foi executada.
+
+## Validação e publicação — fechamento da v90
+
+- **Código:** principal `970bc99589764f84092ca9cfdc1b51143d6f75a8` (PR #112 integrada às 21:30 de Brasília em 24/10); espelho Lovable `e73426882cd3c0aed4989f650c7c63b709564ee6` (PR #62 integrada às 21:32 de Brasília). O projeto Lovable informa status `ready` e publicado. A versão não foi regenerada via IA nesta conferência.
+- **Testes:** 641 testes locais e TypeScript registrados no fechamento da candidata; compilação aprovada na rodada anterior. O commit final `c5721c1` teve quatro CIs aprovados: [Chrome 40146572928](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40146572928), [Windows 40146572958](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40146572958), [autenticação/pedidos 40146573056](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40146573056) e [chat 40146572923](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40146572923). Chrome validou a calculadora, backup, os 80 modelos e o fluxo administrativo com dados locais isolados, sem afetar clientes.
+- **Público:** `https://pizzaria-on.netlify.app/calculadora` e `https://forno-cardapios.waves4845.chatgpt.site/calculadora` renderizam ficha técnica e métodos distintos de preço sem solicitar cadastro. `/c/<id>` apresenta o botão vermelho **Criar meu cardápio**; um ID inexistente de formato válido devolve 404 nos dois endereços. `/admin/cardapios` redireciona não autenticados para login, e `/api/admin/shared-menus` devolve 401 sem sessão. `/manifest.webmanifest` está disponível para o uso como aplicativo. Essas são verificações públicas, não autenticação administrativa.
+- **Migração:** a 0018 é aditiva. A consulta pública de um ID inexistente retornou 404, não houve erro visível da rota de leitura. Isso não substitui a verificação interna de dados e permissões de uma sessão real.
+- **Espelho:** o próprio CI GitHub do espelho Lovable continua falhando antes de executar etapas: [run 40147096013](https://github.com/bryansouzarodrigues1-creator/pizzaria.on-chat/actions/runs/40147096013) tem zero passos registrados. Esse erro de infraestrutura não deve ser relatado como suíte funcional aprovada.
+- **Limites honestos:** não houve criação/pausa/renovação de link com credencial administradora **na produção** nesta conferência, nem instalação física no Android, captura iFood real, pagamento real, nova geração paga, mudança de banco de clientes ou disparo automático de WhatsApp. Para homologação operacional completa, entrar com uma conta administradora autorizada, criar um cardápio de teste, abrir o link em aba anônima, pausar (verificar 410), restaurar/renovar e remover os dados de teste quando apropriado. Não utilizar uma conta de cliente real para esse ensaio.

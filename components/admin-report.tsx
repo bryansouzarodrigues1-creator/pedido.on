@@ -1,5 +1,6 @@
-import AdminAccessControl from "./admin-access-control";
 "use client";
+import AdminAccessControl from "./admin-access-control";
+
 import {useEffect,useRef,useState} from "react";
 import {ArrowDownRight,ArrowUpRight,BarChart3,ChevronLeft,ChevronRight,ClipboardList,Loader2,RefreshCw,Search,Store,Users} from "lucide-react";
 import {money} from "@/lib/domain";
