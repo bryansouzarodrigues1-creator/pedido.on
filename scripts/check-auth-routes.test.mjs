@@ -152,16 +152,16 @@ test('prototype fails closed with an absent or malformed allowlist even if publi
   }finally{globalThis.fetch=originalFetch;f.close();}
 });
 
-test('ordinary signup accepts eight characters and rejects seven before contacting the provider',async()=>{
+test('ordinary signup accepts six characters and rejects five before contacting the provider',async()=>{
  const f=fixture(),originalFetch=globalThis.fetch,p=identities(f);globalThis.fetch=p.fetcher;
  try{
-  const input={name:'Dono de teste',email:'new-owner@example.test',password:'mock777'};
+  const input={name:'Dono de teste',email:'new-owner@example.test',password:'mock5'};
   const denied=await f.call('auth','POST',{action:'register'},input);
-  assert.equal(denied.status,400);assert.match((await denied.json()).error,/8 caracteres/);
+  assert.equal(denied.status,400);assert.match((await denied.json()).error,/6 caracteres/);
   assert.equal(p.calls.length,0);assert.equal(p.users.size,0);
-  const created=await f.call('auth','POST',{action:'register'},{...input,password:'mock8888'});
+  const created=await f.call('auth','POST',{action:'register'},{...input,password:'mock66'});
   assert.equal(created.status,200,await created.clone().text());
-  assert.equal(p.calls.find(c=>c.path==='signup').body.password.length,8);
+  assert.equal(p.calls.find(c=>c.path==='signup').body.password.length,6);
   assert.equal(f.db.prepare('SELECT count(*) AS n FROM account_profiles').get().n,1);
  }finally{globalThis.fetch=originalFetch;f.close();}
 });

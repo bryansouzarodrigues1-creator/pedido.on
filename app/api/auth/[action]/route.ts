@@ -15,7 +15,7 @@ import {validAdminEnrollment,type AdminEnrollmentEnv} from "@/lib/admin-enrollme
 import {MIN_PASSWORD_LENGTH,ADMIN_PASSWORD_MIN_LENGTH} from "@/lib/password-policy";
 export const dynamic="force-dynamic";
 const email=z.string().trim().max(254).email("Confira seu e-mail.").transform(normalizeEmail);
-const password=z.string().refine(validPassword,"Use uma senha com 8 a 128 caracteres.");
+const password=z.string().refine(validPassword,`Use uma senha com ${MIN_PASSWORD_LENGTH} a 128 caracteres.`);
 const captcha=z.string().max(4000).optional();
 type Context={params:Promise<{action:string}>};
 export async function GET(request:Request,{params}:Context){try{

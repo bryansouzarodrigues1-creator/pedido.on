@@ -23,7 +23,7 @@ const copy={
  register:{tag:"1 MÊS GRÁTIS · 30 DIAS",title:"Salve o cardápio da sua pizzaria.",text:"Seu teste começa ao criar a primeira pizzaria. Sem cartão de crédito e sem cobrança automática.",button:"Criar minha conta grátis"},
  recover:{tag:"VAMOS RESOLVER",title:"Esqueceu a senha?",text:"Informe seu e-mail. Enviaremos um link para você escolher uma nova senha.",button:"Enviar link de recuperação"},
  "confirm-email":{tag:"SÓ FALTA CONFIRMAR",title:"Vamos abrir sua conta.",text:"Confirme seu e-mail para começar a montar seu cardápio.",button:"Confirmar meu e-mail"},
- reset:{tag:"UM NOVO COMEÇO",title:"Escolha uma nova senha.",text:"Use pelo menos 8 caracteres. Uma frase é mais fácil de lembrar.",button:"Salvar nova senha"},
+ reset:{tag:"UM NOVO COMEÇO",title:"Escolha uma nova senha.",text:`Use pelo menos ${MIN_PASSWORD_LENGTH} caracteres. Uma frase é mais fácil de lembrar.`,button:"Salvar nova senha"},
  logout:{tag:"ATÉ A PRÓXIMA",title:"Encerrar sua sessão?",text:"Você pode voltar quando quiser. Seu cardápio continua salvo.",button:"Sair da minha conta"}
 };
 export default function AuthForm({mode,next="/app",tokenHash="",recoveryCode="",recoveryReady=false,oauthError=""}:{mode:Mode;next?:string;tokenHash?:string;recoveryCode?:string;recoveryReady?:boolean;oauthError?:string}){
