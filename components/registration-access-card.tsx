@@ -1,0 +1,176 @@
+"use client";
+
+import {useEffect,useState} from "react";
+import {ArrowRight,Download,FilePenLine,ShieldCheck} from "lucide-react";
+import styles from "./registration-access-card.module.css";
+
+type CardData={
+  name:string;
+  email:string;
+  password:string;
+  domain:string;
+  includePassword:boolean;
+  pizzaDataUrl?:string;
+  logoDataUrl?:string;
+};
+
+function xml(value:string){
+  return value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
+}
+
+function lines(value:string,limit:number):string[]{
+  const codepoints=Array.from(value);
+  const result:string[]=[];
+  for(let i=0;i<codepoints.length;i+=limit)result.push(codepoints.slice(i,i+limit).join(""));
+  return result.length?result:[""];
+}
+
+/** This is an editable SVG template, generated entirely in the owner's browser.
+ * By default, no password is included in the image. An explicit opt-in is needed.
+ */
+export function buildRegistrationCardSvg(data:CardData):string{
+  const emailLines=lines(data.email.trim(),45);
+  const passwordLines=data.includePassword?lines(data.password,34):["••••••••••••"];
+  const domainLines=lines(data.domain,45);
+  const passwordLabelY=370+emailLines.length*29;
+  const passwordTextY=passwordLabelY+46;
+  const noteY=passwordTextY+passwordLines.length*29+32;
+  const height=Math.max(810,noteY+120);
+  const photo=(data.pizzaDataUrl||"").startsWith("data:image/")?
+    '<image href="'+data.pizzaDataUrl+'" x="845" y="83" width="355" height="'+(height-166)+'" preserveAspectRatio="xMidYMid slice"/>':"";
+  const logo=(data.logoDataUrl||"").startsWith("data:image/")?
+    '<image href="'+data.logoDataUrl+'" x="81" y="69" width="65" height="65"/>':
+    '<circle cx="112" cy="103" r="29" fill="#ffd34e"/><path d="M95 98l34 17-15-34z" fill="#ff6b43"/>';
+  const emailText=emailLines.map((line,i)=>'<text x="88" y="'+(344+i*29)+'" font-family="Arial,sans-serif" font-size="24" fill="#ffffff">'+xml(line)+'</text>').join("");
+  const secretText=passwordLines.map((line,i)=>'<text x="88" y="'+(passwordTextY+i*29)+'" font-family="Arial,sans-serif" font-size="24" fill="'+(data.includePassword?"#fff":"#ffcf55")+'">'+xml(line)+'</text>').join("");
+  const domainText=domainLines.map((line,i)=>'<text x="90" y="'+(height-94+i*25)+'" font-family="Arial,sans-serif" font-size="20" fill="#ffcf55">'+xml(line)+'</text>').join("");
+  return [
+    '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="'+height+'" viewBox="0 0 1280 '+height+'" role="img" aria-label="Cartão de acesso Pizzaria.on">',
+    '<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07172d"/><stop offset="1" stop-color="#123559"/></linearGradient>',
+    '<linearGradient id="veil" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#001224" stop-opacity=".05"/><stop offset="1" stop-color="#001224" stop-opacity=".72"/></linearGradient>',
+    '<clipPath id="slice"><rect x="845" y="83" width="355" height="'+(height-166)+'" rx="31"/></clipPath></defs>',
+    '<rect width="1280" height="'+height+'" rx="40" fill="url(#bg)"/>',
+    '<circle cx="490" cy="44" r="300" fill="#234a64" opacity=".16"/>',
+    '<circle cx="812" cy="'+height+'" r="350" fill="#e7ad39" opacity=".06"/>',
+    '<rect x="65" y="53" width="115" height="97" rx="24" fill="#fff" opacity=".07"/>',
+    logo,
+    '<text x="198" y="111" font-family="Arial,sans-serif" font-size="45" font-weight="800" fill="#fff">pizzaria<tspan fill="#ffd24f">.on</tspan></text>',
+    '<text x="88" y="205" font-family="Arial,sans-serif" font-size="18" letter-spacing="3" font-weight="700" fill="#ffc94a">SEU CARDÁPIO, SUA IDENTIDADE</text>',
+    '<text x="88" y="266" font-family="Arial,sans-serif" font-size="53" font-weight="800" fill="#ffffff">Meu acesso</text>',
+    '<text x="88" y="298" font-family="Arial,sans-serif" font-size="19" fill="#bbcbda">Conta de '+xml(data.name.trim().slice(0,70)||"proprietário")+'</text>',
+    '<text x="88" y="319" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#ffcf55">MEU E-MAIL</text>',
+    emailText,
+    '<text x="88" y="'+passwordLabelY+'" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#ffcf55">MINHA SENHA</text>',
+    secretText,
+    '<text x="88" y="'+noteY+'" font-family="Arial,sans-serif" font-size="17" fill="#bfd1de">'+(data.includePassword?"ATENÇÃO: imagem contém sua senha. Não compartilhe.":"Sua senha está protegida e não aparece nesta imagem.")+'</text>',
+    '<rect x="845" y="83" width="355" height="'+(height-166)+'" rx="31" fill="#d57d37"/>',
+    '<g clip-path="url(#slice)">'+photo+'<rect x="845" y="83" width="355" height="'+(height-166)+'" fill="url(#veil)"/></g>',
+    '<rect x="884" y="'+(height-183)+'" width="261" height="63" rx="31" fill="#ffd24f"/>',
+    '<text x="1014" y="'+(height-144)+'" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="22" fill="#0b243e">Feito para pizzarias</text>',
+    '<path d="M80 '+(height-132)+'h700" stroke="#ffffff" stroke-opacity=".2"/>',
+    '<text x="90" y="'+(height-104)+'" font-family="Arial,sans-serif" font-size="13" letter-spacing="2" font-weight="700" fill="#aebdcf">ENTRE NO SITE</text>',
+    domainText,
+    '</svg>'
+  ].join("");
+}
+
+async function localImageAsDataUrl(path:string):Promise<string>{
+  try{
+    const response=await fetch(path,{cache:"force-cache"});
+    if(!response.ok)throw new Error("asset unavailable");
+    const blob=await response.blob();
+    if(!blob.type.startsWith("image/"))return "";
+    return await new Promise<string>(resolve=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(typeof reader.result==="string"?reader.result:"");
+      reader.onerror=()=>resolve("");
+      reader.readAsDataURL(blob);
+    });
+  }catch{return "";}
+}
+
+function saveBlob(blob:Blob,filename:string){
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;
+  link.download=filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+async function asPng(svg:string):Promise<Blob>{
+  const svgBlob=new Blob([svg],{type:"image/svg+xml;charset=utf-8"});
+  const uri=URL.createObjectURL(svgBlob);
+  try{
+    const image=new Image();
+    await new Promise<void>((resolve,reject)=>{
+      image.onload=()=>resolve();
+      image.onerror=()=>reject(new Error("Não foi possível montar a imagem."));
+      image.src=uri;
+    });
+    const canvas=document.createElement("canvas");
+    canvas.width=image.naturalWidth;
+    canvas.height=image.naturalHeight;
+    const ctx=canvas.getContext("2d");
+    if(!ctx)throw new Error("Seu navegador não permitiu criar a imagem.");
+    ctx.drawImage(image,0,0);
+    return await new Promise<Blob>((resolve,reject)=>{
+      canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Não foi possível salvar a imagem.")),"image/png");
+    });
+  }finally{URL.revokeObjectURL(uri);}
+}
+
+export default function RegistrationAccessCard({email,name,password,onContinue}:{email:string;name:string;password:string;onContinue:()=>void}){
+  const [domain,setDomain]=useState("pizzaria.on");
+  const [includePassword,setIncludePassword]=useState(false);
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState("");
+  useEffect(()=>setDomain(window.location.host),[]);
+  async function download(format:"png"|"svg"){
+    setBusy(true);setError("");
+    try{
+      const [pizzaDataUrl,logoDataUrl]=await Promise.all([
+        localImageAsDataUrl("/assets/pizza.webp"),
+        localImageAsDataUrl("/assets/pedido-symbol.png")
+      ]);
+      const svg=buildRegistrationCardSvg({name,email,password,domain,includePassword,pizzaDataUrl,logoDataUrl});
+      const filename="pizzaria-on-meu-acesso."+(format==="png"?"png":"svg");
+      saveBlob(format==="png"?await asPng(svg):new Blob([svg],{type:"image/svg+xml;charset=utf-8"}),filename);
+    }catch(e){setError(e instanceof Error?e.message:"Não foi possível gerar sua imagem.");}
+    finally{setBusy(false);}
+  }
+  return <main className={styles.page}>
+    <header className={styles.header}><span className={styles.wordmark}>pizzaria<span>.on</span></span><span>Cadastro concluído</span></header>
+    <section className={styles.panel} aria-label="Salvar dados de acesso">
+      <div className={styles.preview} role="img" aria-label="Prévia do cartão Pizzaria.on">
+        <div className={styles.previewText}>
+          <span className={styles.micro}>SEU CARDÁPIO, SUA IDENTIDADE</span>
+          <h1>Meu acesso</h1>
+          <p>Conta de {name}</p>
+          <span className={styles.fieldTitle}>MEU E-MAIL</span><strong>{email}</strong>
+          <span className={styles.fieldTitle}>MINHA SENHA</span>
+          <strong className={styles.secret}>{includePassword?password:"••••••••••••"}</strong>
+          <span className={styles.safeNote}>{includePassword?"Imagem com senha: não compartilhe.":"Senha protegida. Não exibida na imagem."}</span>
+          <span className={styles.website}>Acesse: {domain}</span>
+        </div>
+        <img src="/assets/pizza.webp" alt="" className={styles.pizza}/>
+      </div>
+      <div className={styles.details}>
+        <div className={styles.verified}><ShieldCheck size={18}/> Conta criada com sucesso</div>
+        <h2>Guarde seu acesso à Pizzaria.on</h2>
+        <p>Preparamos um cartão personalizado com o seu e-mail, a nossa marca e o endereço para entrar no site.</p>
+        <label className={styles.option}>
+          <input type="checkbox" checked={includePassword} onChange={event=>setIncludePassword(event.target.checked)}/>
+          <span>Incluir minha senha na imagem</span>
+        </label>
+        <p className={styles.warning}>{includePassword?"Atenção: qualquer pessoa que veja ou receba essa imagem poderá entrar na sua conta. Guarde em local privado.":"Mais seguro: deixe esta opção desligada e salve a senha no gerenciador de senhas do navegador ou do celular."}</p>
+        {error&&<p className={styles.error} role="alert">{error}</p>}
+        <button className={styles.primary} type="button" disabled={busy} onClick={()=>void download("png")}><Download size={18}/>{busy?"Gerando imagem…":"Baixar meu cartão (PNG)"}</button>
+        <button className={styles.secondary} type="button" disabled={busy} onClick={()=>void download("svg")}><FilePenLine size={18}/>Baixar versão editável (SVG)</button>
+        <button className={styles.continue} type="button" disabled={busy} onClick={onContinue}>Ir para meu painel <ArrowRight size={17}/></button>
+      </div>
+    </section>
+  </main>;
+}
