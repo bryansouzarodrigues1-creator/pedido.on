@@ -1,6 +1,6 @@
 import {z} from "zod";
 import {getChatGPTUser} from "@/app/chatgpt-auth";
-import {authTestMode,emailFlowsAvailable,prototypeEmailAllowed,registrationAvailable,inviteOnlyRegistration,validRegistrationInvite} from "@/lib/platform";
+import {authTestMode,emailFlowsAvailable,prototypeEmailAllowed,registrationAvailable,inviteOnlyRegistration,validRegistrationInvite,supportContactWhatsApp} from "@/lib/platform";
 import {eq} from "drizzle-orm";
 import {getDb} from "@/db";
 import {accountProfiles} from "@/db/schema";
@@ -16,7 +16,7 @@ const captcha=z.string().max(4000).optional();
 type Context={params:Promise<{action:string}>};
 export async function GET(request:Request,{params}:Context){try{
   const {action}=await params;
-  if(action==="config"){const csrf=issueCsrf(request),config=authConfig(),checkRegistration=new URL(request.url).searchParams.get("registration")==="1",registrationEnabled=config.enabled&&registrationAvailable()&&(!checkRegistration||await directRegistrationReady());return Response.json({enabled:config.enabled,registrationEnabled,...(checkRegistration?{directSignup:registrationEnabled}:{}),recoveryEnabled:config.enabled&&emailFlowsAvailable(),prototype:authTestMode(),inviteRequired:inviteOnlyRegistration(),googleEnabled:config.googleEnabled,csrf:csrf.token,captchaSiteKey:config.captchaSiteKey},{headers:{...privateHeaders,"Set-Cookie":csrf.cookie}});}
+  if(action==="config"){const csrf=issueCsrf(request),config=authConfig(),checkRegistration=new URL(request.url).searchParams.get("registration")==="1",registrationEnabled=config.enabled&&registrationAvailable()&&(!checkRegistration||await directRegistrationReady());return Response.json({enabled:config.enabled,registrationEnabled,...(checkRegistration?{directSignup:registrationEnabled}:{}),recoveryEnabled:config.enabled&&emailFlowsAvailable(),prototype:authTestMode(),inviteRequired:inviteOnlyRegistration(),googleEnabled:config.googleEnabled,supportWhatsApp:supportContactWhatsApp()?.number||null,csrf:csrf.token,captchaSiteKey:config.captchaSiteKey},{headers:{...privateHeaders,"Set-Cookie":csrf.cookie}});}
   if(action!=="session")throw new HttpError(404,"Página não encontrada.");
   const user=await getAccountUser();return Response.json({user:user?{name:user.displayName,email:user.email,provider:user.provider,loginMethod:user.loginMethod}:null},{headers:privateHeaders});
 }catch(e){return errorResponse(e);}}
