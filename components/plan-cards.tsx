@@ -6,17 +6,17 @@ export default function PlanCards(){
   <div className="pizza-section-heading">
    <span className="pizza-eyebrow">PREÇO SIMPLES</span>
    <h2>Um plano. Sua pizzaria pronta.</h2>
-   <p>Uma assinatura mensal para criar seu cardápio e receber pedidos. Teste por 7 dias sem cobrança enquanto essa modalidade estiver disponível.</p>
+   <p>Crie seu cardápio e receba pedidos com 1 mês grátis: 30 dias a partir da sua primeira pizzaria, sem cartão de crédito e sem cobrança automática.</p>
   </div>
   <div className="plans-grid plans-grid-single">
    <article className="plan-card popular">
     <h3>{publicPlanName}</h3><p>{plan.description}</p>
     <div className="plan-price"><span>R$</span><b>{plan.amount/100}</b><span>/mês</span></div>
     <ul>{plan.features.map(feature=><li key={feature}><Check size={15}/>{feature}</li>)}</ul>
-    <a className="btn primary" href="/assinatura?plan=essencial">Assinar por R$ 49/mês <ArrowRight size={16}/></a>
-    <a className="plan-trial-link" href={`/cadastro?next=${encodeURIComponent("/app?new=1&plan=essencial")}`}>Testar por 7 dias sem cobrança</a>
+    <a className="btn primary" href={`/cadastro?next=${encodeURIComponent("/app?new=1&plan=essencial")}`}>Começar meu mês grátis <ArrowRight size={16}/></a>
+    <a className="plan-trial-link" href="/assinatura?plan=essencial">Ver assinatura de R$ 49/mês</a>
    </article>
   </div>
-  <p className="plans-fine-print">No teste: 7 imagens e 100 textos no total, sujeitos à disponibilidade. No plano mensal: 4 imagens e 80 textos com IA, conforme franquia técnica. A IA paga ainda está indisponível no beta Cloudflare. A cobrança via Asaas permanece desativada até a homologação. O Pix das pizzas é recebido diretamente pela pizzaria.</p>
+  <p className="plans-fine-print">Depois dos 30 dias, você escolhe se quer assinar. A calculadora continua grátis e sem cadastro. O Pix dos pedidos é recebido diretamente pela pizzaria. Os recursos de IA dependem de disponibilidade e da franquia da conta.</p>
  </section>;
 }

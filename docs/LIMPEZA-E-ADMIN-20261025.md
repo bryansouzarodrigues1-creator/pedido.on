@@ -2,12 +2,19 @@
 
 O proprietário autorizou apagar todas as contas e dados de teste da Pizzaria.on, incluindo o administrador anterior. Isso é uma operação excepcional; não altera a política de preservar dados em publicações comuns. Não apaga o projeto Supabase, a infraestrutura, as configurações, o código nem outros projetos.
 
-## Estado antes da publicação
+## Limpeza confirmada em 25/10/2026, 16:12 de Brasília
 
 - Supabase: os dez usuários anteriores foram removidos; usuários, identidades, sessões e refresh tokens conferidos em zero.
 - Bases antigas beta/staging: todas as tabelas de negócio conferidas em zero; ambos os buckets de mídia já estavam vazios.
-- Base principal e mídia: limpeza ainda depende da execução da manutenção publicada. Não interpretar esta nota como confirmação de conclusão.
-- Asaas: configuração de produção preservada. A consulta de saúde real ainda depende da manutenção. Não foi criada, paga nem cancelada cobrança.
+- Base principal: oito restaurantes e oito perfis antigos removidos com os demais registros de negócio. O lote de 34 tabelas e o marcador de conclusão foram confirmados. Restaurantes, perfis, pedidos e prévias conferidos vazios depois. Sete arquivos antigos removidos do R2. A rotina não executa novamente com o mesmo identificador.
+- Asaas: a API de produção respondeu HTTP 200 nas consultas de clientes e webhooks; o webhook esperado está configurado, ativo e sem interrupção. Não foi criada, paga nem cancelada cobrança. Esse diagnóstico não homologa o primeiro pagamento externo. Fiscalização comercial e de trial continuam desligadas até a homologação.
+- A nova divulgação do link foi informada durante a manutenção. A última conferência ainda encontrou zero usuários Supabase. Nenhuma nova limpeza é autorizada por uma publicação comum; o mecanismo foi desarmado após a execução.
+
+## Nova oferta autorizada
+
+O proprietário alterou a oferta para **1 mês grátis, definido como 30 dias corridos**, a partir da primeira pizzaria. O prazo é gravado pelo servidor e não reinicia com login ou criação de outra loja. Os textos da entrada, cadastro, demonstração, planos, conta e assistente usam o mesmo prazo. O cadastro gratuito não exige cartão de crédito nem CNPJ e não cria uma assinatura Asaas. A assinatura de R$49/mês continua opcional e depende de contratação explícita. A franquia de IA não foi multiplicada nem foram ativadas gerações pagas.
+
+Os sete dias das prévias compartilhadas, da retenção de arquivos e das sessões têm finalidades diferentes e foram preservados.
 
 ## Administrador sem reutilizar contas antigas
 
@@ -32,4 +39,4 @@ O relatório guarda apenas contagens e indicadores de saúde do Asaas: modo, HTT
 - A validação do gatilho de cadastro com tabelas temporárias não foi concluída: a aprovação da ferramenta foi cancelada. O teste prévio da função de consumo, expiração, e-mail/token incorretos e repetição foi aprovado em transação revertida, sem criar usuários reais.
 - A suíte Chrome usa uma inscrição simulada e um convite sintético para conferir remoção do fragmento e ausência no cartão/armazenamento local. Não cria uma conta real.
 
-Publicação, CI final, contagens da base principal e resultado real do Asaas devem ser registrados após a execução. MFA, passkeys e recuperação pelo titular continuam na issue #116; não estão implementados por este pacote.
+Publicação da oferta e CI do commit final devem ser registrados após conclusão. MFA, passkeys e recuperação pelo titular continuam na issue #116; não estão implementados por este pacote.

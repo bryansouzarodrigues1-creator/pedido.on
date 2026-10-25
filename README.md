@@ -1,5 +1,7 @@
 # pizzaria.on
 
+**Oferta atual — 25/10/2026:** 1 mês grátis, definido como 30 dias a partir da primeira pizzaria, sem cartão de crédito nem cobrança automática. Limpeza excepcional das contas antigas concluída a pedido do proprietário; nenhuma publicação comum apaga contas novas. Asaas de produção e webhook responderam HTTP 200; o primeiro pagamento externo continua pendente. O novo administrador depende de convite privado de uso único. [Estado, segurança e limites](docs/LIMPEZA-E-ADMIN-20261025.md).
+
 **Publicado e conferido — v92, 25/10/2026, 08:24 de Brasília:** WhatsApp oficial configurado no servidor e aplicado na produção. O botão de recuperação abre atendimento com o número de oito dígitos confirmado pelo proprietário, preservado sem acrescentar dígitos. Netlify e Lovable conferidos no navegador; 655 testes locais, tipos/build e CIs Chrome, Windows e autenticação/pedidos aprovados. SMTP e recuperação sem senha/MFA não foram ativados. [Publicação, testes e pendências](docs/PUBLICACAO-ACESSO-20261025.md).
 
 **Publicado — v91, 25/10/2026, 07:58 de Brasília:** fonte atual até a PR #117 publicada no backend e na Netlify. Cartão de acesso, orientações de recuperação e segurança do titular incluídos; 652 testes, tipos/build e CIs das PRs #115/#117 aprovados. O WhatsApp oficial continua ausente no ambiente; o botão só pode ser ativado após informar o contato com DDD. SMTP e recuperação sem senha/MFA não foram ativados. [Publicação e pendências](docs/PUBLICACAO-ACESSO-20261025.md).

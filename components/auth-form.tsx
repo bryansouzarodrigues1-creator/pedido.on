@@ -19,7 +19,7 @@ export function Captcha({siteKey,onToken}:{siteKey:string;onToken:(v:string)=>vo
 }
 const copy={
  login:{tag:"BEM-VINDO DE VOLTA",title:"Sua pizzaria está on.",text:"Entre para cuidar do cardápio e acompanhar seus pedidos.",button:"Entrar no meu painel"},
- register:{tag:"A PRÓXIMA FATIA É SUA",title:"Salve o cardápio da sua pizzaria.",text:"Você pode criar e compartilhar uma prévia antes de abrir sua conta.",button:"Criar minha conta"},
+ register:{tag:"1 MÊS GRÁTIS · 30 DIAS",title:"Salve o cardápio da sua pizzaria.",text:"Seu teste começa ao criar a primeira pizzaria. Sem cartão de crédito e sem cobrança automática.",button:"Criar minha conta grátis"},
  recover:{tag:"VAMOS RESOLVER",title:"Esqueceu a senha?",text:"Informe seu e-mail. Enviaremos um link para você escolher uma nova senha.",button:"Enviar link de recuperação"},
  "confirm-email":{tag:"SÓ FALTA CONFIRMAR",title:"Vamos abrir sua conta.",text:"Confirme seu e-mail para começar a montar seu cardápio.",button:"Confirmar meu e-mail"},
  reset:{tag:"UM NOVO COMEÇO",title:"Escolha uma nova senha.",text:"Use pelo menos 12 caracteres. Uma frase curta é mais fácil de lembrar.",button:"Salvar nova senha"},
