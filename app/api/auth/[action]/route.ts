@@ -10,7 +10,7 @@ import {sameOrigin,readJson,errorResponse,HttpError,privateHeaders} from "@/lib/
 import {startGoogleLogin} from "@/lib/google-oauth";
 import {startPasswordRecovery,finishPasswordRecovery} from "@/lib/password-recovery";
 import {env} from "cloudflare:workers";
-import {maintenanceActive,runPlatformMaintenance,type MaintenanceEnv} from "@/lib/platform-maintenance";
+import {maintenanceBlocksAuthentication,runPlatformMaintenance,type MaintenanceEnv} from "@/lib/platform-maintenance";
 import {validAdminEnrollment,type AdminEnrollmentEnv} from "@/lib/admin-enrollment-policy";
 import {MIN_PASSWORD_LENGTH,ADMIN_PASSWORD_MIN_LENGTH} from "@/lib/password-policy";
 export const dynamic="force-dynamic";
@@ -27,7 +27,7 @@ export async function GET(request:Request,{params}:Context){try{
 }catch(e){return errorResponse(e);}}
 export async function POST(request:Request,{params}:Context){try{
   sameOrigin(request);assertCsrf(request);const {action}=await params;
-  if(action!=="logout"&&maintenanceActive(env as typeof env&MaintenanceEnv))throw new HttpError(503,"Estamos preparando a plataforma. Tente novamente em instantes.");
+  if(action!=="logout"&&await maintenanceBlocksAuthentication(env as typeof env&MaintenanceEnv))throw new HttpError(503,"Estamos preparando a plataforma. Tente novamente em instantes.");
   if(action==="logout"){const user=await getChatGPTUser(),cookie=await logout(request);return Response.json({ok:true,chatgpt:!!user},{headers:{...privateHeaders,"Set-Cookie":cookie}});}
   const input=await readJson(request);
   if(action==="google"){const data=z.object({next:z.string().max(300).optional()}).parse(input),flow=await startGoogleLogin(request,data.next);return Response.json({url:flow.url},{headers:{...privateHeaders,"Set-Cookie":flow.cookie}});}

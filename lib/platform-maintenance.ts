@@ -5,6 +5,13 @@ export function maintenanceActive(e:MaintenanceEnv,now=Math.floor(Date.now()/100
  const until=Number(e.PEDIDO_RESET_UNTIL),cutoff=Date.parse(e.PEDIDO_RESET_CUTOFF||"");
  return /^[a-f0-9-]{36}$/.test(e.PEDIDO_RESET_ID||"")&&Number.isSafeInteger(until)&&until>now&&until<=now+86400&&Number.isFinite(cutoff)&&cutoff<=now*1000&&cutoff>=(now-86400)*1000;
 }
+/** Completion is authoritative even if a host retains an old reset binding. */
+export async function maintenanceBlocksAuthentication(e:MaintenanceEnv){
+ if(!maintenanceActive(e))return false;
+ if(!e.DB)return true;
+ const run=await e.DB.prepare("SELECT status FROM platform_maintenance_runs WHERE id=?").bind(e.PEDIDO_RESET_ID!).first<{status:string}>();
+ return run?.status!=="done";
+}
 async function asaasHealth(e:MaintenanceEnv,fetcher:typeof fetch){
  const c=readAsaasConfig(e);const report={configured:c.enabled,mode:c.mode,enforced:e.PEDIDO_BILLING_ENFORCED==="true",apiStatus:0,webhookStatus:0,webhookConfigured:false,webhookEnabled:false,webhookPaused:false};
  if(!c.enabled||!c.baseUrl)return report;
