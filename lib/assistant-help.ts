@@ -1,4 +1,4 @@
-import {TRIAL_DAYS} from "./trial-policy";
+import {TRIAL_DAYS} from "./trial-policy.ts";
 import {requestedImage} from "./creation-intent.ts";
 import {inspectMenuSourceText} from "./menu-source-links.ts";
 
