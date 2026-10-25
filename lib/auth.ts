@@ -9,11 +9,12 @@ import {revokeSessionPush} from "./push";
 import {enrollTrial} from "./trial";
 import {HttpError,throttle} from "./http";
 import {providerFailure} from "./provider-diagnostics";
+import {providerAdminAuthority} from "./admin-enrollment-policy";
 import {prototypeEmailAllowed,inviteOnlyRegistration,registrationAvailable} from "./platform";
 import {providerOrigin,readSessionCookie,sessionCookie,randomToken,sha256,sealTokens,openTokens,SESSION_SECONDS,RECOVERY_SECONDS,safeReturnPath,allowsAccountAccess} from "./auth-policy";
-export type AccountUser={userId:string;displayName:string;email:string;fullName:string|null;provider:"supabase"|"chatgpt";loginMethod:"email"|"google"|"internal"};
-type AuthEnv={SUPABASE_URL?:string;SUPABASE_PUBLISHABLE_KEY?:string;AUTH_SESSION_KEY?:string;TURNSTILE_SITE_KEY?:string;PEDIDO_GOOGLE_ENABLED?:string};
-type ProviderUser={id:string;email?:string;email_confirmed_at?:string;user_metadata?:{name?:unknown;full_name?:unknown}};
+export type AccountUser={userId:string;displayName:string;email:string;fullName:string|null;provider:"supabase"|"chatgpt";loginMethod:"email"|"google"|"internal";adminAuthority?:string};
+type AuthEnv={SUPABASE_URL?:string;SUPABASE_PUBLISHABLE_KEY?:string;AUTH_SESSION_KEY?:string;TURNSTILE_SITE_KEY?:string;PEDIDO_GOOGLE_ENABLED?:string;PEDIDO_LEGACY_AUTH_ENABLED?:string};
+type ProviderUser={id:string;email?:string;email_confirmed_at?:string;user_metadata?:{name?:unknown;full_name?:unknown};app_metadata?:unknown};
 export type ProviderSession={access_token:string;refresh_token:string;expires_in:number;user:ProviderUser};
 type TokenVault={access:string;refresh:string;method?:"email"|"google"};
 export function authConfig(){const e=env as typeof env&AuthEnv;const origin=providerOrigin(e.SUPABASE_URL||""),enabled=!!origin&&!!e.SUPABASE_PUBLISHABLE_KEY&&/^[a-f0-9]{64}$/.test(e.AUTH_SESSION_KEY||"");return {enabled,googleEnabled:enabled&&e.PEDIDO_GOOGLE_ENABLED==="true"&&!inviteOnlyRegistration(),origin,key:e.SUPABASE_PUBLISHABLE_KEY||"",seal:e.AUTH_SESSION_KEY||"",captchaSiteKey:inviteOnlyRegistration()?"":e.TURNSTILE_SITE_KEY||""};}
@@ -39,7 +40,7 @@ function mapUser(user:ProviderUser):AccountUser{
   if(!user.id||!user.email||!user.email_confirmed_at)throw new HttpError(401,"Não foi possível validar sua conta. Entre novamente.");
   if(!prototypeEmailAllowed(user.email))throw new HttpError(401,"Esta conta não tem acesso à plataforma.");
   const name=([user.user_metadata?.name,user.user_metadata?.full_name,user.email].find(v=>typeof v==="string"&&v.trim()) as string).slice(0,100);
-  return {userId:"supabase:"+user.id,email:user.email,displayName:name,fullName:name,provider:"supabase",loginMethod:"email"};
+  return {userId:"supabase:"+user.id,email:user.email,displayName:name,fullName:name,provider:"supabase",loginMethod:"email",adminAuthority:providerAdminAuthority(user.app_metadata)};
 }
 export async function createSession(tokens:ProviderSession,scope:"account"|"recovery",request:Request,method:"email"|"google"="email",options:{enroll?:boolean}={}){
   if(!tokens.access_token||!tokens.refresh_token)throw new HttpError(401,"Solicite um novo link para continuar.");
@@ -81,6 +82,7 @@ async function readLocalSession(){
 }
 export async function getAccountUser():Promise<AccountUser|null>{
   const local=await readLocalSession();if(local){if(!allowsAccountAccess(local.row.scope))return null;const profile=await getDb().select().from(accountProfiles).where(eq(accountProfiles.ownerId,local.user.userId)).get();return {...local.user,displayName:profile?.name||local.user.displayName};}
+  if((env as typeof env&AuthEnv).PEDIDO_LEGACY_AUTH_ENABLED==="false")return null;
   const user=await getChatGPTUser();if(!user)return null;
   const profile=await getDb().select().from(accountProfiles).where(eq(accountProfiles.ownerId,user.userId)).get();
   return {...user,displayName:profile?.name||user.displayName,provider:"chatgpt",loginMethod:"internal"};

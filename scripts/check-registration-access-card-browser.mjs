@@ -30,8 +30,11 @@ page.setDefaultTimeout(30000);
 page.on("pageerror",e=>errors.push(e.message));
 const checks=[];
 const secret="SenhaFicticia2026!NuncaUsarEmProducao";
+const adminInvite="cd".repeat(32);
 try{
- await page.goto(base+"/cadastro?next=%2Fapp%3Fnew%3D1",{waitUntil:"networkidle",timeout:90000});
+ await page.goto(base+"/cadastro?next=%2Fapp%3Fnew%3D1#adminInvite="+adminInvite,{waitUntil:"networkidle",timeout:90000});
+ await page.getByText(/Convite privado de administrador/).waitFor();
+ assert.ok(!page.url().includes(adminInvite),'Private invitation must be removed from the URL');
  const name="Dona Ana "+"Pizzaria Brasileira ".repeat(4);
  const email="ana."+("muito.longo.".repeat(6))+"@pizzaria.example";
  await page.getByRole("textbox",{name:"Seu nome"}).fill(name);
@@ -57,6 +60,8 @@ try{
  assert.ok(!await page.evaluate(()=>document.body.innerText.includes("SenhaFicticia2026")));
  assert.equal(requests.length,3);
  assert.equal(requests.at(-1).next,"/app?new=1");
+ assert.equal(requests.at(-1).adminInvite,adminInvite);
+ assert.ok(!await page.evaluate(value=>JSON.stringify(localStorage).includes(value),adminInvite));
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true);
  await page.screenshot({path:path.join(output,"mobile.png"),fullPage:true});
  checks.push("cartão apenas após confirmação e senha oculta, celular sem rolagem horizontal");
@@ -75,6 +80,7 @@ try{
  assert.match(svg,/pizzaria/);
  assert.ok(svg.includes(email.slice(0,25)));
  assert.ok(!svg.includes(secret));
+ assert.ok(!svg.includes(adminInvite));
  assert.match(svg,/MEU E-MAIL/);
  checks.push("SVG editável contém logotipo/foto oficiais, nome e e-mail; senha não exportada");
 
