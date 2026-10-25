@@ -136,7 +136,7 @@ export default function IdeaStart({adminMode=false}:{adminMode?:boolean}){
   if(!styleId)setRound(0);
  }
  return <section className={"idea-start ai-landing creator-flow "+(preview?"has-results":"waiting-prompt")} id="ideia"><div className="saas-container">{adminMode&&initialized&&(idea||brandName||preview)&&<p><button type="button" className="btn outline" disabled={busy||saving||shareBusy} onClick={()=>{if(!window.confirm("Iniciar outro cardápio? Os links já criados continuam na gestão de cardápios; esta edição local será descartada."))return;void (launch.current?clearLaunchCheckpoint(launch.current.id,undefined,adminLaunchKey):Promise.resolve()).then(()=>location.reload(),()=>setError("Não foi possível limpar esta edição. Tente novamente."));}}>Iniciar outro cardápio</button></p>}
-   {!preview&&<div className="creator-intro"><span>SEU CARDÁPIO. DO SEU JEITO.</span><h1>Sua pizzaria começa<br/>com uma ideia.</h1><p>Conte como você imagina. Traga seu cardápio e veja tudo ganhar forma.</p></div>}
+   {!preview&&<div className="creator-intro"><span>SEU CARDÁPIO. DO SEU JEITO.</span><h1>Sua pizzaria começa<br/>com uma ideia.</h1><p>Conte como você imagina. Traga seu cardápio e veja tudo ganhar forma.</p>{!adminMode&&<p><strong>1 mês grátis (30 dias).</strong> Sem cartão de crédito e sem cobrança automática.</p>}</div>}
    <div className={"idea-workspace"+(preview?" has-gallery":"")}><div className="idea-composer-wrap">
      <details className="creator-briefing" open={!preview||sourceOpen}><summary>Sua ideia e dados da pizzaria <span>Conferir ou editar</span></summary>
      <div className="idea-conversation">

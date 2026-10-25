@@ -1,5 +1,5 @@
-/** Regras independentes de cobrança para a oferta de 7 dias de teste. */
-export const TRIAL_DAYS = 7;
+/** Um mês grátis: 30 dias corridos a partir da primeira pizzaria. */
+export const TRIAL_DAYS = 30;
 export const TRIAL_SECONDS = TRIAL_DAYS * 86400;
 export type Trial = { status:"active"|"expired"|"not_started"; endsAt: number; daysRemaining: number };
 export function trialFromStart(startedAt: string | number | null | undefined, now = Math.floor(Date.now()/1000)): Trial {

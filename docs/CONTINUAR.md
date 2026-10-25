@@ -1,3 +1,5 @@
+**Continuidade em 25/10/2026 — oferta de 30 dias e reinício autorizado:** leia [LIMPEZA-E-ADMIN-20261025.md](LIMPEZA-E-ADMIN-20261025.md). Supabase zerado, beta/staging zerados e base principal limpa. Não repetir exclusões após a divulgação do link. Convite privado ao novo administrador; nenhuma senha é definida por suporte. Asaas API/webhook responderam 200, mas o primeiro pagamento externo e a recuperação forte da issue #116 continuam pendentes.
+
 # Continuar a pizzaria.on
 
 **Publicado e conferido — v92, 25/10/2026, 08:24 de Brasília:** WhatsApp oficial configurado no servidor e aplicado na produção. O botão de recuperação abre atendimento com o número de oito dígitos confirmado pelo proprietário, preservado sem acrescentar dígitos. Netlify e Lovable conferidos no navegador; 655 testes locais, tipos/build e CIs Chrome, Windows e autenticação/pedidos aprovados. SMTP e recuperação sem senha/MFA não foram ativados. [Publicação, testes e pendências](PUBLICACAO-ACESSO-20261025.md).

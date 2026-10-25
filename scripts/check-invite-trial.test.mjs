@@ -12,10 +12,10 @@ test("invite secret is required and never accepted when absent",async()=>{
  assert.equal(await matchesInvite("qualquer",secret),false);
  assert.equal(await matchesInvite("x".repeat(300),secret),false);
 });
-test("trial runs exactly seven 24-hour days and never renews on login",()=>{
+test("trial runs exactly thirty 24-hour days and never renews on login",()=>{
  const start = Date.parse("2026-10-11T13:00:00.000Z")/1000;
- assert.equal(TRIAL_SECONDS,604800);
- assert.deepEqual(trialFromStart(start,start),{status:"active",endsAt:start+TRIAL_SECONDS,daysRemaining:7});
+ assert.equal(TRIAL_SECONDS,2592000);
+ assert.deepEqual(trialFromStart(start,start),{status:"active",endsAt:start+TRIAL_SECONDS,daysRemaining:30});
  assert.equal(trialFromStart(new Date(start*1000).toISOString(),start+TRIAL_SECONDS-1).daysRemaining,1);
  assert.equal(trialFromStart(start,start+TRIAL_SECONDS).status,"expired");
  assert.equal(trialFromStart(start,start+TRIAL_SECONDS*10).status,"expired");
