@@ -1,6 +1,6 @@
 # Calculadora e administração de cardápios — 25/10/2026 UTC
 
-Candidato ainda em validação; a produção permanece v89 até a implantação confirmada.
+**v90 integrada e recursos públicos conferidos em 24/10/2026 (horário de Brasília).** A implementação foi unida à `main` pela PR #112 e espelhada na PR #62 do Lovable. As conferências abaixo são somente leitura; não criaram cardápios nem modificaram contas de clientes.
 
 ## Fluxos entregues no código
 
@@ -18,6 +18,11 @@ Candidato ainda em validação; a produção permanece v89 até a implantação 
 
 Migração 0018 aditiva cria somente `admin_shared_menus` e seus índices. Contas, restaurantes, pedidos, pagamentos e publicações existentes permanecem nas mesmas tabelas. Administração é conferida no servidor; mutações exigem mesma origem e CSRF. Criação tem chave de idempotência, confirmação e limite; alterações usam versão para conflito entre abas. Link pausado/expirado retorna 410 sem conteúdo. Respostas não incluem IDs de conta, chaves ou metadados internos. Nenhuma cobrança ou geração paga foi executada.
 
-## Validação
+## Validação e publicação — fechamento da v90
 
-641 testes locais passaram, incluindo workerd/D1/R2 reais em ambiente descartável e cálculo em centavos. TypeScript passou. Chrome isolado, build, sincronização e publicação: pendentes nesta revisão; atualizar com evidências após concluir.
+- **Código:** principal `970bc99589764f84092ca9cfdc1b51143d6f75a8` (PR #112 integrada às 21:30 de Brasília em 24/10); espelho Lovable `e73426882cd3c0aed4989f650c7c63b709564ee6` (PR #62 integrada às 21:32 de Brasília). O projeto Lovable informa status `ready` e publicado. A versão não foi regenerada via IA nesta conferência.
+- **Testes:** 641 testes locais e TypeScript registrados no fechamento da candidata; compilação aprovada na rodada anterior. O commit final `c5721c1` teve quatro CIs aprovados: [Chrome 40146572928](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40146572928), [Windows 40146572958](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40146572958), [autenticação/pedidos 40146573056](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40146573056) e [chat 40146572923](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40146572923). Chrome validou a calculadora, backup, os 80 modelos e o fluxo administrativo com dados locais isolados, sem afetar clientes.
+- **Público:** `https://pizzaria-on.netlify.app/calculadora` e `https://forno-cardapios.waves4845.chatgpt.site/calculadora` renderizam ficha técnica e métodos distintos de preço sem solicitar cadastro. `/c/<id>` apresenta o botão vermelho **Criar meu cardápio**; um ID inexistente de formato válido devolve 404 nos dois endereços. `/admin/cardapios` redireciona não autenticados para login, e `/api/admin/shared-menus` devolve 401 sem sessão. `/manifest.webmanifest` está disponível para o uso como aplicativo. Essas são verificações públicas, não autenticação administrativa.
+- **Migração:** a 0018 é aditiva. A consulta pública de um ID inexistente retornou 404, não houve erro visível da rota de leitura. Isso não substitui a verificação interna de dados e permissões de uma sessão real.
+- **Espelho:** o próprio CI GitHub do espelho Lovable continua falhando antes de executar etapas: [run 40147096013](https://github.com/bryansouzarodrigues1-creator/pizzaria.on-chat/actions/runs/40147096013) tem zero passos registrados. Esse erro de infraestrutura não deve ser relatado como suíte funcional aprovada.
+- **Limites honestos:** não houve criação/pausa/renovação de link com credencial administradora **na produção** nesta conferência, nem instalação física no Android, captura iFood real, pagamento real, nova geração paga, mudança de banco de clientes ou disparo automático de WhatsApp. Para homologação operacional completa, entrar com uma conta administradora autorizada, criar um cardápio de teste, abrir o link em aba anônima, pausar (verificar 410), restaurar/renovar e remover os dados de teste quando apropriado. Não utilizar uma conta de cliente real para esse ensaio.

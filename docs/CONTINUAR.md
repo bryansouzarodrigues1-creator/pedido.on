@@ -1,6 +1,6 @@
 # Continuar a pizzaria.on
 
-**Candidato em validação — 25/10/2026 UTC:** calculadora gratuita com ficha técnica, taxas e margem; prévias adaptadas; admin de cardápios compartilhados com criação, validade, pausa e renovação. 641 testes e tipos locais passaram. Publicação e Chrome ainda em conferência. [Escopo e validação](CALCULADORA-E-ADMIN-20261025.md).
+**Publicado e conferido — v90, 24/10/2026 (Brasília):** calculadora gratuita, ficha técnica, taxas/margem, layouts adaptados, instalação discreta e administração de cardápios compartilhados com botão vermelho “Criar meu cardápio”. PR #112 e espelho #62 integrados; **641 testes locais** registrados, quatro CIs principais aprovados e rotas públicas conferidas. Falta ensaio de criação/pausa/renovação com administrador real na produção. [Detalhes](CALCULADORA-E-ADMIN-20261025.md).
 
 **Publicado — v89, 24/10/2026, 18:46 de Brasília:** atendimento por link substitui a busca automática na interface; solicitação com protocolo, fila e entrega pela extensão para revisão. Convite de instalação respeita o X; sugestões diárias reutilizam produtos/fotos sem modelos. **627 testes**, tipos/build e os três CIs principais aprovados. Netlify e Lovable conferidos. Mirror CI falha antes das etapas; captura iFood real e instalação física não foram executadas. [Fluxo e provas](ATENDIMENTO-E-DIVULGACAO-20261024.md).
 
