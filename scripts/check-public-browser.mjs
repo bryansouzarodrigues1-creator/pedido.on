@@ -4,7 +4,7 @@ import {spawn} from 'node:child_process';
 import {mkdir, writeFile, readFile} from 'node:fs/promises';
 import path from 'node:path';
 
-const base = 'https://forno-cardapios.waves4845.chatgpt.site';
+const base = 'https://pizzaria-on.netlify.app';
 const output = path.resolve('.sites-runtime/browser-ci/public');
 await mkdir(output, {recursive: true});
 const checks = [];

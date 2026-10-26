@@ -20,7 +20,7 @@ Acessos são medidos a partir desta publicação, por sessão do navegador/pági
 
 ## Continuidade de acesso e custos
 
-As telas de conta acessadas diretamente pelo backend redirecionam antes do login à origem pública configurada. A requisição autenticada e assinada do gateway não redireciona. Isso evita alternar entre cookies de domínios distintos. HTML privado recebe no-store, além das APIs. A renovação espera uma requisição concorrente por até cinco segundos; uma resposta antiga não apaga tokens já renovados por outra requisição. Sessões expiradas/revogadas continuam bloqueadas.
+As entradas de criação/calculadora e as telas de conta acessadas diretamente pelo backend redirecionam à origem pública configurada, antes de criar o rascunho ou fazer login. Isso mantém a prévia e a transferência de preços no mesmo armazenamento do navegador. A requisição autenticada e assinada do gateway não redireciona. Isso evita alternar entre cookies de domínios distintos. HTML privado recebe no-store, além das APIs. A renovação espera uma requisição concorrente por até cinco segundos; uma resposta antiga não apaga tokens já renovados por outra requisição. Sessões expiradas/revogadas continuam bloqueadas.
 
 Nenhuma senha antiga fica disponível ao administrador. Alteração autenticada continua exigindo a senha atual; recuperação por e-mail depende da configuração de entrega validada. Não foi criada uma redefinição por mera identificação de aparelho ou uma liberação administrativa sem comprovação do titular.
 

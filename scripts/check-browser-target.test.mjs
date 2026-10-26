@@ -21,6 +21,7 @@ test('browser QA defaults to isolated loopback targets', async () => {
 test('public QA requires explicit opt-in to the exact existing site', async () => {
     await environment(publicOrigin, '', () => assert.throws(browserQaTarget));
     await environment(publicOrigin, 'true', () => assert.deepEqual(browserQaTarget(), {base: publicOrigin, publicReadOnly: true}));
+    await environment('https://pizzaria-on.netlify.app','true',()=>assert.deepEqual(browserQaTarget(),{base:'https://pizzaria-on.netlify.app',publicReadOnly:true}));
     for (const base of [publicOrigin + '.example', publicOrigin + ':443', publicOrigin + '/app', publicOrigin + '?next=/app', 'https://example.test'])
         await environment(base, 'true', () => assert.throws(browserQaTarget));
 });
