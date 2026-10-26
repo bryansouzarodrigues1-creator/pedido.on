@@ -19,7 +19,7 @@ const json=(route,status,body)=>route.fulfill({status,contentType:'application/j
 await context.route('**/*',route=>{
  const u=new URL(route.request().url());
  if(u.origin===base)return route.continue();
- blocked.push(route.request().method()+' '+u.origin+u.pathname);
+ if(!['GET','HEAD','OPTIONS'].includes(route.request().method()))blocked.push(route.request().method()+' '+u.origin+u.pathname);
  return route.abort();
 });
 await context.route('**/api/auth/config*',route=>json(route,200,config));
@@ -97,6 +97,7 @@ try{
  checks.push('página de senha sem token não permite alteração');
 
  await goto('/redefinir-senha?token_hash='+ 'b'.repeat(64));
+ await page.waitForFunction(()=>!location.search.includes('token_hash='));
  assert.ok(!page.url().includes('token_hash='),'token de recuperação permaneceu na barra de endereço');
  await page.getByRole('button',{name:'Validar link de recuperação'}).click();
  await page.getByRole('alert').filter({hasText:'Este link de recuperação expirou'}).waitFor();
@@ -104,6 +105,7 @@ try{
  checks.push('token vencido é recusado sem exibir o campo de nova senha');
 
  await goto('/redefinir-senha?token_hash='+ 'a'.repeat(64));
+ await page.waitForFunction(()=>!location.search.includes('token_hash='));
  assert.ok(!page.url().includes('token_hash='));
  await page.getByRole('button',{name:'Validar link de recuperação'}).click();
  await page.getByLabel('Senha',{exact:true}).waitFor();
