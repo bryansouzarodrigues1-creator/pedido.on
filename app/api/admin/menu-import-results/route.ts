@@ -7,6 +7,7 @@ import {assertCsrf} from "@/lib/auth";
 import {runnerResultSchema,runnerCaptureForAssistance} from "@/lib/menu-runner-result";
 import {assistedCapture,assistStats} from "@/lib/menu-assistance-policy";
 import {queueOwnerNotice} from "@/lib/push";
+import {menuProgressNotice} from "@/lib/account-notices";
 export const dynamic="force-dynamic";
 
 export async function POST(request:Request){try{
@@ -33,6 +34,7 @@ export async function POST(request:Request){try{
   .bind(raw,input.requestId,raw,stamp,stamp,input.requestId,row.storeUrl).first<{captureJson:string}>();
  if(!updated)throw new HttpError(409,"A solicitação mudou durante o envio. Atualize a fila.");
  const capture=assistedCapture.parse(JSON.parse(updated.captureJson));
+ await menuProgressNotice(row.ownerId,input.requestId,row.restaurantId,"received");
  if(row.notifyWhenReady===1)queueOwnerNotice(row.ownerId,"menu-ready:"+input.requestId,"menu",row.restaurantId);
  return Response.json({received:true,stats:assistStats(capture),message:"Resultado entregue para conferência do dono. Nenhum produto foi publicado."},{headers:privateHeaders});
 }catch(e){return errorResponse(e);}}

@@ -75,11 +75,19 @@ async function readLocalSession(){
         await db.update(authSessions).set({sealedTokens:await sealTokens(vault,config.seal,id+":"+row.ownerId),tokenExpiresAt:now+(fresh.expires_in||3600),refreshLock:0}).where(eq(authSessions.id,id));
       }catch(e){await db.update(authSessions).set({refreshLock:0}).where(eq(authSessions.id,id));if(e instanceof HttpError&&e.status===401){await db.delete(authSessions).where(eq(authSessions.id,id));return null;}throw e;}
     }else{
-      for(let attempt=0;attempt<8;attempt++){await new Promise(resolve=>setTimeout(resolve,100));const updated=await db.select().from(authSessions).where(eq(authSessions.id,id)).get();if(!updated)return null;if(updated.tokenExpiresAt>now+45){row=updated;vault=await openTokens<TokenVault>(row.sealedTokens,config.seal,id+":"+row.ownerId);break;}if(attempt===7)throw new HttpError(503,"Sua sessão está sendo renovada. Tente novamente.");}
+      for(let attempt=0;attempt<50;attempt++){await new Promise(resolve=>setTimeout(resolve,100));const updated=await db.select().from(authSessions).where(eq(authSessions.id,id)).get();if(!updated)return null;if(updated.tokenExpiresAt>now+45){row=updated;vault=await openTokens<TokenVault>(row.sealedTokens,config.seal,id+":"+row.ownerId);break;}if(attempt===49)throw new HttpError(503,"Sua sessão está sendo renovada. Tente novamente.");}
     }
   }
   try{const verified=await providerRequest<ProviderUser>("user","GET",undefined,vault.access),user={...mapUser(verified),loginMethod:vault.method==="google"?"google" as const:"email" as const};if(user.userId!==row.ownerId)throw new HttpError(401,"Sessão inválida.");return {row,vault,user};}
-  catch(e){if(e instanceof HttpError&&e.status===401){await db.delete(authSessions).where(eq(authSessions.id,id));return null;}throw e;}
+  catch(e){if(e instanceof HttpError&&e.status===401){
+    const current=await db.select().from(authSessions).where(eq(authSessions.id,id)).get();
+    if(current&&current.sealedTokens!==row.sealedTokens){
+      const newer=await openTokens<TokenVault>(current.sealedTokens,config.seal,id+":"+current.ownerId);
+      const verified=await providerRequest<ProviderUser>("user","GET",undefined,newer.access),user={...mapUser(verified),loginMethod:newer.method==="google"?"google" as const:"email" as const};
+      if(user.userId!==current.ownerId)throw new HttpError(401,"Sessão inválida.");return {row:current,vault:newer,user};
+    }
+    await env.DB!.prepare("DELETE FROM auth_sessions WHERE id=? AND sealed_tokens=? AND refresh_lock<?").bind(id,current?.sealedTokens||row.sealedTokens,Math.floor(Date.now()/1000)).run();return null;
+  }throw e;}
 }
 export async function getAccountUser():Promise<AccountUser|null>{
   const local=await readLocalSession();if(local){if(!allowsAccountAccess(local.row.scope))return null;const profile=await getDb().select().from(accountProfiles).where(eq(accountProfiles.ownerId,local.user.userId)).get();return {...local.user,displayName:profile?.name||local.user.displayName};}

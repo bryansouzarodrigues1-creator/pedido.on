@@ -13,6 +13,7 @@ import {env} from "cloudflare:workers";
 import {maintenanceBlocksAuthentication,runPlatformMaintenance,type MaintenanceEnv} from "@/lib/platform-maintenance";
 import {validAdminEnrollment,type AdminEnrollmentEnv} from "@/lib/admin-enrollment-policy";
 import {MIN_PASSWORD_LENGTH,ADMIN_PASSWORD_MIN_LENGTH} from "@/lib/password-policy";
+import {notifyAdministrator} from "@/lib/account-notices";
 export const dynamic="force-dynamic";
 const email=z.string().trim().max(254).email("Confira seu e-mail.").transform(normalizeEmail);
 const password=z.string().refine(validPassword,`Use uma senha com ${MIN_PASSWORD_LENGTH} a 128 caracteres.`);
@@ -77,6 +78,7 @@ export async function POST(request:Request,{params}:Context){try{
     if(!tokens.access_token||!tokens.refresh_token||!tokens.user)
       throw new HttpError(503,"Não foi possível concluir seu cadastro. Tente entrar ou recuperar a senha.");
     const session=await createSession(tokens as ProviderSession,"account",request,"email",{enroll:true});
+    await notifyAdministrator({event:"account:"+session.user.userId,title:"Nova conta cadastrada",body:"Um novo cadastro está disponível para atendimento.",path:"/admin/clientes"});
     return Response.json({ok:true,next:safeReturnPath(data.next)},{headers:{...privateHeaders,"Set-Cookie":session.cookie}});
   }
   const cookie=await startPasswordRecovery(request,data.email,security);

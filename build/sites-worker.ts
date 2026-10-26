@@ -1,3 +1,4 @@
+import {canonicalAccountLocation} from "../lib/account-origin-policy";
 import handler from "vinext/server/fetch-handler";
 import { runWithConnectorBinding } from "../lib/connector-context";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
@@ -13,6 +14,8 @@ export default {
         headers: {"Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer"},
       });
     }
+    const canonical=canonicalAccountLocation(request,env as typeof env & HostingProxyConfig,normalized.proxied);
+    if(canonical)return new Response(null,{status:307,headers:{Location:canonical,"Cache-Control":"private, no-store"}});
     request = normalized.request;
     let binding = ctx.props?.CONNECTORS;
     // Local preview emulates the same request-scoped capability. This branch and
@@ -44,6 +47,9 @@ export default {
       result.headers.set("Cache-Control", "no-cache, max-age=0, must-revalidate");
       if(new URL(request.url).pathname === "/sw.js")result.headers.set("Service-Worker-Allowed", "/");
       return result;
+    }
+    if(/^\/(?:app|admin|configuracao|conta|assinatura|entrar|cadastro|sair|esqueci-senha|redefinir-senha)(?:\/|$)/.test(new URL(request.url).pathname)){
+      const resolved=await response,result=new Response(resolved.body,resolved);result.headers.set("Cache-Control","private, no-store");result.headers.set("CDN-Cache-Control","no-store");return result;
     }
     return response;
   },

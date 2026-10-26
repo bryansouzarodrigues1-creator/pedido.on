@@ -14,7 +14,7 @@ test('final price rounds once to cents, including values with hidden-fraction di
 test('missing values, negative costs and percentages, excessive precision and unknown fields are rejected',()=>{
  for(const input of [{cost:0,overhead:15,markup:100},{cost:-100,overhead:15,markup:100},{cost:100,overhead:301,markup:100},{cost:100,overhead:15,markup:1001},{cost:100,overhead:15.001,markup:100},{cost:100,overhead:15,markup:NaN},{cost:100,overhead:15,markup:100,price:1}])assert.equal(flavorPriceSchema.safeParse(input).success,false);
  assert.equal(flavorRowInput(blankFlavorRow()).success,false);
- assert.deepEqual(flavorRowInput({...blankFlavorRow(),cost:'1.234,56',overhead:'15',markup:'144,1'}).data,{cost:123456,overhead:15,markup:144.1});
+ assert.deepEqual(flavorRowInput({...blankFlavorRow(),method:'markup',cost:'1.234,56',overhead:'15',markup:'144,1'}).data,{cost:123456,overhead:15,markup:144.1});
 });
 test('saved flavor tables restore exact strings and independent rows without using old monthly storage',()=>{
  const rows=exampleFlavorRows(),restored=flavorTableSchema.parse(JSON.parse(JSON.stringify({version:1,rows})));assert.equal(rows.length,5);assert.equal(new Set(rows.map(row=>row.id)).size,5);assert.deepEqual(restored.rows,rows);assert.equal(rows[4].markup,'144,1');assert.equal(flavorTableSchema.safeParse({version:2,rows}).success,false);

@@ -1,3 +1,4 @@
+import {menuProgressNotice} from "@/lib/account-notices";
 import {env} from "cloudflare:workers";
 import {assistedCapture,hasSafeSource,sanitizeCapture,assistStats} from "@/lib/menu-assistance-policy";
 import {sha256} from "@/lib/auth-policy";
@@ -43,6 +44,7 @@ export async function POST(request:Request){const headers=cors(request.headers.g
  if(!updated)throw new HttpError(409,"A importação já foi recebida ou o código expirou.");
  const capture=assistedCapture.parse(JSON.parse(updated.captureJson));
  // O aviso é opcional e não altera nem reverte o cardápio já recebido.
+ await menuProgressNotice(row.ownerId,token[1],row.restaurantId,"received");
  if(row.notifyWhenReady===1)queueOwnerNotice(row.ownerId,"menu-ready:"+token[1],"menu",row.restaurantId);
  return Response.json({received:true,stats:assistStats(capture),message:"Dados enviados para revisão do dono. Nenhum produto foi publicado."},{headers});
 }catch(e){

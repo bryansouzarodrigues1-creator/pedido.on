@@ -199,15 +199,18 @@ test('signed requests verify in the real Workers runtime, including browser orig
   const require = createRequire(import.meta.url), ts = require('typescript');
   const {Miniflare} = require(require.resolve('miniflare', {paths: [require.resolve('wrangler')]}));
   const policy = ts.transpileModule(readFileSync(new URL('../lib/hosting-proxy-policy.ts', import.meta.url), 'utf8'), {compilerOptions: {target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext}}).outputText;
+  const accountPolicy = ts.transpileModule(readFileSync(new URL('../lib/account-origin-policy.ts', import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace('./hosting-proxy-policy.ts','./policy.mjs');
   const entry = ts.transpileModule(readFileSync(new URL('../build/sites-worker.ts', import.meta.url), 'utf8'), {compilerOptions: {target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext}}).outputText
     .replace('"vinext/server/fetch-handler"', '"./handler.mjs"')
     .replace('"../lib/connector-context"', '"./context.mjs"')
     .replace('"../lib/hosting-proxy-policy"', '"./policy.mjs"')
+    .replace('"../lib/account-origin-policy"', '"./account-policy.mjs"')
     .replace('import.meta.env.DEV', 'false');
   const handler = 'export default {async fetch(request){return Response.json({url:request.url,ip:request.headers.get("cf-connecting-ip"),owner:request.headers.get("oai-authenticated-user-id"),cookie:request.headers.get("cookie"),body:await request.text()});}};';
   const mf = new Miniflare({modules: [
     {type: 'ESModule', path: 'entry.mjs', contents: entry},
     {type: 'ESModule', path: 'policy.mjs', contents: policy},
+    {type: 'ESModule', path: 'account-policy.mjs', contents: accountPolicy},
     {type: 'ESModule', path: 'handler.mjs', contents: handler},
     {type: 'ESModule', path: 'context.mjs', contents: 'export function runWithConnectorBinding(binding,fn){return fn();}'},
   ], compatibilityDate: '2026-05-15', bindings: config});

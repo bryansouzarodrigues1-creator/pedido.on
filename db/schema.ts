@@ -105,3 +105,13 @@ export const adminSharedMenus=sqliteTable("admin_shared_menus",{
  label:text("label").notNull(),objectKey:text("object_key").notNull(),createdAt:integer("created_at").notNull(),updatedAt:integer("updated_at").notNull(),
  expiresAt:integer("expires_at").notNull(),disabledAt:integer("disabled_at"),version:integer("version").notNull().default(1)
 },t=>[uniqueIndex("admin_shared_menus_request_idx").on(t.requestId),index("admin_shared_menus_created_idx").on(t.createdAt)]);
+
+export const accountNotices=sqliteTable("account_notices",{
+ id:text("id").primaryKey(),ownerId:text("owner_id").notNull(),eventKey:text("event_key").notNull(),title:text("title").notNull(),body:text("body").notNull(),path:text("path").notNull(),createdAt:text("created_at").notNull(),readAt:text("read_at"),
+},t=>[uniqueIndex("account_notices_event_idx").on(t.ownerId,t.eventKey),index("account_notices_owner_idx").on(t.ownerId,t.createdAt)]);
+export const siteVisits=sqliteTable("site_visits",{
+ id:text("id").primaryKey(),visitorHash:text("visitor_hash").notNull(),page:text("page").notNull(),day:text("day").notNull(),createdAt:text("created_at").notNull(),
+},t=>[uniqueIndex("site_visits_day_idx").on(t.visitorHash,t.page,t.day),index("site_visits_time_idx").on(t.createdAt)]);
+export const operationErrors=sqliteTable("operation_errors",{
+ id:text("id").primaryKey(),area:text("area").notNull(),code:text("code").notNull(),day:text("day").notNull(),hits:integer("hits").notNull().default(1),lastAt:text("last_at").notNull(),
+},t=>[uniqueIndex("operation_errors_day_idx").on(t.area,t.code,t.day)]);
