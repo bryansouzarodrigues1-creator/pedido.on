@@ -1,10 +1,13 @@
-import {env} from "cloudflare:workers";
+import {recordOperationalError} from "./site-operations";
+import {env,waitUntil} from "cloudflare:workers";
 import {HttpError,privateHeaders} from "./http-policy";
 export {HttpError,privateHeaders,sameOrigin,readBody,readBytes,readJson} from "./http-policy";
 export function errorResponse(e:unknown){
   if(e instanceof Error&&/whatsapp_already_registered/i.test(e.message+String(e.cause||"")))return Response.json({error:"Já existe uma pizzaria com este WhatsApp. Entre na conta existente ou use outro número."},{status:409,headers:privateHeaders});
+  if(e instanceof HttpError&&e.status>=500)waitUntil(recordOperationalError("api","http_"+e.status).catch(()=>{}));
   if(e instanceof HttpError)return Response.json({error:e.message,...(e.attempt?{attempt:e.attempt}:{})},{status:e.status,headers:privateHeaders});
   if(e&&typeof e==="object"&&"issues" in e){const issues=(e as {issues:{message:string}[]}).issues;return Response.json({error:issues[0]?.message||"Confira os campos."},{status:400,headers:privateHeaders});}
+  waitUntil(recordOperationalError("api","internal_error").catch(()=>{}));
   console.error("Request failed",e instanceof Error?e.name:"unknown");return Response.json({error:"Não foi possível concluir. Tente novamente."},{status:500,headers:privateHeaders});
 }
 export async function throttle(key:string,limit:number,seconds:number){

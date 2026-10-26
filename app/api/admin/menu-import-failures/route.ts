@@ -5,6 +5,7 @@ import {sameOrigin,readJson,privateHeaders,throttle} from "@/lib/http";
 import {assertCsrf} from "@/lib/auth";
 import {platformAdmin} from "@/lib/platform";
 import {failureForAssistance} from "@/lib/menu-capture-failure";
+import {menuProgressNotice} from "@/lib/account-notices";
 export const dynamic="force-dynamic";
 
 export async function POST(request:Request){try{
@@ -13,8 +14,8 @@ export async function POST(request:Request){try{
  if(!platformAdmin(user))throw new HttpError(403,"Acesso exclusivo da administração.");
  await throttle("admin-capture-failure:"+user.userId,30,3600);
  const input=z.object({requestId:z.string().uuid(),reviewed:z.literal(true),report:z.unknown()}).strict().parse(await readJson(request,8000));
- const row=await env.DB!.prepare("SELECT store_url AS storeUrl,status FROM menu_import_assistance WHERE id=?")
-  .bind(input.requestId).first<{storeUrl:string;status:string}>();
+ const row=await env.DB!.prepare("SELECT store_url AS storeUrl,status,owner_id AS ownerId,restaurant_id AS restaurantId FROM menu_import_assistance WHERE id=?")
+  .bind(input.requestId).first<{storeUrl:string;status:string;ownerId:string;restaurantId:string}>();
  if(!row)throw new HttpError(404,"Solicitação não encontrada.");
  if(!["requested","paired"].includes(row.status))throw new HttpError(409,"Esta solicitação já foi finalizada ou cancelada.");
  let failure:ReturnType<typeof failureForAssistance>;
@@ -25,5 +26,6 @@ export async function POST(request:Request){try{
  const updated=await env.DB!.prepare("UPDATE menu_import_assistance SET status='blocked',capture_json=?,pairing_hash=NULL,pairing_expires_at=NULL,updated_at=? WHERE id=? AND store_url=? AND status IN ('requested','paired')")
   .bind(JSON.stringify(failure),new Date().toISOString(),input.requestId,row.storeUrl).run();
  if(!updated.meta.changes)throw new HttpError(409,"A solicitação mudou durante o envio. Atualize a fila.");
+ await menuProgressNotice(row.ownerId,input.requestId,row.restaurantId,"blocked");
  return Response.json({reported:true,message:"O proprietário verá o bloqueio e poderá continuar pelo PDF, fotos ou suporte. Nenhum produto foi importado."},{headers:privateHeaders});
 }catch(e){return errorResponse(e);}}

@@ -1,3 +1,5 @@
+**Calculadoras e operação — 26/10/2026:** calculadoras Fácil e Profissional, clientes no admin, notificações persistentes, acessos/erros e continuidade de sessão. [Escopo e limites](ADMIN-E-CALCULADORAS-20261026.md).
+
 **Oferta atual — 25/10/2026:** novos testes de 10 dias a partir da primeira pizzaria; prazos já registrados são preservados no acesso e na franquia de IA. [Regra, custos e limites](TESTE-10-DIAS-20261025.md). A fiscalização comercial permanece desligada até validar a cobrança; a franquia de IA expira no prazo registrado.
 
 **Revisão de fluxo — 26/10/2026:** sincroniza a main após #126/#127 e corrige condições de atendimento inventadas na prévia completa e no checkout simulado. [Escopo, verificação e limites](FLUXO-VALIDADO-20261026.md).

@@ -12,18 +12,18 @@ export function calculateFlavorPrice(raw:unknown){
  const reserve=Math.round(value.cost*overheadPoints/10000),gross=suggested-value.cost;
  return {...value,suggested,reserve,gross,afterReserve:gross-reserve,grossMargin:gross/suggested*100};
 }
-export const flavorRowSchema=z.object({id:z.string().uuid(),name:z.string().max(80),cost:z.string().max(24),overhead:z.string().max(24),markup:z.string().max(24),method:z.enum(["markup","margin"]).optional(),fees:z.string().max(24).optional(),margin:z.string().max(24).optional(),salePrice:z.string().max(24).optional(),costMode:z.enum(["ready","recipe"]).optional(),ingredients:z.array(ingredientSchema).max(60).refine(items=>new Set(items.map(i=>i.id)).size===items.length,"Ingredientes repetidos na cópia.").optional(),waste:z.string().max(24).optional(),packaging:z.string().max(24).optional(),energy:z.string().max(24).optional(),other:z.string().max(24).optional()}).strict();
+export const flavorRowSchema=z.object({id:z.string().uuid(),name:z.string().max(80),cost:z.string().max(24),overhead:z.string().max(24),markup:z.string().max(24),method:z.enum(["markup","margin"]).optional(),fees:z.string().max(24).optional(),margin:z.string().max(24).optional(),salePrice:z.string().max(24).optional(),costMode:z.enum(["ready","recipe"]).optional(),channel:z.enum(["counter","delivery","ifood","promotion"]).optional(),ingredients:z.array(ingredientSchema).max(60).refine(items=>new Set(items.map(i=>i.id)).size===items.length,"Ingredientes repetidos na cópia.").optional(),waste:z.string().max(24).optional(),packaging:z.string().max(24).optional(),energy:z.string().max(24).optional(),other:z.string().max(24).optional()}).strict();
 export type FlavorPriceRow=z.infer<typeof flavorRowSchema>;
 export const flavorTableSchema=z.object({version:z.literal(1),rows:z.array(flavorRowSchema).min(1).max(200)}).strict().refine(value=>new Set(value.rows.map(row=>row.id)).size===value.rows.length,"Os sabores precisam ter identificadores diferentes.");
 export function flavorRowInput(row:FlavorPriceRow){let cost=NaN;try{cost=row.costMode==="recipe"?flavorRecipe(row).total:Math.round(decimalValue(row.cost)*100);}catch{}return flavorPriceSchema.safeParse({cost,overhead:decimalValue(row.overhead),markup:row.method==="margin"?0:decimalValue(row.markup)});}
-export function blankFlavorRow():FlavorPriceRow{return {id:crypto.randomUUID(),name:"",cost:"",overhead:"15",markup:"100"};}
+export function blankFlavorRow():FlavorPriceRow{return {id:crypto.randomUUID(),name:"",cost:"",overhead:"0",markup:"100",method:"margin",margin:"30",fees:"0",channel:"counter"};}
 export function exampleFlavorRows():FlavorPriceRow[]{return [
  ["Calabresa com cebola","26,01","135"],
  ["Calabresa sem cebola","25,41","141"],
  ["Calabresa com requeijão","35,41","111"],
  ["Mussarela","20,16","133"],
  ["Presunto","23,16","144,1"],
-].map(([name,cost,markup])=>({...blankFlavorRow(),name,cost,markup}));}
+].map(([name,cost,markup])=>({...blankFlavorRow(),name,cost,markup,overhead:"15",method:"markup"}));}
 function csvCell(value:string){const safe=/^[\s]*[=+@-]/.test(value)?"'"+value:value;return '"'+safe.replaceAll('"','""')+'"';}
 export function flavorRecipe(row:FlavorPriceRow){return recipeCost({ingredients:row.ingredients||[],waste:row.waste||"0",packaging:row.packaging||"0",energy:row.energy||"0",other:row.other||"0"});}
 export function flavorQuote(row:FlavorPriceRow){

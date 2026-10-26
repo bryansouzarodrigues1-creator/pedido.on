@@ -492,3 +492,18 @@ test('password changes in an ordinary session require the current password and c
  assert.equal(f.db.prepare('select count(*) as n from account_trials').get().n,1);
  }finally{globalThis.fetch=originalFetch;f.close();}
  });
+
+test('an old /user response cannot revoke a session another request has already renewed',async()=>{
+ const f=fixture(),p=identities(f),originalFetch=globalThis.fetch;p.add('owner@example.test');globalThis.fetch=p.fetcher;
+ try{
+  const {cookie}=await login(f),before=f.db.prepare('SELECT * FROM auth_sessions').get();
+  const oldAccess=[...p.access.keys()].at(-1);let release,started;
+  const oldInFlight=new Promise(resolve=>{started=resolve;});const unblock=new Promise(resolve=>{release=resolve;});
+  globalThis.fetch=async(input,options)=>{if(new URL(input).pathname.endsWith('/user')&&options.headers?.Authorization==='Bearer '+oldAccess){started();await unblock;return Response.json({error:'expired_access'},{status:401});}return p.fetcher(input,options);};
+  const pending=f.call('account','GET',{},undefined,cookieHeader(cookie));await oldInFlight;
+  const fresh=p.tokens(p.users.get('owner@example.test'));
+  const sealed=await sealTokens({access:fresh.access_token,refresh:fresh.refresh_token,method:'email'},f.env.AUTH_SESSION_KEY,before.id+':'+before.owner_id);
+  f.db.prepare('UPDATE auth_sessions SET sealed_tokens=?,token_expires_at=? WHERE id=?').run(sealed,Math.floor(Date.now()/1000)+3600,before.id);
+  release();assert.equal((await pending).status,200);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').get().n,1);assert.equal((await f.call('account','GET',{},undefined,cookieHeader(cookie))).status,200);
+ }finally{globalThis.fetch=originalFetch;f.close();}
+});

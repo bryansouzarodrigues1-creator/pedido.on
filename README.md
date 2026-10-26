@@ -1,3 +1,5 @@
+**Calculadoras e operação — 26/10/2026:** calculadoras Fácil e Profissional, clientes no admin, notificações persistentes, acessos/erros e continuidade de sessão. [Escopo e limites](docs/ADMIN-E-CALCULADORAS-20261026.md).
+
 # pizzaria.on
 
 **Revisão de fluxo — 26/10/2026:** cadastro e início compartilham a oferta de dez dias. Prévia e checkout simulado mostram entrega, prazo e pagamento a confirmar, preservando os preços do cardápio. [Escopo e validação](docs/FLUXO-VALIDADO-20261026.md).

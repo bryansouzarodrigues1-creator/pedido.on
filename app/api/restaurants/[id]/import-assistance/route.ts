@@ -7,6 +7,7 @@ import {normalizeBrazilWhatsApp} from "@/lib/support-whatsapp";
 import {supportContactWhatsApp} from "@/lib/platform";
 import {validAssistedSource,assistanceToReaderText,assistStats,assistedCapture} from "@/lib/menu-assistance-policy";
 import {savedFailure,ownerFailureMessage} from "@/lib/menu-capture-failure";
+import {notifyAdministrator,recordNotice} from "@/lib/account-notices";
 export const dynamic="force-dynamic";
 const requestInput=z.object({storeUrl:z.string().max(2048),ownerNote:z.string().trim().max(350).default(""),authorized:z.literal(true),notifyWhenReady:z.boolean().default(false),contactWhatsApp:z.string().min(10).max(27),contactPermission:z.literal(true)});
 type Row={id:string;restaurant_id:string;store_url:string;owner_note:string;status:string;notify_when_ready:number;contact_whatsapp:string;capture_json:string|null;created_at:string;updated_at:string;received_at:string|null};
@@ -38,6 +39,8 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
  const saved=await env.DB!.prepare("INSERT INTO menu_import_assistance (id,restaurant_id,owner_id,store_url,owner_note,notify_when_ready,contact_whatsapp,contact_consent_at,status,created_at,updated_at) SELECT ?,?,?,?,?,?,?,?,'requested',?,? WHERE NOT EXISTS (SELECT 1 FROM menu_import_assistance WHERE restaurant_id=? AND status IN ('requested','paired'))")
  .bind(idNew,id,row.ownerId,source.url,input.ownerNote,Number(input.notifyWhenReady),contactWhatsApp,now,now,now,id).run();
  if(!saved.meta.changes)throw new HttpError(409,"Já existe uma solicitação aguardando atendimento para esta pizzaria.");
+ await notifyAdministrator({event:"menu-request:"+idNew,title:"Nova solicitação de cardápio",body:"Uma pizzaria enviou o link completo para atendimento.",path:"/admin/importacoes"});
+ await recordNotice(row.ownerId,{event:"menu-request:"+idNew,title:"Solicitação recebida",body:"Seu link está na fila. Acompanhe o andamento e a entrega pelo painel.",path:"/app?loja="+encodeURIComponent(id)+"&cardapio=revisar"});
  const item=await env.DB!.prepare(select+" WHERE id=? AND restaurant_id=? AND owner_id=?").bind(idNew,id,row.ownerId).first<Row>();
  return Response.json({request:view(item)},{status:201,headers:privateHeaders});
 }catch(e){return errorResponse(e);}}

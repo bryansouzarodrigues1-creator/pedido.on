@@ -10,7 +10,7 @@ const output=path.resolve(process.env.QA_BROWSER_OUTPUT||'.sites-runtime/browser
 await mkdir(output,{recursive:true});
 const context=await chromium.launchPersistentContext(profile,{executablePath:process.env.QA_CHROME_PATH,headless:true,...devices['Pixel 7'],locale:'pt-BR',serviceWorkers:'block'});
 let page,lookups=0;
-await context.route('**/*',route=>{const request=route.request(),url=new URL(request.url());if(url.pathname==='/api/menu-source'||url.pathname==='/api/ifood/import'){lookups++;return route.abort();}if(url.origin===base&&(['GET','HEAD','OPTIONS'].includes(request.method())||request.method()==='PUT'&&/^\/api\/restaurants\/[a-f0-9-]+$/.test(url.pathname)))return route.continue();errors.push(request.method()+' '+url.pathname);return route.abort();});
+await context.route('**/*',route=>{const request=route.request(),url=new URL(request.url());if(request.method()==='POST'&&url.origin===base&&url.pathname==='/api/site-events')return route.abort();if(url.pathname==='/api/menu-source'||url.pathname==='/api/ifood/import'){lookups++;return route.abort();}if(url.origin===base&&(['GET','HEAD','OPTIONS'].includes(request.method())||request.method()==='PUT'&&/^\/api\/restaurants\/[a-f0-9-]+$/.test(url.pathname)))return route.continue();errors.push(request.method()+' '+url.pathname);return route.abort();});
 async function rows(){return page.evaluate(async()=>(await (await fetch('/api/restaurants',{cache:'no-store'})).json()).restaurants);}
 try{
  page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>errors.push(e.message));await page.goto(base+'/signin-with-chatgpt?return_to=%2Fapp',{waitUntil:'networkidle',timeout:90000});
