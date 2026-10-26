@@ -1,5 +1,6 @@
 "use client";
 import AdminAccessControl from "./admin-access-control";
+import {displayDate} from "@/lib/display-date";
 
 import {useEffect,useRef,useState} from "react";
 import {ArrowDownRight,ArrowUpRight,BarChart3,ChevronLeft,ChevronRight,ClipboardList,Loader2,RefreshCw,Search,Store,Users} from "lucide-react";
@@ -8,7 +9,7 @@ import type {AdminAnalytics} from "@/lib/admin-analytics";
 import type {AdminQuery} from "@/lib/admin-analytics-policy";
 
 const number=(value:number)=>new Intl.NumberFormat("pt-BR").format(value);
-const date=(value:string|null)=>value?new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short",timeStyle:"short"}).format(new Date(value)):"Ainda não recebeu";
+const date=(value:string|null)=>displayDate(value,true,"milliseconds","Ainda sem registro");
 function Change({value}:{value:number|null}){return value===null?<small>Sem base no período anterior</small>:<small className={value>=0?"admin-change positive":"admin-change"}>{value>=0?<ArrowUpRight size={13}/>:<ArrowDownRight size={13}/>} {value>0?"+":""}{value}% em relação ao anterior</small>;}
 function Metric({label,value,note,change}:{label:string;value:string;note?:string;change?:number|null}){return <section className="admin-metric"><span>{label}</span><strong>{value}</strong>{note&&<small>{note}</small>}{change!==undefined&&<Change value={change}/>}</section>;}
 export function AdminReport({initialData}:{initialData:AdminAnalytics}){

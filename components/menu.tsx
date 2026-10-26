@@ -1,5 +1,6 @@
 "use client";
 import {TRIAL_DAYS} from "@/lib/trial-policy";
+import {reserveWhatsappWindow} from "@/lib/whatsapp-handoff";
 import { useState, useEffect, useRef, useId, type FormEvent } from "react";
 import { Pizza, Search, ShoppingBag, Plus, Minus, Trash2, ArrowUpRight, Clock, MapPin, ChevronDown, ArrowLeft, MessageCircle, Check, Store, Truck, AtSign, Info, Tag, CheckCircle2, ArrowRight, RotateCcw } from "lucide-react";
 import { Modal, Spinner, themeStyle } from "./ui";
@@ -136,6 +137,7 @@ export function Checkout({ data, slug, cart, demo, preview=false, siteOrderingAl
   }
   async function submit(event: {preventDefault:()=>void}, channel:"site"|"whatsapp"=siteCheckout?"site":"whatsapp") {
     event.preventDefault();if(submitting.current)return;submitting.current=true;setError("");setWhatsappLink("");
+    let handoff:ReturnType<typeof reserveWhatsappWindow>|undefined;
     const values = { expectedTotal:total,neighborhood,customer, phone, address: method === "delivery" ? address : "", method, payment, coupon: appliedCoupon, note, items: cart, website: "", ...(method==="delivery"&&deliveryAccess?{deliveryCheckId:deliveryAccess.id,deliveryCheckToken:deliveryAccess.token}:{}) };
     const signature = JSON.stringify(values);
     if (signature !== attempt.current.signature) attempt.current = { signature, id: crypto.randomUUID(),trackingToken:[...crypto.getRandomValues(new Uint8Array(32))].map(v=>v.toString(16).padStart(2,"0")).join("") };
@@ -147,16 +149,17 @@ export function Checkout({ data, slug, cart, demo, preview=false, siteOrderingAl
       if(reviewTotal!==null&&total!==reviewTotal){setReviewTotal(total);setError("A oferta foi atualizada. Confira o novo total e confirme novamente.");return;}
       if (demo) { if(channel==="whatsapp"){setError("Demonstração: em um cardápio publicado, este botão abre o WhatsApp da pizzaria com o pedido preenchido.");return;}setSuccess({ code: "DEMO", total }); return; }
       setBusy(true);
+      if(channel==="whatsapp")handoff=reserveWhatsappWindow(window);
       const res = await fetch(`/api/menu/${slug}/${channel==="whatsapp"?"whatsapp":"order"}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
       const body = await res.json() as { code: string; total: number; trackingUrl:string; whatsappUrl: string; error?: string;quote?:OrderSummary };
       if(!res.ok){if(res.status===409&&body.quote){setServerQuote(body.quote);setReviewTotal(body.quote.total);}else if(res.status===403||res.status===409){deliveryQuote.clear();setStep(0);}throw new Error(body.error||"Não foi possível registrar o pedido.");}
       if(channel==="whatsapp"){
         if(!/^https:\/\/wa\.me\/[1-9]\d{9,14}\?text=/.test(body.whatsappUrl))throw Error("Não foi possível abrir o WhatsApp da pizzaria.");
-        setWhatsappLink(body.whatsappUrl);location.assign(body.whatsappUrl);return;
+        setWhatsappLink(body.whatsappUrl);handoff?.open(body.whatsappUrl);return;
       }
       setSuccess(body); onDone(body.trackingUrl);
     } catch (e) { setError(e instanceof Error ? e.message : "Confira os dados do pedido."); }
-    finally { submitting.current=false;setBusy(false); }
+    finally { handoff?.cancel();submitting.current=false;setBusy(false); }
   }
   if(!success&&checked.invalid.length)return <section className="checkout-invalid" role="alert"><h3>Seu pedido precisa de revisão</h3>{checked.invalid.map(item=><p key={item.index}>{item.label}: {item.error}</p>)}<button type="button" className="btn menu-btn" onClick={onEditCart}>Voltar ao pedido</button></section>;
   if (success) return <div className="checkout-success"><span><CheckCircle2 size={46}/></span><h3>{demo?"Pronto. Seu pedido começa aqui.":payment==="Pix"&&data.pix?.enabled?"Agora faça o Pix e envie o comprovante.":"Pedido enviado para a pizzaria."}</h3><p>{demo?"Experimente o Pix, a aprovação da pizzaria e a previsão de entrega na demonstração.":payment==="Pix"&&data.pix?.enabled?"Abra o acompanhamento para ver a chave e enviar o comprovante. A pizzaria confere o banco antes de aprovar.":"A pizzaria vai aprovar e informar o prazo. Você acompanha tudo pelo seu link."}</p><div className="success-total"><span>Pedido #{success.code}</span><strong>{money(success.total)}</strong></div>{success.trackingUrl&&<a className="btn menu-btn full" href={success.trackingUrl}><Clock size={19}/>Acompanhar meu pedido <ArrowRight size={17}/></a>}{demo&&<a className="btn menu-btn" href="/demo/pedidos">Experimentar Pix e aprovação <ArrowRight size={17}/></a>}<small>{demo?"Demonstração: nenhum pedido ou pagamento foi realizado.":"Guarde o link para acompanhar. Você não precisa criar conta."}</small></div>;
@@ -181,7 +184,7 @@ export function Checkout({ data, slug, cart, demo, preview=false, siteOrderingAl
     </fieldset>
     {error && <div className="field-error" role="alert">{error}</div>}
     {step===1&&(demo||!!data.whatsapp.trim())&&<button type="button" className="btn whatsapp-checkout full" disabled={busy} onClick={event=>void submit(event,"whatsapp")}>{busy?<Spinner/>:<MessageCircle size={19}/>}{siteCheckout?"Finalizar pelo WhatsApp":"Enviar pedido pelo WhatsApp"} <strong>{money(total)}</strong></button>}
-    {whatsappLink&&<p className="whatsapp-checkout-notice" role="status">Envie a mensagem no WhatsApp para pedir a confirmação da pizzaria. <a href={whatsappLink}>Abrir WhatsApp novamente</a></p>}
+    {whatsappLink&&<p className="whatsapp-checkout-notice" role="status">Seu cardápio continua aberto. Envie a mensagem no WhatsApp para pedir a confirmação da pizzaria. <a className="btn whatsapp-checkout full" href={whatsappLink} target="_blank" rel="noopener noreferrer">Abrir WhatsApp e enviar</a></p>}
     {(step===0||siteCheckout)&&<button className={`btn ${step===1&&data.whatsapp.trim()?"outline":"menu-btn"} full`} disabled={busy||deliveryQuote.busy||method==="delivery"&&deliveryQuote.record?.status==="pending"} type="submit">{busy ? <Spinner /> : <ArrowRight size={19} />}{step === 0 ? approvalRequired&&method==="delivery"?deliveryQuote.record?.status==="pending"?"Aguardando a pizzaria":"Confirmar endereço e taxa":"Continuar para confirmar" : demo ? "Experimentar pedido pelo site" : payment==="Pix"&&data.pix?.enabled?"Pedir pelo site e pagar com Pix":"Finalizar pelo site"}{step === 1 && <strong>{money(total)}</strong>}</button>}
     <p className="checkout-disclosure">{preview?"Simulação: entrega, prazo e pagamento precisam de confirmação. Nenhum pedido será enviado.":demo ? "Demonstração: seus dados não serão enviados nem armazenados." : step === 0 ? "Sem cadastro. Seus dados serão usados por esta pizzaria para atender o pedido." : !siteCheckout?"Envie a mensagem e aguarde a confirmação da pizzaria no WhatsApp. Confirme a identidade da loja antes de pagar.":data.whatsapp.trim()?"No WhatsApp, envie a mensagem e aguarde a confirmação. Pelo site, acompanhe o pedido e o pagamento pelo link privado.":payment==="Pix"&&data.pix?.enabled?"Depois de registrar, faça o Pix e envie o comprovante no acompanhamento. O preparo começa após a aprovação da pizzaria.":"O pedido chega ao painel da pizzaria. Aguarde a aprovação e acompanhe o prazo pelo link."}</p>
   </form>;

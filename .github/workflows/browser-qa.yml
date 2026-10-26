@@ -86,6 +86,8 @@ jobs:
             .sites-runtime/browser-ci/assistance/
             .sites-runtime/browser-ci/daily-campaigns/
             .sites-runtime/browser-ci/professional/
+            .sites-runtime/browser-ci/pwa-recovery/
+            .sites-runtime/browser-ci/auth-journey/
             .sites-runtime/browser-ci/intake-options/
             .sites-runtime/browser-ci/documents/
             .sites-runtime/browser-ci/shared-ifood/

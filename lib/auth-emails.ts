@@ -1,5 +1,7 @@
 function emailTemplate(title: string, introduction: string, path: string, button: string, footnote: string) {
-  const link=path==="/redefinir-senha"?"{{ .ConfirmationURL }}":`{{ .SiteURL }}${path}?token_hash={{ .TokenHash }}`;
+  // The provider dashboard's manual recovery has no redirect_to. The explicit
+  // app route also works when an email opens in a different browser on Android.
+  const link=`{{ .SiteURL }}${path}?token_hash={{ .TokenHash }}`;
   return `<!doctype html>
 <html lang="pt-BR">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title} · pizzaria.on</title></head>

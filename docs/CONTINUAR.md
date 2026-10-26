@@ -1,3 +1,9 @@
+**Clientes, uso e datas — 26/10/2026:** admin orientado ao atendimento, atividade e calculadora por conta, pedidos, tratamento das datas e motivo para ter cardápio digital. Migração 0021 aditiva; credenciais e dados existentes preservados. [Mudanças e provas](ADMIN-USO-E-DATAS-20261026.md).
+
+**Auditoria de acesso — 26/10/2026:** continuidade do atendimento de recuperação, formulário resistente a falhas e modelo alinhado à rota de nova senha; recebimento de e-mail confirmado pelo proprietário, com liberação do envio nesta publicação; conclusão no aparelho ainda precisa ser conferida. [Evidências e pendências](AUDITORIA-ACESSO-20261026.md).
+
+**Retomada e comparação — 26/10/2026:** reconexão da PWA, retorno do WhatsApp, cópia local do rascunho e comparação dos recursos da InstaDelivery. [Escopo, provas e pendências](RETOMADA-E-INSTADELIVERY-20261026.md).
+
 **Calculadoras e operação — 26/10/2026:** calculadoras Fácil e Profissional, clientes no admin, notificações persistentes, acessos/erros e continuidade de sessão. [Escopo e limites](ADMIN-E-CALCULADORAS-20261026.md).
 
 **Oferta atual — 25/10/2026:** novos testes de 10 dias a partir da primeira pizzaria; prazos já registrados são preservados no acesso e na franquia de IA. [Regra, custos e limites](TESTE-10-DIAS-20261025.md). A fiscalização comercial permanece desligada até validar a cobrança; a franquia de IA expira no prazo registrado.

@@ -1,4 +1,5 @@
 "use client";
+import {displayDate} from "@/lib/display-date";
 import {useState} from "react";
 import {ShieldCheck,Loader2} from "lucide-react";
 type Access={mode:"normal"|"grant"|"suspended";plan:"essencial"|"profissional"|"rede"|null;expiresAt:number|null;version:number;reason:string;updatedAt:string|null};
@@ -50,7 +51,7 @@ export default function AdminAccessControl({restaurantId}:{restaurantId:string})
     {error&&<p className="field-error" role="alert">{error}</p>}
     {notice&&<p role="status">{notice}</p>}
     <button className="btn primary small" type="button" onClick={()=>void save()} disabled={busy||reason.trim().length<8}>{busy?<Loader2 size={16} className="spin"/>:null}Confirmar alteração</button>
-    {history.length>0&&<details className="admin-access-history"><summary>Histórico de alterações</summary><ol>{history.map((entry,i)=><li key={entry.createdAt+i}><strong>{entry.action==="grant"?"Cortesia "+entry.plan:entry.action==="suspended"?"Suspensão":"Acesso padrão"}</strong> · {new Date(entry.createdAt).toLocaleString("pt-BR")} · {entry.reason}</li>)}</ol></details>}
+    {history.length>0&&<details className="admin-access-history"><summary>Histórico de alterações</summary><ol>{history.map((entry,i)=><li key={entry.createdAt+i}><strong>{entry.action==="grant"?"Cortesia "+entry.plan:entry.action==="suspended"?"Suspensão":"Acesso padrão"}</strong> · {displayDate(entry.createdAt,true)} · {entry.reason}</li>)}</ol></details>}
    </>}
   </div>}
  </details>;
