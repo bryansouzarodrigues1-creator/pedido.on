@@ -26,3 +26,14 @@
  .creation-current-menu,.simple-dashboard .creation-menu-preview{height:510px}.simple-dashboard .pizza-studio{gap:22px}
  .simple-dashboard .dashboard-footer{padding:25px 0 15px;margin-top:32px}.simple-dashboard .empty-orders{padding:28px 18px}
 }
+
+/* P0: o botão de publicar/atualizar é o primeiro <button> quando "Ver online"
+ * é um <a>. O seletor legada ".btn:first-of-type" escondia a ação no celular. */
+@media (max-width: 640px) {
+ .simple-dashboard .dashboard-header .dashboard-header-actions > button.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 43px;
+ }
+}

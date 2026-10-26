@@ -19,7 +19,7 @@ export async function guardPublicGuestContext(context, violations) {
         // Analytics is deliberately excluded from public QA; it must not inflate
         // the owner's production visit counters or be mistaken for a business write.
         if(request.method()==='POST'&&publicOrigins.has(url.origin)&&url.pathname==='/api/site-events')return route.abort('blockedbyclient');
-        const securityCheck = request.method() === 'POST' && publicOrigins.has(url.origin) && url.pathname.startsWith('/cdn-cgi/challenge-platform/');
+        const securityCheck = request.method() === 'POST' && publicOrigins.has(url.origin) && (url.pathname.startsWith('/cdn-cgi/challenge-platform/') || (url.origin === 'https://pizzaria-on.netlify.app' && url.pathname === '/.netlify/submit-challenge'));
         if (['GET', 'HEAD', 'OPTIONS'].includes(request.method()) || securityCheck) return route.continue();
         violations.push('Método bloqueado no QA público: ' + request.method() + ' ' + new URL(request.url()).pathname);
         await route.abort('blockedbyclient');
