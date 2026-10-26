@@ -1,3 +1,5 @@
+**Retomada e comparação — 26/10/2026:** reconexão da PWA, retorno do WhatsApp, cópia local do rascunho e comparação dos recursos da InstaDelivery. [Escopo, provas e pendências](docs/RETOMADA-E-INSTADELIVERY-20261026.md).
+
 **Calculadoras e operação — 26/10/2026:** calculadoras Fácil e Profissional, clientes no admin, notificações persistentes, acessos/erros e continuidade de sessão. [Escopo e limites](docs/ADMIN-E-CALCULADORAS-20261026.md).
 
 # pizzaria.on

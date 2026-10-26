@@ -1,4 +1,5 @@
 "use client";
+import {startForegroundPoll} from "@/lib/foreground-poll";
 import {useEffect,useState,type FormEvent} from "react";
 import {MessageCircle,Send} from "lucide-react";
 import {CHAT_POLL_MS} from "@/lib/order-chat-policy";
@@ -7,16 +8,11 @@ export default function OrderChat({orderId,restaurantId,token,closed=false}:{ord
  const [messages,setMessages]=useState<Message[]>([]),[text,setText]=useState(""),[error,setError]=useState(""),[sending,setSending]=useState(false);
  const owner=!!restaurantId;
  const endpoint=owner?`/api/restaurants/${restaurantId}/orders/${orderId}/messages`:`/api/orders/${orderId}/messages`;
- useEffect(()=>{if(!owner&&!token)return;let active=true;
-  async function refresh(){try{if(document.visibilityState!=="visible")return;
-   const response=await fetch(endpoint,{headers:owner?{}:{"x-pedido-order-token":token!},cache:"no-store"});
+ useEffect(()=>{if(!owner&&!token)return;return startForegroundPoll(async signal=>{try{
+   const response=await fetch(endpoint,{headers:owner?{}:{"x-pedido-order-token":token!},cache:"no-store",signal});
    if(!response.ok)throw Error("Não foi possível atualizar a conversa.");
-   const result=await response.json() as {messages:Message[]};if(active){setMessages(result.messages);setError("");}
-  }catch(e){if(active)setError(e instanceof Error?e.message:"Falha de conexão.");}}
-  refresh();const timer=setInterval(refresh,CHAT_POLL_MS);
-  const onVisible=()=>{if(document.visibilityState==="visible")refresh();};
-  document.addEventListener("visibilitychange",onVisible);
-  return()=>{active=false;clearInterval(timer);document.removeEventListener("visibilitychange",onVisible);};
+   const result=await response.json() as {messages:Message[]};if(!signal.aborted){setMessages(result.messages);setError("");}
+  }catch(e){if(!signal.aborted||signal.reason?.name==="TimeoutError")setError(e instanceof Error?e.message:"Falha de conexão.");}},CHAT_POLL_MS);
  },[orderId,endpoint,owner,token]);
  async function send(e:FormEvent){e.preventDefault();if(!text.trim()||sending||closed)return;setSending(true);setError("");
   try{

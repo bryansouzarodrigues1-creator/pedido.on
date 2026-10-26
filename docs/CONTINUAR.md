@@ -1,3 +1,5 @@
+**Retomada e comparação — 26/10/2026:** reconexão da PWA, retorno do WhatsApp, cópia local do rascunho e comparação dos recursos da InstaDelivery. [Escopo, provas e pendências](RETOMADA-E-INSTADELIVERY-20261026.md).
+
 **Calculadoras e operação — 26/10/2026:** calculadoras Fácil e Profissional, clientes no admin, notificações persistentes, acessos/erros e continuidade de sessão. [Escopo e limites](ADMIN-E-CALCULADORAS-20261026.md).
 
 **Oferta atual — 25/10/2026:** novos testes de 10 dias a partir da primeira pizzaria; prazos já registrados são preservados no acesso e na franquia de IA. [Regra, custos e limites](TESTE-10-DIAS-20261025.md). A fiscalização comercial permanece desligada até validar a cobrança; a franquia de IA expira no prazo registrado.

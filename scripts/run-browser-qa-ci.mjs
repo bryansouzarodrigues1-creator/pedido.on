@@ -49,6 +49,8 @@ async function run(args, logName, extraEnv = {}) {
 }
 const migration = await run(['node_modules/wrangler/bin/wrangler.js', 'd1', 'migrations', 'apply', 'DB', '--local', '--config', config, '--persist-to', path.join(root, '.wrangler/state')], 'migrations.log');
 if (migration.code !== 0) throw Error('Não foi possível preparar o D1 local.');
+const pwaAssets=await run(['scripts/prepare-pwa.mjs'],'pwa-assets.log');
+if(pwaAssets.code!==0)throw Error('Não foi possível preparar os arquivos públicos da PWA.');
 
 const serverLog = createWriteStream(path.join(output, 'dev-server.log'));
 const server = spawn(process.execPath, ['scripts/run-framework.mjs', 'dev', '--host', '127.0.0.1'], {cwd: root, env: environment, detached: true, stdio: ['ignore', 'pipe', 'pipe']});
@@ -69,7 +71,7 @@ try {
         if (Date.now() >= deadline) throw Error('O servidor de QA não ficou pronto em dois minutos.');
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
-    for (const [name, script] of [['creator', 'scripts/check-creator-flow-browser.mjs'], ['creator-recovery', 'scripts/check-creator-recovery-browser.mjs'], ['calculator', 'scripts/check-calculator-browser.mjs'], ['registration-card', 'scripts/check-registration-access-card-browser.mjs'], ['owner', 'scripts/check-owner-workspace-browser.mjs'], ['ocr', 'scripts/check-ocr-browser.mjs'], ['styles', 'scripts/check-style-gallery-browser.mjs'], ['documents', 'scripts/check-menu-documents-browser.mjs'], ['store-safety', 'scripts/check-store-safety-browser.mjs'], ['customer-journey', 'scripts/check-customer-journey-browser.mjs'], ['assistance', 'scripts/check-menu-assistance-browser.mjs'], ['daily-campaigns', 'scripts/check-daily-campaigns-browser.mjs'], ['professional', 'scripts/check-professional-workspace-browser.mjs']]) {
+    for (const [name, script] of [['creator', 'scripts/check-creator-flow-browser.mjs'], ['creator-recovery', 'scripts/check-creator-recovery-browser.mjs'], ['calculator', 'scripts/check-calculator-browser.mjs'], ['registration-card', 'scripts/check-registration-access-card-browser.mjs'], ['owner', 'scripts/check-owner-workspace-browser.mjs'], ['ocr', 'scripts/check-ocr-browser.mjs'], ['styles', 'scripts/check-style-gallery-browser.mjs'], ['documents', 'scripts/check-menu-documents-browser.mjs'], ['store-safety', 'scripts/check-store-safety-browser.mjs'], ['customer-journey', 'scripts/check-customer-journey-browser.mjs'], ['assistance', 'scripts/check-menu-assistance-browser.mjs'], ['daily-campaigns', 'scripts/check-daily-campaigns-browser.mjs'], ['professional', 'scripts/check-professional-workspace-browser.mjs'], ['pwa-recovery', 'scripts/check-pwa-recovery-browser.mjs']]) {
         const result = await run([script], name + '.log', {QA_BASE_URL: base, QA_BROWSER_OUTPUT: path.join(output, name), QA_HEADLESS: 'true', QA_RECORD_INTAKE: 'true'});
         results.push({name, ...result});
     }
