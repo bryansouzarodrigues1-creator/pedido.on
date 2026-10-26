@@ -1,4 +1,5 @@
 "use client";
+import {displayDate} from "@/lib/display-date";
 import {useState,useEffect,useRef,useCallback} from "react";
 import {CreditCard,Settings,RefreshCw} from "lucide-react";
 import {planCatalog,publicPlanCatalog,publicPlanName,type CatalogPlan} from "@/lib/plan-catalog";
@@ -6,7 +7,7 @@ import AiAllowance from "./ai-allowance";
 import {billingPost} from "@/lib/billing-client";
 import {Modal,Spinner} from "./ui";
 type BillingState={enabled:boolean;provider?:"asaas"|"stripe";mode?:"sandbox"|"production";enforced?:boolean;testAccess?:boolean;subscription:{id?:string;plan:string;status:string;periodEnd:number;paidThrough:number;paidPlan:string}|null;intent?:{id:string;plan:string;state:string}|null;invoices?:{id:string;status:string;amount:number;dueDate:string;url:string|null}[]};
-const price=(cents:number)=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(cents/100),paidDate=(value:number)=>new Date(value*1000).toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"});
+const price=(cents:number)=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(cents/100),paidDate=(value:number)=>displayDate(value,false,"seconds");
 const statuses:Record<string,string>={PENDING:"A pagar",OVERDUE:"Vencida",CONFIRMED:"Paga",RECEIVED:"Paga",REFUNDED:"Estornada",REFUND_PENDING:"Estorno em análise",CHARGEBACK_REQUESTED:"Pagamento contestado",CHARGEBACK_DISPUTE:"Pagamento contestado",AWAITING_CHARGEBACK_REVERSAL:"Pagamento contestado",DELETED:"Cancelada"};
 export function BillingControls({initialPlan: _initialPlan}:{initialPlan:string}){
  const [state,setState]=useState<BillingState|null>(null),[document,setDocument]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[cancelOpen,setCancelOpen]=useState(false);
@@ -45,7 +46,7 @@ export function BillingControls({initialPlan: _initialPlan}:{initialPlan:string}
   </>}
   {asaas?<>
    {(current||state.intent)&&<button type="button" className="btn outline small" disabled={busy} onClick={()=>void sync()}>{busy?<Spinner/>:<RefreshCw size={15}/>}{current?.status==="pending"?"Já paguei · verificar":"Atualizar assinatura"}</button>}
-   {!!state.invoices?.length&&<details className="billing-invoices" open={current?.status==="pending"}><summary>Faturas</summary>{state.invoices.map(invoice=><div className="billing-invoice" key={invoice.id}><span><b>{price(invoice.amount)}</b><small>{statuses[invoice.status]||"Em atualização"} · {invoice.dueDate.split("-").reverse().join("/")}</small></span>{invoice.url&&<a href={invoice.url} target="_blank" rel="noopener noreferrer" className="text-button">{["PENDING","OVERDUE"].includes(invoice.status)?"Pagar":"Ver fatura"}</a>}</div>)}</details>}
+   {!!state.invoices?.length&&<details className="billing-invoices" open={current?.status==="pending"}><summary>Faturas</summary>{state.invoices.map(invoice=><div className="billing-invoice" key={invoice.id}><span><b>{price(invoice.amount)}</b><small>{statuses[invoice.status]||"Em atualização"} · {displayDate(invoice.dueDate)}</small></span>{invoice.url&&<a href={invoice.url} target="_blank" rel="noopener noreferrer" className="text-button">{["PENDING","OVERDUE"].includes(invoice.status)?"Pagar":"Ver fatura"}</a>}</div>)}</details>}
    {current&&current.status!=="canceled"&&<button type="button" className="text-button" disabled={busy} onClick={()=>setCancelOpen(true)}>Cancelar renovação</button>}
    <small>Mensalidade da pizzaria.on, separada das vendas da sua pizzaria. O plano é confirmado após o pagamento. A fatura mensal não ativa débito automático.</small>
    <Modal open={cancelOpen} onClose={()=>{if(!busy)setCancelOpen(false);}} title="Cancelar renovação?"><p>As próximas cobranças serão interrompidas.{current&&current.paidThrough>Date.now()/1000?" Seu acesso pago continua até "+paidDate(current.paidThrough)+".":""}</p><div className="promotion-form-actions"><button type="button" className="text-button" disabled={busy} onClick={()=>setCancelOpen(false)}>Manter assinatura</button><button type="button" className="btn primary small" disabled={busy} onClick={()=>void cancel()}>{busy?<Spinner/>:null}Sim, cancelar renovação</button></div></Modal>

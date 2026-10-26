@@ -21,7 +21,7 @@ Lacunas confirmadas no código e tratadas:
 - O cardápio válido e o produto em edição ganham cópia local por pizzaria, por até sete dias, com gravação ao editar/sair/congelar. Recuperação exige ação do dono e nunca publica. Se a revisão do servidor mudou, há aviso. Armazenamento indisponível ou formulário inválido é informado. Arquivos de leitura, geração em andamento e formulários de criação não estão cobertos por essa cópia.
 - Limites de erro da aplicação exibem orientação e tentativa de recuperação em português. Não conseguem interceptar uma tela nativa de falha do navegador fora da aplicação.
 
-As contas, chaves, ambiente, regras de aprovação e dados de produção não foram recriados. Não há nova migração nem alteração no gateway Netlify.
+As contas, chaves, ambiente, regras de aprovação e dados de produção não foram recriados. A migração 0021 adiciona somente atividade por conta para o admin; não altera cadastros ou pedidos. O gateway Netlify permanece igual.
 
 ## Comparação dos recursos
 

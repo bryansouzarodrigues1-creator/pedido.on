@@ -115,3 +115,8 @@ export const siteVisits=sqliteTable("site_visits",{
 export const operationErrors=sqliteTable("operation_errors",{
  id:text("id").primaryKey(),area:text("area").notNull(),code:text("code").notNull(),day:text("day").notNull(),hits:integer("hits").notNull().default(1),lastAt:text("last_at").notNull(),
 },t=>[uniqueIndex("operation_errors_day_idx").on(t.area,t.code,t.day)]);
+
+export const accountActivity=sqliteTable("account_activity",{
+ id:text("id").primaryKey(),ownerId:text("owner_id").notNull(),area:text("area").notNull(),day:text("day").notNull(),
+ opens:integer("opens").notNull().default(0),actions:integer("actions").notNull().default(0),firstAt:text("first_at").notNull(),lastAt:text("last_at").notNull(),
+},t=>[uniqueIndex("account_activity_day_idx").on(t.ownerId,t.area,t.day),index("account_activity_time_idx").on(t.lastAt)]);

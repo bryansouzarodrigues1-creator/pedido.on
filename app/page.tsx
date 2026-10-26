@@ -1,3 +1,5 @@
 import Landing from "@/components/saas-landing";
 import {redirect} from "next/navigation";
-export default async function Home({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}){const q=await searchParams;if(typeof q.code==="string"&&/^[a-zA-Z0-9._~-]{8,2048}$/.test(q.code))redirect("/redefinir-senha?code="+encodeURIComponent(q.code));if(q.error_code==="otp_expired")redirect("/redefinir-senha?error=expired");return <Landing/>;}
+import {recoveryLinkTarget} from "@/lib/recovery-link";
+import RecoveryLanding from "@/components/recovery-landing";
+export default async function Home({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}){const q=await searchParams,search=new URLSearchParams(Object.entries(q).filter((entry):entry is [string,string]=>typeof entry[1]==="string")),target=recoveryLinkTarget(search.toString());if(target)redirect(target);return <><RecoveryLanding/><Landing/></>;}

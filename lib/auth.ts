@@ -1,5 +1,6 @@
 import {validPassword,MIN_PASSWORD_LENGTH,ADMIN_PASSWORD_MIN_LENGTH} from "./password-policy";
 import {env} from "cloudflare:workers";
+import {recordAccountActivity} from "./account-activity";
 import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 import {eq} from "drizzle-orm";
@@ -58,6 +59,7 @@ export async function createSession(tokens:ProviderSession,scope:"account"|"reco
   await getDb().insert(authSessions).values({id,ownerId:user.userId,email:user.email,displayName:user.displayName,scope,sealedTokens:await sealTokens({access:tokens.access_token,refresh:tokens.refresh_token,method},authConfig().seal,id+":"+user.userId),tokenExpiresAt:now+Math.min(tokens.expires_in||3600,86400),expiresAt:now+seconds,createdAt:new Date().toISOString()});
   if(scope==="account"){const stamp=new Date().toISOString();await getDb().insert(accountProfiles).values({ownerId:user.userId,name:user.displayName,email:user.email,provider:user.provider,createdAt:stamp,updatedAt:stamp}).onConflictDoNothing();}
   if(scope==="account"&&options.enroll)await enrollTrial(user.userId);
+  if(scope==="account")try{await recordAccountActivity(user.userId,"login");}catch{/* Access succeeds even if activity reporting is unavailable. */}
   return {user,cookie:sessionCookie(token,new URL(request.url).protocol==="https:",seconds)};
 }
 async function readLocalSession(){
