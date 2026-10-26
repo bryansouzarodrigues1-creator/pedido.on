@@ -1,0 +1,23 @@
+name: Production auth and protected pages (anonymous GET-only)
+on:
+  pull_request:
+    paths:
+      - 'scripts/check-auth-public-health.mjs'
+      - '.github/workflows/auth-public-readonly.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  readonly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Inspect two production origins (GET only)
+        run: node scripts/check-auth-public-health.mjs
+      - name: Scope guarantee
+        if: always()
+        run: echo "Anonymous GET-only. Never register accounts, send recovery emails, log in, place orders, change production data, or charge customers." >> "$GITHUB_STEP_SUMMARY"
