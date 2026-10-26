@@ -62,3 +62,12 @@
 .store-review-item{border:1px solid var(--line,#e3dfd5);border-radius:12px;margin:12px 0;overflow:hidden}.store-review-item>summary{display:flex;justify-content:space-between;gap:12px;cursor:pointer;padding:16px;flex-wrap:wrap}.store-review-item>summary span{font-size:.8rem;color:var(--muted,#706e65)}
 .store-review-body{padding:0 16px 20px;display:grid;gap:14px;overflow-wrap:anywhere}.store-review-body dl{display:grid;grid-template-columns:minmax(90px,1fr) minmax(0,3fr);gap:10px;font-size:.9rem}.store-review-body dt{color:var(--muted,#706e65)}.store-review-body dd{margin:0}.report-detail{white-space:pre-wrap}
 @media(max-width:600px){.store-safety-admin{padding:18px}.store-review-body dl{grid-template-columns:1fr;gap:5px}.store-review-body dd{margin-bottom:10px}.store-verification-card .btn{width:100%;white-space:normal}}
+
+/* O horario informado pela pizzaria precisa aparecer sem abrir menus. */
+.customer-menu .menu-public-hours{display:flex;align-items:flex-start;gap:10px;width:fit-content;max-width:100%;padding:12px 14px;margin-top:18px;border:1px solid var(--menu-line);border-radius:9px;background:var(--menu-card);color:var(--menu-text);font-size:13px;line-height:1.5}
+.customer-menu .menu-public-hours>svg{color:var(--menu-accent);flex:none;margin-top:3px}
+.customer-menu .menu-public-hours>div{display:flex;flex-direction:column;min-width:0;gap:3px}
+.customer-menu .menu-public-hours strong{font-size:11px;font-weight:700}
+.customer-menu .menu-public-hours span{overflow-wrap:anywhere;white-space:normal}
+.dashboard-heading-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+@media(max-width:640px){.dashboard-heading-actions{width:100%}.dashboard-heading-actions .btn{flex:1;justify-content:center}.customer-menu .menu-public-hours{width:100%}}
