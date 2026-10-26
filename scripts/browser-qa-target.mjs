@@ -16,6 +16,9 @@ export async function guardPublicGuestContext(context, violations) {
     await context.route('**/*', async route => {
         const request = route.request();
         const url = new URL(request.url());
+        // Analytics is deliberately excluded from public QA; it must not inflate
+        // the owner's production visit counters or be mistaken for a business write.
+        if(request.method()==='POST'&&url.origin===publicOrigin&&url.pathname==='/api/site-events')return route.abort('blockedbyclient');
         const securityCheck = request.method() === 'POST' && url.origin === publicOrigin && url.pathname.startsWith('/cdn-cgi/challenge-platform/');
         if (['GET', 'HEAD', 'OPTIONS'].includes(request.method()) || securityCheck) return route.continue();
         violations.push('Método bloqueado no QA público: ' + request.method() + ' ' + new URL(request.url()).pathname);

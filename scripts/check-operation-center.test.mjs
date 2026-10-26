@@ -30,3 +30,7 @@ test('notices are idempotent and remain private when another account tries to ma
 test('visit counting deduplicates reloads and stores no IP, raw session ID, URL or customer data',async()=>{
  const f=fixture();try{const mod=f.load('app/api/site-events/route.ts'),session=crypto.randomUUID(),request=(origin='https://pedido.example')=>new Request('https://pedido.example/api/site-events',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({session,page:'calculadora',kind:'visit'})});for(let i=0;i<3;i++)assert.equal((await mod.POST(request())).status,204);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM site_visits').get().n,1);assert.equal((await mod.POST(request('https://evil.example'))).status,403);const stored=JSON.stringify(f.db.prepare('SELECT * FROM site_visits').all());assert.equal(stored.includes(session),false);const overview=await f.load('lib/site-operations.ts').siteOperations();assert.equal(overview.sessions,1);assert.equal(overview.views,1);}finally{f.close();}
 });
+
+test('the client-directory page redirects a signed-out visitor to login before reading accounts',async()=>{
+ const f=fixture();try{f.state.user=null;const page=f.load('app/admin/clientes/page.tsx').default;await assert.rejects(page(),e=>e.location==='/entrar?next=%2Fadmin%2Fclientes');}finally{f.close();}
+});

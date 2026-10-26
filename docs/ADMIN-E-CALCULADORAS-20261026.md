@@ -32,4 +32,4 @@ As mudanças do aplicativo são servidas pelo backend atual. Nenhuma fonte do ga
 
 Os testes novos cobrem margem versus acréscimo, restauração de dados legados, transferência com prazo/tamanho explícito, origem canônica, cadastros privados, avisos isolados e deduplicação de visitas. Serviços externos e credenciais dos fixtures são simulados. Não foram enviados e-mails, criadas cobranças, apagadas contas, geradas imagens pagas ou publicados restaurantes de clientes.
 
-O resultado da bateria final, build, CI e publicação será registrado no fechamento desta entrega. A prévia gerenciada local não ficou saudável nesta sessão; não tratar esse retorno como aprovação visual ou de Android físico.
+Passaram 677 testes da bateria completa, TypeScript, build do aplicativo e preparação/check Netlify. Após a revisão de concorrência e login do diretório, 42 testes das áreas afetadas passaram, incluindo a resposta antiga do provedor durante renovação e o redirecionamento de visitante sem sessão. CI remoto e publicação devem ser conferidos na PR #129. A prévia gerenciada local não ficou saudável nesta sessão; não tratar esse retorno como aprovação visual ou de Android físico.

@@ -80,7 +80,11 @@ async function readLocalSession(){
   }
   try{const verified=await providerRequest<ProviderUser>("user","GET",undefined,vault.access),user={...mapUser(verified),loginMethod:vault.method==="google"?"google" as const:"email" as const};if(user.userId!==row.ownerId)throw new HttpError(401,"Sessão inválida.");return {row,vault,user};}
   catch(e){if(e instanceof HttpError&&e.status===401){
-    const current=await db.select().from(authSessions).where(eq(authSessions.id,id)).get();
+    let current=await db.select().from(authSessions).where(eq(authSessions.id,id)).get();
+    for(let attempt=0;current&&current.refreshLock>=Math.floor(Date.now()/1000)&&attempt<50;attempt++){
+      await new Promise(resolve=>setTimeout(resolve,100));current=await db.select().from(authSessions).where(eq(authSessions.id,id)).get();
+    }
+    if(current&&current.refreshLock>=Math.floor(Date.now()/1000))throw new HttpError(503,"Sua sessão está sendo renovada. Tente novamente.");
     if(current&&current.sealedTokens!==row.sealedTokens){
       const newer=await openTokens<TokenVault>(current.sealedTokens,config.seal,id+":"+current.ownerId);
       const verified=await providerRequest<ProviderUser>("user","GET",undefined,newer.access),user={...mapUser(verified),loginMethod:newer.method==="google"?"google" as const:"email" as const};
