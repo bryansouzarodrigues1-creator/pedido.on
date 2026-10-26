@@ -63,7 +63,9 @@ Não é possível dar uma porcentagem honesta de paridade contando botões. A Pi
 
 ## Validação
 
-19 cenários focados passaram; suíte geral: 701 testes aprovados, sem falhas ou testes ignorados. TypeScript e build inicial aprovados. Foram adicionados cenários de Chrome com service worker real e congelamento controlado, executados apenas no D1 isolado do GitHub Actions. A prévia gerenciada local informou endereço ativo, mas o navegador respondeu `ERR_CONNECTION_REFUSED` em duas tentativas; foi encerrada. Não se abriu servidor alternativo para contornar essa limitação. Publicação e resultado final de CI serão registrados após conclusão.
+Suíte final: **713 testes aprovados**, sem falhas ou testes ignorados; TypeScript e build aprovados. Chrome, Windows e os outros três workflows terminaram com sucesso. Os cenários de Chrome usam service worker real, corte de rede, congelamento controlado, produto em edição e recuperação na mesma rota privada, executados no D1 isolado do GitHub Actions. O ensaio revelou uma falha de recarga com fragmento privado; a correção e a repetição passaram. A prévia gerenciada local informou endereço ativo, mas o navegador respondeu `ERR_CONNECTION_REFUSED` em duas tentativas; foi encerrada. Não se abriu servidor alternativo para contornar essa limitação.
+
+Publicado na versão Sites **101**, às **13h51 de Brasília em 26/10/2026**, sem implantação do gateway Netlify. A recuperação por e-mail está disponível no navegador público. Evidências, links dos checks e limites de homologação estão na [auditoria de acesso](AUDITORIA-ACESSO-20261026.md#publicação-e-verificação-final).
 
 
-A continuidade posterior de recuperação foi incorporada: [auditoria de acesso](AUDITORIA-ACESSO-20261026.md). Mudanças de horários e atalho administrativo das PRs #131/#132 foram preservadas.
+A continuidade posterior de recuperação foi incorporada: [auditoria de acesso](AUDITORIA-ACESSO-20261026.md). Mudanças de horários, atalho administrativo e testes móveis das PRs #131/#132/#133 foram preservadas.

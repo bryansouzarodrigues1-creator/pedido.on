@@ -30,4 +30,6 @@ Foram incluídos testes de atribuição da atividade, visitante anônimo, tentat
 
 A jornada de autenticação no Chrome usa respostas controladas e é identificada como tal. As rotas reais com SQLite testam cadastro, login, recuperação, restrição da sessão, senha antiga rejeitada, novo login e revogação de sessões; o provedor externo é simulado. O proprietário confirmou o recebimento de e-mails; a recuperação pelo site será liberada junto da correção. A abertura do novo link, entrada posterior e Android físico continuam exigindo a confirmação final do fluxo. O envio de recuperação ao cliente atendido não foi repetido.
 
-Publicação e checks finais serão registrados ao concluir o conjunto, sem implantações Netlify intermediárias.
+Publicado na versão Sites 101 em 26/10/2026 às 16h51 UTC (13h51 em Brasília), com a migração aditiva 0021 e ambiente revisão 20. A alteração de ambiente foi somente `PEDIDO_EMAIL_DELIVERY_READY=true`; SMTP, remetente, chaves e sessão foram preservados. Não houve implantação do gateway Netlify.
+
+Validação final: 713 testes aprovados, TypeScript e build aprovados. Os cinco workflows do commit de aplicação `2e02749c4ff0a3cca4917e0691f132445e6c7b27` concluíram com sucesso: Chrome, Windows, autenticação/pedidos, conversa do pedido e disponibilidade de cadastro. No Chrome, os cenários de autenticação móvel, horários do dono, calculadora/admin, PWA/reconexão e navegação pública passaram. Os resultados e limites estão detalhados na [auditoria de acesso](AUDITORIA-ACESSO-20261026.md#publicação-e-verificação-final).
