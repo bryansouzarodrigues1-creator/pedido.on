@@ -18,7 +18,7 @@ export async function rotateMenuPhoto(page:ReaderPage):Promise<ReaderPage>{
   const canvas=document.createElement("canvas");canvas.width=page.height;canvas.height=page.width;const ctx=canvas.getContext("2d")!;ctx.translate(canvas.width,0);ctx.rotate(Math.PI/2);ctx.drawImage(image,0,0);
   return {...page,image:canvas.toDataURL("image/jpeg",.92),width:canvas.width,height:canvas.height,lines:[]};
 }
-export async function recognizeMenuPhotos(pages:ReaderPage[],signal:AbortSignal,onProgress:(progress:number,label:string)=>void,onPage?:(page:ReaderPage)=>Promise<void>){
+export async function recognizeMenuPhotos(pages:ReaderPage[],signal:AbortSignal,onProgress:(progress:number,label:string)=>void,onPage?:(page:ReaderPage)=>Promise<void>,options:{content?:"menu"|"information"}={}){
   signal.throwIfAborted();const {createWorker,OEM,PSM}=await import("tesseract.js");signal.throwIfAborted();
   let index=0,refining=false;
   const loading=createWorker("por",OEM.LSTM_ONLY,{workerPath:"/ocr/v7/worker.min.js",corePath:"/ocr/v7",langPath:"/ocr/v7",workerBlobURL:false,logger:m=>{if(!signal.aborted&&!refining)onProgress(m.status==="recognizing text"?(index+m.progress*.75)/pages.length:0,m.status==="recognizing text"?`Lendo foto ${index+1} de ${pages.length}`:"Preparando o leitor no aparelho…");}});
@@ -31,13 +31,22 @@ export async function recognizeMenuPhotos(pages:ReaderPage[],signal:AbortSignal,
     for(index=0;index<pages.length;index++){
       signal.throwIfAborted();const page=pages[index];refining=false;
       // Automatic segmentation suppresses the food-photo texture on phone screenshots.
-      await abortable(worker.setParameters({tessedit_pageseg_mode:page.height/page.width>1.6?PSM.AUTO:PSM.SINGLE_BLOCK,user_defined_dpi:"300"}),signal);
-      const {data}=await abortable(worker.recognize(page.image,{rotateAuto:true},{text:true,blocks:true}),signal);signal.throwIfAborted();
+      await abortable(worker.setParameters({tessedit_pageseg_mode:options.content==="information"?PSM.SINGLE_BLOCK:page.height/page.width>1.6?PSM.AUTO:PSM.SINGLE_BLOCK,user_defined_dpi:"300"}),signal);
+      let ocrImage=page.image;
+      if(options.content==="information"){
+       // Keep the original for review; normalize dark screenshots only in the
+       // OCR working copy, before text segmentation loses weekday letters.
+       const image=await abortable(new Promise<HTMLImageElement>((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error("Não foi possível preparar o print."));img.src=page.image;}),signal);
+       const canvas=document.createElement("canvas");canvas.width=page.width;canvas.height=page.height;const ctx=canvas.getContext("2d");
+       if(ctx){ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,page.width,page.height),enhanced=enhanceDarkMenuCrop(pixels.data,page.width,page.height,false);if(enhanced!==pixels.data){pixels.data.set(enhanced);ctx.putImageData(pixels,0,0);ocrImage=canvas.toDataURL("image/png");}}
+      }
+      const {data}=await abortable(worker.recognize(ocrImage,{rotateAuto:true},{text:true,blocks:true}),signal);signal.throwIfAborted();
       const words=data.blocks?.flatMap(block=>block.paragraphs.flatMap(paragraph=>paragraph.lines.flatMap(line=>line.words.map(word=>({text:word.text,confidence:word.confidence,box:word.bbox})))));
-      let lines:ReaderLine[]=words?.length?arrangeMenuWords(words,page.width):data.text.split("\n").map(text=>({text}));
+      const informationLines=options.content==="information"?data.blocks?.flatMap(block=>block.paragraphs.flatMap(paragraph=>paragraph.lines.map(line=>({text:line.words.map(word=>word.text).join(" "),confidence:line.words.length?Math.min(...line.words.map(word=>word.confidence)):0,box:line.bbox})))):undefined;
+      let lines:ReaderLine[]=informationLines?.length?informationLines:words?.length?arrangeMenuWords(words,page.width):data.text.split("\n").map(text=>({text}));
       // Bounded re-read of uncertain prices, using only local pixels and the
       // same worker. Conflicting readings stay unselected for owner review.
-      if(Math.abs(data.rotateRadians||0)<=.001){
+      if(options.content!=="information"&&Math.abs(data.rotateRadians||0)<=.001){
        const image=await abortable(new Promise<HTMLImageElement>((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error("Não foi possível conferir a foto."));img.src=page.image;}),signal);
        const contrast=document.createElement("canvas");contrast.width=page.width;contrast.height=page.height;
        const contrastCtx=contrast.getContext("2d");

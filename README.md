@@ -1,3 +1,5 @@
+**Dados por imagem — 26/10/2026:** prints e fotos para preencher horários, endereço e outros textos, com OCR local e aprovação dos campos. [Uso e limites](docs/INFORMACOES-POR-IMAGEM-20261026.md).
+
 **Clientes, uso e datas — 26/10/2026:** admin orientado ao atendimento, atividade e calculadora por conta, pedidos, tratamento das datas e motivo para ter cardápio digital. Migração 0021 aditiva; credenciais e dados existentes preservados. [Mudanças e provas](docs/ADMIN-USO-E-DATAS-20261026.md).
 
 **Auditoria de acesso — 26/10/2026:** continuidade do atendimento de recuperação, formulário resistente a falhas e modelo alinhado à rota de nova senha; recebimento de e-mail confirmado pelo proprietário, com liberação do envio nesta publicação; conclusão no aparelho ainda precisa ser conferida. [Evidências e pendências](docs/AUDITORIA-ACESSO-20261026.md).

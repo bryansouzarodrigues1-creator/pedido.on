@@ -27,9 +27,11 @@ import {imageFromFile,loadBrandAssets,saveBrandAssets,type BrandAssets} from "@/
 import {nameFromBriefing} from "@/lib/studio-policy";
 import OwnerIntakeChat from "./owner-intake-chat";
 import MenuRequestStart from "./menu-request-start";
+import BusinessInfoReader from "./business-info-reader";
 import {emptyOwnerIntake,ownerPreviewFromDescription,intakeFinished,ownerPreviewDetails,withOwnerAnswers,ownerWithMenuContent,ownerVisualBriefing,ownerFacts,type OwnerIntake} from "@/lib/owner-intake";
 
 const FullMenu=lazy(()=>import("./menu"));
+const intakeImageFields=["name","address","whatsapp","hours"] as const;
 function pendingMenuNotice(items:ReaderItem[]){const count=items.filter(item=>!readerItemReady(item)).length;return count?`${count} ${count===1?"produto precisa":"produtos precisam"} de conferência antes de entrar à venda. Os valores que o arquivo mostra ficam disponíveis para revisão.`:"";}
 const emptyMenuSourceNotice="Link guardado como referência. Solicite a importação pela equipe no painel ou envie PDF, TXT/CSV ou fotos para completar a prévia.";
 function makePreview(items:ReaderItem[],hasSource:boolean,photos:Record<string,string>={}):RestaurantData{return hasSource?previewMenuWithReaderItems(items,photos):defaultRestaurant("Sua pizzaria");}
@@ -155,6 +157,7 @@ export default function IdeaStart({adminMode=false}:{adminMode?:boolean}){
         onReady={next=>{if(!preview)void generate(next);}}/>
        <div className="idea-composer-bottom idea-conversation-attachments">
        <button type="button" className="idea-pdf-shortcut" disabled={busy||saving||!initialized} onClick={()=>pdfQuickPicker.current?.click()}><FileText size={17}/>Importar PDF direto</button>
+       <BusinessInfoReader storageKey={adminMode?"business-info:admin-creator":"business-info:creator"} fields={intakeImageFields} disabled={busy||saving||!initialized} values={intake.answers} onApply={patch=>{setIntake(old=>withOwnerAnswers(old,patch));if(patch.name)setBrandName(patch.name);setNotice("Dados da imagem conferidos. Você pode continuar preenchendo ou preparar a prévia.");}}/>
        {intakeFinished(intake)&&<button type="button" className="idea-source-toggle" aria-expanded={sourceOpen} onClick={()=>sourceOpen?setSourceOpen(false):openAttachments()}><Paperclip size={17}/>Enviar cardápio ou imagens {pages.length>0?"("+pages.length+")":""}</button>}
        {!adminMode&&<MenuRequestStart initialUrl={intake.source?.url}/>}<a className="idea-extension-link" href="/extensao"><Download size={17}/>Baixar extensão e exportar meu cardápio</a><small>PDF com texto é lido no aparelho; preços e fotos ficam para conferência antes de publicar.</small>
       </div>
