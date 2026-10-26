@@ -5,6 +5,9 @@ on:
       - 'lib/platform-maintenance.ts'
       - 'lib/trial*.ts'
       - 'lib/ai-budget.ts'
+      - 'components/auth-form.tsx'
+      - 'components/menu.tsx'
+      - 'scripts/check-published-trial-copy.mjs'
       - 'app/api/auth/**'
       - 'scripts/check-registration-availability.mjs'
       - '.github/workflows/registration-availability.yml'
@@ -22,3 +25,7 @@ jobs:
           node-version: '24'
       - name: Check primary signup validation without creating an account
         run: node scripts/check-registration-availability.mjs https://pizzaria-on.netlify.app
+      - name: Verify published signup offer on both production origins
+        run: |
+          node scripts/check-published-trial-copy.mjs https://forno-cardapios.waves4845.chatgpt.site
+          node scripts/check-published-trial-copy.mjs https://pizzaria-on.netlify.app

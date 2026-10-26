@@ -27,6 +27,19 @@ try{
  for(const width of [320,412,1280]){await page.setViewportSize({width,height:915});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
  await page.setViewportSize({width:412,height:915});await page.screenshot({path:path.join(output,'madeira-nostalgia-mobile.png'),fullPage:true});
  checks.push('one description creates a wood preview, retains products and prices and never requests signup');
+ await page.getByRole('button',{name:/^Testar o cardápio completo personalizado/}).click();
+ const fullPreview=page.getByRole('dialog',{name:'Teste do cardápio personalizado',exact:true});await fullPreview.locator('.customer-menu').waitFor();
+ assert.match(await fullPreview.locator('.restaurant-meta').textContent(),/Prazo a confirmar/);
+ assert.match(await fullPreview.locator('.restaurant-meta').textContent(),/Entrega a confirmar/);
+ assert.equal(await fullPreview.locator('.open-pill').textContent(),'Prévia');
+ await fullPreview.getByRole('button',{name:/^Água mineral/}).click();
+ await page.getByRole('button',{name:/^Adicionar.*5,00/}).click();
+ await fullPreview.getByRole('button',{name:/^Ver pedido com 1 /}).click();
+ const previewCart=page.getByRole('dialog',{name:'Confira seu pedido',exact:true});
+ assert.match(await previewCart.locator('.cart-fee').textContent(),/A confirmar/);
+ assert.match(await previewCart.textContent(),/5,00/);
+ await page.keyboard.press('Escape');await page.getByRole('button',{name:'Fechar teste e voltar aos modelos',exact:true}).click();
+ checks.push('full preview and cart retain catalog prices without claiming opening status, delivery time or free shipping');
  await page.getByRole('button',{name:'Escolher outro',exact:true}).click();assert.match(await page.locator('.ai-template-options summary').textContent(),/80 modelos/);assert.equal(await page.locator('.ai-style-card').count(),4);
  await page.getByRole('button',{name:'Ver todos os 80 modelos',exact:true}).click();assert.equal(await page.locator('.ai-style-card').count(),80);
  await page.getByRole('searchbox',{name:'Buscar modelo'}).fill('madeira');assert.ok(await page.locator('.ai-style-card').count()>0);await page.getByRole('searchbox',{name:'Buscar modelo'}).fill('');
