@@ -15,7 +15,7 @@ async function start(){
  context=await browser.newContext({...devices['Pixel 7'],locale:'pt-BR',serviceWorkers:'block'});
  await guardPublicGuestContext(context,errors);
  await context.route('**/*',async route=>{
-  const r=route.request(),u=new URL(r.url());
+  const r=route.request(),u=new URL(r.url());if(r.method()==='POST'&&u.origin===base&&u.pathname==='/api/site-events')return route.abort();
   if(u.origin===base&&u.pathname==='/api/auth/config')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({enabled:true,registrationEnabled:true,recoveryEnabled:false,inviteRequired:false,googleEnabled:false,csrf:'document-qa-csrf'})});
   if(u.origin===base&&u.pathname==='/api/auth/register'&&r.method()==='POST'){
    signup.push(r.postDataJSON());assert.equal(r.headers()['x-pedido-csrf'],'document-qa-csrf');return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(publicReadOnly?{message:'Cadastro fictício recebido no teste.'}:{ok:true,next:'/app?new=1'})});
