@@ -1,3 +1,5 @@
+**Auditoria de acesso — 26/10/2026:** continuidade do atendimento de recuperação, formulário resistente a falhas e modelo alinhado à rota de nova senha; envio por e-mail ainda depende de comprovar entrega e login reais. [Evidências e pendências](docs/AUDITORIA-ACESSO-20261026.md).
+
 **Retomada e comparação — 26/10/2026:** reconexão da PWA, retorno do WhatsApp, cópia local do rascunho e comparação dos recursos da InstaDelivery. [Escopo, provas e pendências](docs/RETOMADA-E-INSTADELIVERY-20261026.md).
 
 **Calculadoras e operação — 26/10/2026:** calculadoras Fácil e Profissional, clientes no admin, notificações persistentes, acessos/erros e continuidade de sessão. [Escopo e limites](docs/ADMIN-E-CALCULADORAS-20261026.md).

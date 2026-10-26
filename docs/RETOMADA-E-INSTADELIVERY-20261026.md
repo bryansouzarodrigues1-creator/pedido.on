@@ -63,4 +63,7 @@ Não é possível dar uma porcentagem honesta de paridade contando botões. A Pi
 
 ## Validação
 
-19 cenários focados passaram; suíte geral: 695 testes aprovados, sem falhas ou testes ignorados. TypeScript e build inicial aprovados. Foram adicionados cenários de Chrome com service worker real e congelamento controlado, executados apenas no D1 isolado do GitHub Actions. A prévia gerenciada local informou endereço ativo, mas o navegador respondeu `ERR_CONNECTION_REFUSED` em duas tentativas; foi encerrada. Não se abriu servidor alternativo para contornar essa limitação. Publicação e resultado final de CI serão registrados após conclusão.
+19 cenários focados passaram; suíte geral: 701 testes aprovados, sem falhas ou testes ignorados. TypeScript e build inicial aprovados. Foram adicionados cenários de Chrome com service worker real e congelamento controlado, executados apenas no D1 isolado do GitHub Actions. A prévia gerenciada local informou endereço ativo, mas o navegador respondeu `ERR_CONNECTION_REFUSED` em duas tentativas; foi encerrada. Não se abriu servidor alternativo para contornar essa limitação. Publicação e resultado final de CI serão registrados após conclusão.
+
+
+A continuidade posterior de recuperação foi incorporada: [auditoria de acesso](AUDITORIA-ACESSO-20261026.md). Mudanças de horários e atalho administrativo das PRs #131/#132 foram preservadas.

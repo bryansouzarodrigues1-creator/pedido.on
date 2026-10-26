@@ -67,9 +67,9 @@ test('the model probe validates its identity and does not pretend to verify gene
  const valid=await checkOpenAi(config,async()=>json({id:config.model,object:'model'}));assert.equal(valid[0].state,'ok');assert.match(valid[0].message,/não confirma saldo nem permissão/);
 });
 
-test('the active recovery template uses the standard Supabase link and legacy confirmation remains separate',()=>{
- assert.match(authEmails.recovery.html,/href="\{\{ \.ConfirmationURL \}\}"/);
- assert.doesNotMatch(authEmails.recovery.html,/confirmar-email|TokenHash/);
+test('recovery email always opens the app password route, including manual provider recovery',()=>{
+ assert.match(authEmails.recovery.html,/\{\{ \.SiteURL \}\}\/redefinir-senha\?token_hash=\{\{ \.TokenHash \}\}/);
+ assert.doesNotMatch(authEmails.recovery.html,/confirmar-email|ConfirmationURL/);
  assert.match(authEmails.confirmation.html,/\{\{ \.SiteURL \}\}\/confirmar-email\?token_hash=\{\{ \.TokenHash \}\}/);
  for(const template of Object.values(authEmails)){
   assert.doesNotMatch(template.html,/\.Data|<script|<iframe|onload=/);assert.match(template.html,/role="presentation"/);assert.match(template.html,/lang="pt-BR"/);
