@@ -1,5 +1,7 @@
 **Oferta atual — 25/10/2026:** novos testes de 10 dias a partir da primeira pizzaria; prazos já registrados são preservados no acesso e na franquia de IA. [Regra, custos e limites](TESTE-10-DIAS-20261025.md). A fiscalização comercial permanece desligada até validar a cobrança; a franquia de IA expira no prazo registrado.
 
+**Revisão de fluxo — 26/10/2026:** sincroniza a main após #126/#127 e corrige condições de atendimento inventadas na prévia completa e no checkout simulado. [Escopo, verificação e limites](FLUXO-VALIDADO-20261026.md).
+
 **Continuidade em 25/10/2026 — oferta de 30 dias e reinício autorizado:** leia [LIMPEZA-E-ADMIN-20261025.md](LIMPEZA-E-ADMIN-20261025.md). Supabase zerado, beta/staging zerados e base principal limpa. Não repetir exclusões após a divulgação do link. Convite privado ao novo administrador; nenhuma senha é definida por suporte. Asaas API/webhook responderam 200, mas o primeiro pagamento externo e a recuperação forte da issue #116 continuam pendentes.
 
 # Continuar a pizzaria.on
