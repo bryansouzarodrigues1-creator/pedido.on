@@ -4,7 +4,7 @@
 
 Foram recuperadas as mensagens relevantes e as últimas decisões do chat “Verificar recuperação de conta”, também chamado de recuperação de senha. Não há uma transcrição integral disponível nesta integração; não declarar leitura literal de mensagens ou anexos não retornados.
 
-O atendimento registrou que o link anterior abria a página normal, configuração de SMTP Gmail/modelo de recuperação no Supabase e confirmação de envio às 12h20 de Brasília. Não foi encontrada confirmação de recebimento seguida de troca de senha e novo login. A conversa comercial posterior não constitui ensaio do produto. O último pedido é aprofundar cadastro, login, recuperação, uso, publicação, pedido, WhatsApp, Pix e administração, preservando as contas e sem pedidos/cobranças reais.
+O atendimento registrou que o link anterior abria a página normal, configuração de SMTP Gmail/modelo de recuperação no Supabase e confirmação de envio às 12h20 de Brasília. A busca anterior não encontrou confirmação de conclusão. Na orientação mais recente, o proprietário confirmou que recebe o e-mail e relatou que o link abre o site normal. Isso confirma entrega relatada pelo titular; troca de senha e novo login no aparelho continuam por comprovar. A conversa comercial posterior não constitui ensaio do produto. O último pedido é aprofundar cadastro, login, recuperação, uso, publicação, pedido, WhatsApp, Pix e administração, preservando as contas e sem pedidos/cobranças reais.
 
 As PRs #131 (atalho administrativo para o provedor) e #132 (horários no cardápio e configuração) foram integradas à main enquanto a correção de retomada era preparada. Ambas foram conservadas no conjunto atual. Ainda não havia nova publicação Sites: versão 100 na consulta.
 
@@ -13,7 +13,7 @@ As PRs #131 (atalho administrativo para o provedor) e #132 (horários no cardáp
 - Projeto Supabase consultado: `ACTIVE_HEALTHY`. Logs foram consultados somente em agregados por ação/status, sem expor identificadores, tokens, mensagens, IPs ou e-mails de clientes. Os registros confirmam solicitações de recuperação no período, sem demonstrar que o cliente completou a troca e entrou.
 - A página pública `/esqueci-senha` foi aberta no navegador: continua informando que a recuperação por e-mail está indisponível e oferece atendimento por WhatsApp. Configurar SMTP no provedor não liga automaticamente essa opção no aplicativo.
 - O código já aceita token hash na rota `/redefinir-senha` e código PKCE com cookie do navegador que iniciou a solicitação. A sessão de recuperação tem finalidade restrita e não abre o painel, publica, altera cardápio, lê clientes ou aprova pedidos.
-- O modelo de recuperação versionado ainda usava `ConfirmationURL`, que no envio manual do painel pode não indicar a rota de nova senha. O modelo foi alinhado ao endereço explícito `SiteURL/redefinir-senha?token_hash=TokenHash`. Isso também atende abertura em outro navegador. Não foram alterados SMTP, remetente ou credenciais de produção nesta revisão.
+- O modelo de recuperação versionado ainda usava `ConfirmationURL`, que no envio manual do painel pode não indicar a rota de nova senha. O modelo foi alinhado ao endereço explícito `SiteURL/redefinir-senha?token_hash=TokenHash`. Isso também atende abertura em outro navegador. SMTP, remetente e credenciais de produção foram preservados. Após a confirmação explícita do proprietário de que o e-mail chega, foi preparada a liberação de PEDIDO_EMAIL_DELIVERY_READY=true, aplicada com a próxima publicação.
 
 ## Correções
 
@@ -37,7 +37,7 @@ Foi mantida a regra: cadastro direto sem confirmação de e-mail; autenticação
 
 ## Pendências concretas
 
-1. Com uma conta de teste controlada pelo proprietário, comprovar chegada do e-mail, abrir o link, escolher senha e entrar novamente. Só então liberar o envio de recuperação no aplicativo. A conta do cliente atendido não foi usada nos novos ensaios.
+1. Com uma conta de teste controlada pelo proprietário, comprovar chegada do e-mail, abrir o link, escolher senha e entrar novamente. A liberação do envio acompanha esta correção com base na confirmação de recebimento do proprietário; falta documentar a conclusão do novo fluxo no aparelho. A conta do cliente atendido não foi usada nos novos ensaios.
 2. Validar a PWA no Android físico alternando com WhatsApp e rede móvel. O print sem URL/aplicativo identificado não prova a origem da tela nativa de falha.
 3. Primeiro recebimento externo de assinatura e homologação operacional de pedidos/impressora permanecem separados das verificações simuladas.
 
