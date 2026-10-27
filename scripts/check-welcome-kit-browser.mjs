@@ -1,19 +1,26 @@
 // GitHub-hosted disposable database only. AI outputs and access-selector replies
 // are explicitly simulated; menu, review/approval, catalog checks and PNG rendering are real.
 import {createRequire} from 'node:module';
+import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {demoRestaurant} from '../lib/domain.ts';
 import {browserQaTarget} from './browser-qa-target.mjs';
 const {base,publicReadOnly}=browserQaTarget();if(publicReadOnly)throw Error('Welcome QA requires isolated local data.');
+if(process.env.GITHUB_ACTIONS!=='true'||process.env.CI!=='true'||base!=='http://127.0.0.1:5173')throw Error('Welcome fixture setup is restricted to the disposable GitHub runner.');
+// The internal Sites mock owner is an administrator, not an email signup. Seed
+// only this local fixture's Free period; production has no such test endpoint.
+const fixtureNow=Math.floor(Date.now()/1000),fixtureSql="INSERT INTO account_trials(owner_id,registered_at,started_at,ends_at) VALUES('local_seedy','"+new Date().toISOString()+"',"+(fixtureNow-60)+","+(fixtureNow+10*86400-60)+") ON CONFLICT(owner_id) DO UPDATE SET started_at=excluded.started_at,ends_at=excluded.ends_at";
+execFileSync(process.execPath,['node_modules/wrangler/bin/wrangler.js','d1','execute','DB','--local','--config','.sites-runtime/browser-ci/wrangler.json','--persist-to','.wrangler/state','--command',fixtureSql],{stdio:'pipe',env:{...process.env,WRANGLER_SEND_METRICS:'false'}});
+
 const require=createRequire(import.meta.url),{chromium,devices}=require(process.env.QA_PLAYWRIGHT_MODULE||'playwright-core'),output=path.resolve(process.env.QA_BROWSER_OUTPUT||'.sites-runtime/browser-ci/welcome-kit');await mkdir(output,{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.QA_CHROME_PATH,headless:true}),context=await browser.newContext({...devices['Pixel 7'],locale:'pt-BR',serviceWorkers:'block',acceptDownloads:true}),page=await context.newPage(),checks=[],errors=[],simulated=[],writes=[];
 page.setDefaultTimeout(30000);page.on('pageerror',e=>errors.push(e.message));await context.route('**/*',route=>{const request=route.request(),u=new URL(request.url());if(u.origin!==base){errors.push('External request '+u.origin);return route.abort();}if(!['GET','HEAD'].includes(request.method()))writes.push(request.method()+' '+u.pathname);return route.continue();});
 async function api(pathname,method='GET',body){return page.evaluate(async({pathname,method,body})=>{const auth=await(await fetch('/api/auth/config',{cache:'no-store'})).json(),r=await fetch(pathname,{method,headers:{'Content-Type':'application/json','x-pedido-csrf':auth.csrf},...(body===undefined?{}:{body:JSON.stringify(body)})});return {status:r.status,body:await r.json()};},{pathname,method,body});}
 async function geometry(){for(const width of [320,412,768,1280]){await page.setViewportSize({width,height:915});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'Fits '+width);}await page.setViewportSize({width:412,height:915});}
 try{
- await page.goto(base+'/signin-with-chatgpt?return_to=%2Fapp',{waitUntil:'networkidle',timeout:90000});let rows=(await api('/api/restaurants')).body.restaurants;assert.ok(rows.length);let shop=rows.sort((a,b)=>a.createdAt.localeCompare(b.createdAt)||a.id.localeCompare(b.id))[0];
+ await page.goto(base+'/signin-with-chatgpt?return_to=%2Fapp',{waitUntil:'networkidle',timeout:90000});let rows=(await api('/api/restaurants')).body.restaurants;if(!rows.length){const created=await api('/api/restaurants','POST',{name:'Welcome QA isolada',slug:'welcome-qa-'+Date.now(),theme:'editorial',plan:'essencial'});assert.equal(created.status,201,JSON.stringify(created.body));rows=[created.body.restaurant];}let shop=rows.sort((a,b)=>a.createdAt.localeCompare(b.createdAt)||a.id.localeCompare(b.id))[0];
  const old=JSON.parse(shop.data),data={...demoRestaurant(),name:'Kit de divulgação QA',whatsapp:old.whatsapp||'5522998889610',cover:'',logo:'',products:demoRestaurant().products.map(p=>({...p,image:''}))};
  let saved=await api('/api/restaurants/'+shop.id,'PUT',{revision:shop.revision,data});assert.equal(saved.status,200,JSON.stringify(saved.body));shop=saved.body.restaurant;const published=await api('/api/restaurants/'+shop.id+'/publish','POST',{revision:shop.revision,published:true});assert.equal(published.status,200,JSON.stringify(published.body));shop=published.body.restaurant;
  const baseline=(await api('/api/restaurants')).body.restaurants,orders=(await api('/api/restaurants/'+shop.id+'/orders')).body;

@@ -20,6 +20,12 @@ on:
       - ".openai/hosting.json"
       - ".github/workflows/browser-qa.yml"
   workflow_dispatch:
+    inputs:
+      suite:
+        description: "Cenário no banco descartável"
+        type: choice
+        default: all
+        options: [all, welcome-kit]
 
 permissions:
   contents: read
@@ -32,6 +38,10 @@ jobs:
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.suite == 'welcome-kit' && '["welcome-kit"]' || '["core","welcome-kit"]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -58,15 +68,16 @@ jobs:
       - name: Guest creation and calculator in real Chrome
         env:
           QA_HEADLESS: "true"
+          QA_BROWSER_SUITE: ${{ matrix.suite }}
         run: node scripts/run-browser-qa-ci.mjs
       - name: Published guest UI and calculator (remote mutations blocked)
-        if: ${{ success() }}
+        if: ${{ success() && matrix.suite == 'core' }}
         run: node scripts/check-public-browser.mjs
       - name: Preserve screenshots and reports, including failures
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: chrome-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          name: chrome-qa-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.suite }}
           retention-days: 14
           if-no-files-found: error
           path: |
