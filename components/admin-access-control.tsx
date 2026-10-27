@@ -38,12 +38,12 @@ export default function AdminAccessControl({restaurantId}:{restaurantId:string})
   {open&&<div className="admin-access-form">
    {busy&&!loaded?<p>Carregando acesso...</p>:<>
     <p className="admin-muted">Escolha Free ou Pro e o prazo. Esta liberação não cria cobranças. Suspender conta impede novos pedidos e preserva o histórico.</p>
-    <label>Situação<select value={choice} onChange={e=>setChoice(e.target.value)} disabled={busy}>
+    <label>Situação<select aria-label="Situação" value={choice} onChange={e=>setChoice(e.target.value)} disabled={busy}>
      <option value="free">Free</option>
      <option value="pro">Pro</option>
      <option value="suspended">Suspender conta</option>
     </select></label>
-    {choice!=="suspended"&&<label>Prazo<select value={duration} onChange={e=>setDuration(e.target.value)} disabled={busy}>
+    {choice!=="suspended"&&<label>Prazo<select aria-label="Prazo" value={duration} onChange={e=>setDuration(e.target.value)} disabled={busy}>
       <option value="10">10 dias</option><option value="30">30 dias</option><option value="60">60 dias</option><option value="90">90 dias</option>
     </select></label>}
     {choice!=="suspended"&&<p className="field-hint">{choice==="pro"?"Pro: divulgação à vontade, criação com IA e até 20 novas imagens por semana.":"Free: cardápio e divulgação, com duas rodadas de sugestões e fotos incluídas no período."}</p>}
