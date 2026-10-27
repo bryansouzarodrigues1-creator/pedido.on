@@ -28,16 +28,59 @@ Nas próximas cópias/downloads, o aplicativo registra o texto canônico da ofer
 
 Artes locais anteriores que nunca foram salvas no servidor não podem ser recuperadas retroativamente; essa limitação aparece no histórico. Imagens/textos/kits já persistidos continuam acessíveis. Leituras antigas de cardápio deixam de ser apagadas automaticamente após 30 dias para preservar sua consulta administrativa.
 
-## Validação e publicação
+## Validação concluída — publicação pendente
 
-Doze cenários novos de integração cobrem: autorização, privacidade, origem/CSRF, upload e repetição, formatos/tamanho, contexto de IA e limite de protocolo, pausa/versionamento, aplicação somente ao rascunho, paginação, arquivo PNG/caption sem consumo e ciclos de verificação a partir de estados recusado/desverificado/dados alterados.
+A PR [#139](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/139) foi integrada em `e9f0bb7de59af434a9e069ee1493d7d5200a2253`. O commit final ensaiado é `d8059edff82ea69be8fb3fc8e53105fad8cfb816`, árvore `109b6d5679adeed595e69271d455d7ffd36641d9`. Não confundir integração do código com publicação.
 
-A suíte completa, o Chrome e a publicação ainda estão em preparação. O ensaio real encontrou um PNG vertical de 1,6 MB bloqueado pelo tratamento de formulários do framework antes de alcançar a API. Fotos/artes agora usam um envelope binário limitado, com metadados UTF-8, mantendo origem, CSRF, propriedade e validação de conteúdo na rota. Não foi alterado o limite global do proxy nem o gateway Netlify. Arquivos até 4 MB são preservados byte a byte; maiores recebem uma cópia WebP otimizada para o arquivo/envio, mantendo intacto o PNG original baixado pelo cliente. O envio manual aceita uma foto de até 5 MB; o arquivo sai do navegador abaixo do teto público. A rota de arquivamento tem limite próprio de 10 MB para acesso direto, sem aumentar o limite público.
+Todos os cinco workflows desse commit terminaram com sucesso:
 
-O Chrome inclui o caso exato da fila recusada, os botões verificar/desverificar/verificar novamente, ações de conta com quatro prazos, prévia real, histórico das artes, upload/texto/orientação reais em D1/R2 descartável e recebimento/aplicação no rascunho pelo dono. Respostas de IA e do seletor de plano são simuladas; o servidor de plano é testado separadamente. Nenhuma conta real é modificada pelos ensaios.
+| Prova | Resultado |
+| --- | --- |
+| [Autenticação/pedidos, tipos, schema e build](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40497152137) | **754 testes, 754 aprovados, zero falhas**; TypeScript aprovado; 41 tabelas, geração do schema sem diferenças; builds da aplicação e preparação/conferência Netlify aprovados |
+| [Chrome](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40497152015) | **core e welcome-kit aprovados** |
+| [Windows](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40497152186) | Aprovado |
+| [Chat de pedidos](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40497152045) | Aprovado |
+| [Cadastro público](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40497152113) | Disponibilidade aprovada, sem criar conta |
 
-Registrar aqui o commit final, os resultados e a versão/deploy efetivos ao terminar. A versão anterior em produção é a v103. Android físico, nova recuperação completa por e-mail real e cobrança/renovação externa reais continuam sem homologação.
+Os doze cenários novos de integração cobrem autorização e privacidade, origem/CSRF, idempotência, formatos/tamanhos, contexto criativo de IA e limite de protocolo, pausa/versionamento, aplicação somente ao rascunho, paginação, arquivamento sem consumo e verificação a partir de estados recusado, desverificado e dados alterados.
 
-## Interrupção do ambiente
+O Chrome usa navegador real e D1/R2 locais descartáveis. Reproduz a fila recusada, verificar/desverificar/verificar novamente, as ações Dar teste grátis/Liberar Pro/Suspender conta com os quatro prazos, ambas as prévias, histórico de arte quadrada e vertical/caption, upload de imagem/texto/orientação e recebimento pelo dono, com aplicação apenas ao rascunho local. O registro persistido da loja não muda antes de salvar. Recarregar o kit não cria nova geração; alterar um preço publicado impede exportar uma oferta antiga. Respostas da IA e do seletor visual de plano são simuladas; as APIs de plano são verificadas separadamente. Nenhuma conta real foi alterada.
 
-O ambiente de execução ficou indisponível antes de concluir a validação do transporte binário e seu pacote. As alterações foram recuperadas pelo conector do GitHub; conferir o CI do commit final antes de integrar/publicar. Produção continua na v103. O último pacote nativo confirmado, fonte `5006badf3f6613e7824e8509f071aa894e18d9c6`, antecede o transporte binário e não deve ser publicado como resultado final. Retomar pelo mesmo projeto e helper oficial quando o ambiente voltar, comparar a árvore com o GitHub e gerar outro pacote correspondente. Não pressupor que o build interrompido terminou.
+Artefatos do Chrome, consultáveis pela execução acima e sujeitos à retenção do GitHub:
+
+- Atendimento/kit: `12731840428`, SHA256 `cfa2feaba7212cbfd654aff7b31815ce879e53de91cc9cf7c7a27c37afa3e0b5`.
+- Core: `12730763380`, SHA256 `0048854cbf47c9c1359ef2291a38155bc251fd4e0b617ffc80c8eaf0023d84e3`.
+
+As telas equivalentes do admin foram inspecionadas visualmente no ensaio anterior à última correção de transporte. O artefato final foi confirmado pelo CI; sua inspeção visual local não foi repetida após a indisponibilidade do ambiente.
+
+### Falha real encontrada e corrigida no ensaio
+
+Um PNG vertical de **1.648.487 bytes** era bloqueado pelo tratamento de formulários do framework antes de chegar à API; um quadrado de 969.901 bytes passava. Aumentar apenas o limite da rota não resolvia a barreira de formulário de 1 MB.
+
+Fotos/artes agora usam envelope binário limitado, com metadados UTF-8 e os mesmos controles de origem, CSRF, propriedade e conteúdo. A regressão inclui um arquivo acima de 1 MB e o Chrome final confirmou o envio/arquivamento da arte vertical. Não foi aumentado o limite global do proxy nem modificado o gateway Netlify.
+
+Arquivos até 4 MB são preservados byte a byte; maiores recebem uma cópia WebP otimizada para o envio/arquivo, mantendo intacto o PNG original baixado pelo cliente. O envio manual aceita foto de até 5 MB; a cópia sai do navegador abaixo do teto público. A rota de arquivamento admite até 10 MB em acesso direto, sem aumentar o limite público.
+
+## Produção e retomada da publicação
+
+**Ainda não publicado.** Em 27/10/2026, a consulta do Sites confirmou produção ativa, pública e ainda na **v103**, publicada em `2026-10-27T10:16:18.218609+00:00` (07:16 de Brasília). A página antiga da fila continua visível nessa versão.
+
+O ambiente de execução ficou indisponível antes de concluir a preparação do pacote final. As alterações interrompidas foram recuperadas e validadas pelo GitHub, e integradas na PR #139. Não presumir que o build local interrompido terminou. O pacote nativo anterior foi criado, mas **não foi salvo como versão nem implantado**:
+
+- Última fonte nativa preparada: `5006badf3f6613e7824e8509f071aa894e18d9c6`.
+- Árvore dessa fonte: `f1db8f968e6a481fc5d4de439694332edd4b3524`.
+- **Não publicar esse pacote:** ele antecede o transporte binário e continua sujeito à falha de formulário.
+- A fonte final do GitHub, com árvore `109b6d5679adeed595e69271d455d7ffd36641d9`, inclui a correção que passou no Chrome.
+- Projeto existente: `appgprj_6ac6d3ea9f7881918f315a156338ed52`. Preservar audiência pública e ambiente; não alterar sessão, serviços, segredos ou bases para contornar a interrupção.
+
+Quando o ambiente voltar:
+
+1. Ler o estado atual do mesmo projeto e abrir a fonte pelo helper oficial Sites; preservar alterações locais antigas. Buscar a main atual do GitHub e comparar toda a árvore. Uma restauração anterior do ambiente trouxe um snapshot antigo.
+2. Aplicar a main integrada ao checkout nativo existente e garantir que a correção binária esteja presente, junto dos testes e da documentação. Usar credencial nova; não reaproveitar tokens antigos nem colocá-los em código/logs/workflows.
+3. Rodar tipos/build do pacote final pelo fluxo oficial e gerar **nova fonte empurrada e novo arquivo correspondentes**. O SHA do GitHub não substitui o SHA da fonte nativa do projeto.
+4. Salvar a versão com esse SHA exato, publicar pelo Sites e aguardar o resultado terminal. A migração 0024 é aditiva; não executar reset ou limpeza de dados.
+5. Conferir o site nativo e o gateway Netlify, a navegação pública, imagens e sessões. Registrar a nova versão, deployment, SHA e resultado; até essa confirmação, manter o estado “não publicado”.
+
+Na v103, a alternativa imediata para aprovação está em **Administração → Clientes e pizzarias → Verificar loja**, junto da pizzaria, e não no seletor antigo da fila. A conferência pede observação com ao menos oito caracteres e a confirmação dos dados/vínculo/Pix; depois, **Confirmar verificação da loja**. Não aprovar automaticamente um cliente pelo desenvolvimento.
+
+Android físico, nova recuperação completa por e-mail real e cobrança/renovação externa reais continuam sem homologação. Os testes desta entrega não substituem essas verificações externas.
