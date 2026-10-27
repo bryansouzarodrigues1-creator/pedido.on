@@ -6,6 +6,7 @@ import {localStudio,normalizeStudioResponse,proposalPatch,studioEndpoint,studioL
 import {planQuotasEnabled,budgetAllowance,reserveBudgetedJob,settleAiBudget} from "./ai-budget";
 import {requestAiProvider} from "./ai-provider";
 import {providerFailure} from "./provider-diagnostics";
+import {aiTeamGuidance} from "./restaurant-guidance";
 import type {z} from "zod";
 type StudioEnv={PEDIDO_STUDIO_ENABLED?:string;PEDIDO_STUDIO_ENDPOINT?:string};
 type Job={id:string;input_hash:string;state:string;result:string|null};
@@ -21,7 +22,7 @@ export async function runStudio(ownerId:string,restaurantId:string,input:z.infer
  const old=await find();if(old)return {...resume(old),usage:await studioAllowance(ownerId)};
  await throttle("studio-owner:"+await sha256(ownerId),planQuotasEnabled()?100:10,86400);const now=new Date(),stamp=now.toISOString(),period=stamp.slice(0,7),day=stamp.slice(0,10),id=crypto.randomUUID(),token=randomToken();
  const insert=`INSERT INTO studio_jobs(id,owner_id,restaurant_id,request_id,input_hash,token_hash,prompt,state,period_key,created_at,expires_at,updated_at) SELECT ?,?,?,?,?,?,?,'queued',?,?,?,?`;
- const values=[id,ownerId,restaurantId,input.requestId,inputHash,await sha256(token),studioPrompt(input),period,stamp,new Date(now.getTime()+120000).toISOString(),stamp];
+ const values=[id,ownerId,restaurantId,input.requestId,inputHash,await sha256(token),studioPrompt(input,await aiTeamGuidance(restaurantId)),period,stamp,new Date(now.getTime()+120000).toISOString(),stamp];
  const reserved=planQuotasEnabled()?await reserveBudgetedJob(ownerId,"text",id,insert,values):(await env.DB!.prepare(insert+` WHERE (SELECT COUNT(*) FROM studio_jobs WHERE owner_id=? AND period_key=? AND state!='cancelled')<? AND (SELECT COUNT(*) FROM studio_jobs WHERE created_at>=? AND state!='cancelled')<? ON CONFLICT(owner_id,restaurant_id,request_id) DO NOTHING`).bind(...values,ownerId,period,studioLimits.monthly,day,studioLimits.daily).run()).meta.changes===1;
  if(!reserved){const duplicate=await find();if(duplicate&&duplicate.id!==id)return {...resume(duplicate),usage:await studioAllowance(ownerId)};throw new HttpError(429,"A franquia ou a disponibilidade de IA deste período foi atingida. Os estilos prontos continuam disponíveis.");}
  let phase="connect";
