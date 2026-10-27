@@ -25,6 +25,8 @@ try{
  await page.goto(base+'/signin-with-chatgpt?return_to=%2Fapp',{waitUntil:'networkidle',timeout:90000});
  const created=await api('/api/restaurants','POST',{name:'Assistência QA isolada',slug:'assistencia-qa-'+Date.now(),theme:'editorial',plan:'essencial'});assert.equal(created.status,201,JSON.stringify(created.body));const shop=created.body.restaurant,before=JSON.parse(shop.data);
  await page.goto(base+'/app?loja='+shop.id,{waitUntil:'networkidle'});
+ await page.getByRole('button',{name:'Já tenho cardápio em foto, arquivo ou link',exact:true}).click();
+ await page.reload({waitUntil:'networkidle'});
  await page.getByRole('button',{name:'Importar PDF ou fotos',exact:true}).waitFor();
  const request=page.locator('details[aria-label="Solicitar trazer meu cardápio via link"]');await request.locator('summary').first().click();
  await followLink(request.getByRole('link',{name:'Falar com o suporte · +55 (22) 99999-8888',exact:true}),'5522999998888');
@@ -109,7 +111,7 @@ try{
  await admin.screenshot({path:path.join(output,'runner-admin-review-mobile.png'),fullPage:true});
  await send.click();await remoteRow.getByText('Catálogo entregue para revisão do proprietário. Nenhum preço ou foto foi publicado.',{exact:true}).waitFor();
  const remoteAfter=(await api('/api/restaurants')).body.restaurants.find(r=>r.id===remoteShop.id);assert.equal(remoteAfter.data,remoteShop.data);assert.equal(remoteAfter.published,false);
- await page.goto(base+'/app?loja='+remoteShop.id,{waitUntil:'networkidle'});
+ await page.goto(base+pushNotice('menu',remoteShop.id).url,{waitUntil:'networkidle'});
  await page.getByRole('button',{name:'Levar produtos ao leitor para revisar',exact:true}).click();
  await review.waitFor();assert.equal(await review.locator('.reader-item').count(),2);
  assert.equal(await review.getByRole('button',{name:/Adicionar 2 ao rascunho/}).isEnabled(),false);
@@ -150,7 +152,7 @@ try{
  assert.equal(blockedPersist.capture,undefined);assert.equal(blockedPersist.menuText,undefined);
  const blockedData=(await api('/api/restaurants')).body.restaurants.find(r=>r.id===blockedShop.id);
  assert.equal(blockedData.data,blockedShop.data);assert.equal(blockedData.published,false);
- await page.goto(base+'/app?loja='+blockedShop.id,{waitUntil:'networkidle'});
+ await page.goto(base+pushNotice('menu',blockedShop.id).url,{waitUntil:'networkidle'});
  const ownerBlocked=page.locator('details[aria-label="Solicitar trazer meu cardápio via link"]');
  await ownerBlocked.getByRole('alert').filter({hasText:'HTTP 403'}).waitFor();
  assert.equal(await ownerBlocked.getByRole('button',{name:'Levar produtos ao leitor para revisar'}).count(),0);

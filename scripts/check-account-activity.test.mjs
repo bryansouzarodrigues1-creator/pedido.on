@@ -10,7 +10,7 @@ test('authenticated activity binds identity on the server, rejects forged owners
   assert.equal((await send({ownerId:'owner-b'})).status,400);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM account_activity').get().n,0);
   assert.equal((await send({})).status,204);assert.equal(f.db.prepare('SELECT owner_id,actions FROM account_activity').get().owner_id,'owner-a');
   f.state.user=null;assert.equal((await send({})).status,204);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM account_activity').get().n,1);
-  assert.equal((await send({page:'painel'})).status,400);
+  assert.equal((await send({page:'inicio'})).status,400);
  }finally{f.close();}
 });
 test('presence updates last activity without adding calculator actions or creating a fake login',async()=>{
@@ -27,4 +27,13 @@ test('directory shows each account, actual order counts and calculator-only stat
 });
 test('activity days use Brasília at midnight and current logins survive deletion of active session records',async()=>{
  const f=fixture();try{profile(f,'owner-a','Pizzaiola A');await f.load('lib/account-activity.ts').recordAccountActivity('owner-a','login','visit',new Date('2026-10-26T02:30:00Z'));f.db.prepare('DELETE FROM auth_sessions').run();const data=await f.load('lib/admin-accounts.ts').adminAccounts('',1,'all',now);assert.equal(data.items.find(row=>row.id==='owner-a').lastLogin,'2026-10-26T02:30:00.000Z');assert.equal(f.db.prepare('SELECT day FROM account_activity').get().day,'2026-10-25');}finally{f.close();}
+});
+
+test('a first-step calculation counts as calculator use for the authenticated owner without receiving cost values',async()=>{
+ const f=fixture();try{const route=f.load('app/api/site-events/route.ts'),send=extra=>route.POST(new Request('https://pedido.example/api/site-events',{method:'POST',headers:{origin:'https://pedido.example','content-type':'application/json'},body:JSON.stringify({session:crypto.randomUUID(),page:'painel',kind:'calculator_use',...extra})}));
+  const menu=JSON.stringify(f.db.prepare('SELECT * FROM restaurants').all());
+  assert.equal((await send({cost:2000})).status,400);assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM account_activity').get().n,0);
+  assert.equal((await send({})).status,204);const row=f.db.prepare('SELECT owner_id,area,opens,actions FROM account_activity').get();assert.deepEqual([row.owner_id,row.area,row.opens,row.actions],['owner-a','calculadora',0,1]);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM site_visits').get().n,0);assert.equal(JSON.stringify(f.db.prepare('SELECT * FROM restaurants').all()),menu);
+ }finally{f.close();}
 });
