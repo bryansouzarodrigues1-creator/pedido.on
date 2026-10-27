@@ -6,7 +6,7 @@ O relato de um pizzaiolo iniciando um delivery com a esposa mostrou que ele prec
 
 ## Comportamento
 
-- Pizzaria nova sem produtos abre em **Comece sua pizzaria**, com quatro etapas. Uma importação em revisão conserva seu fluxo atual. Quem já usa o painel encontra **Abrir primeiros passos** em Pedidos e o acesso no menu lateral.
+- Pizzaria nova sem produtos abre em **Comece sua pizzaria**, com quatro etapas. Uma importação em revisão conserva seu fluxo atual. Quem já usa o painel encontra **Abrir primeiros passos** em Pedidos e o acesso no menu lateral. A escolha de usar as ferramentas completas é lembrada neste aparelho; reabrir o guia continua disponível.
 - **Cadastre suas primeiras pizzas** abre o editor existente, só exige nome e preço de pelo menos um tamanho; foto/descrição ficam opcionais. Guardar e continuar usa o salvamento normal com revisão. O progresso só conta o produto quando salvo na conta.
 - **Descubra quanto sobra** mostra uma conta por pizza com dois valores: custo e preço pretendido. Entrega paga pela loja, taxas/impostos e parcela fixa são opcionais e explícitos. R$20 de custo/R$40 de venda deixam R$20 antes dos gastos ausentes; não se apresenta esse valor como lucro líquido garantido. Perdas continuam negativas. A conta não altera preços do cardápio.
 - **Configure seu delivery** reúne WhatsApp, horário, entrega/retirada, taxa e prazo. Retirada exige endereço. Guardar usa a mesma API/revisão e não publica. Mudanças nos dados conferidos tornam essa etapa pendente novamente. Horários informativos não abrem/fecham pedidos automaticamente.

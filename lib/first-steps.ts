@@ -7,6 +7,7 @@ const amount = z.string().max(24);
 export const firstStepsSchema = z.object({
   version: z.literal(1),
   step: z.number().int().min(0).max(3),
+  tools: z.boolean().default(false),
   cost: amount,
   price: amount,
   extras: amount,
@@ -17,7 +18,7 @@ export const firstStepsSchema = z.object({
 }).strict();
 export type FirstStepsStudy = z.infer<typeof firstStepsSchema>;
 export const emptyFirstSteps = (): FirstStepsStudy => ({
-  version: 1, step: 0, cost: "", price: "", extras: "0", fees: "0", fixed: "0", costReview: "", deliveryReview: "",
+  version: 1, step: 0, tools: false, cost: "", price: "", extras: "0", fees: "0", fixed: "0", costReview: "", deliveryReview: "",
 });
 export function firstStepsKey(restaurantId: string) {
   if (!/^[a-zA-Z0-9_-]{1,80}$/.test(restaurantId)) throw Error("Pizzaria inválida.");

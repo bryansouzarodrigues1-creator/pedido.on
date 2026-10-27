@@ -26,7 +26,7 @@ export default function FirstSteps({ restaurant, data, busy, dirty, onChange, on
   const [study, setStudy] = useState<FirstStepsStudy>(emptyFirstSteps), [ready, setReady] = useState(false), [storageError, setStorageError] = useState(false), [message, setMessage] = useState("");
   const liveStudy = useRef(study); liveStudy.current = study;
   useEffect(() => {
-    try { setStudy(readFirstSteps(localStorage, restaurant.id)); } catch { setStorageError(true); }
+    try { setStudy({ ...readFirstSteps(localStorage, restaurant.id), tools: false }); } catch { setStorageError(true); }
     setReady(true);
   }, [restaurant.id]);
   useEffect(() => {
@@ -43,6 +43,7 @@ export default function FirstSteps({ restaurant, data, busy, dirty, onChange, on
   const sale = firstSale(study), products = data.products.filter(availableProduct);
   function patch(value: Partial<FirstStepsStudy>) { setStudy(old => ({ ...old, ...value })); setMessage(""); }
   function next() { patch({ step: Math.min(3, study.step + 1) }); }
+  function useTools() { try { writeFirstSteps(localStorage, restaurant.id, { ...liveStudy.current, tools: true }); } catch {} onTools(); }
   function confirmCosts() { if (!firstSale(study)) return; window.dispatchEvent(new Event("pizzaria:calculator-used")); patch({ costReview: studySignature(study), step: 2 }); }
   async function saveStep(delivery = false) {
     const row = await onSave();
@@ -56,10 +57,10 @@ export default function FirstSteps({ restaurant, data, busy, dirty, onChange, on
     onChange({ theme: visual.theme, accent: visual.accent, presentation: visual.presentation });
   }
   return <section className="first-steps" aria-label="Comece sua pizzaria">
-    <header className="first-steps-heading"><div><span className="eyebrow">UM PASSO DE CADA VEZ</span><h2>Comece sua pizzaria</h2><p>Você pode fazer no seu ritmo e pular uma etapa.</p></div><button type="button" className="text-button" disabled={busy} onClick={onTools}>Usar ferramentas completas <ArrowRight size={16}/></button></header>
+    <header className="first-steps-heading"><div><span className="eyebrow">UM PASSO DE CADA VEZ</span><h2>Comece sua pizzaria</h2><p>Você pode fazer no seu ritmo e pular uma etapa.</p></div><button type="button" className="text-button" disabled={busy || !ready} onClick={useTools}>Usar ferramentas completas <ArrowRight size={16}/></button></header>
     <div className="first-steps-progress"><span>Seu progresso</span><strong>{complete} de 4</strong><progress aria-label="Etapas concluídas" value={complete} max={4}/></div>
     <nav className="first-steps-list" aria-label="Etapas para começar">{steps.map(({ title, description, Icon }, i) => <button type="button" key={title} disabled={busy} aria-current={study.step === i ? "step" : undefined} onClick={() => patch({ step: i })}><span className={progress[i] ? "done" : ""}>{progress[i] ? <Check size={19}/> : <Icon size={20}/>}</span><span><b>{title}</b><small>{description}</small></span><span className="first-step-state">{progress[i] ? "Concluído" : i + 1}</span></button>)}</nav>
-    <fieldset disabled={busy} className="first-steps-workspace">
+    <fieldset disabled={busy || !ready} className="first-steps-workspace">
       <legend>{study.step + 1}. {steps[study.step].title}</legend>
       {study.step === 0 && <div className="first-step-body">
         <p>Comece com os sabores que você já sabe fazer. Informe um nome e o preço dos tamanhos que vai vender.</p>

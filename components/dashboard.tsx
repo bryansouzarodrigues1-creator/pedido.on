@@ -34,7 +34,7 @@ import DeliveryAreas from "./delivery-areas";
 import StoreVerification from "./store-verification";
 import GoogleReviewSettings from "./google-review-settings";
 import FirstSteps from "./first-steps";
-import {starterStoreReady} from "@/lib/first-steps";
+import {starterStoreReady,readFirstSteps} from "@/lib/first-steps";
 
 const navigation = [
   { id: "overview", label: "Pedidos", icon: ClipboardList },
@@ -108,6 +108,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   useEffect(() => {
     const row = restaurants.find(r => r.id === activeId);
     if (row) { setDraft(restaurantSchema.parse(JSON.parse(row.data))); setDirty(false); }
+    if(row&&tab==="start"&&!initialMenuReview&&!/[?&](?:apoio|billing)=?/.test(location.search))try{if(readFirstSteps(localStorage,row.id).tools)setTab("menu");}catch{}
     setOrderList([]);setLastSync(0);setOrdersOffline(false); setSales(null); setOrderDetail(null); setError(""); setFilterCategory("all"); setCatalogSearch("");
   }, [activeId]);
   useEffect(() => {
