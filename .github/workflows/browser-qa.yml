@@ -80,6 +80,8 @@ jobs:
             .sites-runtime/browser-ci/registration-card/
             .sites-runtime/browser-ci/auth-mobile/
             .sites-runtime/browser-ci/owner-hours/
+            .sites-runtime/browser-ci/business-info/
+            .sites-runtime/browser-ci/account-navigation/
             .sites-runtime/browser-ci/handoff/
             .sites-runtime/browser-ci/owner/
             .sites-runtime/browser-ci/store-safety/

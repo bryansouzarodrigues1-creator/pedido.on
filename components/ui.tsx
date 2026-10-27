@@ -5,7 +5,7 @@ import {menuPresentation,presentationForTheme} from "@/lib/menu-design";
 import {catalogueClass} from "@/lib/menu-catalogue";
 import {menuIdentityClass} from "@/lib/menu-identity";
 import {themes,money,type RestaurantData} from "@/lib/domain";
-export function Brand({small=false}:{small?:boolean}){return <a href="/" className={`brand pedido-brand ${small?"small":""}`} aria-label="pizzaria.on, início"><span className="pedido-mark"><img src="/assets/pedido-symbol.png" width="50" height="50" alt=""/></span><span>pizzaria<span className="brand-on">.on</span></span></a>;}
+export function Brand({small=false,href="/"}:{small?:boolean;href?:"/"|"/app"}){return <a href={href} className={`brand pedido-brand ${small?"small":""}`} aria-label={href==="/app"?"pizzaria.on, meu painel":"pizzaria.on, início"}><span className="pedido-mark"><img src="/assets/pedido-symbol.png" width="50" height="50" alt=""/></span><span>pizzaria<span className="brand-on">.on</span></span></a>;}
 export function Spinner(){return <Loader2 size={18} className="spin"/>;}
 export function Modal({open,onClose,title,children,wide=false}:{open:boolean;onClose:()=>void;title:string;children:ReactNode;wide?:boolean}){
   const ref=useRef<HTMLDivElement>(null),close=useRef(onClose),id=useId();close.current=onClose;
