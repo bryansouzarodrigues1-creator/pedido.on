@@ -55,20 +55,33 @@ Resultados finais aprovados nesse commit:
 
 O artefato final do kit é `chrome-qa-40436679642-1-welcome-kit`, ID `12704582152`, SHA-256 `e05c0f5984f0460314c4857029237ea3454df8bbffea49336ecc976d8a53419b`, com resumo, capturas do admin/kit em celular e os quatro downloads. A última correção também testa explicitamente um pedido visual como “Quero uma imagem marcante com a minha cor.”: essa frase vira contexto do kit e não desvia a etapa de textos para o fluxo de imagem do Studio.
 
-**A nova publicação não foi concluída.** O ambiente de execução se desconectou durante o empacotamento e passou a retornar “No usable execution environment is available”. Não houve novo salvamento de versão nem deploy desta etapa. O Sites confirmou projeto ativo e última versão 102 depois da integração do código. O site público continua com a v102 (logo/sessão e dados por imagem); as novas opções deste documento ainda não aparecem em produção.
+**Publicado na v103 em 27/10/2026, às 07:16:18 de Brasília.** A interrupção do ambiente foi resolvida na retomada seguinte. O checkout nativo foi aberto pelo helper oficial, e as quatro diferenças em relação ao GitHub foram reconciliadas antes do build. Tipos e build local passaram. A árvore final conferida é `bf0b0bf62327b9faf1ddb68e012d02f937abe425`, igual à do GitHub `c499cfa792f73a3f1c69bacd221bd980e6472057`; a aplicação corresponde aos 742 testes/Chrome/Windows aprovados acima, com o registro posterior apenas documental.
 
-Android físico, um novo e-mail real concluindo a troca de senha e uma cobrança/renovação externa real do Asaas continuam sem homologação externa; não foram substituídos pelos testes simulados. Nenhuma alteração de verificação, plano, publicação ou pedido foi aplicada à loja real EFATA.
+A publicação foi confirmada pelo Sites com status `succeeded`, audiência pública e ambiente revisão **20**, preservados. Os novos recursos já estão em produção. Não houve novo deploy do gateway Netlify.
 
-## Retomada exata da publicação
+## Evidências da publicação concluída
 
-Não refazer o desenvolvimento nem reverter o código integrado. Ler o fluxo oficial do Sites e o contexto atual antes de operar. Não criar outro site, trocar provedor, chaves, ambiente ou domínio para contornar a indisponibilidade.
+- Público conferido no Chrome: https://pizzaria-on.netlify.app/
+- Backend confirmado pela implantação: https://forno-cardapios.waves4845.chatgpt.site
+- Fonte oficial enviada: `2daf1813c9838ae200f988fb7aa1ff0029cda07b`.
+- Versão: `appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_c62941b211d881919fb6d8ca2452dd93`.
+- Implantação: `appgdep_6ae079d51ad48191b20755e7b019802b`, concluída em `2026-10-27T10:16:18.218609+00:00`.
+- Pacote local: `/workspace/scratch/9812d5225ea5/pizzaria-free-pro-final-20261027.tar.gz`; SHA-256 `8ee94e854e29d4b39fe35192241d8402dcacc86b950426f2f16420d6b39264e1`, 13.187.069 bytes. O arquivo foi produzido pelo helper a partir da fonte acima.
+- Armazenamento normalizado do Sites: SHA-256 `aa4a1ac63fd6a3d069187e1432fcb3afbc76174aa005fd6af6abe25c97173bbf`, 28.569.600 bytes, 686 arquivos. A diferença é do formato normalizado, não de código.
+- O pacote contém as quatro imagens EFATA e as migrações aditivas 0022/0023. Após o deploy, a visão do banco confirmou 40 tabelas, incluindo `trial_campaigns`; nenhum reset/limpeza foi executado.
 
-1. Projeto existente: `appgprj_6ac6d3ea9f7881918f315a156338ed52`, audiência pública, revisão do ambiente 20. Público: https://pizzaria-on.netlify.app; backend: https://forno-cardapios.waves4845.chatgpt.site. O gateway Netlify não precisa de novo deploy.
-2. A produção v102 é `appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_6b9038cb58748191ab19d41f9be5c852`, deployment `appgdep_6adff7c8350c8191b8e41abed276a01c`. Fonte oficial dessa versão: `8c0d28c9df4bbb1474a177d6fda42668f58529cf`.
-3. Quando o ambiente estiver disponível, recuperar o checkout em `/workspace/scratch/9812d5225ea5/pizzaria-retomada-20261026` ou abrir novamente a fonte existente pelo helper oficial `site-workflow.mjs`. O repositório nativo é do provedor `cloudflare_artifact`, ramo `main`, remoto `https://git.chatgpt-team.site/856f87e8-f0aa-4bb7-83ee-2921cd7172fe/appgprj_6ac6d3ea9f7881918f315a156338ed52.git`. A SHA do GitHub não substitui uma SHA desse remoto.
-4. O último envio nativo efetivamente confirmado antes da queda foi `dfacb6487d906983ee254c9c882825e07f75b5b8`, árvore `775b78c70440f9dce81e1fdc09859100d3a2f973`. Ele antecede a correção final do contexto visual do kit e **não é o pacote final**. Outra execução do helper estava em andamento, mas seu resultado não foi observado; conferir o HEAD remoto, sem assumir sucesso ou falha.
-5. Comparar o código/árvore com o `main` atual do GitHub, preservando mudanças posteriores. A referência de aplicação aprovada é a árvore `a2c38138bd4e5ec8fdf688b8ca8802b4b7544ad2`; o commit posterior deste registro altera apenas documentação.
-6. Preparar tipos/build e pacote da mesma fonte, confirmar o push nativo, salvar uma nova versão usando a SHA realmente enviada e o pacote correspondente; então publicar essa versão e conferir o resultado. A execução interrompida pretendia gerar `/workspace/scratch/9812d5225ea5/pizzaria-free-pro-reviewed.tar.gz`, mas a existência e correspondência desse arquivo não foram confirmadas.
-7. Após o deploy, validar os dois domínios, navegação autenticada/retorno do WhatsApp, data em Brasília, botão Verificar loja, Free/Pro com os quatro prazos e o kit privado sem publicar promoções, aprovar a loja real ou gerar cobrança. Conferir migrações aditivas 0022/0023; não executar limpeza/reset de dados.
+Conferência pública após o deploy:
 
-Não há segredos neste registro. Usar uma nova credencial nativa de curta duração pelo fluxo oficial quando necessário; não reaproveitar tokens em mensagens, scripts públicos ou workflows do GitHub.
+1. A página inicial exibiu Free com duas rodadas de duas sugestões, quatro fotos e textos/artes; Pro por R$49/mês, textos/artes ilimitados e 20 novas imagens por semana; assinatura antecipada preservando os dias restantes.
+2. A calculadora pública foi usada de verdade: custo R$20 e margem real de 50% produziram preço R$40/sobra R$20. A troca para o Profissional preservou os valores. Ao mudar para acréscimo e preencher 50%, mostrou preço R$30/sobra R$10 e margem real de 33,3%.
+3. O cardápio EFATA abriu no endereço https://pizzaria-on.netlify.app/p/efata-pizzaria, com sete sabores, preços públicos e aviso de loja ainda não verificada. Não aprovamos a loja, concedemos plano, publicamos promoções nem enviamos mensagens em nome do cliente.
+4. Na consulta dos logs dos dez minutos finais, os quatro eventos retornados eram 404 de `robots.txt`/`sitemap.xml` por crawler, com nível `info` e outcome `ok`; não houve exceção de Worker nesses eventos. Isso não constitui monitoramento contínuo ou prova de ausência de qualquer erro.
+5. Botão administrativo e kit completo continuam cobertos pelo Chrome isolado e testes de integração; não houve sessão administrativa real nesta última conferência pública.
+
+## Continuidade e limites restantes
+
+Esta etapa está publicada: não refazer os planos nem a implementação, não voltar ao pacote anterior `dfacb6487d906983ee254c9c882825e07f75b5b8`. O ponto local ativo é `/workspace/scratch/9812d5225ea5/pizzaria-publicacao-20261027`; o checkout antigo `pizzaria-retomada-20261026` foi preservado e contém alterações de ensaio anteriores.
+
+Android físico, um novo e-mail real concluindo a troca de senha e uma cobrança/renovação externa real do Asaas continuam sem homologação externa; não foram substituídos pelos testes simulados. A próxima validação deve distinguir esses fluxos das provas automatizadas, preservando contas, sessão, dados e o ambiente atual. A EFATA ainda precisa conferir a representação das imagens e aprovar suas promoções e mudanças de visual pelo fluxo normal.
+
+O registro posterior desta publicação muda apenas documentação no GitHub. Não exige outro deploy; a fonte de produção e seus identificadores acima permanecem válidos.
