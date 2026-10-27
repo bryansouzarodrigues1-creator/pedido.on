@@ -16,6 +16,7 @@ test('an empty account has an optional four-step start and explicit menu review 
   const start=renderToStaticMarkup(createElement(Dashboard,props));
   assert.match(start,/Comece sua pizzaria/);assert.match(start,/0 de 4/);assert.match(start,/Já tenho cardápio em foto, arquivo ou link/);assert.match(start,/Usar ferramentas completas/);assert.doesNotMatch(start,/Criar minha pizzaria/);
   const html=renderToStaticMarkup(createElement(Dashboard,{...props,initialMenuReview:true}));
+  const request=renderToStaticMarkup(createElement(Dashboard,{...props,initialMenuAssistance:true}));assert.match(request,/Solicitar trazer meu cardápio via link/);assert.doesNotMatch(request,/aria-label="Comece sua pizzaria"/);
   assert.match(html,/Importar PDF ou fotos/);assert.doesNotMatch(html,/Tentar link do iFood|Buscar produtos do iFood/);assert.match(html,/Solicitar trazer meu cardápio via link/);assert.match(html,/Ver prévia/);
   assert.match(html,/aria-label="Editar cardápio"/);assert.match(html,/>Aparência</);assert.match(html,/>Ofertas</);
   assert.doesNotMatch(html,/Três passos para começar|Sua assistente para montar|quatro estilos prontos|Criar prévia|Criar com IA/);

@@ -34,7 +34,7 @@ import DeliveryAreas from "./delivery-areas";
 import StoreVerification from "./store-verification";
 import GoogleReviewSettings from "./google-review-settings";
 import FirstSteps from "./first-steps";
-import {starterStoreReady,readFirstSteps} from "@/lib/first-steps";
+import {starterStoreReady,readFirstSteps,writeFirstSteps} from "@/lib/first-steps";
 
 const navigation = [
   { id: "overview", label: "Pedidos", icon: ClipboardList },
@@ -66,7 +66,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const [activeId, setActiveId] = useState(firstRestaurant?.id || "");
   const [draft, setDraft] = useState<RestaurantData>(firstRestaurant ? restaurantSchema.parse(JSON.parse(firstRestaurant.data)) : defaultRestaurant("Sua pizzaria"));
   const [requestedOrder,setRequestedOrder]=useState(initialOrderId||"");
-  const [tab, setTab] = useState(initialMenuReview ? "menu" : firstRestaurant && !firstRestaurant.published && !draft.products.length ? "start" : "overview");
+  const [tab, setTab] = useState(initialMenuReview || initialMenuAssistance ? "menu" : firstRestaurant && !firstRestaurant.published && !draft.products.length ? "start" : "overview");
   useEffect(()=>{if(new URLSearchParams(location.search).has("billing"))setTab("store");else if(new URLSearchParams(location.search).has("apoio"))setTab("studio");},[]);
   const [campaignReview,setCampaignReview]=useState<{id:string;idea:DailyCampaign}|null>(null),[kitPreview,setKitPreview]=useState<Partial<RestaurantData>|null>(null),[campaignBusy,setCampaignBusy]=useState(false);
   const [dirty, setDirty] = useState(false), [saving, setSaving] = useState(false),[readerActive,setReaderActive]=useState(false),[promotionActive,setPromotionActive]=useState(false);
@@ -88,6 +88,7 @@ export default function Dashboard({ initialRestaurants, user, signOutUrl, initia
   const [lastSync,setLastSync]=useState(0),[ordersOffline,setOrdersOffline]=useState(false);
   const [orderFilter, setOrderFilter] = useState("work"), [orderDetail, setOrderDetail] = useState<OrderRecord | null>(null), [updatingOrder, setUpdatingOrder] = useState("");
   const active = restaurants.find(r => r.id === activeId);
+  useEffect(()=>{if(tab!=="menu"||!activeId)return;try{const saved=readFirstSteps(localStorage,activeId);if(!saved.tools)writeFirstSteps(localStorage,activeId,{...saved,tools:true});}catch{}},[tab,activeId]);
   async function retryGuestHandoff(){if(!launch||handoffRetry!==activeId||retryingHandoff)return;setRetryingHandoff(true);setError("");try{await saveLaunchCheckpoint(launch);const adopted=await adoptMenuLaunch(launch,activeId);if(adopted.sourceText)setReaderSource({restaurantId:activeId,requestId:launch.id,text:adopted.sourceText});setTab(adopted.hasSource?"menu":launch.hasAssets?"store":"studio");setLaunch(null);setHandoffRetry(null);setToast("Seus arquivos foram recuperados. Confira antes de usar no rascunho.");}catch(e){setError(e instanceof Error?e.message:"Não foi possível recuperar os arquivos agora.");}finally{setRetryingHandoff(false);}}
 
   const openNotification=useRef<(url:string)=>void>(()=>{});
