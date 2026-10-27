@@ -43,4 +43,32 @@ Migrações aditivas 0022/0023: campanhas por conta/período/rodada, vencimento 
 
 Testes novos cobrem datas/fuso/fim do mês, semana Pro, quatro durações para ambos os planos, suspensão, dois kits, quatro imagens, claims de uso único, concorrência, devolução antes do claim, retomada sem repetição paga e preservação integral do cardápio. O ensaio financeiro percorre vencimento futuro, pagamento antecipado, Pro imediato, repetição, webhook duplicado e estorno. Chrome verifica interface, prévia, quatro formatos PNG, preço publicado alterado, botão de verificação real e seleção simplificada. Geração de IA e respostas visuais de alteração de plano no Chrome são simuladas; o backend desses fluxos é exercitado separadamente por testes de integração.
 
-Resultado final de CI, publicação e evidência visual será registrado após concluir. A base publicada anterior é a v102 (logo/sessão e dados por imagem). Android físico e um novo e-mail real concluindo a troca de senha continuam sendo verificações externas; não foram substituídos pelos testes de navegador.
+O código foi integrado ao `main` pelo [PR #136](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/136), merge `1434211f9059549a8ba2751588b01ef8355d80d5`. O commit de aplicação validado é `8842b30d2eb5bafa88ddf803aba3c8dfdfc85d96`; sua árvore é `a2c38138bd4e5ec8fdf688b8ca8802b4b7544ad2`, igual à árvore do merge.
+
+Resultados finais aprovados nesse commit:
+
+- [742 testes, tipos, metadados de migração e build](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40436679996).
+- [Chrome completo e kit de divulgação](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40436679642), com ambos os jobs concluídos com sucesso. O kit percorre revisão de fotos, prévia, quatro downloads PNG, preço desatualizado bloqueado, botão de verificação e seleção Free/Pro.
+- [Windows](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40436679682).
+- [Conversa de pedidos](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40436679805).
+- [Disponibilidade pública de cadastro](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40436679783), sem criar conta.
+
+O artefato final do kit é `chrome-qa-40436679642-1-welcome-kit`, ID `12704582152`, SHA-256 `e05c0f5984f0460314c4857029237ea3454df8bbffea49336ecc976d8a53419b`, com resumo, capturas do admin/kit em celular e os quatro downloads. A última correção também testa explicitamente um pedido visual como “Quero uma imagem marcante com a minha cor.”: essa frase vira contexto do kit e não desvia a etapa de textos para o fluxo de imagem do Studio.
+
+**A nova publicação não foi concluída.** O ambiente de execução se desconectou durante o empacotamento e passou a retornar “No usable execution environment is available”. Não houve novo salvamento de versão nem deploy desta etapa. O Sites confirmou projeto ativo e última versão 102 depois da integração do código. O site público continua com a v102 (logo/sessão e dados por imagem); as novas opções deste documento ainda não aparecem em produção.
+
+Android físico, um novo e-mail real concluindo a troca de senha e uma cobrança/renovação externa real do Asaas continuam sem homologação externa; não foram substituídos pelos testes simulados. Nenhuma alteração de verificação, plano, publicação ou pedido foi aplicada à loja real EFATA.
+
+## Retomada exata da publicação
+
+Não refazer o desenvolvimento nem reverter o código integrado. Ler o fluxo oficial do Sites e o contexto atual antes de operar. Não criar outro site, trocar provedor, chaves, ambiente ou domínio para contornar a indisponibilidade.
+
+1. Projeto existente: `appgprj_6ac6d3ea9f7881918f315a156338ed52`, audiência pública, revisão do ambiente 20. Público: https://pizzaria-on.netlify.app; backend: https://forno-cardapios.waves4845.chatgpt.site. O gateway Netlify não precisa de novo deploy.
+2. A produção v102 é `appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_6b9038cb58748191ab19d41f9be5c852`, deployment `appgdep_6adff7c8350c8191b8e41abed276a01c`. Fonte oficial dessa versão: `8c0d28c9df4bbb1474a177d6fda42668f58529cf`.
+3. Quando o ambiente estiver disponível, recuperar o checkout em `/workspace/scratch/9812d5225ea5/pizzaria-retomada-20261026` ou abrir novamente a fonte existente pelo helper oficial `site-workflow.mjs`. O repositório nativo é do provedor `cloudflare_artifact`, ramo `main`, remoto `https://git.chatgpt-team.site/856f87e8-f0aa-4bb7-83ee-2921cd7172fe/appgprj_6ac6d3ea9f7881918f315a156338ed52.git`. A SHA do GitHub não substitui uma SHA desse remoto.
+4. O último envio nativo efetivamente confirmado antes da queda foi `dfacb6487d906983ee254c9c882825e07f75b5b8`, árvore `775b78c70440f9dce81e1fdc09859100d3a2f973`. Ele antecede a correção final do contexto visual do kit e **não é o pacote final**. Outra execução do helper estava em andamento, mas seu resultado não foi observado; conferir o HEAD remoto, sem assumir sucesso ou falha.
+5. Comparar o código/árvore com o `main` atual do GitHub, preservando mudanças posteriores. A referência de aplicação aprovada é a árvore `a2c38138bd4e5ec8fdf688b8ca8802b4b7544ad2`; o commit posterior deste registro altera apenas documentação.
+6. Preparar tipos/build e pacote da mesma fonte, confirmar o push nativo, salvar uma nova versão usando a SHA realmente enviada e o pacote correspondente; então publicar essa versão e conferir o resultado. A execução interrompida pretendia gerar `/workspace/scratch/9812d5225ea5/pizzaria-free-pro-reviewed.tar.gz`, mas a existência e correspondência desse arquivo não foram confirmadas.
+7. Após o deploy, validar os dois domínios, navegação autenticada/retorno do WhatsApp, data em Brasília, botão Verificar loja, Free/Pro com os quatro prazos e o kit privado sem publicar promoções, aprovar a loja real ou gerar cobrança. Conferir migrações aditivas 0022/0023; não executar limpeza/reset de dados.
+
+Não há segredos neste registro. Usar uma nova credencial nativa de curta duração pelo fluxo oficial quando necessário; não reaproveitar tokens em mensagens, scripts públicos ou workflows do GitHub.
