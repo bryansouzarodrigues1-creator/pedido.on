@@ -1,0 +1,1 @@
+ALTER TABLE `account_access_events` ADD `tier` text DEFAULT '' NOT NULL;

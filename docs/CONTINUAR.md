@@ -1,3 +1,5 @@
+**Free, Pro e divulgação — 27/10/2026:** admin simplificado, verificação junto da loja, duas rodadas de campanha no Free, Pro com 20 novas imagens por semana e assinatura antecipada preservando o período restante. [Estado, provas e limites](FREE-PRO-E-DIVULGACAO-20261027.md).
+
 **Logo e sessão — 26/10/2026:** retorno ao painel e indicação do acesso nas páginas públicas, sem apresentar falha de verificação como logout. [Escopo e provas](LOGO-E-SESSAO-20261026.md).
 
 **Dados por imagem — 26/10/2026:** prints e fotos para preencher horários, endereço e outros textos, com OCR local e aprovação dos campos. [Uso e limites](INFORMACOES-POR-IMAGEM-20261026.md).
