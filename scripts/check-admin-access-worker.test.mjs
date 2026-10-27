@@ -54,17 +54,20 @@ async function legacySnapshot(db){
  const result={};for(const {name} of tables)result[name]=(await db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results;
  return result;
 }
-test('migration 0012 preserves all 19 existing tables and populated business/session/trial rows in real D1',async()=>{
+test('migration 0012 remains idempotent and current admin requires the complete additive schema without losing legacy records',async()=>{
  const f=await runtime({migrate:false});try{
   const before=await legacySnapshot(f.db);assert.equal(Object.keys(before).length,19);
   // This proves the new code must not precede the additive schema.
   assert.equal((await f.call('GET')).status,500);
   await f.migration('0012_admin_account_access.sql');
   assert.deepEqual(await legacySnapshot(f.db),before);
-  assert.equal((await f.call('GET')).status,200);
+  assert.equal((await f.call('GET')).status,500,'current admin must wait for the later tier, audit and budget columns');
   assert.deepEqual((await f.db.prepare('SELECT * FROM account_access_events').all()).results,[]);
   await f.migration('0012_admin_account_access.sql');
   assert.deepEqual(await legacySnapshot(f.db),before);
+  for(const file of readdirSync('drizzle').filter(name=>name.endsWith('.sql')&&Number(name.slice(0,4))>12).sort())await f.migration(file);
+  const after=await legacySnapshot(f.db);for(const table of Object.keys(before))assert.deepEqual(after[table],before[table],table);
+  assert.equal((await f.call('GET')).status,200);
   assert.equal((await f.db.prepare('PRAGMA foreign_key_check').all()).results.length,0);
  }finally{await f.close();}
 });
