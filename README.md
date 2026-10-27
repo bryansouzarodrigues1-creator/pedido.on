@@ -1,3 +1,5 @@
+**Publicado e conferido — v103, 27/10/2026, 07:16 de Brasília:** Free/Pro simplificados, prazos de 10/30/60/90 dias, botão Verificar loja, kit de divulgação no teste, Pro com 20 novas imagens por semana e assinatura antecipada preservando o teste. 742 testes, Chrome e Windows aprovados; tipos/build e conferência pública concluídos. [Publicação, provas e pendências externas](docs/FREE-PRO-E-DIVULGACAO-20261027.md).
+
 **Free, Pro e divulgação — 27/10/2026:** admin simplificado, verificação junto da loja, duas rodadas de campanha no Free, Pro com 20 novas imagens por semana e assinatura antecipada preservando o período restante. [Estado, provas e limites](docs/FREE-PRO-E-DIVULGACAO-20261027.md).
 
 **Logo e sessão — 26/10/2026:** retorno ao painel e indicação do acesso nas páginas públicas, sem apresentar falha de verificação como logout. [Escopo e provas](docs/LOGO-E-SESSAO-20261026.md).
