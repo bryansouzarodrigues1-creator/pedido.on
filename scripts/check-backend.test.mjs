@@ -31,7 +31,8 @@ test('encrypted provider tokens cannot be read with another key or account conte
  const key='ab'.repeat(32),context='hash:supabase:owner',tokens={access:'private-access',refresh:'private-refresh'};
  const encrypted=await sealTokens(tokens,key,context),again=await sealTokens(tokens,key,context);assert.notEqual(encrypted,again);assert.ok(!encrypted.includes(tokens.access));
  assert.deepEqual(await openTokens(encrypted,key,context),tokens);
- await assert.rejects(openTokens(encrypted,'cd'.repeat(32),context));await assert.rejects(openTokens(encrypted,key,'other-owner'));await assert.rejects(openTokens(encrypted.slice(0,-2)+'00',key,context));await assert.rejects(openTokens('malformed',key,context));
+ const tampered=encrypted.slice(0,-2)+(encrypted.endsWith('00')?'01':'00');assert.notEqual(tampered,encrypted);
+ await assert.rejects(openTokens(encrypted,'cd'.repeat(32),context));await assert.rejects(openTokens(encrypted,key,'other-owner'));await assert.rejects(openTokens(tampered,key,context));await assert.rejects(openTokens('malformed',key,context));
 });
 test('mutations require an exact origin, and body limits work without Content-Length',async()=>{
  assert.doesNotThrow(()=>sameOrigin(new Request(site+'/api',{headers:{origin:site}})));
