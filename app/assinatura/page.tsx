@@ -12,7 +12,7 @@ export default async function Subscription({searchParams}:{searchParams:Promise<
  const plan="essencial"; // URLs referencing retired tiers never offer a new purchase.
  await requireAccountUser("/assinatura?plan="+plan);
  return <div className="subscription-page">
-  <header className="subscription-nav"><Brand/><a className="btn outline small" href="/app"><ArrowLeft size={16}/>Meu painel</a></header>
+  <header className="subscription-nav"><Brand href="/app"/><a className="btn outline small" href="/app"><ArrowLeft size={16}/>Meu painel</a></header>
   <main className="subscription-wrap">
    <div className="subscription-heading"><span className="eyebrow">PIZZARIA.ON</span><h1>Sua assinatura.</h1><p>Um plano de R$ 49 por mês. Acompanhe suas faturas aqui.</p></div>
    <section className="subscription-card" aria-label="Plano e pagamento"><BillingControls initialPlan={plan}/></section>

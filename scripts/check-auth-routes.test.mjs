@@ -10,6 +10,22 @@ const signupHash='ab'.repeat(32),recoveryHash='cd'.repeat(32),recoveryCode='fixt
 const cookieHeader=cookie=>({Cookie:cookie+'; __Host-pedido-csrf='+csrf});
 const sessionCookie=response=>response.headers.get('Set-Cookie').split(';')[0];
 
+test('public account checks preserve the actual email session and transient provider failures never clear its cookie',async()=>{
+ const f=fixture(),originalFetch=globalThis.fetch;try{
+  const provider=identities(f);globalThis.fetch=provider.fetcher;provider.add('navegacao@example.test');
+  const signed=await f.call('auth','POST',{action:'login'},{email:'navegacao@example.test',password:initialPassword});assert.equal(signed.status,200,await signed.clone().text());
+  const cookie=sessionCookie(signed),before=f.db.prepare('SELECT * FROM auth_sessions').all();
+  for(let i=0;i<4;i++){
+   const response=await f.call('auth','GET',{action:'session'},undefined,cookieHeader(cookie));assert.equal(response.status,200);assert.equal((await response.json()).user.email,'navegacao@example.test');assert.equal(response.headers.get('set-cookie'),null);assert.match(response.headers.get('cache-control'),/private.*no-store/);
+   assert.equal((await f.call('restaurants','GET',{},undefined,cookieHeader(cookie))).status,200);
+  }
+  assert.deepEqual(f.db.prepare('SELECT * FROM auth_sessions').all(),before);
+  globalThis.fetch=async()=>new Response('provedor indisponível',{status:503});
+  const failed=await f.call('auth','GET',{action:'session'},undefined,cookieHeader(cookie));assert.equal(failed.status,503);assert.equal(failed.headers.get('set-cookie'),null);assert.deepEqual(f.db.prepare('SELECT * FROM auth_sessions').all(),before);
+  globalThis.fetch=provider.fetcher;const restored=await f.call('auth','GET',{action:'session'},undefined,cookieHeader(cookie));assert.equal(restored.status,200);assert.equal((await restored.json()).user.email,'navegacao@example.test');
+ }finally{globalThis.fetch=originalFetch;f.close();}
+});
+
 // These tests use the application routes and actual SQLite migrations. Only the
 // external identity provider and D1/R2 bindings are adapted; no mail is sent.
 function identities(f){
