@@ -25,6 +25,8 @@ type Props = {
 export default function FirstSteps({ restaurant, data, busy, dirty, onChange, onSave, onAdd, onImport, onTools, onAppearance, onPreview, onPublish, onShare }: Props) {
   const [study, setStudy] = useState<FirstStepsStudy>(emptyFirstSteps), [ready, setReady] = useState(false), [storageError, setStorageError] = useState(false), [message, setMessage] = useState("");
   const liveStudy = useRef(study); liveStudy.current = study;
+  const firstPanel = useRef<HTMLFieldSetElement>(null), previousStep = useRef(0);
+  useEffect(() => { const changed = previousStep.current !== study.step; previousStep.current = study.step; if (ready && changed && window.matchMedia("(max-width: 700px)").matches) firstPanel.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [study.step, ready]);
   useEffect(() => {
     try { setStudy({ ...readFirstSteps(localStorage, restaurant.id), tools: false }); } catch { setStorageError(true); }
     setReady(true);
@@ -62,10 +64,10 @@ export default function FirstSteps({ restaurant, data, busy, dirty, onChange, on
     onChange({ theme: visual.theme, accent: visual.accent, presentation: visual.presentation });
   }
   return <section className="first-steps" aria-label="Comece sua pizzaria">
-    <header className="first-steps-heading"><div><span className="eyebrow">UM PASSO DE CADA VEZ</span><h2>Comece sua pizzaria</h2><p>Você pode fazer no seu ritmo e pular uma etapa.</p></div><button type="button" className="text-button" disabled={busy || !ready} onClick={useTools}>Usar ferramentas completas <ArrowRight size={16}/></button></header>
+    <header className="first-steps-heading"><div><span className="eyebrow">UM PASSO DE CADA VEZ</span><h1>Comece sua pizzaria</h1><p>Você pode fazer no seu ritmo e pular uma etapa.</p></div><button type="button" className="text-button" disabled={busy || !ready} onClick={useTools}>Usar ferramentas completas <ArrowRight size={16}/></button></header>
     <div className="first-steps-progress"><span>Seu progresso</span><strong>{complete} de 4</strong><progress aria-label="Etapas concluídas" value={complete} max={4}/></div>
     <nav className="first-steps-list" aria-label="Etapas para começar">{steps.map(({ title, description, Icon }, i) => <button type="button" key={title} disabled={busy} aria-current={study.step === i ? "step" : undefined} onClick={() => patch({ step: i })}><span className={progress[i] ? "done" : ""}>{progress[i] ? <Check size={19}/> : <Icon size={20}/>}</span><span><b>{title}</b><small>{description}</small></span><span className="first-step-state">{progress[i] ? "Concluído" : i + 1}</span></button>)}</nav>
-    <fieldset disabled={busy || !ready} className="first-steps-workspace">
+    <fieldset ref={firstPanel} disabled={busy || !ready} className="first-steps-workspace">
       <legend>{study.step + 1}. {steps[study.step].title}</legend>
       {study.step === 0 && <div className="first-step-body">
         <p>Comece com os sabores que você já sabe fazer. Informe um nome e o preço dos tamanhos que vai vender.</p>
