@@ -28,9 +28,9 @@ Nas próximas cópias/downloads, o aplicativo registra o texto canônico da ofer
 
 Artes locais anteriores que nunca foram salvas no servidor não podem ser recuperadas retroativamente; essa limitação aparece no histórico. Imagens/textos/kits já persistidos continuam acessíveis. Leituras antigas de cardápio deixam de ser apagadas automaticamente após 30 dias para preservar sua consulta administrativa.
 
-## Validação concluída — publicação pendente
+## Validação concluída
 
-A PR [#139](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/139) foi integrada em `e9f0bb7de59af434a9e069ee1493d7d5200a2253`. O commit final ensaiado é `d8059edff82ea69be8fb3fc8e53105fad8cfb816`, árvore `109b6d5679adeed595e69271d455d7ffd36641d9`. Não confundir integração do código com publicação.
+A PR [#139](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/139) foi integrada em `e9f0bb7de59af434a9e069ee1493d7d5200a2253`. O commit final ensaiado é `d8059edff82ea69be8fb3fc8e53105fad8cfb816`, árvore `109b6d5679adeed595e69271d455d7ffd36641d9`. A publicação posterior da mesma árvore está registrada abaixo.
 
 Todos os cinco workflows desse commit terminaram com sucesso:
 
@@ -61,26 +61,44 @@ Fotos/artes agora usam envelope binário limitado, com metadados UTF-8 e os mesm
 
 Arquivos até 4 MB são preservados byte a byte; maiores recebem uma cópia WebP otimizada para o envio/arquivo, mantendo intacto o PNG original baixado pelo cliente. O envio manual aceita foto de até 5 MB; a cópia sai do navegador abaixo do teto público. A rota de arquivamento admite até 10 MB em acesso direto, sem aumentar o limite público.
 
-## Produção e retomada da publicação
+## Publicado e conferido — v104
 
-**Ainda não publicado.** Em 27/10/2026, a consulta do Sites confirmou produção ativa, pública e ainda na **v103**, publicada em `2026-10-27T10:16:18.218609+00:00` (07:16 de Brasília). A página antiga da fila continua visível nessa versão.
+A interrupção do ambiente foi resolvida. O helper oficial reabriu a fonte nativa existente; nove arquivos desatualizados foram reconciliados com a main integrada. Os **1.005 arquivos** corresponderam byte a byte à fonte do GitHub. TypeScript e o build do pacote final passaram novamente; nenhuma dependência ou configuração de serviço foi alterada.
 
-O ambiente de execução ficou indisponível antes de concluir a preparação do pacote final. As alterações interrompidas foram recuperadas e validadas pelo GitHub, e integradas na PR #139. Não presumir que o build local interrompido terminou. O pacote nativo anterior foi criado, mas **não foi salvo como versão nem implantado**:
+| Identificação | Valor |
+| --- | --- |
+| Versão | **104** |
+| Projeto | `appgprj_6ac6d3ea9f7881918f315a156338ed52` |
+| Versão salva | `appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_ff323a9c2f708191a264733c9c989bcf` |
+| Implantação | `appgdep_6ae0a78c1cb4819180a714c10a942e79` |
+| Resultado | **succeeded** |
+| Concluída | **27/10/2026, 10:31:19 de Brasília** (`2026-10-27T13:31:19.676685+00:00`) |
+| Fonte nativa empurrada | `20a4c8769879daaf8c8bc302aa27dc338b9494dd` |
+| Fonte GitHub equivalente na publicação | `494c8c4b491944b343438380fe82c6d386ff6c7e` |
+| Árvore idêntica nas duas fontes | `29e4266c4e80dca3fdde29c01e534a1add143eab` |
+| SHA256 do pacote gzip local | `b863e7521c64658a1aba0f106f34c947b6d5ce1d23a4426d8b1c466c193d68c5` |
+| Ambiente | Revisão **20**, audiência **pública** preservada |
+| Site nativo | https://forno-cardapios.waves4845.chatgpt.site |
+| Endereço público | https://pizzaria-on.netlify.app/ |
 
-- Última fonte nativa preparada: `5006badf3f6613e7824e8509f071aa894e18d9c6`.
-- Árvore dessa fonte: `f1db8f968e6a481fc5d4de439694332edd4b3524`.
-- **Não publicar esse pacote:** ele antecede o transporte binário e continua sujeito à falha de formulário.
-- A fonte final do GitHub, com árvore `109b6d5679adeed595e69271d455d7ffd36641d9`, inclui a correção que passou no Chrome.
-- Projeto existente: `appgprj_6ac6d3ea9f7881918f315a156338ed52`. Preservar audiência pública e ambiente; não alterar sessão, serviços, segredos ou bases para contornar a interrupção.
+A fonte antiga `5006badf3f6613e7824e8509f071aa894e18d9c6` não foi implantada. O pacote novo contém o transporte binário que passou no Chrome, além de toda a PR #139. O gateway Netlify não precisou de nova implantação.
 
-Quando o ambiente voltar:
+### Conferência posterior à publicação
 
-1. Ler o estado atual do mesmo projeto e abrir a fonte pelo helper oficial Sites; preservar alterações locais antigas. Buscar a main atual do GitHub e comparar toda a árvore. Uma restauração anterior do ambiente trouxe um snapshot antigo.
-2. Aplicar a main integrada ao checkout nativo existente e garantir que a correção binária esteja presente, junto dos testes e da documentação. Usar credencial nova; não reaproveitar tokens antigos nem colocá-los em código/logs/workflows.
-3. Rodar tipos/build do pacote final pelo fluxo oficial e gerar **nova fonte empurrada e novo arquivo correspondentes**. O SHA do GitHub não substitui o SHA da fonte nativa do projeto.
-4. Salvar a versão com esse SHA exato, publicar pelo Sites e aguardar o resultado terminal. A migração 0024 é aditiva; não executar reset ou limpeza de dados.
-5. Conferir o site nativo e o gateway Netlify, a navegação pública, imagens e sessões. Registrar a nova versão, deployment, SHA e resultado; até essa confirmação, manter o estado “não publicado”.
+- `pnpm check:netlify --live https://pizzaria-on.netlify.app` aprovado: gateway assinado, dados, início, calculadora anônima e saúde/conexão de textos e imagens. A consulta não gerou IA.
+- Banco de produção inspecionado por metadados: **41 tabelas**, incluindo `restaurant_support`. Nenhuma leitura de linhas/dump ou limpeza foi necessária.
+- Novas APIs de atendimento, acessadas sem sessão pelo gateway, retornaram **401**; a página privada da pizzaria redirecionou ao login com **307**. As três respostas mantiveram `no-store`.
+- Chrome real no endereço Netlify: início carregado e hidratado, formulário e opções de importação ativos, oferta Free/Pro visível; cardápio público da EFATA com **sete opções**.
+- Carrinho da EFATA conferido sem dados pessoais nem envio: Calabresa grande **R$49,99**, entrega de **R$8,00**, total **R$57,99**. Selecionar retirada removeu a taxa, voltando a **R$49,99**. O item foi removido ao terminar; não foi criado pedido.
+- Consulta dos logs recentes não mostrou 5xx ou falhas de execução; apareceram quatro GETs de robôs com 404 em `robots.txt`/`sitemap.xml`, fora dos fluxos alterados.
+- Uma consulta HTTP Python direta à origem nativa recebeu 403/código 1010. A publicação nativa foi confirmada pelo Sites e a conferência pública ocorreu pelo gateway e Chrome; esse cliente HTTP direto não foi homologado.
 
-Na v103, a alternativa imediata para aprovação está em **Administração → Clientes e pizzarias → Verificar loja**, junto da pizzaria, e não no seletor antigo da fila. A conferência pede observação com ao menos oito caracteres e a confirmação dos dados/vínculo/Pix; depois, **Confirmar verificação da loja**. Não aprovar automaticamente um cliente pelo desenvolvimento.
+### Onde usar
 
-Android físico, nova recuperação completa por e-mail real e cobrança/renovação externa reais continuam sem homologação. Os testes desta entrega não substituem essas verificações externas.
+Em **Administração → Clientes e pizzarias → Abrir atendimento completo**, o administrador encontra Verificar/Desverificar, teste grátis/Pro/suspensão e as três áreas Cardápio, Imagens e textos, Orientar e enviar conteúdo. A fila antiga também passou a usar os controles claros de verificação.
+
+O dono recebe materiais de apoio no painel e em **Cardápio → Aparência**; decide o uso no rascunho e depois salva/publica. Conteúdos não são aplicados automaticamente à loja pelo desenvolvimento.
+
+A sessão administrativa real não estava disponível no navegador desta retomada; decisões reais de verificação/plano e upload para um cliente real não foram executados em produção. Esses fluxos passaram nos ensaios isolados descritos acima. Android físico, nova recuperação completa por e-mail real e cobrança/renovação externa reais continuam sem homologação.
+
+A documentação posterior desta publicação é uma alteração somente documental no GitHub e não requer nova implantação do aplicativo.
