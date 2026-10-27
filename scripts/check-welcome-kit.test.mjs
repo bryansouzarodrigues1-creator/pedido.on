@@ -9,7 +9,7 @@ import {restaurantSchema} from '../lib/domain.ts';
 import {curatedWelcome} from '../lib/welcome-campaign-seeds.ts';
 const second=()=>Math.floor(Date.now()/1000);
 function enable(f,start=second()-6*86400){Object.assign(f.env,{PEDIDO_AI_PLAN_QUOTAS:'true',PEDIDO_IMAGE_ENABLED:'true',PEDIDO_IMAGE_ENDPOINT:'https://pedido-on-imagens.lovable.app/api/pedido-on/image',PEDIDO_STUDIO_ENABLED:'true',PEDIDO_STUDIO_ENDPOINT:'https://pedido-on-imagens.lovable.app/api/pedido-on/studio'});f.db.prepare('INSERT INTO account_trials(owner_id,registered_at,started_at,ends_at) VALUES(?,?,?,?)').run('owner-a',new Date(start*1000).toISOString(),start,start+10*86400);}
-const request=(action,round=1,patch={})=>({action,round,revision:1,brief:'Minha marca, cores atuais e clima de forno.',...patch});
+const request=(action,round=1,patch={})=>({action,round,revision:1,brief:'Quero uma imagem marcante com a minha cor.',...patch});
 function mockedProvider(f){let images=0,texts=0;const original=globalThis.fetch;globalThis.fetch=async(url,init)=>{
  assert.ok(url.startsWith('https://pedido-on-imagens.lovable.app/api/pedido-on/'));
  const body=JSON.parse(init.body),image=url.endsWith('/image'),claim=await f.call(image?'imageClaim':'studioClaim','POST',{},body);assert.equal(claim.status,200,await claim.clone().text());const payload=await claim.json();assert.equal(JSON.stringify(payload).includes(f.data.pix.key),false);

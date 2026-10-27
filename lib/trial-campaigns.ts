@@ -43,7 +43,7 @@ export async function prepareCampaign(store:Store,input:z.infer<typeof campaignI
  }
  if(input.action==="text"){
   const picked=ideas.map(idea=>idea.items[0].productId),snapshot={...data,products:data.products.filter(p=>picked.includes(p.id))};
-  const response=await runStudio(store.ownerId,store.id,{requestId:row.text_request,mode:"ai",snapshot,history:[],message:(`Sugira um layout forte e organizado para a loja, respeitando a marca atual. Em productDescriptions dê uma chamada publicitária curta por produto, sem inventar ingredientes, números, descontos, horários, prêmios, entrega ou benefícios. Não renomeie a loja. Em reply explique a organização e as duas ideias de destaque. Pedido da loja: ${row.brief||data.description||"Valorizar os sabores cadastrados e facilitar o pedido."}`).slice(0,1600)});
+  const response=await runStudio(store.ownerId,store.id,{requestId:row.text_request,mode:"ai",snapshot,history:row.brief?[{role:"user" as const,content:("Referência visual da loja para este kit: "+row.brief).slice(0,1000)}]:[],message:(`Sugira um layout forte e organizado para a loja, respeitando a marca atual. Em productDescriptions dê uma chamada publicitária curta por produto, sem inventar ingredientes, números, descontos, horários, prêmios, entrega ou benefícios. Não renomeie a loja. Em reply explique a organização e as duas ideias de destaque.`).slice(0,1600)});
   await db().prepare("UPDATE trial_campaigns SET proposal=? WHERE id=? AND owner_id=?").bind(JSON.stringify(response.proposal),row.id,store.ownerId).run();
  }else if(input.action==="image1"||input.action==="image2"){
   if(!planQuotasEnabled())throw new HttpError(503,"O kit de imagens está em preparação. Os textos e a organização continuam disponíveis.");
