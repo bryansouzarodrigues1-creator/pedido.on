@@ -2,6 +2,7 @@
 import {useState,useEffect} from "react";
 import {Copy,Trash2,Check,Plus,Pencil} from "lucide-react";
 import DailyCampaigns from "./daily-campaigns";
+import type {DailyCampaign} from "@/lib/daily-campaigns";
 import {campaignPromotion} from "@/lib/daily-campaigns";
 import {Modal} from "./ui";
 import {money,restaurantSchema,type RestaurantData,type Size} from "@/lib/domain";
@@ -37,13 +38,14 @@ export function PromotionEditor({data,value,onChange,onSave,onCancel,error}:{dat
  </form>;
 }
 
-export default function DailyPromotions({data,slug,onChange,canShare,onActivityChange,suggestionsOnly=false}:{data:RestaurantData;slug:string;onChange:(patch:Partial<RestaurantData>)=>void;canShare:boolean;onActivityChange?:(active:boolean)=>void;suggestionsOnly?:boolean}){
+export default function DailyPromotions({data,slug,onChange,canShare,onActivityChange,suggestionsOnly=false,incomingCampaign,onCampaignReceived}:{incomingCampaign?:{id:string;idea:DailyCampaign}|null;onCampaignReceived?:()=>void;data:RestaurantData;slug:string;onChange:(patch:Partial<RestaurantData>)=>void;canShare:boolean;onActivityChange?:(active:boolean)=>void;suggestionsOnly?:boolean}){
  const [editing,setEditing]=useState(false),[editingId,setEditingId]=useState<string|null>(null),[value,setValue]=useState(fresh),[error,setError]=useState(""),[copied,setCopied]=useState(""),[copyText,setCopyText]=useState("");
  const [now,setNow]=useState(Date.now);
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer);},[]);
  useEffect(()=>{onActivityChange?.(editing);return()=>onActivityChange?.(false);},[editing,onActivityChange]);
  function start(p?:Promotion){setError("");setCopyText("");setEditingId(p?.id||null);setValue(p?{kind:p.kind==="bundle"?"bundle":"product",name:p.kind==="bundle"?p.name:"",productId:p.kind==="bundle"?"":p.productId,size:p.kind==="bundle"?"g":p.size||"g",items:p.kind==="bundle"?p.items.map(item=>({...item})):[{productId:"",quantity:2}],price:(p.price/100).toFixed(2).replace(".",","),duration:"custom",ends:new Date(Date.parse(p.endsAt)-3*3600000).toISOString().slice(0,16)}:fresh());setEditing(true);}
  function close(){setEditing(false);setError("");}
+ useEffect(()=>{if(!incomingCampaign)return;start(campaignPromotion(incomingCampaign.idea));setEditingId(null);setValue(old=>({...old,duration:"today",ends:""}));onCampaignReceived?.();},[incomingCampaign?.id]);
  function add(){try{
   const cents=menuAmount(value.price);if(!cents)throw Error("Informe um preço maior que zero.");
   const prior=data.promotions.find(p=>p.id===editingId),stamp=new Date(),unchangedEnd=prior&&value.duration==="custom"&&value.ends===new Date(Date.parse(prior.endsAt)-3*3600000).toISOString().slice(0,16);
