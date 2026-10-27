@@ -13,7 +13,7 @@ export const dynamic="force-dynamic";
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){try{
  sameOrigin(request);assertCsrf(request);const user=await owner(),{id}=await params,row=await ownedRestaurant(id,user.userId);await throttle("creative-archive:"+user.userId,200,86400);
  let input,file:File|null=null;
- if((request.headers.get("content-type")||"").startsWith("multipart/form-data")){const bytes=await readBytes(request,5*1024*1024+12000),form=await new Request(request.url,{method:"POST",headers:{"Content-Type":request.headers.get("content-type")!},body:bytes as BodyInit}).formData();let metadata;try{metadata=JSON.parse(String(form.get("metadata")||""));}catch{throw new HttpError(400,"Confira os dados da divulgação.");}input=creativeArchiveInput.parse(metadata);const upload=form.get("file");if(upload instanceof File)file=upload;
+ if((request.headers.get("content-type")||"").startsWith("multipart/form-data")){const bytes=await readBytes(request,10*1024*1024+12000),form=await new Request(request.url,{method:"POST",headers:{"Content-Type":request.headers.get("content-type")!},body:bytes as BodyInit}).formData();let metadata;try{metadata=JSON.parse(String(form.get("metadata")||""));}catch{throw new HttpError(400,"Confira os dados da divulgação.");}input=creativeArchiveInput.parse(metadata);const upload=form.get("file");if(upload instanceof File)file=upload;
  }else input=creativeArchiveInput.parse(await readJson(request,2000));
  if(!row.published||!row.publishedData||row.liveRevision!==input.revision)throw new HttpError(409,"O cardápio publicado mudou. Confira a divulgação novamente.");
  if(input.format!=="text"&&!file||input.format==="text"&&file)throw new HttpError(400,"Envie o formato correto da divulgação.");

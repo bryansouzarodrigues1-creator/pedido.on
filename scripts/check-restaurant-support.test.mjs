@@ -68,6 +68,10 @@ test('the exact locally exported image and current caption are archived without 
   owner(f);assert.equal((await f.call('creativeArchive','POST',{id:'shop-b'},form(metadata))).status,404);assert.equal((await f.call('creativeArchive','POST',{id:'shop-a'},form({...metadata,revision:2}))).status,409);assert.equal((await f.call('creativeArchive','POST',{id:'shop-a'},form({...metadata,sourceId:'old-day'}))).status,409);assert.equal((await f.call('creativeArchive','POST',{id:'shop-a'},form(metadata),{'x-pedido-csrf':'wrong'})).status,403);
  }finally{globalThis.fetch=original;f.close();}
 });
+test('a full-size Story PNG above 5 MB is archived exactly while manual delivery keeps its 5 MB boundary',async()=>{
+ const f=fixture();try{f.db.prepare('UPDATE restaurants SET live_revision=1 WHERE id=?').run('shop-a');const idea=dailyCampaigns(f.data).find(c=>c.kind==='product'),large=new Uint8Array(5*1024*1024+100);large.set(png);const r=await f.call('creativeArchive','POST',{id:'shop-a'},form({source:'daily',sourceId:idea.id,format:'story',revision:1},large));assert.equal(r.status,201,await r.clone().text());assert.equal([...f.objects.values()][0].bytes.length,large.length);admin(f);assert.equal((await send(f,input({kind:'image'}),large)).status,413);assert.equal(f.db.prepare('SELECT count(*) n FROM restaurant_support').get().n,1);
+ }finally{f.close();}
+});
 test('status and WhatsApp captions are distinct and text recording never uploads an image',async()=>{
  const f=fixture();try{f.db.prepare('UPDATE restaurants SET live_revision=1 WHERE id=?').run('shop-a');const idea=dailyCampaigns(f.data).find(c=>c.kind==='product');for(const textVariant of ['whatsapp','status']){const r=await f.call('creativeArchive','POST',{id:'shop-a'},{source:'daily',sourceId:idea.id,format:'text',textVariant,revision:1});assert.equal(r.status,201,await r.clone().text());}const rows=f.db.prepare('SELECT message FROM restaurant_support').all();assert.equal(rows.length,2);assert.notEqual(rows[0].message,rows[1].message);assert.ok(rows.some(r=>r.message.includes(campaignMessage(f.data,idea,site+'/p/pizzaria-a','status'))));assert.equal(f.objects.size,0);
  }finally{f.close();}

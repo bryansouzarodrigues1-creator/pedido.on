@@ -30,8 +30,10 @@ Artes locais anteriores que nunca foram salvas no servidor não podem ser recupe
 
 ## Validação e publicação
 
-Dez testes novos de integração passaram: autorização, privacidade, origem/CSRF, upload e repetição, formatos/tamanho, contexto de IA e limite de protocolo, pausa/versionamento, aplicação somente ao rascunho, paginação, arquivo PNG/caption sem consumo e ciclos de verificação a partir de estados recusado/desverificado/dados alterados.
+Onze testes novos de integração passaram: autorização, privacidade, origem/CSRF, upload e repetição, formatos/tamanho, contexto de IA e limite de protocolo, pausa/versionamento, aplicação somente ao rascunho, paginação, arquivo PNG/caption sem consumo e ciclos de verificação a partir de estados recusado/desverificado/dados alterados.
 
-A suíte completa, o Chrome e a publicação ainda estão em preparação. O Chrome inclui o caso exato da fila recusada, os botões verificar/desverificar/verificar novamente, ações de conta com quatro prazos, prévia real, histórico das artes, upload/texto/orientação reais em D1/R2 descartável e recebimento/aplicação no rascunho pelo dono. Respostas de IA e do seletor de plano são simuladas; o servidor de plano é testado separadamente. Nenhuma conta real é modificada pelos ensaios.
+A suíte completa, o Chrome e a publicação ainda estão em preparação. As artes PNG exportadas (1080 × 1080 ou 1080 × 1920) podem usar até 10 MB no arquivo de histórico; o envio manual continua em 5 MB. Esse limite foi corrigido após uma arte vertical real ser baixada corretamente e ter sua cópia rejeitada no ensaio.
+
+O Chrome inclui o caso exato da fila recusada, os botões verificar/desverificar/verificar novamente, ações de conta com quatro prazos, prévia real, histórico das artes, upload/texto/orientação reais em D1/R2 descartável e recebimento/aplicação no rascunho pelo dono. Respostas de IA e do seletor de plano são simuladas; o servidor de plano é testado separadamente. Nenhuma conta real é modificada pelos ensaios.
 
 Registrar aqui o commit final, os resultados e a versão/deploy efetivos ao terminar. A versão anterior em produção é a v103. Android físico, nova recuperação completa por e-mail real e cobrança/renovação externa reais continuam sem homologação.

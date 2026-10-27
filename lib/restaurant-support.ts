@@ -20,8 +20,8 @@ export async function readSupportBody(request:Request){
  const bytes=await readBytes(request,5*1024*1024+16000),form=await new Request(request.url,{method:"POST",headers:{"Content-Type":request.headers.get("content-type")!},body:bytes as BodyInit}).formData();
  let raw;try{raw=JSON.parse(String(form.get("metadata")||""));}catch{throw new HttpError(400,"Confira os dados do envio.");}const input=supportInput.parse(raw),file=form.get("file");if(!(file instanceof File))throw new HttpError(400,"Escolha uma foto ou arte.");return {input,file};
 }
-export async function supportFile(file:File){
- if(!file.size||file.size>5*1024*1024)throw new HttpError(413,"Envie uma imagem de até 5 MB.");const bytes=new Uint8Array(await file.arrayBuffer());let ext="",mime="";
+export async function supportFile(file:File,maxBytes=5*1024*1024){
+ if(!file.size||file.size>maxBytes)throw new HttpError(413,`Envie uma imagem de até ${Math.floor(maxBytes/1024/1024)} MB.`);const bytes=new Uint8Array(await file.arrayBuffer());let ext="",mime="";
  if(bytes.length>20&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255){ext="jpg";mime="image/jpeg";}
  else if(bytes.length>24&&[137,80,78,71,13,10,26,10].every((b,i)=>bytes[i]===b)){const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),w=view.getUint32(16),h=view.getUint32(20);if(!w||!h||w*h>40000000)throw new HttpError(400,"Reduza as dimensões da imagem.");ext="png";mime="image/png";}
  else if(bytes.length>20&&new TextDecoder().decode(bytes.slice(0,4))==="RIFF"&&new TextDecoder().decode(bytes.slice(8,12))==="WEBP"){ext="webp";mime="image/webp";}
@@ -32,7 +32,7 @@ type Save={requestId:string;kind:string;asset:string;productId:string;message:st
 export async function saveSupportItem(row:Awaited<ReturnType<typeof supportRestaurant>>,actorId:string,actorRole:"admin"|"owner",input:Save,file:File|null){
  const data=restaurantSchema.parse(JSON.parse(row.data));if(input.productId&&!data.products.some(p=>p.id===input.productId))throw new HttpError(400,"Escolha um produto desta pizzaria.");
  if(input.kind==="image"&&!file)throw new HttpError(400,"Escolha a foto que será enviada.");if(file&&!["image","promotion"].includes(input.kind))throw new HttpError(400,"Este envio recebe somente texto.");
- const image=file?await supportFile(file):null,inputHash=await sha256(JSON.stringify({...input,actorRole,image:image?.hash||""}));
+ const image=file?await supportFile(file,actorRole==="owner"&&input.kind==="promotion"?10*1024*1024:5*1024*1024):null,inputHash=await sha256(JSON.stringify({...input,actorRole,image:image?.hash||""}));
  const existing=await db().prepare("SELECT id,input_hash FROM restaurant_support WHERE restaurant_id=? AND request_id=?").bind(row.id,input.requestId).first<{id:string;input_hash:string}>();if(existing){if(existing.input_hash!==inputHash)throw new HttpError(409,"Este envio já foi usado com outro conteúdo.");return {id:existing.id,reused:true};}
  const id=crypto.randomUUID(),stamp=new Date().toISOString(),url=image?`/media/${row.id}/support-${image.hash}.${image.ext}`:"";
  if(image){if(!env.BUCKET)throw new HttpError(503,"O envio de imagens está temporariamente indisponível.");await env.BUCKET.put(url.slice(7),image.bytes,{httpMetadata:{contentType:image.mime,cacheControl:"private, max-age=3600"}});}
