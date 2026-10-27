@@ -169,6 +169,13 @@
       "when": 1793063854609,
       "tag": "0023_tiny_scourge",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1793098034415,
+      "tag": "0024_purple_menace",
+      "breakpoints": true
     }
   ]
 }

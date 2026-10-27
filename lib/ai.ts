@@ -13,7 +13,7 @@ export function aiConfig(){const e=env as typeof env&AiEnv;return {enabled:e.PED
 export async function aiAllowance(ownerId:string){
  const abandoned=await getDb().select().from(aiJobs).where(and(eq(aiJobs.ownerId,ownerId),eq(aiJobs.state,"pending"),lt(aiJobs.createdAt,new Date(Date.now()-120000).toISOString()))).limit(20);
  for(const job of abandoned)await env.DB!.batch([env.DB!.prepare(aiSql.fail).bind(job.id),env.DB!.prepare(aiSql.refund).bind(job.credits,new Date().toISOString(),job.usageId)]);
- await getDb().delete(aiJobs).where(and(eq(aiJobs.ownerId,ownerId),lt(aiJobs.createdAt,new Date(Date.now()-30*86400000).toISOString())));
+ // Keep saved imports and failures available to the merchant and administrative history.
  let limit=5;
  if(billingConfig().enabled){const subscription=await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,ownerId)).get();const plan=paidPlan(subscription);limit=plan?billingPlans[plan as BillingPlan].aiCredits:0;}
  const period=aiPeriod(),usage=await getDb().select().from(aiUsage).where(and(eq(aiUsage.ownerId,ownerId),eq(aiUsage.periodKey,period))).get();
