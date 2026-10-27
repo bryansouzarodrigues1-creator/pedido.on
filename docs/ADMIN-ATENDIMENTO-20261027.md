@@ -24,16 +24,20 @@ Enviar uma foto/texto pronto ou consultar o histórico não chama um modelo e n�
 
 ## Histórico das divulgações
 
-Nas próximas cópias/downloads, o aplicativo registra o texto canônico da oferta publicada e, para artes, a imagem PNG efetivamente exportada. A API valida dono, CSRF, origem, revisão publicada e produto/promoção atual; deduplica o mesmo conteúdo. Guardar o registro é separado da geração e não usa IA. Uma falha de gravação avisa, mas não impede baixar/copiar a divulgação já pronta.
+Nas próximas cópias/downloads, o aplicativo registra o texto canônico da oferta publicada e, para artes, uma cópia da imagem exportada. A API valida dono, CSRF, origem, revisão publicada e produto/promoção atual; deduplica o mesmo conteúdo. Guardar o registro é separado da geração e não usa IA. Uma falha de gravação avisa, mas não impede baixar/copiar a divulgação já pronta.
 
 Artes locais anteriores que nunca foram salvas no servidor não podem ser recuperadas retroativamente; essa limitação aparece no histórico. Imagens/textos/kits já persistidos continuam acessíveis. Leituras antigas de cardápio deixam de ser apagadas automaticamente após 30 dias para preservar sua consulta administrativa.
 
 ## Validação e publicação
 
-Onze testes novos de integração passaram: autorização, privacidade, origem/CSRF, upload e repetição, formatos/tamanho, contexto de IA e limite de protocolo, pausa/versionamento, aplicação somente ao rascunho, paginação, arquivo PNG/caption sem consumo e ciclos de verificação a partir de estados recusado/desverificado/dados alterados.
+Doze cenários novos de integração cobrem: autorização, privacidade, origem/CSRF, upload e repetição, formatos/tamanho, contexto de IA e limite de protocolo, pausa/versionamento, aplicação somente ao rascunho, paginação, arquivo PNG/caption sem consumo e ciclos de verificação a partir de estados recusado/desverificado/dados alterados.
 
-A suíte completa, o Chrome e a publicação ainda estão em preparação. As artes PNG exportadas (1080 × 1080 ou 1080 × 1920) podem usar até 10 MB no arquivo de histórico; o envio manual continua em 5 MB. Esse limite foi corrigido após uma arte vertical real ser baixada corretamente e ter sua cópia rejeitada no ensaio.
+A suíte completa, o Chrome e a publicação ainda estão em preparação. O ensaio real encontrou um PNG vertical de 1,6 MB bloqueado pelo tratamento de formulários do framework antes de alcançar a API. Fotos/artes agora usam um envelope binário limitado, com metadados UTF-8, mantendo origem, CSRF, propriedade e validação de conteúdo na rota. Não foi alterado o limite global do proxy nem o gateway Netlify. Arquivos até 4 MB são preservados byte a byte; maiores recebem uma cópia WebP otimizada para o arquivo/envio, mantendo intacto o PNG original baixado pelo cliente. O envio manual aceita uma foto de até 5 MB; o arquivo sai do navegador abaixo do teto público. A rota de arquivamento tem limite próprio de 10 MB para acesso direto, sem aumentar o limite público.
 
 O Chrome inclui o caso exato da fila recusada, os botões verificar/desverificar/verificar novamente, ações de conta com quatro prazos, prévia real, histórico das artes, upload/texto/orientação reais em D1/R2 descartável e recebimento/aplicação no rascunho pelo dono. Respostas de IA e do seletor de plano são simuladas; o servidor de plano é testado separadamente. Nenhuma conta real é modificada pelos ensaios.
 
 Registrar aqui o commit final, os resultados e a versão/deploy efetivos ao terminar. A versão anterior em produção é a v103. Android físico, nova recuperação completa por e-mail real e cobrança/renovação externa reais continuam sem homologação.
+
+## Interrupção do ambiente
+
+O ambiente de execução ficou indisponível antes de concluir a validação do transporte binário e seu pacote. As alterações foram recuperadas pelo conector do GitHub; conferir o CI do commit final antes de integrar/publicar. Produção continua na v103. O último pacote nativo confirmado, fonte `5006badf3f6613e7824e8509f071aa894e18d9c6`, antecede o transporte binário e não deve ser publicado como resultado final. Retomar pelo mesmo projeto e helper oficial quando o ambiente voltar, comparar a árvore com o GitHub e gerar outro pacote correspondente. Não pressupor que o build interrompido terminou.

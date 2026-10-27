@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {fixture,png,site,csrf} from './test-backend-fixture.mjs';
 import {supportImagePatch,supportMedia} from '../lib/restaurant-support-policy.ts';
 import {dailyCampaigns,campaignMessage} from '../lib/daily-campaigns.ts';
+import {frameSupportUpload,decodeSupportUpload} from '../lib/support-upload-policy.ts';
 const adminUser={userId:'admin-support',displayName:'Equipe QA',email:'support@example.test',fullName:null};
 function admin(f){f.env.PLATFORM_ADMIN_ACCOUNT_ID=adminUser.userId;f.state.user={...adminUser};}
 function owner(f,id='owner-a'){f.state.user={userId:id,displayName:'Dono QA',email:id+'@example.test',fullName:null};}
@@ -70,6 +71,10 @@ test('the exact locally exported image and current caption are archived without 
 });
 test('a full-size Story PNG above 5 MB is archived exactly while manual delivery keeps its 5 MB boundary',async()=>{
  const f=fixture();try{f.db.prepare('UPDATE restaurants SET live_revision=1 WHERE id=?').run('shop-a');const idea=dailyCampaigns(f.data).find(c=>c.kind==='product'),large=new Uint8Array(5*1024*1024+100);large.set(png);const r=await f.call('creativeArchive','POST',{id:'shop-a'},form({source:'daily',sourceId:idea.id,format:'story',revision:1},large));assert.equal(r.status,201,await r.clone().text());assert.equal([...f.objects.values()][0].bytes.length,large.length);admin(f);assert.equal((await send(f,input({kind:'image'}),large)).status,413);assert.equal(f.db.prepare('SELECT count(*) n FROM restaurant_support').get().n,1);
+ }finally{f.close();}
+});
+test('binary route uploads preserve image bytes above the page-form limit and reject malformed envelopes',async()=>{
+ const f=fixture();try{admin(f);const metadata=input({kind:'image',asset:'cover'}),large=new Uint8Array(1200000);large.set(png);const framed=new Uint8Array(await frameSupportUpload(metadata,new Blob([large])).arrayBuffer());assert.deepEqual(new Uint8Array(await decodeSupportUpload(framed).file.arrayBuffer()),large);const r=await f.call('adminRestaurant','POST',{id:'shop-a'},framed,{'Content-Type':'application/octet-stream'});assert.equal(r.status,201,await r.clone().text());assert.equal([...f.objects.values()][0].bytes.length,large.length);assert.equal((await f.call('adminRestaurant','POST',{id:'shop-a'},framed,{'Content-Type':'application/octet-stream','x-pedido-csrf':'bad'})).status,403);for(const broken of [new Uint8Array(1),new Uint8Array([255,255,255,255,1,1]),new Uint8Array([0,0,0,2,123,125])])assert.equal((await f.call('adminRestaurant','POST',{id:'shop-a'},broken,{'Content-Type':'application/octet-stream'})).status,400);
  }finally{f.close();}
 });
 test('status and WhatsApp captions are distinct and text recording never uploads an image',async()=>{

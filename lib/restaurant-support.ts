@@ -12,10 +12,12 @@ import {readCampaigns} from "./trial-campaigns";
 import {curatedWelcome} from "./welcome-campaign-seeds";
 import {storeVerification} from "./store-verification";
 import {supportInput,supportMedia,creativeCursor,type CreativeEntry,type SupportItem} from "./restaurant-support-policy";
+import {decodeSupportUpload} from "./support-upload-policy";
 const db=()=>env.DB!;
 export async function supportRestaurant(id:string){const row=await getDb().select().from(restaurants).where(eq(restaurants.id,id)).get();if(!row)throw new HttpError(404,"Pizzaria não encontrada.");return row;}
 export async function readSupport(id:string,all=false){const rows=await db().prepare("SELECT id,kind,actor_role AS actorRole,asset,product_id AS productId,message,url,state,version,created_at AS createdAt,updated_at AS updatedAt FROM restaurant_support WHERE restaurant_id=?"+(all?"":" AND state='available' AND actor_role='admin'")+" ORDER BY created_at DESC,id DESC LIMIT 100").bind(id).all<SupportItem>();return rows.results.map(r=>({...r,url:supportMedia(r.url,id)?r.url:""}));}
 export async function readSupportBody(request:Request){
+ if((request.headers.get("content-type")||"").startsWith("application/octet-stream")){const bytes=await readBytes(request,5*1024*1024+16000);let decoded;try{decoded=decodeSupportUpload(bytes);}catch{throw new HttpError(400,"O arquivo do envio está incompleto ou inválido.");}return {input:supportInput.parse(decoded.metadata),file:decoded.file};}
  if(!(request.headers.get("content-type")||"").startsWith("multipart/form-data"))return {input:supportInput.parse(await readJson(request,6000)),file:null};
  const bytes=await readBytes(request,5*1024*1024+16000),form=await new Request(request.url,{method:"POST",headers:{"Content-Type":request.headers.get("content-type")!},body:bytes as BodyInit}).formData();
  let raw;try{raw=JSON.parse(String(form.get("metadata")||""));}catch{throw new HttpError(400,"Confira os dados do envio.");}const input=supportInput.parse(raw),file=form.get("file");if(!(file instanceof File))throw new HttpError(400,"Escolha uma foto ou arte.");return {input,file};
