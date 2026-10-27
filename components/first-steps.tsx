@@ -45,6 +45,11 @@ export default function FirstSteps({ restaurant, data, busy, dirty, onChange, on
   function next() { patch({ step: Math.min(3, study.step + 1) }); }
   function useTools() { try { writeFirstSteps(localStorage, restaurant.id, { ...liveStudy.current, tools: true }); } catch {} onTools(); }
   function confirmCosts() { if (!firstSale(study)) return; window.dispatchEvent(new Event("pizzaria:calculator-used")); patch({ costReview: studySignature(study), step: 2 }); }
+  function publishMenu() {
+    if (!products.length) { patch({ step: 0 }); setMessage("Cadastre ao menos uma pizza com preço para publicar."); return; }
+    if (!starterStoreReady(data)) { patch({ step: 2 }); setMessage("Confira o WhatsApp e as opções de entrega ou retirada para publicar."); return; }
+    onPublish();
+  }
   async function saveStep(delivery = false) {
     const row = await onSave();
     if (!row) { setMessage("Não foi possível confirmar o salvamento. Confira sua conexão e tente novamente."); return; }
@@ -95,7 +100,8 @@ export default function FirstSteps({ restaurant, data, busy, dirty, onChange, on
         <div className="first-step-menu-preview"><MiniMenu data={data} large/>{data.cover === "/assets/pizza.webp" && <span>Foto ilustrativa de referência</span>}</div>
         <div className="first-step-actions"><button type="button" className="btn outline" onClick={onPreview}><Eye size={18}/>Conferir prévia completa</button><button type="button" className="text-button" onClick={onAppearance}>Ajustar em Aparência</button></div>
         {!starterStoreReady(data) || !products.length ? <p className="field-hint">Para publicar, confira seu contato, entrega ou retirada e ao menos um produto com preço. As outras etapas podem ficar para depois.</p> : null}
-        <button type="button" className="btn primary" onClick={onPublish}>{busy ? <Spinner/> : <Check size={18}/>} {restaurant.published ? "Salvar e atualizar cardápio" : "Publicar meu cardápio"}</button>
+        {dirty && restaurant.published && <small>A prévia mostra seu rascunho. Salve e atualize para seus clientes verem as mudanças.</small>}
+        <button type="button" className="btn primary" onClick={publishMenu}>{busy ? <Spinner/> : <Check size={18}/>} {restaurant.published ? "Salvar e atualizar cardápio" : "Publicar meu cardápio"}</button>
         {restaurant.published && <button type="button" className="btn outline" onClick={onShare}><Share2 size={18}/>Compartilhar meu cardápio</button>}
       </div>}
     </fieldset>
