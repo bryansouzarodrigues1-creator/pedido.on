@@ -22,7 +22,7 @@ test('an empty account has an optional four-step start and explicit menu review 
   assert.doesNotMatch(html,/Três passos para começar|Sua assistente para montar|quatro estilos prontos|Criar prévia|Criar com IA/);
   assert.equal(JSON.stringify(record),before);
   const nav=html.match(/<nav aria-label="Painel da pizzaria">([\s\S]*?)<\/nav>/)[1];
-  assert.equal((nav.match(/<button/g)||[]).length,3);
+  assert.equal((nav.match(/<button/g)||[]).length,4);
  }finally{f.close();}
 });
 

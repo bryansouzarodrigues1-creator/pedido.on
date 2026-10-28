@@ -15,31 +15,33 @@ function findBilling(element){
  return null;
 }
 
-test('only R$49 is purchasable and visible, while old plan catalog stays for historical invoices',async()=>{
+test('Essencial R$49 and Pro R$89 are purchasable while legacy Divulgação stays historical',async()=>{
  const f=fixture();try{
   const Cards=f.load('components/plan-cards.tsx').default,Page=f.load('app/assinatura/page.tsx').default;
   const html=renderToStaticMarkup(createElement(Cards));
-  assert.deepEqual(publicPlanIds,['essencial']);
+  assert.deepEqual(publicPlanIds,['essencial','profissional']);
+  assert.equal(publicPlanCatalog.profissional.amount,8900);
   assert.equal(publicPlanCatalog.essencial.amount,4900);
   assert.equal(planIds.length,3);
   assert.ok(html.includes('href="/assinatura?plan=essencial"'));
-  assert.ok(html.includes("Ver assinatura de R$ 49/mês"));
+  assert.ok(html.includes("Ver assinatura Essencial · R$ 49/mês"));
   assert.ok(html.includes("Começar meus 10 dias grátis"));
   assert.ok(html.includes("10 dias grátis a partir da sua primeira pizzaria"));
   assert.ok(html.includes('href="/cadastro?next=%2Fapp%3Fnew%3D1%26plan%3Dessencial"'));
-  assert.ok(!html.includes('href="/assinatura?plan=profissional"'));
+  assert.ok(html.includes('href="/assinatura?plan=profissional"'));
+  assert.ok(html.includes('Atendente de IA no seu cardápio'));
   assert.ok(!html.includes('href="/assinatura?plan=rede"'));
-  assert.ok(!html.includes('R$ 89')&&!html.includes('R$ 149'));
+  assert.ok(html.includes('R$ 89')&&!html.includes('R$ 149'));
   f.state.user=null;
   for(const value of ['essencial','profissional','rede']){
    await assert.rejects(Page({searchParams:Promise.resolve({plan:value})}),
-     error=>error.location==='/entrar?next='+encodeURIComponent('/assinatura?plan=essencial'));
+     error=>error.location==='/entrar?next='+encodeURIComponent('/assinatura?plan='+(value==='profissional'?'profissional':'essencial')));
   }
   f.state.user={userId:'owner-a',displayName:'Dono A',email:'owner@example.test'};
   for(const plan of ['essencial','profissional','rede',undefined,'inexistente',['rede','essencial'],'__proto__']){
    const page=await Page({searchParams:Promise.resolve({plan})});
-   assert.equal(findBilling(page).props.initialPlan,'essencial');
-   assert.match(renderToStaticMarkup(page),/Um plano de R\$ 49 por mês/);
+   assert.equal(findBilling(page).props.initialPlan,plan==='profissional'?'profissional':'essencial');
+   assert.match(renderToStaticMarkup(page),/Essencial por R\$ 49 ou Pro por R\$ 89/);
   }
   assert.equal(planCatalog.profissional.amount,8900);
   assert.equal(planCatalog.rede.amount,14900);

@@ -1,6 +1,6 @@
 "use client";
 import {supportUploadBody} from "./support-upload-client";
-type Metadata={source:"daily"|"trial"|"promotion";sourceId:string;round?:1|2;textVariant?:"whatsapp"|"status";format:"text"|"square"|"story";revision:number};
+type Metadata={source:"daily"|"trial"|"promotion";sourceId:string;round?:1|2;textVariant?:"whatsapp"|"status"|"instagram"|"facebook";format:"text"|"square"|"story";revision:number};
 /** Preserve exported artwork and its canonical caption without calling AI.
  * Large files use an optimized archive copy; the original download is unchanged.
  * A recording failure never blocks the merchant's copy/download operation. */

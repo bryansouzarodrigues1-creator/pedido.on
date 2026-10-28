@@ -19,7 +19,7 @@ export async function GET(request:Request){try{
  if(ownerId===user.userId)throw new HttpError(403,"A conta administradora não pode alterar seu próprio acesso.");
  const row=await env.DB!.prepare("SELECT mode,tier,plan,expires_at AS expiresAt,reason,version,updated_at AS updatedAt FROM account_access WHERE owner_id=?").bind(ownerId).first<{mode:string;tier:string;plan:string|null;expiresAt:number|null;reason:string;version:number;updatedAt:string}>();
  const events=await env.DB!.prepare("SELECT action,tier,plan,expires_at AS expiresAt,reason,created_at AS createdAt FROM account_access_events WHERE owner_id=? ORDER BY created_at DESC,rowid DESC LIMIT 8").bind(ownerId).all();
- return Response.json({currentTier:(await aiEntitlement(ownerId)).scope==="week"?"pro":"free",access:row?{...effectiveAccess(row),version:row.version,reason:row.reason,updatedAt:row.updatedAt}:{...effectiveAccess(null),version:0,reason:"",updatedAt:null},history:events.results||[]},{headers:privateHeaders});
+ return Response.json({currentTier:await (async()=>{const entitlement=await aiEntitlement(ownerId);return entitlement.scope!=="week"?"free":row?.tier==="pro"||["profissional","rede"].includes(entitlement.plan)?"pro":"essencial";})(),access:row?{...effectiveAccess(row),version:row.version,reason:row.reason,updatedAt:row.updatedAt}:{...effectiveAccess(null),version:0,reason:"",updatedAt:null},history:events.results||[]},{headers:privateHeaders});
  }catch(e){return errorResponse(e);}
 }
 export async function PATCH(request:Request){try{

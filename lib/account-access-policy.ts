@@ -10,7 +10,7 @@ export const adminAccessAction=z.object({
  reason:z.string().trim().min(8).max(400),
  expectedVersion:z.number().int().min(0).max(1000000),
 }).strict().superRefine((value,ctx)=>{
- if(value.tier&&(value.plan!=="essencial"||![10,30,60,90].includes(value.durationDays as number)))ctx.addIssue({code:"custom",message:"Escolha Free ou Pro por 10, 30, 60 ou 90 dias."});
+ if(value.tier&&((value.tier==="free"?value.plan!=="essencial":value.plan!=="essencial"&&value.plan!=="profissional")||![10,30,60,90].includes(value.durationDays as number)))ctx.addIssue({code:"custom",message:"Escolha Free ou Pro por 10, 30, 60 ou 90 dias."});
  if(value.mode==="grant"&&!value.plan)ctx.addIssue({code:"custom",message:"Informe o plano da cortesia."});
  if(value.mode!=="grant"&&(value.plan!==undefined||value.durationDays!==undefined||value.tier!==undefined))ctx.addIssue({code:"custom",message:"Não é possível definir um plano para esta ação."});
 });

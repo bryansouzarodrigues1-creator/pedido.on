@@ -176,6 +176,13 @@
       "when": 1793098034415,
       "tag": "0024_purple_menace",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1793198527179,
+      "tag": "0025_lucky_lester",
+      "breakpoints": true
     }
   ]
 }

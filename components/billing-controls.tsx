@@ -2,27 +2,30 @@
 import {displayDate} from "@/lib/display-date";
 import {useState,useEffect,useRef,useCallback} from "react";
 import {CreditCard,Settings,RefreshCw} from "lucide-react";
-import {planCatalog,publicPlanCatalog,publicPlanName,type CatalogPlan} from "@/lib/plan-catalog";
+import {planCatalog,publicPlanCatalog,publicPlanIds,isPublicPlan,type PublicPlan,type CatalogPlan} from "@/lib/plan-catalog";
 import AiAllowance from "./ai-allowance";
 import {billingPost} from "@/lib/billing-client";
 import {Modal,Spinner} from "./ui";
 type BillingState={trial?:{status:string;daysRemaining:number};offer?:{trialEndsAt:number;firstDueDate:string;paidThrough:number;preservesTrial:boolean};enabled:boolean;provider?:"asaas"|"stripe";mode?:"sandbox"|"production";enforced?:boolean;testAccess?:boolean;subscription:{id?:string;plan:string;status:string;periodEnd:number;paidThrough:number;paidPlan:string}|null;intent?:{id:string;plan:string;state:string}|null;invoices?:{id:string;status:string;amount:number;dueDate:string;url:string|null}[]};
 const price=(cents:number)=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(cents/100),paidDate=(value:number)=>displayDate(value,false,"seconds");
 const statuses:Record<string,string>={PENDING:"A pagar",OVERDUE:"Vencida",CONFIRMED:"Paga",RECEIVED:"Paga",REFUNDED:"Estornada",REFUND_PENDING:"Estorno em análise",CHARGEBACK_REQUESTED:"Pagamento contestado",CHARGEBACK_DISPUTE:"Pagamento contestado",AWAITING_CHARGEBACK_REVERSAL:"Pagamento contestado",DELETED:"Cancelada"};
-export function BillingControls({initialPlan: _initialPlan}:{initialPlan:string}){
+export function BillingControls({initialPlan}:{initialPlan:string}){
  const [state,setState]=useState<BillingState|null>(null),[document,setDocument]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[cancelOpen,setCancelOpen]=useState(false);
+ const [plan,setPlan]=useState<PublicPlan>(isPublicPlan(initialPlan)?initialPlan:"essencial");
+ const selected=publicPlanCatalog[plan];
  const requestId=useRef<string|null>(null),live=useRef(true);
- const load=useCallback(async()=>{const res=await fetch("/api/billing/status",{cache:"no-store"});if(!res.ok)throw new Error("Não foi possível consultar a assinatura.");const data=await res.json() as BillingState;if(live.current){setState(data);if(data.intent){requestId.current=data.intent.id;}}},[]);
+ const load=useCallback(async()=>{const res=await fetch("/api/billing/status",{cache:"no-store"});if(!res.ok)throw new Error("Não foi possível consultar a assinatura.");const data=await res.json() as BillingState;if(live.current){setState(data);if(data.intent){requestId.current=data.intent.id;if(isPublicPlan(data.intent.plan))setPlan(data.intent.plan);}}},[]);
  useEffect(()=>{live.current=true;void load().catch(e=>{if(live.current)setError(e.message);});return()=>{live.current=false;};},[load]);
  useEffect(()=>{if(state?.subscription?.status!=="pending"&&!state?.intent)return;const timer=setInterval(()=>{void load().catch(()=>{});},20000);return()=>clearInterval(timer);},[state?.subscription?.status,state?.intent?.id,load]);
  async function send(path:Parameters<typeof billingPost>[0],body:unknown){const res=await billingPost(path,body);let data:{url?:string;active?:boolean;pending?:boolean;error?:string};try{data=await res.json();}catch{throw new Error("Não foi possível confirmar a operação. Atualize a assinatura antes de tentar novamente.");}if(!res.ok){if(res.status===400)requestId.current=null;throw new Error(data.error||"Não foi possível concluir a operação.");}return data;}
- async function checkout(portal=false){setBusy(true);setError("");setNotice("");try{requestId.current??=crypto.randomUUID();const data=await send(portal?"/api/billing/portal":"/api/billing/checkout",portal?{}:{plan:"essencial",requestId:requestId.current,...(state?.provider==="asaas"?{document}:{})});if(data.url){setDocument("");location.assign(data.url);return;}setNotice(data.active?"Sua assinatura já está ativa. O período pago está preservado.":"A assinatura está sendo preparada. Use Atualizar para conferir a fatura.");await load();}catch(e){setError(e instanceof Error?e.message:"Não foi possível abrir a assinatura.");}finally{setBusy(false);}}
+ async function checkout(portal=false){setBusy(true);setError("");setNotice("");try{requestId.current??=crypto.randomUUID();const data=await send(portal?"/api/billing/portal":"/api/billing/checkout",portal?{}:{plan,requestId:requestId.current,...(state?.provider==="asaas"?{document}:{})});if(data.url){setDocument("");location.assign(data.url);return;}setNotice(data.active?"Sua assinatura já está ativa. O período pago está preservado.":"A assinatura está sendo preparada. Use Atualizar para conferir a fatura.");await load();}catch(e){setError(e instanceof Error?e.message:"Não foi possível abrir a assinatura.");}finally{setBusy(false);}}
  async function sync(){setBusy(true);setError("");try{await send("/api/billing/sync",{});await load();setNotice("Assinatura atualizada.");}catch(e){setError(e instanceof Error?e.message:"Não foi possível atualizar.");}finally{setBusy(false);}}
  async function cancel(){setBusy(true);setError("");try{await send("/api/billing/cancel",{subscriptionId:state?.subscription?.id,confirm:true});setCancelOpen(false);requestId.current=null;await load();setNotice("Renovação cancelada. O período pago continua disponível.");}catch(e){setError(e instanceof Error?e.message:"Não foi possível cancelar.");}finally{setBusy(false);}}
  if(!state)return error?<div><p className="field-error" role="alert">{error}</p><button type="button" className="btn outline small" onClick={()=>{setError("");void load().catch(e=>setError(e.message));}}>Tentar novamente</button></div>:<p className="billing-load" role="status"><Spinner/>Consultando assinatura…</p>;
  if(!state.enabled)return <div className="billing-controls">
-  <p><strong>{publicPlanName} · {price(publicPlanCatalog.essencial.amount)}/mês</strong></p>
-  <div className="billing-plan-benefits" aria-label="Benefícios do plano único"><ul>{publicPlanCatalog.essencial.features.map(feature=><li key={feature}>{feature}</li>)}</ul></div>
+  <label className="field"><span>Escolha seu plano</span><select aria-label="Escolha seu plano" value={plan} onChange={e=>{if(isPublicPlan(e.target.value))setPlan(e.target.value);}}>{publicPlanIds.map(id=><option key={id} value={id}>{publicPlanCatalog[id].name} · {price(publicPlanCatalog[id].amount)}/mês</option>)}</select></label>
+  <p><strong>{selected.name} · {price(selected.amount)}/mês</strong></p>
+  <div className="billing-plan-benefits" aria-label="Benefícios do plano"><ul>{selected.features.map(feature=><li key={feature}>{feature}</li>)}</ul></div>
   <p role="status">Assinatura em preparação. Nenhuma cobrança será realizada neste ambiente beta.</p>
   <small>As funções de IA paga e o Asaas ainda não estão disponíveis neste beta.</small>
  </div>;
@@ -34,16 +37,17 @@ export function BillingControls({initialPlan: _initialPlan}:{initialPlan:string}
   {current&&<p><strong>{current.status==="active"?"Assinatura ativa":current.status==="canceled"?"Renovação cancelada":current.status==="trialing"?"Em teste":"Pagamento pendente"}</strong>{current.paidThrough>0&&<> · acesso pago até {paidDate(current.paidThrough)}</>}</p>}
   {canSubscribe&&<>
    {state.offer?.preservesTrial&&<div className="trial-payment-benefit" role="status"><strong>Assine agora e mantenha todos os dias do teste.</strong><p>Seu teste vai até {paidDate(state.offer.trialEndsAt)}. Pagando a primeira mensalidade agora, seu acesso fica garantido até {paidDate(state.offer.paidThrough)}. O próximo ciclo vence nessa data.</p><small>O primeiro vencimento da fatura fica em {displayDate(state.offer.firstDueDate)}; você pode pagá-la antes. Sem perder o tempo restante e sem cobrança extra.</small></div>}
-   <p>Um plano de {price(publicPlanCatalog.essencial.amount)}/mês.{asaas?" O pagamento é concluído na página segura do Asaas.":" Você continua no checkout seguro."}</p>
-   <div className="billing-plan-benefits" aria-label="Benefícios do plano único">
-    <b>{publicPlanName} · uma pizzaria</b>
-    <ul>{publicPlanCatalog.essencial.features.map(feature=><li key={feature}>{feature}</li>)}</ul>
+   <label className="field"><span>Escolha seu plano</span><select aria-label="Escolha seu plano" value={plan} disabled={busy||!!state.intent} onChange={e=>{if(isPublicPlan(e.target.value)){setPlan(e.target.value);requestId.current=null;}}}>{publicPlanIds.map(id=><option key={id} value={id}>{publicPlanCatalog[id].name} · {price(publicPlanCatalog[id].amount)}/mês</option>)}</select></label>
+   <p>{selected.name} por {price(selected.amount)}/mês.{asaas?" O pagamento é concluído na página segura do Asaas.":" Você continua no checkout seguro."}</p>
+   <div className="billing-plan-benefits" aria-label="Benefícios do plano">
+    <b>{selected.name} · uma pizzaria</b>
+    <ul>{selected.features.map(feature=><li key={feature}>{feature}</li>)}</ul>
    </div>
    {asaas&&<label>CPF ou CNPJ do pagador<input required value={document} autoComplete="off" maxLength={24} onChange={e=>setDocument(e.target.value)} placeholder="Documento para a assinatura"/></label>}
    {current?.status==="canceled"&&current.paidThrough>Date.now()/1000&&<small>Uma nova assinatura inicia outra mensalidade hoje.</small>}
-   {state.intent&&state.intent.plan!=="essencial"?
-    <p className="field-error" role="alert">Existe uma solicitação antiga de outro plano. Entre em contato com o suporte antes de contratar o plano único.</p>:
-    <button className="btn primary small" disabled={busy||(asaas&&document.replace(/[^0-9A-Za-z]/g,"").length<11)} onClick={()=>void checkout()}>{busy?<Spinner/>:<CreditCard size={15}/>} {state.intent?"Continuar pagamento":`${state.offer?.preservesTrial?"Adiantar assinatura":"Assinar"} por ${price(publicPlanCatalog.essencial.amount)}/mês`}</button>}
+   {state.intent&&!isPublicPlan(state.intent.plan)?
+    <p className="field-error" role="alert">Existe uma solicitação antiga de outro plano. Entre em contato com o suporte antes de iniciar outra assinatura.</p>:
+    <button className="btn primary small" disabled={busy||(asaas&&document.replace(/[^0-9A-Za-z]/g,"").length<11)} onClick={()=>void checkout()}>{busy?<Spinner/>:<CreditCard size={15}/>} {state.intent?"Continuar pagamento":`${state.offer?.preservesTrial?"Adiantar assinatura":"Assinar"} por ${price(selected.amount)}/mês`}</button>}
   </>}
   {asaas?<>
    {(current||state.intent)&&<button type="button" className="btn outline small" disabled={busy} onClick={()=>void sync()}>{busy?<Spinner/>:<RefreshCw size={15}/>}{current?.status==="pending"?"Já paguei · verificar":"Atualizar assinatura"}</button>}

@@ -18,4 +18,4 @@ export function supportImagePatch(data:RestaurantData,item:Pick<SupportItem,"kin
 }
 export type CreativeEntry={id:string;source:string;createdAt:string;state:string;label:string;message:string;url:string;asset:string;productId:string;result:unknown};
 export const creativeCursor=z.object({at:z.string().datetime(),id:z.string().min(1).max(100),source:z.enum(["image","studio","import","support","campaign"])}).strict();
-export const creativeArchiveInput=z.object({source:z.enum(["daily","trial","promotion"]),sourceId:z.string().min(1).max(120),round:z.union([z.literal(1),z.literal(2)]).optional(),format:z.enum(["text","square","story"]),textVariant:z.enum(["whatsapp","status"]).optional(),revision:z.number().int().positive()}).strict();
+export const creativeArchiveInput=z.object({source:z.enum(["daily","trial","promotion"]),sourceId:z.string().min(1).max(120),round:z.union([z.literal(1),z.literal(2)]).optional(),format:z.enum(["text","square","story"]),textVariant:z.enum(["whatsapp","status","instagram","facebook"]).optional(),revision:z.number().int().positive()}).strict();
