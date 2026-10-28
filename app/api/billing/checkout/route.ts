@@ -13,7 +13,7 @@ export const dynamic="force-dynamic";
 export async function POST(request:Request){try{
   sameOrigin(request);assertCsrf(request);const user=await owner(),raw=await readJson(request);
   if(billingConfig().provider==="asaas"){const access=await accountAccess(user.userId);if(access.mode==="suspended")throw new HttpError(403,"Esta conta está suspensa. Fale com o suporte antes de assinar.");await throttle("billing-checkout:"+user.userId,8,300);const result=await asaasCheckout(user,asaasCheckoutSchema.parse(raw));return Response.json(result,{status:result.pending?202:200,headers:privateHeaders});}
-  const input=z.object({plan:z.literal("essencial"),requestId:z.string().uuid()}).parse(raw);
+  const input=z.object({plan:z.enum(["essencial","profissional"]),requestId:z.string().uuid()}).parse(raw);
   const config=billingConfig();if(!config.enabled)throw new HttpError(503,"A cobrança ainda não foi ativada. Você pode montar seu cardápio no pré-lançamento.");
   const existing=await getDb().select().from(subscriptions).where(eq(subscriptions.ownerId,user.userId)).get();if(existing&&["active","trialing","past_due","unpaid","incomplete"].includes(existing.status))throw new HttpError(409,"Sua conta já possui uma assinatura. Use Gerenciar assinatura para alterar o plano ou pagamento.");
   const price=await stripeRequest<{active:boolean;currency:string;unit_amount:number;recurring:{interval:string;interval_count:number}|null}>(`prices/${encodeURIComponent(config.prices[input.plan])}`);

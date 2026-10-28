@@ -31,9 +31,9 @@ test('financial mutations reject absent or mismatched CSRF before changing recor
  }finally{f.close();}
 });
 
-test('new Asaas checkout creates only the R$49 monthly plan; old tiers cannot initiate charges',async()=>{
+test('new Asaas checkout offers Essencial R$49 and rejects retired Divulgação',async()=>{
  const f=harness();try{
-  for(const plan of ['profissional','rede']){
+  for(const plan of ['rede']){
    const response=await f.call('billingCheckout','POST',{},f.input({plan}));
    assert.equal(response.status,400,plan);
    assert.equal(f.calls.length,0,'the Asaas API must not be called for retired tiers');
@@ -46,12 +46,16 @@ test('new Asaas checkout creates only the R$49 monthly plan; old tiers cannot in
   assert.equal(remote.value,49);
   assert.equal(remote.cycle,'MONTHLY');
   const status=await (await f.call('billingStatus','GET')).json();
-  assert.deepEqual(Object.keys(status.plans),['essencial']);
+  assert.deepEqual(Object.keys(status.plans),['essencial','profissional']);
   assert.equal(status.subscription.plan,'essencial');
   assert.equal(status.subscription.status,'pending');
   assert.equal(status.invoices[0].amount,4900);
   assert.equal(status.subscription.paidThrough,0);
  }finally{f.close();}
+});
+
+test('Pro charges exactly R$89 and the customer assistant is granted only after confirmed payment',async()=>{
+ const f=harness();try{const input=f.input({plan:'profissional'}),response=await f.call('billingCheckout','POST',{},input);assert.equal(response.status,200,await response.clone().text());assert.equal([...f.subscriptions.values()][0].value,89);assert.equal([...f.subscriptions.values()][0].cycle,'MONTHLY');assert.equal(await f.load('lib/customer-assistant.ts').hasCustomerAssistant('owner-a'),false);const p=[...f.payments.values()][0];p.status='RECEIVED';await f.webhook('evt_pro');assert.equal(await f.load('lib/customer-assistant.ts').hasCustomerAssistant('owner-a'),true);assert.equal((await (await f.call('billingStatus','GET')).json()).subscription.paidPlan,'profissional');p.status='REFUNDED';await f.webhook('evt_pro_refund','PAYMENT_REFUNDED');assert.equal(await f.load('lib/customer-assistant.ts').hasCustomerAssistant('owner-a'),false);}finally{f.close();}
 });
 
 test('Asaas checkout uses fixed server prices, hosted invoice and durable reuse without releasing an unpaid plan',async()=>{const f=harness();try{const input=f.input(),before=f.db.prepare('SELECT data,published_data FROM restaurants').all();const first=await f.call('billingCheckout','POST',{},input);assert.equal(first.status,200,await first.clone().text());assert.match((await first.json()).url,/^https:\/\/asaas.com\/000\/i\//);assert.equal(f.customer.size,1);assert.equal(f.subscriptions.size,1);assert.equal([...f.subscriptions.values()][0].value,49);assert.equal([...f.subscriptions.values()][0].billingType,'UNDEFINED');assert.equal([...f.subscriptions.values()][0].description,'pizzaria.on · essencial');assert.match([...f.subscriptions.values()][0].externalReference,/^pedido-on:production:/);assert.equal(f.db.prepare('SELECT paid_through FROM asaas_subscriptions').get().paid_through,0);assert.equal(f.load('lib/billing.ts').billingEnforced(),false);

@@ -124,3 +124,15 @@ export const accountActivity=sqliteTable("account_activity",{
  id:text("id").primaryKey(),ownerId:text("owner_id").notNull(),area:text("area").notNull(),day:text("day").notNull(),
  opens:integer("opens").notNull().default(0),actions:integer("actions").notNull().default(0),firstAt:text("first_at").notNull(),lastAt:text("last_at").notNull(),
 },t=>[uniqueIndex("account_activity_day_idx").on(t.ownerId,t.area,t.day),index("account_activity_time_idx").on(t.lastAt)]);
+
+// Before-order questions are private to the visitor token and the shop owner.
+export const assistantConversations=sqliteTable("assistant_conversations",{
+ id:text("id").primaryKey(),restaurantId:text("restaurant_id").notNull().references(()=>restaurants.id,{onDelete:"cascade"}),
+ tokenHash:text("token_hash").notNull(),createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull(),expiresAt:integer("expires_at").notNull(),
+ pendingRequest:text("pending_request"),pendingUntil:integer("pending_until").notNull().default(0),
+},t=>[index("assistant_conversations_shop_idx").on(t.restaurantId,t.updatedAt),index("assistant_conversations_expiry_idx").on(t.expiresAt)]);
+export const assistantTurns=sqliteTable("assistant_turns",{
+ id:text("id").primaryKey(),conversationId:text("conversation_id").notNull().references(()=>assistantConversations.id,{onDelete:"cascade"}),
+ requestId:text("request_id").notNull(),inputHash:text("input_hash").notNull(),question:text("question").notNull(),answer:text("answer"),
+ state:text("state").notNull(),source:text("source").notNull().default("local"),createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull(),
+},t=>[uniqueIndex("assistant_turns_request_idx").on(t.conversationId,t.requestId),index("assistant_turns_conversation_idx").on(t.conversationId,t.createdAt)]);

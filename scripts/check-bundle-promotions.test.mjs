@@ -72,7 +72,7 @@ test('actual customer/editor markup shows bundle contents and free prices withou
   const html=renderToStaticMarkup(createElement(Menu,{data,preview:true}));assert.match(html,/2 pizzas \+ refrigerante/);assert.match(html,/2× Margherita/);assert.match(html,/1× Refrigerante/);assert.doesNotMatch(html,/<del>/);
   const Editor=f.load('components/daily-promotions.tsx').PromotionEditor,value={kind:'bundle',name:p.name,productId:'',size:'g',items:p.items,price:'140',duration:'today',ends:''};
   const editor=renderToStaticMarkup(createElement(Editor,{data,value,onChange:()=>{},onSave:()=>{},onCancel:()=>{},error:''}));assert.match(editor,/Preço do combo/);assert.match(editor,/O que vem no combo/);assert.match(editor,/Quantidade/);assert.match(editor,/Salvar no rascunho/);assert.doesNotMatch(editor,/menor que|Preço normal|inteligência artificial|Horário de Brasília/);
-  const Daily=f.load('components/daily-promotions.tsx').default;const compact=renderToStaticMarkup(createElement(Daily,{data:{...f.data,promotions:[]},slug:'pizzaria-a',onChange:()=>{},canShare:false}));assert.match(compact,/>Promoções</);assert.match(compact,/Ideias para vender hoje/);assert.doesNotMatch(compact,/sem acumular|mensagem pronta|Preço da oferta|type="datetime-local"/i);
+  const Daily=f.load('components/daily-promotions.tsx').default;const compact=renderToStaticMarkup(createElement(Daily,{data:{...f.data,promotions:[]},slug:'pizzaria-a',onChange:()=>{},canShare:false}));assert.match(compact,/>Promoções</);assert.match(compact,/Dê vontade de pedir/);assert.doesNotMatch(compact,/sem acumular|mensagem pronta|Preço da oferta|type="datetime-local"/i);
  }finally{f.close();}
 });
 

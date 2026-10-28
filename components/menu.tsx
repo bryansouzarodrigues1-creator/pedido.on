@@ -15,12 +15,13 @@ import {savePrivateOrderLink,recentPrivateOrderLinks} from "@/lib/device-orders"
 import type {ApprovedDelivery} from "./delivery-gate";
 import {useDeliveryQuote,DeliveryQuoteStatus} from "./delivery-checkout";
 import StoreReport from "./store-report";
+import CustomerAssistant from "./customer-assistant";
 import {storeLocation} from "@/lib/store-location";
 import GoogleReviewLink from "./google-review-link";
 function productPrice(product:Product,data:RestaurantData){return lowestProductPrice(data,product);}
 type ContactDetails = { neighborhood:string;customer: string; phone: string; address: string; method: "delivery" | "pickup"; payment: RestaurantData["payments"][number]; note: string };
 
-export default function Menu({ data, slug = "", demo = false, preview = false, approvalRequired = false, siteOrderingAllowed = false,previewLabel }: { previewLabel?:string;data: RestaurantData; slug?: string; demo?: boolean; preview?: boolean; approvalRequired?: boolean; siteOrderingAllowed?:boolean }) {
+export default function Menu({ data, slug = "", demo = false, preview = false, approvalRequired = false, siteOrderingAllowed = false,assistantAvailable=false,previewLabel }: { previewLabel?:string;data: RestaurantData; slug?: string; demo?: boolean; preview?: boolean; approvalRequired?: boolean; siteOrderingAllowed?:boolean;assistantAvailable?:boolean }) {
   const presentation=menuPresentation(data);
   const siteCheckout=demo||preview||siteOrderingAllowed;
   const location=storeLocation(data.address,data.city);
@@ -95,6 +96,7 @@ export default function Menu({ data, slug = "", demo = false, preview = false, a
     </div><aside className="desktop-cart"><div className="cart-heading"><ShoppingBag size={20} /><h2>Seu pedido</h2><span>{count}</span></div>{cartContents}</aside></div>
     <footer className="menu-footer menu-container"><span>{data.name}{data.city && ` · ${data.city}`}</span>{!demo&&!preview&&<GoogleReviewLink url={data.googleReviewUrl} className="menu-google-review"/>}{!demo&&!preview&&slug&&<StoreReport slug={slug}/>}<a href="/criar">Criar cardápio da minha pizzaria <ArrowUpRight size={12} /></a></footer>
     {count > 0 && <button className="mobile-cart-bar menu-btn" onClick={() => setCartOpen(true)}><span><ShoppingBag size={20} /><b>{count}</b>Ver pedido</span><strong>{money(subtotal)}<small>{preview?"entrega a confirmar":"+ "+(data.deliveryEnabled ? `entrega ${money(data.deliveryFee)}` : "retirada sem taxa")}</small></strong></button>}
+    {assistantAvailable&&data.assistant.enabled&&!demo&&!preview&&!selected&&!cartOpen&&!checkout&&<CustomerAssistant data={data} slug={slug} onProduct={id=>{const product=data.products.find(p=>p.id===id&&p.enabled);if(product)setSelected(product);}}/>}
     {toast && <div className="toast" role="status"><Check size={17} />{toast}</div>}
     <Modal open={!!selected} onClose={() => setSelected(null)} title={selected?.name || "Monte sua pizza"}>{selected && <PizzaBuilder key={selected.id} product={selected} data={data} onAdd={add} />}</Modal>
     <Modal open={cartOpen} onClose={() => setCartOpen(false)} title="Confira seu pedido">{cartContents}</Modal>
