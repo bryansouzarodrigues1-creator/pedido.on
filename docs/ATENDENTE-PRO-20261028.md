@@ -1,4 +1,18 @@
+**28/10/2026 — atendimento publicado na v106 e revisão final do início:** autorização recebida para a edição Lovable e uma consulta real; ambas concluídas. Essencial R$49 e Pro R$89, atendimento e divulgação estão integrados na PR #144. A conferência pública encontrou o preço antigo duplicado no início; esta continuação usa o catálogo canônico e cobre a página real no Chrome. Conferir o resultado final e a versão corrigida na PR da continuação. 
+
 # Atendimento Pro e divulgação — 28/10/2026
+
+## Publicação inicial e correção da página principal
+
+A autorização explícita do proprietário (`eu autorizo`) foi recebida e utilizada para uma edição e uma consulta real. Não pedir essa mesma autorização outra vez. A edição custou 2,9 créditos Lovable e a execução do teste 1,8; o gateway informou 0,000601 créditos pela inferência. Não houve compra ou aumento de limites. O modelo real escolheu somente `qa-margherita` para uma preferência sem carne e com manjericão. Oito asserções passaram, sem retry. A loja e o callback foram sintéticos: essa prova não representa uma sessão autenticada de cliente na produção.
+
+Serviço lido no commit `c469c8d07abcc4e504d48db1237a6c12c5cccf29`, handler idêntico ao preparado. A plataforma atualizou também a ferramenta de build de 2.25.3 para 2.26.5; `package.json` e `bun.lock` atuais foram sincronizados nesta continuação. O serviço passou 9 testes de protocolo, 14 Vitest, tipos e build; a raiz já cobria 10 testes do handler. Deployment Lovable `3f3aa9d6-5d44-4285-b184-6ad7ab81b86b`; GET de saúde confirmou `customerSupport:true` sem gerar modelos.
+
+A PR #144 foi integrada pelo merge `d64cf9cff5d11b23a9ad313209aa7ffad4b2c453`. A publicação inicial da aplicação é **v106**, fonte `3d7adc1e04d177bf42df6ff8117f2c9a2d59a4c6`, versão `appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_82fa90c848608191b2c9197edf2b0ef9`, deployment `appgdep_6ae23b8a7a948191864b90ef1703b0c9`, concluído em 28/10/2026 às **15:15:01 de Brasília**. Ambiente revisão 20 e audiência pública preservados. As 43 tabelas foram confirmadas, incluindo as duas de atendimento.
+
+A conferência do site no Chrome encontrou um bloco de preços separado em `saas-landing.tsx`: apesar da assinatura correta, o início continuava apresentando Pro por R$49. Esta continuação faz o início consumir `publicPlanCatalog`, mantém Free de 10 dias, mostra Essencial R$49/Pro R$89 e preserva o plano no link de contratação. A regressão renderiza a página inicial real; o Chrome também verifica os valores e os links em quatro larguras. Não é necessário reconstruir o gateway Netlify para uma mudança no aplicativo. Ver a PR da continuação para os checks e a publicação corretiva, sem presumir sucesso antes do retorno nativo.
+
+As linhas seguintes registram o estado anterior à autorização e à primeira publicação.
 
 ## Pedido e oferta
 
