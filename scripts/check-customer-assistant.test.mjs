@@ -21,6 +21,11 @@ test('assistant is opt-in, bounded, backward compatible and uses only known publ
  assert.match(localCustomerAnswer({...data,isOpen:false},'Está aberto?',true).text,/fechada/);
  assert.match(localCustomerAnswer(data,'Meu pedido chegou?',true).text,/link privado/);
  assert.match(localCustomerAnswer(data,'Como faço meu pedido?',true).text,/Conversar aqui não cria um pedido/);
+ assert.match(localCustomerAnswer(data,'Como funciona o horário?',true).text,/Horário informado/);
+ const custom={...data,assistant:{...data.assistant,faqs:[{question:'Entregam aos domingos?',answer:'Aos domingos, entregamos das 18h às 23h.'}]}};
+ assert.equal(localCustomerAnswer(custom,'Entregam aos domingos?',true).text,'Aos domingos, entregamos das 18h às 23h.');
+ const combo=localCustomerAnswer(data,'Tem combo?',true);assert.match(combo.text,/Combos do cardápio/);assert.equal(combo.products[0].id,'combo-casa');assert.equal(combo.products[0].price,6900);
+ const coupon=localCustomerAnswer({...data,coupon:{...data.coupon,enabled:true,code:'CAMPANHA-PRIVADA'}},'Como uso meu cupom?',true);assert.match(coupon.text,/Aplicar/);assert.doesNotMatch(coupon.text,/CAMPANHA-PRIVADA/);
 });
 test('retrieval reaches products after the first twelve and rejects invented facts or products',()=>{
  const data=demoRestaurant(),seed=data.products[0];data.products=Array.from({length:100},(_,i)=>({...seed,id:'pizza-'+i,name:'Pizza '+i,description:'Tomate e queijo.'}));data.products[99].name='Trufa exclusiva';data.products[0].enabled=false;

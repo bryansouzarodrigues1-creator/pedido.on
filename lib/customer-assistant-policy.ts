@@ -9,12 +9,16 @@ export const normalizeQuestion=(value:string)=>value.normalize("NFD").replace(/[
 /** Contact details and private order links are unnecessary for these answers. */
 export function redactCustomerMessage(value:string){return value.trim().replace(/https?:\/\/\S+/gi,"[link omitido]").replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,"[e-mail omitido]").replace(/\b\d{3}[.\s]?\d{3}[.\s]?\d{3}[-\s]?\d{2}\b/g,"[documento omitido]").replace(/(?:\+?55[\s.-]*)?(?:\(?\d{2}\)?[\s.-]*)?\d{4,5}[\s.-]?\d{4}\b/g,"[contato omitido]").slice(0,700);}
 export function assistantProducts(data:RestaurantData){return data.products.filter(p=>p.enabled&&lowestProductPrice(data,p)>0);}
+function catalogCombos(data:RestaurantData){
+ const categories=new Set(data.categories.filter(c=>/\bcombos?\b/.test(normalizeQuestion(c.name))).map(c=>c.id));
+ return assistantProducts(data).filter(p=>categories.has(p.categoryId)||/\bcombo\b/.test(normalizeQuestion(p.name)));
+}
 export function relevantProducts(data:RestaurantData,question:string,limit=12){
  const terms=normalizeQuestion(question).split(" ").filter(t=>t.length>2&&!['uma','para','com','que','quero','tem','voces','pizza','pizzas','por','favor','qual','mais','ser','essa','isso'].includes(t));
  return assistantProducts(data).map((product,index)=>({product,index,score:terms.reduce((n,t)=>n+(normalizeQuestion(product.name).includes(t)?6:normalizeQuestion(product.description).includes(t)?2:0),0)+(product.featured?0.1:0)})).sort((a,b)=>b.score-a.score||a.index-b.index).slice(0,limit).map(v=>v.product);
 }
 export function shopFacts(data:RestaurantData,siteOrderingAllowed:boolean,now=Date.now()):AssistantFact[]{
- const offers=data.promotions.filter(p=>isActivePromotion(data,p,now));
+ const offers=data.promotions.filter(p=>isActivePromotion(data,p,now)),combos=catalogCombos(data);
  return [
   {id:"store",title:"Sobre a loja",text:[data.name,data.description].filter(Boolean).join(". ")},
   {id:"hours",title:"Funcionamento",text:`A loja está ${data.isOpen?"aberta":"fechada"} para pedidos neste momento. ${data.hours?"Horário informado: "+data.hours:"A loja ainda não informou os horários."} O horário escrito é informativo; a disponibilidade atual aparece no cardápio.`},
@@ -23,7 +27,8 @@ export function shopFacts(data:RestaurantData,siteOrderingAllowed:boolean,now=Da
   {id:"payments",title:"Pagamento",text:`Formas cadastradas: ${data.payments.join(", ")}. ${siteOrderingAllowed&&data.pix.enabled?"O Pix antecipado aparece no fechamento. A pizzaria confere o recebimento no banco.":"Confirme a forma de pagamento com a loja. Não envie comprovantes nesta conversa."} Esta conversa não confirma pagamentos.`},
   {id:"ordering",title:"Como fazer seu pedido",text:`Escolha o produto, tamanho e quantidade, toque em Adicionar e abra o seu pedido. ${siteOrderingAllowed?"No fechamento, escolha entrega ou retirada, informe os dados solicitados e envie. Acompanhe a confirmação pelo link do pedido.":"Confira o resumo e envie pelo botão de WhatsApp. A loja confirma disponibilidade, entrega e pagamento."} Conversar aqui não cria um pedido.`},
   {id:"half",title:"Meio a meio e bordas",text:`Você pode escolher até dois sabores no mesmo tamanho disponível. O preço usa ${data.halfRule==="max"?"o sabor de maior valor":"a média dos dois sabores"}. ${data.crusts.length?"Bordas cadastradas: "+data.crusts.map(c=>`${c.name} (${money(c.price)})`).join(", ")+".":"Não há bordas cadastradas neste momento."} O carrinho mostra o total antes de enviar.`},
-  {id:"promotions",title:"Ofertas publicadas",text:offers.length?offers.map(p=>`${promotionLabel(data,p)}: ${money(p.price)}`).join(". "):"Não há promoção ativa publicada neste momento. Os preços disponíveis estão nos produtos."},
+  {id:"coupons",title:"Como usar um cupom",text:data.coupon.enabled?"Se você recebeu um código da pizzaria, abra Tenho um cupom no fechamento, digite o código e toque em Aplicar. O carrinho confere se o código é válido e se o pedido atinge o mínimo. O desconto aparece antes de enviar; esta conversa não cria cupons.":"Não há cupom habilitado neste cardápio. As ofertas publicadas aparecem na seção de promoções."},
+  {id:"promotions",title:"Ofertas e combos publicados",text:[offers.length?offers.map(p=>`${promotionLabel(data,p)}: ${money(p.price)}`).join(". "):"Não há promoção ativa publicada neste momento. Os preços disponíveis estão nos produtos.",combos.length?"Combos do cardápio: "+combos.map(p=>`${p.name} (${money(lowestProductPrice(data,p,now))})`).join(", ")+".":""].filter(Boolean).join(" ")},
   {id:"tracking",title:"Acompanhar um pedido",text:"Use o link privado recebido ao enviar o pedido. Nele você acompanha o andamento e pode falar com a pizzaria. Este assistente não consulta pedidos ou pagamentos privados; para resolver um caso específico, fale com a loja."},
   ...data.assistant.faqs.map((faq,index)=>({id:"faq-"+index,title:faq.question,text:faq.answer})),
  ];
@@ -36,15 +41,16 @@ export function localCustomerAnswer(data:RestaurantData,message:string,siteOrder
  if(/alerg|lactose|gluten|celiac|amendoim|intoleran|restricao|diabet|gravida|contamin/.test(q))return empty("Os ingredientes informados estão na descrição dos produtos. Para alergias, intolerâncias e risco de contaminação cruzada, confirme diretamente com a pizzaria antes de pedir. Eu não consigo garantir que um alimento seja seguro para uma restrição alimentar.","handoff",true);
  if(/\b(humano|atendente|pessoa|dono|reclamar|reclamacao|problema|cancelar|estorno|reembolso|cobranca)\b/.test(q))return empty("O contato da loja está disponível abaixo para você falar com a equipe. Nenhum pedido ou pagamento é alterado por esta conversa.","handoff",true);
  if(/meu pedido|meu pagamento|paguei|comprovante|chegou|atrasou|rastrea|status do pedido/.test(q)&&!/como (?:eu )?(?:faco|fazer|pedir|compro|comprar)/.test(q))return {...fact("tracking"),handoff:true};
- if(/\b(hora|horas|horario|abre|abrem|fecha|fecham|aberto|aberta|funciona|funcionamento)\b/.test(q)&&!/site|como funciona/.test(q))return fact("hours");
+ const custom=facts.filter(f=>f.id.startsWith("faq-")).find(f=>normalizeQuestion(f.title)===q);if(custom)return empty(custom.text);
+ if(/\b(hora|horas|horario|abre|abrem|fecha|fecham|aberto|aberta|funcionamento)\b/.test(q)&&!/\bsite\b/.test(q))return fact("hours");
  if(/\b(retira|retirada|endereco|localiza|onde fica|buscar na loja)\b/.test(q))return fact("pickup");
  if(/\b(entrega|entregam|frete|taxa|bairro|demora|prazo|delivery)\b/.test(q))return fact("delivery");
  if(/\b(pix|pagar|pagamento|dinheiro|cartao|credito|debito|troco)\b/.test(q))return fact("payments");
  if(/meio a meio|dois sabores|2 sabores|borda/.test(q))return fact("half");
- if(/promoc|oferta|desconto|cupom|combo/.test(q))return fact("promotions");
+ if(/\bcupom\b|\bcupons\b/.test(q))return fact("coupons");
+ if(/promoc|oferta|desconto|combo/.test(q))return {...fact("promotions"),products:/\bcombos?\b/.test(q)?productCards(data,catalogCombos(data).slice(0,3)):[]};
  if(/como (?:eu )?(?:faco|fazer|pedir|compro|comprar)|como funciona|\bsite\b|carrinho|finaliz|cadastro/.test(q))return fact("ordering");
  if(/^(oi|ola|bom dia|boa tarde|boa noite|tudo bem|obrigad[oa]|valeu)( |$)/.test(q)&&q.split(" ").length<=5)return empty(`Olá! Sou ${data.assistant.name}, da ${data.name}. Posso ajudar com sabores, preços, entrega, horários e como pedir.`);
- const custom=facts.filter(f=>f.id.startsWith("faq-")).find(f=>normalizeQuestion(f.title)===q);if(custom)return empty(custom.text);
  const terms=q.split(" ").filter(t=>t.length>3),products=relevantProducts(data,message,3),matched=products.filter(p=>terms.some(t=>normalizeQuestion(p.name).includes(t)));
  if(matched.length&&!/recomenda|sugere|sugest|melhor|indica|gosto|nao gosto|sem |evitar|barat|car[oa]|vegetari|vegana/.test(q))return {...empty("Encontrei estas opções no cardápio. Abra o produto para conferir os tamanhos, ingredientes e valores."),products:productCards(data,matched)};
  return null;
