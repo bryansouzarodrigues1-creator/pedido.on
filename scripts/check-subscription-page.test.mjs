@@ -15,6 +15,20 @@ function findBilling(element){
  return null;
 }
 
+test('the actual public home offers both canonical paid plans and preserves the free trial',()=>{
+ const f=fixture();try{
+  const Home=f.load('components/saas-landing.tsx').default,html=renderToStaticMarkup(createElement(Home));
+  const essential=html.match(/<article[^>]*data-plan="essencial"[\s\S]*?<\/article>/)?.[0];
+  const pro=html.match(/<article[^>]*data-plan="profissional"[\s\S]*?<\/article>/)?.[0];
+  assert.ok(essential&&pro,'The home must render both paid plans, not only an unused card component');
+  assert.match(essential,/ESSENCIAL/);assert.match(essential,/R\$ 49/);assert.match(essential,/href="\/assinatura\?plan=essencial"/);
+  assert.match(pro,/>PRO</);assert.match(pro,/R\$ 89/);assert.doesNotMatch(pro,/R\$ 49/);assert.match(pro,/Atendente de IA no seu cardápio/);assert.match(pro,/href="\/assinatura\?plan=profissional"/);
+  assert.match(html,/>FREE</);assert.match(html,/10 dias grátis/);assert.match(html,/Duas rodadas com duas sugestões de oferta/);
+  assert.ok(html.indexOf('owner-intake-message')<html.indexOf('data-plan="essencial"'));
+  assert.doesNotMatch(html,/assinatura\?plan=rede|R\$ 149/);
+ }finally{f.close();}
+});
+
 test('Essencial R$49 and Pro R$89 are purchasable while legacy Divulgação stays historical',async()=>{
  const f=fixture();try{
   const Cards=f.load('components/plan-cards.tsx').default,Page=f.load('app/assinatura/page.tsx').default;
