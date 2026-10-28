@@ -35,7 +35,7 @@ export function localCustomerAnswer(data:RestaurantData,message:string,siteOrder
  const q=normalizeQuestion(message),facts=shopFacts(data,siteOrderingAllowed),fact=(id:string)=>empty(facts.find(f=>f.id===id)!.text);
  if(/alerg|lactose|gluten|celiac|amendoim|intoleran|restricao|diabet|gravida|contamin/.test(q))return empty("Os ingredientes informados estão na descrição dos produtos. Para alergias, intolerâncias e risco de contaminação cruzada, confirme diretamente com a pizzaria antes de pedir. Eu não consigo garantir que um alimento seja seguro para uma restrição alimentar.","handoff",true);
  if(/\b(humano|atendente|pessoa|dono|reclamar|reclamacao|problema|cancelar|estorno|reembolso|cobranca)\b/.test(q))return empty("O contato da loja está disponível abaixo para você falar com a equipe. Nenhum pedido ou pagamento é alterado por esta conversa.","handoff",true);
- if(/meu pedido|meu pagamento|paguei|comprovante|chegou|atrasou|rastrea|status do pedido/.test(q))return {...fact("tracking"),handoff:true};
+ if(/meu pedido|meu pagamento|paguei|comprovante|chegou|atrasou|rastrea|status do pedido/.test(q)&&!/como (?:eu )?(?:faco|fazer|pedir|compro|comprar)/.test(q))return {...fact("tracking"),handoff:true};
  if(/\b(hora|horas|horario|abre|abrem|fecha|fecham|aberto|aberta|funciona|funcionamento)\b/.test(q)&&!/site|como funciona/.test(q))return fact("hours");
  if(/\b(retira|retirada|endereco|localiza|onde fica|buscar na loja)\b/.test(q))return fact("pickup");
  if(/\b(entrega|entregam|frete|taxa|bairro|demora|prazo|delivery)\b/.test(q))return fact("delivery");

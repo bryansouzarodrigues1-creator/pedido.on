@@ -20,6 +20,7 @@ test('assistant is opt-in, bounded, backward compatible and uses only known publ
  const allergy=localCustomerAnswer(data,'Tenho alergia a lactose, é seguro?',true);assert.equal(allergy.handoff,true);assert.match(allergy.text,/não consigo garantir/);
  assert.match(localCustomerAnswer({...data,isOpen:false},'Está aberto?',true).text,/fechada/);
  assert.match(localCustomerAnswer(data,'Meu pedido chegou?',true).text,/link privado/);
+ assert.match(localCustomerAnswer(data,'Como faço meu pedido?',true).text,/Conversar aqui não cria um pedido/);
 });
 test('retrieval reaches products after the first twelve and rejects invented facts or products',()=>{
  const data=demoRestaurant(),seed=data.products[0];data.products=Array.from({length:100},(_,i)=>({...seed,id:'pizza-'+i,name:'Pizza '+i,description:'Tomate e queijo.'}));data.products[99].name='Trufa exclusiva';data.products[0].enabled=false;
