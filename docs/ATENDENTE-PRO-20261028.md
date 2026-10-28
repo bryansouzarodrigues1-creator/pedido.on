@@ -1,4 +1,4 @@
-**28/10/2026 — atendimento publicado na v106 e revisão final do início:** autorização recebida para a edição Lovable e uma consulta real; ambas concluídas. Essencial R$49 e Pro R$89, atendimento e divulgação estão integrados na PR #144. A conferência pública encontrou o preço antigo duplicado no início; esta continuação usa o catálogo canônico e cobre a página real no Chrome. Conferir o resultado final e a versão corrigida na PR da continuação. 
+**28/10/2026 — atendimento publicado na v106 e revisão final do início:** autorização recebida para a edição Lovable e uma consulta real; ambas concluídas. Essencial R$49 e Pro R$89, atendimento e divulgação estão integrados na PR #144. A conferência pública encontrou o preço antigo duplicado no início; esta continuação usa o catálogo canônico e cobre a página real no Chrome. Conferir o resultado final e a versão corrigida na PR da continuação.
 
 # Atendimento Pro e divulgação — 28/10/2026
 
