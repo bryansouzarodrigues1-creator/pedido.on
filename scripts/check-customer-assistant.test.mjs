@@ -81,3 +81,14 @@ test('platform support can read the selected shop history but ordinary owners ca
  const other=await f.dispatch('adminRestaurant','GET',new Request(url.replace('shop-a','shop-b')+'&conversation='+input.conversationId),{id:'shop-b'});assert.equal(other.status,404);
  }finally{f.close();}
 });
+test('confirmed Pro wins over a simultaneous Essencial period even though both image caps are twenty',async()=>{
+ const f=fixture();try{const stamp=new Date().toISOString(),due=stamp.slice(0,10),end=Math.floor(Date.now()/1000)+25*86400;
+ for(const [suffix,plan,amount] of [['essential','essencial',4900],['pro','profissional',8900]]){
+  f.db.prepare("INSERT INTO asaas_intents(id,owner_id,environment,plan,reference,document_hash,created_at,updated_at,catalog_version) VALUES(?,'owner-a','production',?,?, 'fixture',?,?,2)").run('intent-'+suffix,plan,'reference-'+suffix,stamp,stamp);
+  f.db.prepare("INSERT INTO asaas_subscriptions(id,owner_id,environment,remote_id,customer_id,intent_id,plan,status,paid_through,paid_plan,created_at,updated_at) VALUES(?,'owner-a','production',?,'customer','intent-'||?,?,'ACTIVE',?,?,?,?)").run('sub-'+suffix,'remote-'+suffix,suffix,plan,end,plan,stamp,stamp);
+  f.db.prepare("INSERT INTO asaas_payments(id,subscription_key,remote_id,customer_id,status,amount,due_date,updated_at) VALUES(?,?,?,'customer','RECEIVED',?,?,?)").run('pay-'+suffix,'sub-'+suffix,'remote-pay-'+suffix,amount,due,stamp);
+ }
+ const budget=f.load('lib/ai-budget.ts'),assistant=f.load('lib/customer-assistant.ts');assert.equal((await budget.aiEntitlement('owner-a')).plan,'profissional');assert.equal(await assistant.hasCustomerAssistant('owner-a'),true);
+ f.db.prepare("UPDATE asaas_payments SET status='REFUNDED' WHERE id='pay-pro'").run();assert.equal((await budget.aiEntitlement('owner-a')).plan,'essencial');assert.equal(await assistant.hasCustomerAssistant('owner-a'),false);
+ }finally{f.close();}
+});
