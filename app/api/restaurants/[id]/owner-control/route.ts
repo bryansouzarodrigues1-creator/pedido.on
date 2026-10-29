@@ -18,6 +18,7 @@ export async function POST(request:Request,{params}:Context){try{
  const input=ownerControlInput.parse(await readJson(request,300000));assertMedia(input.snapshot,row.id);
  await throttle("owner-control:"+await sha256(row.ownerId),60,300);
  let result;try{result=resolveOwnerCommand(input);}catch{throw new HttpError(422,"Confira os valores e os produtos. Nenhuma mudança foi aplicada.");}
+ if(result.patch)assertMedia({...input.snapshot,...result.patch},row.id);
  if(result.status!=="creative"||input.mode!=="ai")return Response.json(result,{headers:privateHeaders});
  // Reuse the published editorial model contract. It cannot set prices, payments or orders.
  const chosen=result.form?.selection.productId,prepared=studioInput.parse({requestId:input.requestId,mode:"ai",message:input.message,snapshot:input.snapshot,...(chosen?{productId:chosen}:{}),history:[]});

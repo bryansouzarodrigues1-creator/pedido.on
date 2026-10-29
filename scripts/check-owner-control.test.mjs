@@ -1,7 +1,7 @@
 // Real route/policy logic on a disposable DB. External models are simulated.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {fixture} from './test-backend-fixture.mjs';
+import {fixture,png} from './test-backend-fixture.mjs';
 import {demoRestaurant,restaurantSchema} from '../lib/domain.ts';
 import {ownerControlInput,resolveOwnerCommand} from '../lib/owner-control-policy.ts';
 const now=new Date('2026-10-29T18:30:00Z');
@@ -66,6 +66,36 @@ test('explicit new products get only the owner-provided name, size and price, wi
  assert.equal(p.name,'Pepperoni');assert.equal(p.sizes.g,5990);assert.equal(p.sizes.p,0);assert.equal(p.description,'');assert.equal(p.image,'');assert.equal(d.products.some(p=>p.name==='Pepperoni'),false);assert.ok(r.changes.some(c=>c.after.includes('59,90')));assert.equal(restaurantSchema.safeParse({...d,...r.patch}).success,true);
  assert.equal(resolveOwnerCommand(input('Adicione pizza Pepperoni',{},d),now).status,'clarify');assert.equal(resolveOwnerCommand(input('Adicione pizza Margherita grande por 39,90',{},d),now).status,'clarify');
  const drink=resolveOwnerCommand(input('Adicione bebida Água mineral por R$ 6,00',{},d),now).patch.products.at(-1);assert.equal(drink.kind,'simple');assert.equal(drink.price,600);
+});
+test('photo changes ask for the correct product and an uploaded image; reuse and removal show actual before/after without changing prices',()=>{
+ const d=data(),original=JSON.stringify(d),first=d.products[0],image='/media/shop-a/replacement.png';
+ let r=resolveOwnerCommand(input('Troque a foto de um produto',{},d),now);assert.equal(r.status,'clarify');assert.equal(r.form.kind,'image');assert.equal(r.form.selection.asset,'product');
+ r=resolveOwnerCommand(input('Troque a foto de um produto',{productId:first.id},d),now);assert.equal(r.status,'clarify');assert.equal(r.form.selection.productId,first.id);
+ for(const [message,selection,key] of [['Troque a foto da Margherita',{image},'products'],['Troque a capa',{image},'cover'],['Troque o logo',{image},'logo']]){r=resolveOwnerCommand(input(message,selection,d),now);assert.equal(r.source,'direct');assert.equal(r.status,'preview');assert.equal(key==='products'?r.patch.products[0].image:r.patch[key],image);assert.ok(r.changes.some(c=>c.afterImage===image));assert.equal(r.patch.promotions,undefined);if(r.patch.products)assert.deepEqual(r.patch.products[0].sizes,first.sizes);}
+ const removed=resolveOwnerCommand(input('Remova a foto da Margherita',{},d),now);assert.equal(removed.patch.products[0].image,'');assert.ok(removed.changes.some(c=>c.beforeImage===first.image&&c.after==='Sem imagem'));assert.equal(JSON.stringify(d),original);
+ assert.equal(resolveOwnerCommand(input('Crie uma foto da Margherita',{},d),now).patch,undefined);
+ assert.equal(resolveOwnerCommand(input('Troque a foto da Margherita',{productId:d.products[1].id,image},d),now).status,'clarify');
+ for(const value of ['https://foreign.test/photo.png','data:image/png;base64,AAAA','/media/shop-a/../shop-b/a.png'])assert.throws(()=>input('Troque a capa',{image:value},d));
+});
+test('literal store texts and product renaming/highlights retain original spelling, identity and ingredient/price facts',()=>{
+ const d=data(),id=d.products[0].id;
+ for(const [message,key,value] of [['Mude o slogan para Da nossa família, para a sua.','tagline','Da nossa família, para a sua.'],['Mude a descrição da pizzaria para Tradição & sabor.','description','Tradição & sabor.'],['Mude o WhatsApp para (22) 99999-1234','whatsapp','(22) 99999-1234'],['Mude o Instagram para @forno.da.vila','instagram','@forno.da.vila']])assert.equal(resolveOwnerCommand(input(message,{},d),now).patch[key],value);
+ const renamed=resolveOwnerCommand(input('Mude o nome da Margherita para Marguerita da Vovó',{},d),now).patch.products[0];assert.deepEqual(renamed,{...d.products[0],name:'Marguerita da Vovó'});assert.equal(renamed.id,id);
+ assert.equal(resolveOwnerCommand(input('Mude o nome da Margherita para Calabresa especial',{},d),now).status,'clarify');
+ assert.equal(resolveOwnerCommand(input('Destaque a Margherita',{},d),now).patch.products[0].featured,true);
+ const removed=resolveOwnerCommand(input('Retire a Margherita do destaque',{},d),now);assert.equal(removed.patch.products[0].featured,false);assert.ok(removed.changes.some(c=>c.label.startsWith('Destaque')));
+});
+test('an uploaded photo stays private to the editing flow until the owner applies, saves and publishes, with Pro and image isolation enforced',async()=>{
+ const f=fixture(),original=globalThis.fetch;let calls=0;globalThis.fetch=()=>{calls++;throw Error('No paid provider');};try{
+  enable(f);grant(f);const baseline=snapshot(f),form=new FormData();form.append('file',new File([png],'owner-photo.png',{type:'image/png'}));
+  const uploaded=await f.call('media','POST',{id:'shop-a'},form);assert.equal(uploaded.status,201,await uploaded.clone().text());const {url}=await uploaded.json();assert.ok(url.startsWith('/media/shop-a/'));assert.equal(snapshot(f),baseline);
+  const command=input('Troque a foto da Margherita',{image:url},f.data),preview=await f.call('ownerControl','POST',{id:'shop-a'},command);assert.equal(preview.status,200);const result=await preview.json();assert.equal(result.patch.products[0].image,url);assert.equal(snapshot(f),baseline);assert.equal(calls,0);
+  const foreign=await f.call('ownerControl','POST',{id:'shop-a'},{...command,selection:{image:'/media/shop-b/private.png'}});assert.equal(foreign.status,400);assert.equal(snapshot(f),baseline);
+  for(const table of ['studio_jobs','image_jobs','ai_budget_reservations','ai_job_receipts'])assert.equal(f.db.prepare('SELECT COUNT(*) n FROM '+table).get().n,0,table);
+  f.db.prepare("UPDATE account_access SET tier='',plan='essencial'").run();assert.equal((await f.call('ownerControl','POST',{id:'shop-a'},command)).status,403);
+  // The same uploaded image can still be saved by the complete manual editor.
+  const saved=await f.call('restaurant','PUT',{id:'shop-a'},{data:{...f.data,products:result.patch.products},revision:1});assert.equal(saved.status,200,await saved.clone().text());const row=await saved.json();assert.equal(JSON.parse(row.restaurant.data).products[0].image,url);assert.equal(JSON.parse(f.db.prepare("SELECT published_data FROM restaurants WHERE id='shop-a'").get().published_data).products[0].image,f.data.products[0].image);
+ }finally{globalThis.fetch=original;f.close();}
 });
 test('owner control is owner-bound, Pro-only, private and CSRF-protected before any model request',async()=>{
  const f=fixture(),original=globalThis.fetch;let calls=0;globalThis.fetch=()=>{calls++;throw Error('No external call');};try{
