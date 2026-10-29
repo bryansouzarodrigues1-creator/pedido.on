@@ -8,7 +8,7 @@ import {campaignCreativeSource,trialIdeas} from "./trial-campaign-policy";
 import {generateImage,imageConfig} from "./ai-images";
 import {runStudio,studioConfig} from "./studio";
 import {studioProposal} from "./studio-policy";
-import {planQuotasEnabled} from "./ai-budget";
+import {budgetAllowance,planQuotasEnabled} from "./ai-budget";
 import {curatedWelcome} from "./welcome-campaign-seeds";
 type Row={id:string;owner_id:string;restaurant_id:string;trial_started:number;round:number;source_version:string;snapshot:string;brief:string;text_request:string;image_requests:string;proposal:string|null};
 type Store={id:string;ownerId:string;revision:number;data:string;slug?:string};
@@ -23,10 +23,12 @@ export async function readCampaigns(store:Store){
   const ideas=trialIdeas(restaurantSchema.parse(JSON.parse(row.snapshot)),round);
   records.push({round,id:row.id,stale:row.source_version!==sourceVersion,brief:row.brief,proposal:row.proposal?studioProposal.parse(JSON.parse(row.proposal)):null,textState:text?.state||"new",images:ids.map((id,index)=>{const job=jobs.find(j=>j.request_id===id);return {productId:ideas[index]?.items[0].productId||"",state:job?.state||"new",url:job?.state==="completed"&&job.result_url?.startsWith(`/media/${store.id}/`)?job.result_url:""};})});
  }
- return {access,records,sourceVersion,imageEnabled:imageConfig().enabled&&planQuotasEnabled(),textEnabled:studioConfig().enabled};
+ const imageUsage=await budgetAllowance(store.ownerId,"image",access.legacy?"welcome":""),textUsage=await budgetAllowance(store.ownerId,"text");
+ return {access,records,sourceVersion,imageEnabled:imageConfig().enabled&&planQuotasEnabled()&&imageUsage.available&&(imageUsage.limit===null||imageUsage.used<imageUsage.limit),textEnabled:studioConfig().enabled&&textUsage.available&&(textUsage.limit===null||textUsage.used<textUsage.limit)};
 }
 export async function prepareCampaign(store:Store,input:z.infer<typeof campaignInput>){
  const access=await campaignAccess(store.ownerId);if(!access.rounds.find(r=>r.round===input.round)?.available)throw new HttpError(403,access.active?"A segunda rodada fica disponível no sexto dia do período Free.":"As duas rodadas pertencem ao período Free. As criações já salvas continuam no seu histórico.");
+ if(!access.legacy&&input.action!=="prepare"&&(input.round!==1||["image2","retryImage2"].includes(input.action)))throw new HttpError(403,"O teste inclui uma imagem e um texto de IA na primeira rodada. As outras sugestões usam modelos prontos e suas fotos.");
  if(store.revision!==input.revision)throw new HttpError(409,"Seu cardápio mudou. Atualize o painel e confira as sugestões.");
  const first=await db().prepare("SELECT id FROM restaurants WHERE owner_id=? ORDER BY created_at,id LIMIT 1").bind(store.ownerId).first<{id:string}>();if(first?.id!==store.id)throw new HttpError(403,"O kit Free é compartilhado pela conta e pertence à primeira pizzaria.");
  const data=restaurantSchema.parse(JSON.parse(store.data)),ideas=trialIdeas(data,input.round);if(ideas.length!==2)throw new HttpError(400,"Cadastre pelo menos um produto disponível com preço para preparar seu kit.");

@@ -71,7 +71,7 @@ test('an early confirmed invoice preserves the trial, includes a full paid month
   const sub=[...f.subscriptions.values()][0],payment=[...f.payments.values()][0],firstMidnight=Date.parse(sub.nextDueDate+'T00:00:00-03:00')/1000;assert.ok(firstMidnight>=ends);assert.ok(firstMidnight-ends<86400);assert.equal(payment.dueDate,sub.nextDueDate);assert.equal(sub.cycle,'MONTHLY');
   const pending=await (await f.call('billingStatus','GET')).json();assert.equal(pending.offer.preservesTrial,true);assert.equal(pending.subscription.paidThrough,0);
   payment.status='RECEIVED';assert.equal((await f.webhook('evt_early')).status,200);const paid=await (await f.call('billingStatus','GET')).json();assert.equal(paid.subscription.paidThrough,paid.offer.paidThrough);assert.ok(paid.subscription.paidThrough>ends+27*86400);assert.deepEqual(f.db.prepare('SELECT * FROM account_trials').all(),before);
-  f.env.PEDIDO_AI_PLAN_QUOTAS='true';assert.equal((await f.load('lib/ai-budget.ts').budgetAllowance('owner-a','image')).limit,20,'confirmed early payment activates Pro now, without taking away the bonus trial period');
+  f.env.PEDIDO_AI_PLAN_QUOTAS='true';assert.equal((await f.load('lib/ai-budget.ts').budgetAllowance('owner-a','image')).limit,3,'confirmed early payment activates Essential now, without taking away the bonus trial period');
   const calls=f.calls.filter(c=>c.method==='POST').length;assert.equal((await f.call('billingCheckout','POST',{},input)).status,200);assert.equal(f.calls.filter(c=>c.method==='POST').length,calls);assert.equal((await f.webhook('evt_early')).status,200);assert.equal((await (await f.call('billingStatus','GET')).json()).subscription.paidThrough,paid.subscription.paidThrough);
   payment.status='REFUNDED';assert.equal((await f.webhook('evt_early_refund','PAYMENT_REFUNDED')).status,200);assert.equal((await (await f.call('billingStatus','GET')).json()).subscription.paidThrough,0);assert.deepEqual(f.db.prepare('SELECT * FROM account_trials').all(),before);
  }finally{f.close();}
@@ -141,5 +141,15 @@ test('sandbox-only QA accounts exercise pending, verified payment, duplicate web
   f.env.ASAAS_ENV='production';f.env.ASAAS_API_KEY='$aact_prod_fixture';
   const before=f.calls.length;assert.equal((await f.call('billingCheckout','POST',{},f.input())).status,503);assert.equal(f.calls.length,before);
   f.env.PEDIDO_BILLING_PROVIDER='stripe';assert.equal(billing.billingConfig().enabled,false);assert.equal(billing.billingConfig().provider,'asaas');
+ }finally{f.close();}
+});
+
+test('canonical provider financial data records net value and date without inventing a fixed fee; refunds remove confirmed revenue',async()=>{
+ const f=harness();try{
+  assert.equal((await f.call('billingCheckout','POST',{},f.input())).status,200);const payment=[...f.payments.values()][0];payment.status='RECEIVED';payment.paymentDate=new Date().toISOString().slice(0,10);
+  assert.equal((await f.webhook('evt_finance_missing')).status,200);let row=f.db.prepare('SELECT net_amount,payment_date FROM asaas_payments').get();assert.equal(row.net_amount,null);assert.equal(row.payment_date,payment.paymentDate);
+  payment.netValue=47.01;assert.equal((await f.webhook('evt_finance_measured')).status,200);assert.equal((await f.webhook('evt_finance_measured')).status,200);row=f.db.prepare('SELECT amount,net_amount FROM asaas_payments').get();assert.equal(row.amount,4900);assert.equal(row.net_amount,4701);assert.equal(f.db.prepare('SELECT COUNT(*) n FROM asaas_payments').get().n,1);
+  const finance=()=>f.load('lib/admin-finance.ts').adminFinance('2000-01-01',new Date().toISOString(),'2000-01-01','2099-01-01');let report=await finance();assert.equal(report.payments[0].gross,4900);assert.equal(report.payments[0].knownFees,199);assert.equal(report.payments[0].knownNet,4701);
+  const before=f.calls.length;await finance();assert.equal(f.calls.length,before,'admin does not call a provider');payment.status='REFUNDED';assert.equal((await f.webhook('evt_finance_refund','PAYMENT_REFUNDED')).status,200);report=await finance();assert.equal(report.payments.length,0);
  }finally{f.close();}
 });

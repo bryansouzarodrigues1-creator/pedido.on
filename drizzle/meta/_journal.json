@@ -183,6 +183,13 @@
       "when": 1793198527179,
       "tag": "0025_lucky_lester",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1793233318556,
+      "tag": "0026_ancient_scourge",
+      "breakpoints": true
     }
   ]
 }

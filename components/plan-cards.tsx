@@ -1,3 +1,4 @@
+import {imageFairUse} from "@/lib/ai-offer-policy";
 import {TRIAL_DAYS} from "@/lib/trial-policy";
 import {Check,ArrowRight} from "lucide-react";
 import {publicPlanCatalog,publicPlanIds} from "@/lib/plan-catalog";
@@ -16,6 +17,7 @@ export default function PlanCards(){
     <a className="btn primary" href={`/cadastro?next=${encodeURIComponent("/app?new=1&plan="+id)}`}>Começar meus {TRIAL_DAYS} dias grátis <ArrowRight size={16}/></a>
     <a className="plan-trial-link" href={`/assinatura?plan=${id}`}>Ver assinatura {plan.name} · R$ {plan.amount/100}/mês</a>
    </article>;})}</div>
-  <p className="plans-fine-print">Depois dos {TRIAL_DAYS} dias, você escolhe se quer assinar. O teste inclui o kit de divulgação; o atendente ao cliente é exclusivo do Pro ativo. A calculadora continua grátis. Pix direto para a pizzaria. Textos e artes locais são ilimitados; novas imagens de IA têm franquia de 20 por semana por conta e dependem de disponibilidade.</p>
+  <p className="plans-fine-print">Depois dos {TRIAL_DAYS} dias, você escolhe se quer assinar. O teste inclui uma imagem de IA com texto e modelos prontos de divulgação; o atendente ao cliente é exclusivo do Pro ativo. A calculadora continua grátis. Pix direto para a pizzaria. Textos e artes locais são ilimitados; o Essencial inclui até 3 novas imagens por dia (Brasília), com legenda. O Pro não tem cota mensal fixa de imagens e segue uso justo. Os limites são compartilhados por conta.</p>
+ <details className="plans-fine-print"><summary>Uso justo das imagens no Pro</summary><p>{imageFairUse}</p></details>
  </section>;
 }

@@ -66,7 +66,7 @@ test('migration 0012 remains idempotent and current admin requires the complete 
   await f.migration('0012_admin_account_access.sql');
   assert.deepEqual(await legacySnapshot(f.db),before);
   for(const file of readdirSync('drizzle').filter(name=>name.endsWith('.sql')&&Number(name.slice(0,4))>12).sort())await f.migration(file);
-  const after=await legacySnapshot(f.db);for(const table of Object.keys(before))assert.deepEqual(after[table],before[table],table);
+  const after=await legacySnapshot(f.db);assert.equal(after.account_trials[0].offer_version,2);for(const table of Object.keys(before)){const keys=Object.keys(before[table][0]||{});assert.deepEqual(after[table].map(row=>Object.fromEntries(keys.map(key=>[key,row[key]]))),before[table],table);}
   assert.equal((await f.call('GET')).status,200);
   assert.equal((await f.db.prepare('PRAGMA foreign_key_check').all()).results.length,0);
  }finally{await f.close();}

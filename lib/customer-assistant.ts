@@ -8,7 +8,7 @@ import {storeVerification} from "./store-verification";
 import {accountAccess} from "./account-access";
 import {aiEntitlement,planQuotasEnabled,reserveBudgetedJob,settleAiBudget} from "./ai-budget";
 import {studioConfig} from "./studio";
-import {requestAiProvider} from "./ai-provider";
+import {requestMeteredAiProvider as requestAiProvider} from "./ai-metered-provider";
 import {authConfig} from "./auth";
 import {randomToken,sha256} from "./auth-policy";
 import {HttpError,throttle,readBytes} from "./http";

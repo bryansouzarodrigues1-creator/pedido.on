@@ -4,7 +4,7 @@ import {randomToken,sha256} from "./auth-policy";
 import {HttpError,readBytes,throttle} from "./http";
 import {localStudio,normalizeStudioResponse,proposalPatch,studioEndpoint,studioLimits,studioPrompt,studioProtocol,studioProposal,studioInput} from "./studio-policy";
 import {planQuotasEnabled,budgetAllowance,reserveBudgetedJob,settleAiBudget} from "./ai-budget";
-import {requestAiProvider} from "./ai-provider";
+import {requestMeteredAiProvider as requestAiProvider} from "./ai-metered-provider";
 import {providerFailure} from "./provider-diagnostics";
 import {aiTeamGuidance} from "./restaurant-guidance";
 import type {z} from "zod";
