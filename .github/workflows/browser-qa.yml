@@ -25,7 +25,7 @@ on:
         description: "Cenário no banco descartável"
         type: choice
         default: all
-        options: [all, welcome-kit]
+        options: [all, welcome-kit, owner-control]
 
 permissions:
   contents: read
@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.suite == 'welcome-kit' && '["welcome-kit"]' || '["core","welcome-kit"]') }}
+        suite: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.suite == 'welcome-kit' && '["welcome-kit"]' || github.event_name == 'workflow_dispatch' && inputs.suite == 'owner-control' && '["owner-control"]' || '["core","welcome-kit","owner-control"]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -96,6 +96,7 @@ jobs:
             .sites-runtime/browser-ci/welcome-kit/
             .sites-runtime/browser-ci/first-steps/
             .sites-runtime/browser-ci/customer-assistant/
+            .sites-runtime/browser-ci/owner-control/
             .sites-runtime/browser-ci/handoff/
             .sites-runtime/browser-ci/owner/
             .sites-runtime/browser-ci/store-safety/
