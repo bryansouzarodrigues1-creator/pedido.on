@@ -18,7 +18,11 @@ async function geometry(){for(const width of [320,412,768,1280]){await page.setV
 function local(value){return value.toLocaleString('sv-SE',{timeZone:'America/Sao_Paulo'}).replace(' ','T').slice(0,16);}
 try{
  await page.goto(base+'/signin-with-chatgpt?return_to=%2Fapp',{waitUntil:'networkidle',timeout:90000});
- const created=await api('/api/restaurants','POST',{name:'Assistente do dono QA',slug:'dono-qa-'+Date.now(),theme:'editorial',plan:'profissional'});assert.equal(created.status,201,JSON.stringify(created.body));let shop=created.body.restaurant;
+ // The suite's official local identity has one published-store entitlement.
+ // Reuse its disposable published shop after the customer-assistant check,
+ // rather than granting more shops or bypassing the real publication limit.
+ let shop=(await api('/api/restaurants')).body.restaurants.find(r=>r.published&&r.slug.startsWith('atendimento-qa-'));
+ if(!shop){const created=await api('/api/restaurants','POST',{name:'Assistente do dono QA',slug:'dono-qa-'+Date.now(),theme:'editorial',plan:'profissional'});assert.equal(created.status,201,JSON.stringify(created.body));shop=created.body.restaurant;}
  const data={...demoRestaurant(),name:shop.name,whatsapp:'5522998881029',products:demoRestaurant().products.map(p=>({...p,image:''}))},pizza=data.products.find(p=>p.kind==='pizza');
  let saved=await api('/api/restaurants/'+shop.id,'PUT',{data,revision:shop.revision});assert.equal(saved.status,200);shop=saved.body.restaurant;const published=await api('/api/restaurants/'+shop.id+'/publish','POST',{revision:shop.revision,published:true});assert.equal(published.status,200,JSON.stringify(published.body));shop=published.body.restaurant;
  const baseline=(await api('/api/restaurants')).body.restaurants;
