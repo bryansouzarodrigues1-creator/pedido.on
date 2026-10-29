@@ -1,16 +1,16 @@
 import {z} from "zod";
-import {money,restaurantSchema,type RestaurantData,type Product,type Size} from "./domain.ts";
+import {money,productSchema,restaurantSchema,type RestaurantData,type Product,type Size} from "./domain.ts";
 import {brasiliaDay} from "./ai-offer-policy.ts";
 import {requestedImage} from "./creation-intent.ts";
 import {assistantAnswer} from "./assistant-help.ts";
 import {localStudio,proposalPatch} from "./studio-policy.ts";
 
-export const ownerSelection=z.object({productId:z.string().min(1).max(80).optional(),size:z.enum(["p","m","g"]).optional(),price:z.number().int().min(1).max(1000000).optional(),startsAt:z.string().datetime({offset:true}).optional(),endsAt:z.string().datetime({offset:true}).optional()}).strict();
+export const ownerSelection=z.object({productId:z.string().min(1).max(80).optional(),asset:z.enum(["product","logo","cover"]).optional(),image:productSchema.shape.image.optional(),size:z.enum(["p","m","g"]).optional(),price:z.number().int().min(1).max(1000000).optional(),startsAt:z.string().datetime({offset:true}).optional(),endsAt:z.string().datetime({offset:true}).optional()}).strict();
 export const ownerControlInput=z.object({requestId:z.string().uuid(),message:z.string().trim().min(2).max(1600),mode:z.enum(["smart","ai"]).default("smart"),snapshot:restaurantSchema,selection:ownerSelection.default({})}).strict();
 export type OwnerControlInput=z.infer<typeof ownerControlInput>;
 export type OwnerSelection=z.infer<typeof ownerSelection>;
-export type OwnerChange={label:string;before:string;after:string};
-export type OwnerForm={kind:"promotion"|"price"|"product";products:{id:string;name:string;kind:string;sizes:Size[]}[];selection:OwnerSelection};
+export type OwnerChange={label:string;before:string;after:string;beforeImage?:string;afterImage?:string};
+export type OwnerForm={kind:"promotion"|"price"|"product"|"image";products:{id:string;name:string;kind:string;sizes:Size[]}[];selection:OwnerSelection};
 export type OwnerControlResult={status:"preview"|"clarify"|"creative";source:"direct"|"ai";reply:string;changes:OwnerChange[];patch?:Partial<RestaurantData>;form?:OwnerForm;canUseAI?:boolean;screen?:"menu"|"store"|"overview"|"studio";attempt?:string};
 const normalize=(v:string)=>v.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
 const sizes:Size[]=["p","m","g"];
@@ -24,6 +24,8 @@ function saleLabel(data:RestaurantData,p:RestaurantData["promotions"][number]){r
 /** Summaries are derived from validated patches, never from the model's claims. */
 export function ownerChanges(data:RestaurantData,patch:Partial<RestaurantData>):OwnerChange[]{
  const after=restaurantSchema.parse({...data,...patch}),changes:OwnerChange[]=[];
+ const imageChange=(label:string,before:string,next:string)=>{if(before!==next)changes.push({label,before:before?"Imagem atual":"Sem imagem",after:next?"Imagem escolhida":"Sem imagem",...(before?{beforeImage:before}:{}),...(next?{afterImage:next}:{})});};
+ imageChange("Logo",data.logo,after.logo);imageChange("Capa",data.cover,after.cover);
  const fields={name:"Nome da pizzaria",tagline:"Chamada do cardápio",description:"Texto de apresentação",hours:"Horário",address:"Endereço",city:"Cidade",instagram:"Instagram",whatsapp:"WhatsApp",eta:"Prazo de entrega",accent:"Cor da marca",theme:"Estilo"} as const;
  for(const [key,label] of Object.entries(fields) as [keyof typeof fields,string][])if(data[key]!==after[key])changes.push({label,before:data[key]||"Não informado",after:after[key]||"Não informado"});
  for(const [key,label] of [["isOpen","Loja aberta"],["deliveryEnabled","Entrega"],["pickupEnabled","Retirada"]] as const)if(data[key]!==after[key])changes.push({label,before:data[key]?"Sim":"Não",after:after[key]?"Sim":"Não"});
@@ -31,6 +33,8 @@ export function ownerChanges(data:RestaurantData,patch:Partial<RestaurantData>):
  if(JSON.stringify(data.presentation)!==JSON.stringify(after.presentation))changes.push({label:"Composição do cardápio",before:"Visual atual",after:"Novo visual na prévia"});
  for(const p of after.products){const old=data.products.find(v=>v.id===p.id);if(!old){changes.push({label:"Novo produto",before:"Não cadastrado",after:p.name});if(p.kind==="pizza")for(const size of sizes){if(p.sizes[size]>0)changes.push({label:"Preço · "+productLabel(p,size),before:"Sem preço cadastrado",after:money(p.sizes[size])});}else changes.push({label:"Preço · "+p.name,before:"Sem preço cadastrado",after:money(p.price)});continue;}
   for(const [key,label] of [["name","Nome"],["description","Descrição"]] as const)if(old[key]!==p[key])changes.push({label:label+" · "+old.name,before:old[key]||"Sem texto",after:p[key]||"Sem texto"});
+  imageChange("Foto · "+p.name,old.image,p.image);
+  if(old.featured!==p.featured)changes.push({label:"Destaque · "+p.name,before:old.featured?"Em destaque":"Sem destaque",after:p.featured?"Em destaque":"Sem destaque"});
   if(old.enabled!==p.enabled)changes.push({label:"Disponibilidade · "+p.name,before:old.enabled?"Disponível":"Pausado",after:p.enabled?"Disponível":"Pausado"});
   if(p.kind==="pizza")for(const size of sizes){if(old.sizes[size]!==p.sizes[size])changes.push({label:"Preço · "+productLabel(p,size),before:money(old.sizes[size]),after:money(p.sizes[size])});}
   else if(old.price!==p.price)changes.push({label:"Preço · "+p.name,before:money(old.price),after:money(p.price)});
@@ -80,12 +84,28 @@ export function resolveOwnerCommand(input:OwnerControlInput,now=new Date()):Owne
  if(/\be (?:tambem |depois )?(?:mude|troque|altere|pause|coloque|crie|ative)\b/.test(m))return clarify("Vamos conferir uma alteração por vez. Você pode pedir um reajuste de todas as pizzas, ou preparar cada outra mudança separadamente.");
  const directFields=[[/^(?:mude|troque|altere|defina|coloque|atualize)\s+(?:o |a |meu |minha )?(?:horario(?: de funcionamento)?)\s+(?:para|pra|:|=)\s*(.+)$/i,"hours"],[/^(?:mude|troque|altere|defina|coloque|atualize)\s+(?:o |a |meu |minha )?(?:prazo(?: de entrega)?)\s+(?:para|pra|:|=)\s*(.+)$/i,"eta"],[/^(?:mude|troque|altere|defina|coloque|atualize)\s+(?:o |a |meu |minha )?(?:endereco)\s+(?:para|pra|:|=)\s*(.+)$/i,"address"],[/^(?:mude|troque|altere|defina|coloque|atualize)\s+(?:o |a |meu |minha )?(?:cidade)\s+(?:para|pra|:|=)\s*(.+)$/i,"city"]] as const;
  for(const [pattern,key] of directFields){const match=m.match(pattern);if(match){const original=valueAfterSeparator(text);return ownerPreview(data,{[key]:quoted(original)},"Confira os dados da loja. Mudanças de endereço podem exigir nova verificação.");}}
+ const literalField=m.match(/^(?:mude|troque|altere|defina|coloque|atualize)\s+(?:o |a |meu |minha )?(slogan|chamada|frase|descricao da loja|descricao da pizzaria|texto da loja|texto da pizzaria|whatsapp|instagram)\s+(?:para|pra|:|=)\s*(.+)$/);
+ if(literalField){const key=/whatsapp|instagram/.test(literalField[1])?literalField[1] as "whatsapp"|"instagram":/descricao|texto/.test(literalField[1])?"description":"tagline";return ownerPreview(data,{[key]:quoted(valueAfterSeparator(text))},"Confira o texto e os dados que você informou.");}
  for(const [pattern,key] of [[/^(?:slogan|chamada|frase)\s*[:=]\s*(.+)$/i,"tagline"],[/^(?:descricao|texto)\s+(?:da loja|da pizzaria)\s*[:=]\s*(.+)$/i,"description"]] as const){const match=normalize(text).match(pattern);if(match)return ownerPreview(data,{[key]:quoted(valueAfterSeparator(text))},"Confira o texto que você informou.");}
  if(/^(?:mude|troque|altere|defina|coloque|atualize)\b.*\b(taxa de entrega|pedido minimo)\b/.test(m)){const amount=priceFromMessage(text,true);if(amount!==undefined)return ownerPreview(data,/pedido minimo/.test(m)?{minOrder:amount}:{deliveryFee:amount},"Confira o valor. As regras de bairros continuam sendo as configuradas no editor.");return clarify("Informe o valor em reais. Ex.: Mude a taxa de entrega para R$ 8,00.");}
  if(/^(?:abra|abrir|feche|fechar)\s+(?:a |minha )?(?:loja|pizzaria)(?: agora)?[.!]?$/i.test(m))return ownerPreview(data,{isOpen:/^(abra|abrir)/.test(m)},"Confira a situação da loja antes de publicar.");
 
  const productText=m.match(/^(?:mude|troque|altere|defina)\s+(?:a )?descricao\s+(?:da |do |de )?(.+?)\s+(?:para|pra|:|=)\s+(.+)$/);
  if(productText){const choice=chooseProduct({...input,message:productText[1]},data);if(!choice.product)return clarify("Qual produto receberá essa descrição?",form("product",input.selection,choice.options));const description=quoted(valueAfterSeparator(text));return ownerPreview(data,{products:data.products.map(p=>p.id===choice.product!.id?{...p,description}:p)},"Confira se a descrição representa o produto da sua loja.");}
+ const renameProduct=m.match(/^(?:mude|troque|altere)\s+(?:o )?nome\s+(?:da |do |de )?(.+?)\s+(?:para|pra|:|=)\s+(.+)$/);
+ if(renameProduct&&!/^(?:loja|pizzaria)$/.test(renameProduct[1])){const choice=chooseProduct({...input,message:renameProduct[1]},data);if(!choice.product)return clarify("Qual produto receberá esse nome?",form("product",input.selection,choice.options));const name=quoted(valueAfterSeparator(text));if(data.products.some(p=>p.id!==choice.product!.id&&normalize(p.name)===normalize(name)))return clarify("Já existe um produto com esse nome. Escolha outro nome para distinguir os sabores.");return ownerPreview(data,{products:data.products.map(p=>p.id===choice.product!.id?{...p,name}:p)},"Confira o novo nome. Fotos, ingredientes e preços serão mantidos.");}
+ const photoCommand=/^(?:troque|mude|altere|atualize|coloque|use|envie|anexe|remova|retire|apague|exclua|tire)\b/.test(m)&&/\b(foto|imagem|logo|logotipo|capa)\b/.test(m);
+ if(photoCommand){
+  const asset=/\b(logo|logotipo)\b/.test(m)?"logo":/\bcapa\b/.test(m)?"cover":input.selection.asset||"product",selection={...input.selection,asset};
+  const choice=asset==="product"?chooseProduct(input,data):undefined;
+  if(choice&&!choice.product)return clarify(choice.conflict?"O produto mencionado é diferente do selecionado. Qual foto vamos trocar?":"Qual produto receberá a foto?",form("image",selection,choice.options));
+  if(choice?.product)selection.productId=choice.product.id;
+  const removing=/^(?:remova|retire|apague|exclua|tire)\b/.test(m),image=removing?"":selection.image;
+  if(image===undefined||!removing&&!image)return clarify("Envie a foto que deseja usar ou escolha uma imagem da sua loja. Você confere antes de aplicar.",form("image",selection,data.products));
+  const patch=asset==="product"?{products:data.products.map(p=>p.id===selection.productId?{...p,image}:p)}:{[asset]:image};
+  return ownerPreview(data,patch,removing?"Confira a imagem que será retirada do rascunho.":"Confira a foto e onde ela será usada. Trocar uma imagem enviada não usa uma geração de IA.");
+ }
+ if(/^(?:destaque|coloque|retire|remova|tire)\b/.test(m)&&(/\bdestaque\b/.test(m)||/^destaque\b/.test(m))){const choice=chooseProduct(input,data);if(!choice.product)return clarify("Qual produto vamos destacar?",form("product",input.selection,choice.options));const featured=!/^(retire|remova|tire)\b/.test(m);return ownerPreview(data,{products:data.products.map(p=>p.id===choice.product!.id?{...p,featured}:p)},"Confira o destaque do produto no cardápio.");}
  const quick=assistantAnswer(text);
  if(quick?.kind==="rename")return ownerPreview(data,{name:quick.name},"Confira o nome da pizzaria.");
  if(quick?.kind==="style"){const patch=proposalPatch(localStudio(text,data),data);if(Object.keys(patch).length)return ownerPreview(data,patch,"Confira o visual preparado com as opções da plataforma.");}
@@ -138,5 +158,5 @@ export function resolveOwnerCommand(input:OwnerControlInput,now=new Date()):Owne
   if(needsProduct&&!choice.product)return clarify("Qual produto vamos trabalhar? Assim a IA recebe só as informações relevantes.",form("product",input.selection,choice.options));
   return {status:"creative",source:"direct",changes:[],reply:"Posso usar a IA para preparar visual e textos com os dados da sua loja. Você confere a prévia antes de usar.",canUseAI:true,...(choice.product?{form:form("product",{productId:choice.product.id},[choice.product])}:{})};
  }
- return {...clarify("Conte uma mudança por vez. Posso preparar promoções, preços, disponibilidade, horários, textos e visual. Todos os campos também continuam disponíveis no editor manual."),screen:"menu"};
+ return {...clarify("Conte uma mudança por vez. Posso preparar fotos, promoções, preços, nomes, destaques, disponibilidade, horários, textos e visual. Todos os campos também continuam disponíveis no editor manual."),screen:"menu"};
 }
