@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-29",
+  "feature": "Pro owner assistant",
+  "testedGithubCommit": "87a55417dd19fa6cfbefe130a9630b358fa94af5",
+  "pullRequest": "https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/149",
+  "local": {
+    "tests": 792,
+    "passed": 792,
+    "failed": 0,
+    "finalTargetedTests": 17,
+    "types": "passed",
+    "build": "passed"
+  },
+  "chrome": {
+    "run": 40885151507,
+    "job": 123486895928,
+    "artifact": 12901449042,
+    "artifactSha256": "6ca35b407917c1a789a7809094ba6ae92b877efedfceabd16af90fb77feb2de0",
+    "summary": {
+      "passed": true,
+      "checks": [
+        "Real Pro endpoint prepares precise offers and asks for missing values; decimal typing and Brasília dates work; preparing does not save or publish",
+        "Changing the draft through the existing editor blocks an obsolete preview; re-preparing preserves completed fields and applying still changes only the client draft",
+        "The owner explicitly saves and publishes with normal optimistic revision controls; offer price reaches the public menu while regular prices, Pix and other complete shops stay unchanged",
+        "Essencial loses the conversational owner feature on both UI and direct API; the full manual editor remains; all requests stay local and no model, image, order or payment is called"
+      ],
+      "errors": [],
+      "responses": [
+        {
+          "status": 200,
+          "source": "direct",
+          "statusType": "preview"
+        },
+        {
+          "status": 200,
+          "source": "direct",
+          "statusType": "clarify"
+        },
+        {
+          "status": 200,
+          "source": "direct",
+          "statusType": "preview"
+        },
+        {
+          "status": 200,
+          "source": "direct",
+          "statusType": "preview"
+        }
+      ],
+      "writes": [
+        "POST /api/restaurants",
+        "PUT /api/restaurants/00ecbe52-f3a6-4d1c-b44e-3466e6b39051",
+        "POST /api/restaurants/00ecbe52-f3a6-4d1c-b44e-3466e6b39051/publish",
+        "POST /api/restaurants/00ecbe52-f3a6-4d1c-b44e-3466e6b39051/owner-control",
+        "POST /api/restaurants/00ecbe52-f3a6-4d1c-b44e-3466e6b39051/owner-control",
+        "POST /api/restaurants/00ecbe52-f3a6-4d1c-b44e-3466e6b39051/owner-control",
+        "POST /api/restaurants/00ecbe52-f3a6-4d1c-b44e-3466e6b39051/owner-control",
+        "PUT /api/restaurants/00ecbe52-f3a6-4d1c-b44e-3466e6b39051",
+        "POST /api/restaurants/00ecbe52-f3a6-4d1c-b44e-3466e6b39051/publish",
+        "POST /api/restaurants/00ecbe52-f3a6-4d1c-b44e-3466e6b39051/owner-control"
+      ],
+      "scope": "Real Chrome, local D1 and official disposable Sites identity; explicit synthetic Pro grant; no production, model, financial API, real order or external message."
+    }
+  },
+  "scope": "Disposable official local Sites identity and D1. Real browser/API save and publication, synthetic plan grant. No paid model, order, payment, external message or production client edit. No Lovable development credits.",
+  "remainingExternalValidation": [
+    "Authorized real inference through the new panel",
+    "Physical Android test"
+  ]
+}

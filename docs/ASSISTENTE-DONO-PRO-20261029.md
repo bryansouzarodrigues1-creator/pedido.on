@@ -24,3 +24,17 @@ O servidor confirma sessão, propriedade da pizzaria e Pro ativo a cada pedido, 
 - A verificação Chrome usa uma conta oficial local e um Pro sintético, em D1 descartável. Confere formulário/centavos, prévia sem gravar, bloqueio de prévia antiga, aplicação local, publicação explícita e perda do recurso após voltar ao Essencial, mantendo o editor manual.
 - IA externa é simulada nos testes. Não houve geração real ou edição paga no Lovable; o serviço continua com seu contrato publicado. A inferência real por este novo painel ainda precisa de homologação autorizada.
 - Nenhuma migração, cobrança, alteração de sessão, chave, conta real ou cardápio de cliente é parte da implementação. Pesquisa/integração FLUX e testes físicos de Android continuam com suas dependências anteriores.
+
+## Evidências da entrega
+
+O cenário dedicado passou no Chrome em 29/10/2026, usando D1 e identidade local descartáveis. As quatro verificações confirmaram preparo sem gravação, campos de valor/data em Brasília, bloqueio de prévia antiga, aplicação somente no rascunho, publicação explícita e recusa no Essencial. As telas foram conferidas a 320, 412, 768 e 1280 px.
+
+O cenário usa um banco separado das suítes anteriores, mantendo o limite atual de uma pizzaria publicada no Pro. A primeira execução compartilhada recebeu a recusa correta de uma segunda publicação; o isolamento foi corrigido sem ampliar permissões ou mudar os planos.
+
+- Código funcional testado no GitHub: `87a55417dd19fa6cfbefe130a9630b358fa94af5`.
+- Chrome dedicado: job `123486895928`, run `40885151507`, artefato `12901449042`; quatro verificações e zero erros.
+- Tipos/build locais e 792 testes aprovados; 17 regressões finais passaram após os ajustes de interface e plano.
+- [Relatório estruturado](EVIDENCIA-ASSISTENTE-DONO-20261029.json).
+- [PR #149 — estado final dos checks, fonte e publicação](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/149).
+
+A inferência real pelo novo assistente continua sem homologação nesta etapa: os testes de integração com IA usaram transporte/modelo simulados, com idempotência e limites reais do aplicativo.
