@@ -42,7 +42,7 @@ No exemplo Gemini, 500 consumidores/mês × 3 interações × (1.500 tokens de e
 
 Migração 0026 apenas acrescenta tabela de recibos e colunas opcionais de pagamento, além da versão da oferta com padrão legado constante. Novas adesões gravam a versão 3 explicitamente. Não reescreve testes/cobranças já existentes, sessões, identidade de loja, preços, Pix ou objetos R2. Não há backfill destrutivo nem nova conta de demonstração em produção.
 
-A validação desta entrega usa banco descartável, D1/workerd real, provedores simulados, tipos/build e Chrome no CI. Nenhum teste simulado comprova o custo ou a qualidade de um modelo real. Android físico, recuperação por e-mail real, assinatura paga real e troca de provedor continuam exigindo homologação própria. O estado final da publicação e os checks serão registrados na continuidade após os resultados.
+A validação desta entrega usou banco descartável, D1/workerd real, provedores simulados, tipos/build e Chrome no CI. Nenhum teste simulado comprova o custo ou a qualidade de um modelo real. Android físico, recuperação por e-mail real, assinatura paga real e troca de provedor continuam exigindo homologação própria. A publicação v108 e seus checks estão registrados abaixo.
 
 ### Verificação local concluída
 
@@ -50,3 +50,13 @@ A validação desta entrega usa banco descartável, D1/workerd real, provedores 
 - TypeScript e build oficial aprovados. Testes dos provedores e Asaas são simulados; nenhuma geração ou cobrança real ocorreu.
 - Leitura antes da publicação: três lojas e três testes existentes, zero cobranças Asaas registradas. A projeção de duas células JSON de lojas foi truncada pela ferramenta: isso não é backup integral nem prova de igualdade de todos os campos. Não foram lidas/expostas credenciais de sessão.
 - Tokens e custo reais continuam desconhecidos quando o serviço não informa metadados; os números dos testes são sintéticos.
+
+
+### Publicação do núcleo e correção da apresentação
+
+- **v108 publicada em 29/10/2026 às 09:06:59 de Brasília**, audiência pública e ambiente revisão 20 preservados. Fonte Sites `5824045a02401efebe5d3e3097deb9c874b2758e`, árvore `0fc7e99bdea37fb13f60e2b8915b340ef334e65a`, versão salva `appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_3d51b013f7248191be13f1a2af465e2c`, implantação `appgdep_6ae336c9b11c8191ab42e76b1badee81`, resultado `succeeded`.
+- PR #147 integrada em `ea27c66ba65ff1d8404c1d03bd046e8441a0696e`. Checks sobre o head `d8d1ff07b6696ee87d04153aba9531e22511f260`: Chrome `40794328654` (core e welcome-kit), Windows `40794328708`, autenticação/pedidos `40794328792`, chat/build `40794328665` e disponibilidade `40794328889`, todos aprovados.
+- O Chrome do kit comprovou oito cenários, uma imagem + texto simulados, quatro PNGs reais nos formatos de redes, revisão de preços, verificação/desverificação e envio manual de material. O provedor foi simulado; não é prova de custo real.
+- A leitura após a migração mostra três lojas, três testes existentes, zero cobranças e zero recibos novos de IA. As contagens são compatíveis com a leitura anterior. Não há comparação integral disponível dos dados de produção: duas células JSON vieram truncadas, e o estado completo anterior não permaneceu disponível após a retomada. A migração é aditiva e a preservação foi verificada no D1 descartável. Sessões não foram expostas.
+- A conferência no navegador público identificou um texto antigo no cartão Free anunciando quatro fotos. Foi corrigido para uma imagem com texto, usando `trialOffer` do servidor, com condições de uso justo na página real e teste de regressão do HTML efetivamente renderizado. Os modelos sem nova foto deixam de prometer outra geração. Esta correção é de apresentação; não altera a nova franquia, os pagamentos, a migração ou o atendimento.
+- A FLUX e seu preço pesquisado continuam como candidata: nenhuma credencial/contratação/geração real foi realizada. A prioridade seguinte é validar qualidade e custo reais do provedor econômico, antes de trocar o serviço publicado.
