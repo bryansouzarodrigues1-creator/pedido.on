@@ -27,4 +27,15 @@ Testes exercitam as rotas e o armazenamento descartável: upload, prévia, isola
 
 Texto criativo e visual continuam usando o serviço editorial existente quando solicitados. Geração de uma imagem nova continua no Estúdio. Não houve chamada ao construtor Lovable, geração real, compra de créditos ou operação financeira. O assistente atua nos recursos da própria loja; não executa código livre nem altera privilégios da plataforma.
 
-Resultados finais e versão publicada serão registrados após a conclusão das verificações.
+## Resultado confirmado
+
+**v111 publicada em 29/10/2026 às 15:52:58 de Brasília**, ambiente revisão 20 e audiência pública preservados. Endereço em uso: https://pizzaria-on.netlify.app/ . PRs [#151](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/151) e [#152](https://github.com/bryansouzarodrigues1-creator/pedido.on/pull/152) integradas.
+
+- **799/799 testes locais**, zero falhas; tipos e build oficial aprovados. Os testes usam serviços externos simulados.
+- [Chrome](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40933440837): core, welcome-kit e owner-control aprovados. O assistente passou em sete verificações, incluindo upload, prévia sem gravar, nome/foto, publicação explícita, bloqueio no Essencial e recuperação única após falha de módulo. Quatro larguras: 320/412/768/1280 px.
+- [Windows](https://github.com/bryansouzarodrigues1-creator/pedido.on/actions/runs/40933440912): tipos, regressão completa e build aprovados.
+- Artefato Chrome do assistente `12923721620` conferido por SHA-256 `85030a62e87223451a8e2211089b64a8891d618bbbc5719ecf344a9913f23cfc`. Resumo com sete verificações aprovadas, zero erros; captura móvel da prévia inspecionada.
+- Fonte funcional GitHub `ddc504918da9462f65bfb2a1435db36ca655e5e9`, merge `e2d35c65a6e2d395b5e65313f4a28a9ed16f807b`. Árvore `20b1682d6382755d9578afe52c5944175b1d361c`, igual à fonte nativa publicada `ed543c9a0c7a0c0b16bac615752dbfb9ee5bdcef`.
+- Versão salva `appgprj_6ac6d3ea9f7881918f315a156338ed52~appgver_207ca769d7d481919404807a9a386c0e`; implantação `appgdep_6ae395efa8888191949c03cb6ce71fc0` com resultado nativo `succeeded`.
+
+A prévia gerenciada local recusou a conexão; os ensaios interativos novos ocorreram no Chrome isolado do GitHub com identidade, loja, concessão Pro e imagem sintéticas. Nenhuma conta de cliente, operação financeira, mensagem externa ou geração paga foi usada. Android físico e sessão real de cliente em produção continuam fora desta homologação. A atualização seguinte de documentação não muda o aplicativo da v111.
