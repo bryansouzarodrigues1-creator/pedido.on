@@ -1,4 +1,5 @@
 "use client";
+import {creationLimitReached,creationUsageLabel} from "@/lib/ai-offer-policy";
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import {ArrowRight,Check,Image as ImageIcon,Sparkles,Send,RotateCcw,Download,Palette,Eye} from "lucide-react";
 import {localStudio,proposalPatch,studioImagePatch,studioProposal,type StudioProposal} from "@/lib/studio-policy";
@@ -14,11 +15,11 @@ import {z} from "zod";
 import SavedCreations from "./saved-creations";
 import type {SavedCreation} from "@/lib/creation-history-policy";
 
-type Usage={enabled:boolean;used:number;limit:number};
+type Usage={enabled:boolean;used:number;limit:number|null};
 type Target=CreationTarget;
 type Generated={url:string;asset:string;productId?:string};
 type Attempt={path:string;body:Record<string,unknown>;base:string;target:Exclude<Target,"image">};
-const usageSchema=z.object({enabled:z.boolean(),used:z.number().int().min(0),limit:z.number().int().min(0)});
+const usageSchema=z.object({enabled:z.boolean(),used:z.number().int().min(0),limit:z.number().int().min(0).nullable()});
 const options=[{id:"visual",label:"Design e textos do cardápio"},{id:"image",label:"Imagem para a pizzaria"},{id:"logo",label:"Logo da pizzaria"},{id:"cover",label:"Capa do cardápio"},{id:"profile",label:"Imagem de perfil"},{id:"product",label:"Foto de um produto"}] as const;
 const hints:Record<Target,string>={image:"Gere algo marcante de pizza de queijo, com queijo derretido e luz quente.",visual:"Quero uma lista artesanal, com letras elegantes, verde italiano e fotos ao lado dos sabores.",logo:"Um logo com forno a lenha, o nome da minha pizzaria e letras fáceis de ler.",cover:"Pizza saindo do forno, luz quente e espaço para o título do cardápio.",profile:"Um símbolo de pizza com fundo escuro, fácil de reconhecer no WhatsApp.",product:"Pizza vista de cima, sobre uma mesa de madeira, com luz natural."};
 async function responseBody(r:Response){const raw=await r.json();return raw&&typeof raw==="object"&&!Array.isArray(raw)?raw as Record<string,unknown>:{};}
@@ -49,7 +50,7 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
  const messageLimit=isImage?600:1600,messageTooLong=message.trim().length>messageLimit;
  const allowance=isImage?imageUsage:usage;
  const available=demo?!isImage:!!allowance&&(isImage||mode==="ai"?allowance.enabled:true);
- const limitReached=(isImage||mode==="ai")&&!!allowance&&allowance.used>=allowance.limit;
+ const limitReached=(isImage||mode==="ai")&&!!allowance&&creationLimitReached(allowance);
  async function csrf(){const r=await fetch("/api/auth/config",{cache:"no-store"}),v=await responseBody(r);if(!r.ok||typeof v.csrf!=="string")throw Error("Entre novamente para continuar.");return v.csrf;}
  function choose(value:Target){setTarget(value);setError("");}
  function recover(creation:SavedCreation){if(busy||pending)return;try{const snapshot=current.current;setError("");if(creation.kind==="text"){proposalPatch(creation.proposal,snapshot);setProposal(creation.proposal);setGenerated(null);setResultMode("text");setTarget("visual");}else{if(!restaurantId||!creation.url.startsWith("/media/"+restaurantId+"/"))throw Error("Esta imagem pertence a outra pizzaria.");if(creation.asset==="product"&&!snapshot.products.some(p=>p.id===productId)){setTarget("product");throw Error("Selecione acima o produto que vai receber esta foto e abra a criação novamente.");}const image={url:creation.url,asset:creation.asset,...(creation.asset==="product"?{productId}:{})};studioImagePatch(snapshot,image);setGenerated(image);setProposal({reply:"Criação recuperada. Confira antes de usar no rascunho.",productDescriptions:[]});setResultMode("image");setTarget(creation.asset);}setBase(JSON.stringify(snapshot));setApplied(false);}catch(e){setError(e instanceof Error?e.message:"Esta criação precisa ser conferida.");}}
@@ -128,7 +129,7 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
      {!quickAnswer&&isImage&&(target==="image"||target==="visual"&&intent)&&<p className="creation-note" role="status">{resolvedTarget==="cover"?"Vamos criar uma imagem horizontal que você poderá usar como capa.":`Vamos criar ${imageLabels[resolvedTarget as keyof typeof imageLabels]} com sua ideia.`}</p>}
      {!quickAnswer&&needsChoice&&<p className="creation-note" role="status">Escolha Logo, Capa, Perfil ou Foto em “O que você quer criar?” para gerar sua imagem.</p>}
     </fieldset>
-    <div className="creation-submit"><span>{demo?"Prévia gratuita":quickAnswer?"Orientação ou ajuste local · sem créditos":!allowance?"Verificando disponibilidade…":!isImage&&mode==="local"?"Estilos prontos · sem limite":`Usa 1 ${isImage?"imagem":"criação de texto"} da cota · ${Math.max(0,allowance.limit-allowance.used)} disponíveis`}</span><button className="btn primary" disabled={busy||pending||(!quickAnswer&&!available)||(!quickAnswer&&limitReached)||(!quickAnswer&&needsChoice)||message.trim().length<(quickAnswer?2:isImage?10:5)||(!quickAnswer&&messageTooLong)||(!quickAnswer&&resolvedTarget==="product"&&!productId)}>{busy?<Spinner/>:isImage?<ImageIcon size={17}/>:<Send size={17}/>} {busy?"Criando…":quickAnswer?.kind==="guide"?"Explicar":quickAnswer?"Preparar prévia":target==="image"?"Criar imagem":resolvedTarget==="logo"?"Criar logo":resolvedTarget==="cover"?"Criar capa":isImage?"Criar imagem":"Criar prévia"}</button></div>
+    <div className="creation-submit"><span>{demo?"Prévia gratuita":quickAnswer?"Orientação ou ajuste local · sem créditos":!allowance?"Verificando disponibilidade…":!isImage&&mode==="local"?"Estilos prontos · sem limite":`Usa 1 ${isImage?"imagem":"criação de texto"} · ${allowance.limit===null?"sem cota mensal fixa":Math.max(0,allowance.limit-allowance.used)+" disponíveis"}`}</span><button className="btn primary" disabled={busy||pending||(!quickAnswer&&!available)||(!quickAnswer&&limitReached)||(!quickAnswer&&needsChoice)||message.trim().length<(quickAnswer?2:isImage?10:5)||(!quickAnswer&&messageTooLong)||(!quickAnswer&&resolvedTarget==="product"&&!productId)}>{busy?<Spinner/>:isImage?<ImageIcon size={17}/>:<Send size={17}/>} {busy?"Criando…":quickAnswer?.kind==="guide"?"Explicar":quickAnswer?"Preparar prévia":target==="image"?"Criar imagem":resolvedTarget==="logo"?"Criar logo":resolvedTarget==="cover"?"Criar capa":isImage?"Criar imagem":"Criar prévia"}</button></div>
     {messageTooLong&&!quickAnswer&&<p className="creation-note" role="status">Sua ideia completa continua aqui. Resuma o pedido em até {messageLimit===1600?"1.600":"600"} caracteres antes de criar.</p>}
    </form>
    {limitReached&&<p className="creation-note">As criações com IA estão temporariamente indisponíveis para sua conta. Os estilos prontos continuam disponíveis.</p>}

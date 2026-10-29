@@ -3,7 +3,7 @@ import {randomToken,sha256} from "./auth-policy";
 import {HttpError,readBytes,throttle} from "./http";
 import {imageEndpoint,imageLimits,imagePrompt,imageFormat,imageProtocol,imageInput} from "./image-policy";
 import {planQuotasEnabled,budgetAllowance,reserveBudgetedJob,settleAiBudget} from "./ai-budget";
-import {requestAiProvider} from "./ai-provider";
+import {requestMeteredAiProvider as requestAiProvider} from "./ai-metered-provider";
 import {providerFailure} from "./provider-diagnostics";
 import {aiTeamGuidance} from "./restaurant-guidance";
 import type {z} from "zod";
@@ -25,7 +25,7 @@ export async function generateImage(ownerId:string,restaurantId:string,name:stri
  const existing=await find();
  function resume(job:Job){if(job.input_hash!==hash)throw new HttpError(409,"Esta solicitação já foi utilizada com outra descrição.");if(job.state==="completed"&&job.result_url)return {url:job.result_url,asset:job.asset};throw new HttpError(409,job.state==="queued"||job.state==="claimed"?"Sua imagem está sendo preparada. Aguarde.":"Este pedido terminou sem imagem. Você pode criar outro.",job.state==="queued"||job.state==="claimed"?"pending":job.state==="cancelled"?"cancelled":"failed");}
  if(existing)return {...resume(existing),usage:await imageAllowance(ownerId,campaignKey)};
- await throttle("image-owner:"+await sha256(ownerId),planQuotasEnabled()?30:10,86400);
+ await throttle("image-owner:"+await sha256(ownerId),planQuotasEnabled()?3:10,planQuotasEnabled()?60:86400);
  const now=new Date(),stamp=now.toISOString(),day=stamp.slice(0,10),period=stamp.slice(0,7),id=crypto.randomUUID(),token=randomToken(),tokenHash=await sha256(token),expires=new Date(now.getTime()+120000).toISOString();
  const insert=`INSERT INTO image_jobs (id,owner_id,restaurant_id,request_id,input_hash,token_hash,prompt,asset,promotion_id,source_version,campaign_key,state,period_key,created_at,expires_at,updated_at) SELECT ?,?,?,?,?,?,?,?,?,?,?,'queued',?,?,?,?`;
  const basePrompt=imagePrompt(name,input,product),guidance=await aiTeamGuidance(restaurantId);let context=guidance.slice(0,Math.max(0,3000-basePrompt.length-240));

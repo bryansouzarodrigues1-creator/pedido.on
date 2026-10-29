@@ -17,7 +17,7 @@ export function trialIdeas(data:RestaurantData,round:number,now=new Date()):Dail
 /** The model supplies a short call; product, size, amount and link remain verified text. */
 export function campaignCaption(data:RestaurantData,idea:DailyCampaign,url:string,copy=""){
  const safe=copy.trim().length<=180&&!/\d|r\$|%|gr[aá]tis|gratuit|descont|entrega|frete|hor[aá]rio|http|@|ganhe|garant/i.test(copy)?copy.trim():"";
- return `${safe||idea.headline} 🍕\n\n${data.name}\n${idea.detail}\n${money(idea.price)}\n\nEscolha pelo cardápio: ${url}\nEntrega à parte. Consulte a disponibilidade. Preço conferido em ${idea.day.split("-").reverse().join("/")}.`;
+ return `${safe||idea.headline} 🍕\n\n${data.name}\n${idea.detail}\n${money(idea.price)}\n\nEscolha pelo cardápio: ${url}\n${data.deliveryEnabled?"Entrega à parte. Consulte a taxa no cardápio.":data.pickupEnabled?"Retirada na loja. Confira o endereço no cardápio.":"Consulte a disponibilidade com a loja."} Preço conferido em ${idea.day.split("-").reverse().join("/")}.`;
 }
 export function suggestedMenuPatch(data:RestaurantData,proposal:StudioProposal|null,photos:{productId:string;url:string}[]):Partial<RestaurantData>{
  return {presentation:proposal?.presentation||{layout:"poster",hero:"cover",font:"bold",corners:"soft"},...(proposal?.tagline?{tagline:proposal.tagline}:{}),...(!data.cover&&photos[0]?{cover:photos[0].url}:{}),products:data.products.map(product=>{const photo=photos.find(p=>p.productId===product.id);return !product.image&&photo?{...product,image:photo.url}:product;})};

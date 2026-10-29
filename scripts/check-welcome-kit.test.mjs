@@ -8,7 +8,7 @@ import {demoRestaurant} from '../lib/domain.ts';
 import {restaurantSchema} from '../lib/domain.ts';
 import {curatedWelcome} from '../lib/welcome-campaign-seeds.ts';
 const second=()=>Math.floor(Date.now()/1000);
-function enable(f,start=second()-6*86400){Object.assign(f.env,{PEDIDO_AI_PLAN_QUOTAS:'true',PEDIDO_IMAGE_ENABLED:'true',PEDIDO_IMAGE_ENDPOINT:'https://pedido-on-imagens.lovable.app/api/pedido-on/image',PEDIDO_STUDIO_ENABLED:'true',PEDIDO_STUDIO_ENDPOINT:'https://pedido-on-imagens.lovable.app/api/pedido-on/studio'});f.db.prepare('INSERT INTO account_trials(owner_id,registered_at,started_at,ends_at) VALUES(?,?,?,?)').run('owner-a',new Date(start*1000).toISOString(),start,start+10*86400);}
+function enable(f,start=second()-6*86400){Object.assign(f.env,{PEDIDO_AI_PLAN_QUOTAS:'true',PEDIDO_IMAGE_ENABLED:'true',PEDIDO_IMAGE_ENDPOINT:'https://pedido-on-imagens.lovable.app/api/pedido-on/image',PEDIDO_STUDIO_ENABLED:'true',PEDIDO_STUDIO_ENDPOINT:'https://pedido-on-imagens.lovable.app/api/pedido-on/studio'});f.db.prepare('INSERT INTO account_trials(owner_id,registered_at,started_at,ends_at) VALUES(?,?,?,?)').run('owner-a',new Date(start*1000).toISOString(),start,start+10*86400);f.db.prepare("UPDATE account_trials SET offer_version=2").run();}
 const request=(action,round=1,patch={})=>({action,round,revision:1,brief:'Quero uma imagem marcante com a minha cor.',...patch});
 function mockedProvider(f){let images=0,texts=0;const original=globalThis.fetch;globalThis.fetch=async(url,init)=>{
  assert.ok(url.startsWith('https://pedido-on-imagens.lovable.app/api/pedido-on/'));
@@ -44,7 +44,7 @@ test('campaign preparation is owner-bound, CSRF-protected, shared by account and
 test('both real campaign rounds reuse one-use text/image claims, reserve four included photos and preserve the complete menu',async()=>{
  const f=fixture();enable(f);const provider=mockedProvider(f);try{
   const before=f.db.prepare('SELECT * FROM restaurants ORDER BY id').all();
-  for(const round of [1,2])for(const action of ['prepare','text','image1','image2']){const r=await f.call('trialCampaigns','POST',{id:'shop-a'},request(action,round));assert.equal(r.status,200,await r.clone().text());}
+  for(const round of [1,2])for(const action of ['prepare','text','image1','image2']){f.db.prepare("DELETE FROM rate_buckets WHERE id LIKE 'image-owner:%'").run();const r=await f.call('trialCampaigns','POST',{id:'shop-a'},request(action,round));assert.equal(r.status,200,await r.clone().text());}
   assert.deepEqual(provider.counts(),{images:4,texts:2});assert.equal(f.objects.size,4);
   const budget=f.load('lib/ai-budget.ts');assert.equal((await budget.budgetAllowance('owner-a','image')).used,0);assert.equal((await budget.budgetAllowance('owner-a','image','campaign')).used,4);assert.equal((await budget.budgetAllowance('owner-a','image','campaign')).limit,4);
   for(const action of ['text','image1','image2'])assert.equal((await f.call('trialCampaigns','POST',{id:'shop-a'},request(action))).status,200);
@@ -58,12 +58,13 @@ test('two tabs cannot pay twice for a campaign; only an explicitly refunded atte
   const responses=await Promise.all([f.call('trialCampaigns','POST',{id:'shop-a'},request('image1')),f.call('trialCampaigns','POST',{id:'shop-a'},request('image1'))]);assert.ok(responses.every(r=>[200,409].includes(r.status)));assert.equal(provider.counts().images,1);
   assert.equal((await f.call('trialCampaigns','POST',{id:'shop-a'},request('retryImage1'))).status,409);
   provider.close();globalThis.fetch=async()=>{throw Error('Connection failed before claim');};assert.equal((await f.call('trialCampaigns','POST',{id:'shop-a'},request('image2'))).status,503);
+  f.db.prepare("DELETE FROM rate_buckets WHERE id LIKE 'image-owner:%'").run();
   assert.equal((await f.call('trialCampaigns','POST',{id:'shop-a'},request('retryImage2'))).status,200);const next=mockedProvider(f);try{assert.equal((await f.call('trialCampaigns','POST',{id:'shop-a'},request('image2'))).status,200);assert.equal(next.counts().images,1);}finally{next.close();}
  }finally{provider.close();f.close();}
 });
 test('Free and Pro grants have distinct quotas, all four durations work and suspension denies campaigns',async()=>{
  const f=fixture();enable(f);try{f.env.PLATFORM_ADMIN_ACCOUNT_ID='owner-b';f.state.user={userId:'owner-b',displayName:'Admin',email:'admin@example.test'};const before=f.db.prepare('SELECT * FROM restaurants ORDER BY id').all();let version=0;
-  for(const tier of ['free','pro'])for(const durationDays of [10,30,60,90]){const r=await f.call('adminAccess','PATCH',{}, {restaurantId:'shop-a',mode:'grant',plan:'essencial',tier,durationDays,reason:'Plano liberado pelo administrador.',expectedVersion:version});assert.equal(r.status,200,await r.clone().text());version++;const quota=await f.load('lib/ai-budget.ts').budgetAllowance('owner-a','image');assert.equal(quota.limit,tier==='pro'?20:7);assert.equal(quota.scope,tier==='pro'?'week':'trial');}
+  for(const tier of ['free','pro'])for(const durationDays of [10,30,60,90]){const r=await f.call('adminAccess','PATCH',{}, {restaurantId:'shop-a',mode:'grant',plan:'essencial',tier,durationDays,reason:'Plano liberado pelo administrador.',expectedVersion:version});assert.equal(r.status,200,await r.clone().text());version++;const quota=await f.load('lib/ai-budget.ts').budgetAllowance('owner-a','image');assert.equal(quota.limit,tier==='pro'?null:1);assert.equal(quota.scope,tier==='pro'?'fair_use':'trial');}
   const audit=f.db.prepare('SELECT tier FROM account_access_events ORDER BY rowid').all();assert.deepEqual(audit.map(r=>r.tier),['free','free','free','free','pro','pro','pro','pro']);assert.deepEqual(f.db.prepare('SELECT * FROM restaurants ORDER BY id').all(),before);
   const blocked=await f.call('adminAccess','PATCH',{}, {restaurantId:'shop-a',mode:'suspended',reason:'Conta pausada para análise.',expectedVersion:version});assert.equal(blocked.status,200);f.state.user={userId:'owner-a',displayName:'Dono',email:'owner@example.test'};assert.equal((await f.call('trialCampaigns','POST',{id:'shop-a'},request('prepare'))).status,403);
  }finally{f.close();}
@@ -77,13 +78,13 @@ test('admin initiates review from a customer without approving silently; explici
  }finally{f.close();}
 });
 
-test('twenty competing Pro images share one weekly cap across stores and extending a grant does not reset usage',async()=>{
+test('Pro has no monthly quota; one active generation is shared across shops and grant renewal preserves usage',async()=>{
  const f=fixture();enable(f);const provider=mockedProvider(f);try{
   const stamp=new Date().toISOString();f.db.prepare("INSERT INTO account_access(owner_id,mode,tier,plan,expires_at,updated_by,updated_at) VALUES('owner-a','grant','pro','essencial',?,'admin',?)").run(second()+10*86400,stamp);f.db.prepare("UPDATE restaurants SET owner_id='owner-a' WHERE id='shop-b'").run();
   const body=()=>({requestId:crypto.randomUUID(),asset:'logo',description:'Marca de forno e pizza para este ensaio.',theme:'editorial',accent:'#bd391d'});
-  const responses=await Promise.all(Array.from({length:22},(_,i)=>f.call('images','POST',{id:i%2?'shop-a':'shop-b'},body())));assert.equal(responses.filter(r=>r.status===200).length,20);assert.equal(responses.filter(r=>r.status===429).length,2);assert.equal(provider.counts().images,20);
-  const budget=f.load('lib/ai-budget.ts'),before=await budget.budgetAllowance('owner-a','image');assert.equal(before.used,20);assert.equal(before.scope,'week');
-  f.db.prepare("UPDATE account_access SET expires_at=?,updated_at=? WHERE owner_id='owner-a'").run(second()+90*86400,new Date().toISOString());const after=await budget.budgetAllowance('owner-a','image');assert.equal(after.period,before.period);assert.equal(after.used,20);assert.equal((await f.call('images','POST',{id:'shop-a'},body())).status,429);assert.equal(provider.counts().images,20);
+  const responses=await Promise.all(Array.from({length:8},(_,i)=>f.call('images','POST',{id:i%2?'shop-a':'shop-b'},body())));assert.equal(responses.filter(r=>r.status===200).length,1);assert.equal(provider.counts().images,1);
+  const budget=f.load('lib/ai-budget.ts'),before=await budget.budgetAllowance('owner-a','image');assert.equal(before.used,1);assert.equal(before.limit,null);assert.equal(before.scope,'fair_use');
+  f.db.prepare("UPDATE account_access SET expires_at=?,updated_at=? WHERE owner_id='owner-a'").run(second()+90*86400,new Date().toISOString());const after=await budget.budgetAllowance('owner-a','image');assert.equal(after.period,before.period);assert.equal(after.used,1);assert.equal(after.limit,null);
  }finally{provider.close();f.close();}
 });
 
