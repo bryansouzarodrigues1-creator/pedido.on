@@ -12,6 +12,7 @@ import {galleryStyles,galleryDesign,type GalleryStyleId} from "@/lib/gallery-sty
 import {MiniMenu,Spinner} from "./ui";
 import Menu from "./menu";
 import {z} from "zod";
+import OwnerControl from "./owner-control";
 import SavedCreations from "./saved-creations";
 import type {SavedCreation} from "@/lib/creation-history-policy";
 
@@ -114,7 +115,7 @@ export default function StudioChat({data,restaurantId,restaurantSlug,onApply,onC
  function readyStyle(id:GalleryStyleId){if(busy||pending)return;const next=galleryDesign(current.current,id,"");setGuide(null);setProposal({reply:"Veja como sua pizzaria fica neste estilo.",theme:next.theme,accent:next.accent,presentation:next.presentation,productDescriptions:[]});setBase(JSON.stringify(current.current));setGenerated(null);setResultMode("local");setApplied(false);setError("");}
  function adjustPresentation(value:Partial<MenuPresentation>){if(busy||pending||stale)return;setProposal(old=>({...old,reply:old?.reply||"Confira a composição do seu cardápio.",productDescriptions:old?.productDescriptions||[],presentation:{...menuPresentation(preview),...value}}));if(!base)setBase(JSON.stringify(current.current));setApplied(false);setResultMode(resultMode||"local");}
  function prepareImage(){const brief=proposal?.imageBrief;if(!brief)return;setTarget(brief.asset);setMessage(brief.description);setProductId(brief.productId||"");setError("");}
- return <><div className="pizza-studio">
+ return <>{restaurantId&&!demo&&onApply&&<OwnerControl key={restaurantId} data={data} restaurantId={restaurantId} onApply={onApply} onNavigate={onNavigate}/>}<div className="pizza-studio">
   <section className="creation-form">
    <div className="creation-heading"><span className="creation-icon"><Sparkles size={23}/></span><div><h2>{restaurantId?"Ajuste seu cardápio":"Sua assistente para montar a pizzaria."}</h2><p>{quickAnswer?"Esta dúvida ou alteração simples pode ser resolvida aqui, sem consumir créditos.":isImage?"Descreva a imagem que você quer criar. Confira a arte antes de usar.":`Peça uma mudança no visual de ${data.name}. Os produtos e preços são preservados.`}</p></div></div>
    <form onSubmit={e=>send(e)}>

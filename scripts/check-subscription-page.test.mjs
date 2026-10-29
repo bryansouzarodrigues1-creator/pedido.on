@@ -22,7 +22,7 @@ test('the actual public home offers both canonical paid plans and preserves the 
   const pro=html.match(/<article[^>]*data-plan="profissional"[\s\S]*?<\/article>/)?.[0];
   assert.ok(essential&&pro,'The home must render both paid plans, not only an unused card component');
   assert.match(essential,/ESSENCIAL/);assert.match(essential,/R\$ 49/);assert.match(essential,/href="\/assinatura\?plan=essencial"/);
-  assert.match(pro,/>PRO</);assert.match(pro,/R\$ 89/);assert.doesNotMatch(pro,/R\$ 49/);assert.match(pro,/Atendente de IA no seu cardápio/);assert.match(pro,/href="\/assinatura\?plan=profissional"/);
+  assert.match(pro,/>PRO</);assert.match(pro,/R\$ 89/);assert.doesNotMatch(pro,/R\$ 49/);assert.match(pro,/Atendente de IA no seu cardápio/);assert.match(pro,/Assistente do dono: ajustes de cardápio, textos e promoções/);assert.match(pro,/href="\/assinatura\?plan=profissional"/);
   assert.match(html,/>FREE</);assert.match(html,/10 dias grátis/);assert.match(html,/Duas rodadas de sugestões com modelos prontos/);assert.match(html,/1 imagem promocional de IA com texto no teste/);assert.doesNotMatch(html,/Quatro fotos|20 novas imagens|20 por semana/);assert.match(essential,/Até 3 novas imagens com IA por dia, com legenda/);assert.match(pro,/sem cota mensal fixa/);assert.match(html,/até 3 solicitações por minuto/);
   assert.ok(html.indexOf('owner-intake-message')<html.indexOf('data-plan="essencial"'));
   assert.doesNotMatch(html,/assinatura\?plan=rede|R\$ 149/);
